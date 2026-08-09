@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Football Depth Chart Manager (44 & 21)</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --card-border: #cbd5e1;
+      --primary: #1e3a8a;
+      --accent: #2563eb;
+      --text: #0f172a;
+      --text-muted: #64748b;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 15px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 2px;
+      color: var(--primary);
+      font-size: 24px;
+    }
+
+    p.subtitle {
+      text-align: center;
+      color: var(--text-muted);
+      margin-bottom: 15px;
+      font-size: 13px;
+    }
+
+    /* Action Toolbar (Save/Export/Import) */
+    .toolbar {
+      max-width: 1400px;
+      margin: 0 auto 15px auto;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .toolbar button {
+      padding: 8px 14px;
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: bold;
+      background-color: #ffffff;
+      color: var(--primary);
+      cursor: pointer;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+      transition: all 0.2s;
+    }
+
+    .toolbar button:hover {
+      background-color: #eff6ff;
+      border-color: var(--accent);
+    }
+
+    /* Main Layout */
+    .app-layout {
+      display: flex;
+      gap: 15px;
+      max-width: 1400px;
+      margin: 0 auto;
+      flex-wrap: wrap;
+    }
+
+    .boards-container {
+      flex: 3;
+      min-width: 750px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .formation-container {
+      background: #ffffff;
+      border: 2px dashed var(--card-border);
+      border-radius: 10px;
+      padding: 15px;
+      position: relative;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .board-title {
+      font-size: 16px;
+      font-weight: bold;
+      color: var(--primary);
+      margin-bottom: 15px;
+      border-bottom: 2px solid var(--primary);
+      padding-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    /* Level Dividers */
+    .level-label {
+      font-size: 10px;
+      font-weight: bold;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 2px;
+    }
+
+    /* Formation Rows */
+    .formation-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .formation-row.secondary-corners { 
+      justify-content: space-between; 
+      padding: 0 5px; 
+      margin-bottom: 5px;
+    }
+    .formation-row.secondary-safety { 
+      justify-content: center; 
+      margin-bottom: 15px;
+    }
+
+    .formation-row.linebackers-tight { 
+      justify-content: center; 
+      gap: 20px; 
+    }
+
+    .formation-row.dl { justify-content: center; gap: 35px; }
+
+    /* Offense Line of Scrimmage & Backfield Rows */
+    .formation-row.oline { justify-content: center; gap: 12px; }
+    .formation-row.receivers-dropped { justify-content: space-between; padding: 0 10px; margin-top: -5px; }
+    .formation-row.backfield { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+
+    /* Tactical Position Cards */
+    .position-card {
+      background: var(--card-bg);
+      border-radius: 6px;
+      border: 2px solid var(--card-border);
+      min-width: 110px;
+      max-width: 140px;
+      flex: 1;
+      overflow: hidden;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+      transition: border-color 0.2s, transform 0.1s;
+    }
+
+    .position-card.drag-over {
+      border-color: var(--accent);
+      background: #eff6ff;
+      transform: scale(1.02);
+    }
+
+    .position-card.wide-olb { border-color: var(--accent); }
+    .position-card.wideout { border-color: var(--accent); }
+
+    .position-header {
+      background: #f1f5f9;
+      padding: 4px 8px;
+      font-weight: bold;
+      font-size: 11px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--card-border);
+      color: var(--primary);
+      pointer-events: none;
+    }
+
+    .player-list {
+      list-style: none;
+      padding: 4px;
+      margin: 0;
+      min-height: 50px;
+    }
+
+    .player-item {
+      background: #f8fafc;
+      border: 1px solid var(--card-border);
+      padding: 4px 6px;
+      margin-bottom: 4px;
+      border-radius: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: grab;
+      font-size: 11px;
+    }
+
+    .player-item:active { cursor: grabbing; }
+
+    .player-info {
+      display: flex;
+      gap: 5px;
+      align-items: center;
+      pointer-events: none;
+    }
+
+    .num-tag {
+      font-weight: bold;
+    }
+
+    /* Sub & Starter Colors */
+    .rank-badge {
+      font-size: 8px;
+      font-weight: bold;
+      padding: 2px 4px;
+      border-radius: 3px;
+      text-transform: uppercase;
+    }
+
+    /* Starters: Black */
+    .rank-starter { 
+      background: #000000; 
+      color: #ffffff; 
+    }
+
+    /* Sub 1 (D2): Blue */
+    .rank-sub-blue { 
+      background: #1d4ed8; 
+      color: #ffffff; 
+    }
+
+    /* Sub 2+ (D3+): Gold */
+    .rank-sub-gold { 
+      background: #eab308; 
+      color: #000000; 
+    }
+
+    /* Player Text Colors */
+    .player-item.is-starter {
+      color: #000000;
+      font-weight: bold;
+    }
+
+    .player-item.is-sub-blue {
+      color: #1d4ed8;
+      font-weight: bold;
+    }
+
+    .player-item.is-sub-gold {
+      color: #b45309;
+      font-weight: bold;
+    }
+
+    .remove-btn {
+      background: none;
+      border: none;
+      color: #ef4444;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    /* Sidebar Roster Panel */
+    .sidebar {
+      flex: 1;
+      min-width: 230px;
+      background: var(--card-bg);
+      border-radius: 8px;
+      padding: 12px;
+      border: 1px solid var(--card-border);
+      max-height: 850px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .sidebar h2 {
+      font-size: 14px;
+      margin-top: 0;
+      color: var(--primary);
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 8px;
+    }
+
+    .full-roster-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      overflow-y: auto;
+    }
+
+    .full-roster-item {
+      padding: 6px 8px;
+      border-bottom: 1px solid #f1f5f9;
+      display: flex;
+      align-items: center;
+      font-size: 11px;
+      cursor: grab;
+      background: #f8fafc;
+      margin-bottom: 4px;
+      border-radius: 4px;
+      border: 1px solid var(--card-border);
+    }
+
+    .full-roster-item:hover {
+      border-color: var(--accent);
+      background: #eff6ff;
+    }
+
+    .empty-msg {
+      color: var(--text-muted);
+      text-align: center;
+      font-style: italic;
+      font-size: 10px;
+      margin-top: 10px;
+      pointer-events: none;
+    }
+
+    /* PRINT STYLES */
+    @media print {
+      body {
+        background-color: #ffffff;
+        padding: 0;
+        margin: 0;
+      }
+
+      .toolbar, .sidebar, .remove-btn, p.subtitle {
+        display: none !important;
+      }
+
+      .app-layout {
+        display: block;
+        max-width: 100%;
+      }
+
+      .boards-container {
+        gap: 10px;
+        min-width: 100%;
+      }
+
+      .formation-container {
+        border: 1px solid #000000;
+        box-shadow: none;
+        padding: 8px;
+        page-break-inside: avoid;
+      }
+
+      .position-card {
+        border: 1px solid #000000 !important;
+        box-shadow: none !important;
+        min-width: 90px;
+      }
+
+      .position-header {
+        background: #e2e8f0 !important;
+        color: #000000 !important;
+        border-bottom: 1px solid #000000 !important;
+      }
+
+      .player-item {
+        border: 1px solid #cbd5e1 !important;
+      }
+
+      h1 {
+        margin-top: 0;
+        font-size: 18px;
+        color: #000000;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🏈 Depth Chart Manager</h1>
+  <p class="subtitle">Drag players onto position cards. Auto-saves locally. Press Ctrl+P (Cmd+P) to print.</p>
+
+  <!-- Toolbar for Exporting and Importing Setup for Other Coaches -->
+  <div class="toolbar">
+    <button onclick="exportData()">Export Setup (For Coaches)</button>
+    <button onclick="document.getElementById('import-file').click()">Import Setup</button>
+    <button onclick="resetDefault()" style="color:#ef4444;">Reset Default</button>
+    <input type="file" id="import-file" style="display:none;" onchange="importData(event)" accept=".json" />
+  </div>
+
+  <div class="app-layout">
+    
+    <div class="boards-container">
+      
+      <!-- 44 DEFENSE BOARD -->
+      <div class="formation-container" id="defense-board">
+        <div class="board-title">
+          <span>44 Defense</span>
+          <span style="font-size:12px; color:var(--text-muted); font-weight:normal;">Stack Front</span>
+        </div>
+
+        <div class="level-label">Free Safety (Deep Center)</div>
+        <div class="formation-row secondary-safety">
+          <div class="position-card" id="card-FS"></div>
+        </div>
+
+        <div class="level-label">Secondary / Cornerbacks (Press / Wide Edge)</div>
+        <div class="formation-row secondary-corners">
+          <div class="position-card" id="card-CB1"></div>
+          <div class="position-card" id="card-CB2"></div>
+        </div>
+
+        <!-- Linebacker Level: WILL and MIKE Swapped -->
+        <div class="level-label">Linebacker Level (ROVER - WILL - MIKE - SAM)</div>
+        <div class="formation-row linebackers-tight">
+          <div class="position-card wide-olb" id="card-ROVER"></div>
+          <div class="position-card" id="card-WILL"></div>
+          <div class="position-card" id="card-MIKE"></div>
+          <div class="position-card wide-olb" id="card-SAM"></div>
+        </div>
+
+        <!-- DL Front Alignment -->
+        <div class="level-label" style="margin-top: 15px;">Defensive Line (Front 4: WDE - DT1 - DT2 - SDE)</div>
+        <div class="formation-row dl">
+          <div class="position-card" id="card-WDE"></div>
+          <div class="position-card" id="card-DT1"></div>
+          <div class="position-card" id="card-DT2"></div>
+          <div class="position-card" id="card-SDE"></div>
+        </div>
+
+      </div>
+
+      <!-- 21 OFFENSE BOARD -->
+      <div class="formation-container" id="offense-board">
+        <div class="board-title">
+          <span>21 Offense</span>
+          <span style="font-size:12px; color:var(--text-muted); font-weight:normal;">I-Formation</span>
+        </div>
+
+        <!-- Offensive Line & TE -->
+        <div class="level-label">Offensive Line (LT - LG - C - RG - RT - TE)</div>
+        <div class="formation-row oline">
+          <div class="position-card" id="card-LT"></div>
+          <div class="position-card" id="card-LG"></div>
+          <div class="position-card" id="card-C"></div>
+          <div class="position-card" id="card-RG"></div>
+          <div class="position-card" id="card-RT"></div>
+          <div class="position-card" id="card-TE"></div>
+        </div>
+
+        <!-- Receivers X & Z -->
+        <div class="level-label">Wideouts / Flankers (Split Wide)</div>
+        <div class="formation-row receivers-dropped">
+          <div class="position-card wideout" id="card-X"></div>
+          <div class="position-card wideout" id="card-Z"></div>
+        </div>
+
+        <!-- Backfield Stack -->
+        <div class="level-label" style="margin-top: 15px;">Backfield (1 - 2 - 3 Stack)</div>
+        <div class="formation-row backfield">
+          <div class="position-card" id="card-1"></div>
+          <div class="position-card" id="card-2"></div>
+          <div class="position-card" id="card-3"></div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Master Roster Sidebar -->
+    <div class="sidebar">
+      <h2>Master Roster (Last Name)</h2>
+      <ul class="full-roster-list" id="master-roster-list"></ul>
+    </div>
+  </div>
+
+  <script>
+    const masterRoster = [
+      { num: "2", name: "Ibrahim" },
+      { num: "4", name: "Cambigianis" },
+      { num: "6", name: "Henderson" },
+      { num: "7", name: "Silva" },
+      { num: "8", name: "Kilkenny" },
+      { num: "10", name: "Mancini" },
+      { num: "11", name: "Berish" },
+      { num: "12", name: "Barry" },
+      { num: "13", name: "Veto" },
+      { num: "15", name: "Swansen" },
+      { num: "17", name: "Dicob" },
+      { num: "19", name: "Nardella" },
+      { num: "20", name: "Furfaro" },
+      { num: "21", name: "Ward" },
+      { num: "22", name: "Pestone" },
+      { num: "27", name: "Lacerra" },
+      { num: "33", name: "Frascone" },
+      { num: "34", name: "Flemming" },
+      { num: "40", name: "Sokol" },
+      { num: "44", name: "Jones" },
+      { num: "48", name: "Sweeny" },
+      { num: "50", name: "Convery" },
+      { num: "52", name: "Piqueras" },
+      { num: "56", name: "Russell" },
+      { num: "66", name: "Mucciacciaro" },
+      { num: "99", name: "Crean" }
+    ];
+
+    const defenseKeys = ["CB1", "FS", "CB2", "ROVER", "WILL", "MIKE", "SAM", "WDE", "DT1", "DT2", "SDE"];
+    const offenseKeys = ["X", "LT", "LG", "C", "RG", "RT", "TE", "Z", "1", "2", "3"];
+    const allKeys = [...defenseKeys, ...offenseKeys];
+
+    const defaultDepthChart = {
+      // 44 Defense (WILL & MIKE Swapped)
+      "WDE":   [{ name: "Ibrahim", num: "2" }],
+      "DT1":   [{ name: "Convery", num: "50" }],
+      "DT2":   [{ name: "Dicob", num: "17" }],
+      "SDE":   [{ name: "Frascone", num: "33" }],
+      "ROVER": [{ name: "Flemming", num: "34" }],
+      "WILL":  [{ name: "Veto", num: "13" }],
+      "MIKE":  [{ name: "Berish", num: "11" }],
+      "SAM":   [{ name: "Russell", num: "56" }],
+      "CB1":   [{ name: "Silva", num: "7" }],
+      "FS":    [{ name: "Kilkenny", num: "8" }],
+      "CB2":   [{ name: "Mancini", num: "10" }],
+
+      // 21 Offense
+      "X":    [{ name: "Henderson", num: "6" }, { name: "Nardella", num: "19" }],
+      "LT":   [{ name: "Mucciacciaro", num: "66" }],
+      "LG":   [{ name: "Cambigianis", num: "4" }],
+      "C":    [{ name: "Piqueras", num: "52" }],
+      "RG":   [{ name: "Sokol", num: "40" }],
+      "RT":   [{ name: "Crean", num: "99" }],
+      "TE":   [{ name: "Swansen", num: "15" }],
+      "Z":    [{ name: "Barry", num: "12" }, { name: "Furfaro", num: "20" }, { name: "Ward", num: "21" }],
+      "1":    [{ name: "Mancini", num: "10" }],
+      "2":    [{ name: "Sweeny", num: "48" }],
+      "3":    [{ name: "Pestone", num: "22" }, { name: "Jones", num: "44" }]
+    };
+
+    let depthChart = JSON.parse(localStorage.getItem("depthChartData")) || JSON.parse(JSON.stringify(defaultDepthChart));
+
+    function saveState() {
+      localStorage.setItem("depthChartData", JSON.stringify(depthChart));
+    }
+
+    function removePlayer(pos, index) {
+      depthChart[pos].splice(index, 1);
+      saveState();
+      render();
+    }
+
+    let draggedData = null;
+
+    function handleRosterDragStart(e) {
+      draggedData = {
+        type: "roster",
+        name: e.target.dataset.name,
+        num: e.target.dataset.num
+      };
+      e.dataTransfer.effectAllowed = "copy";
+    }
+
+    function handlePlayerDragStart(e) {
+      draggedData = {
+        type: "position",
+        pos: e.target.dataset.pos,
+        index: parseInt(e.target.dataset.index)
+      };
+      e.dataTransfer.effectAllowed = "move";
+    }
+
+    function handleCardDragOver(e) {
+      e.preventDefault();
+      const card = e.currentTarget;
+      card.classList.add("drag-over");
+    }
+
+    function handleCardDragLeave(e) {
+      const card = e.currentTarget;
+      card.classList.remove("drag-over");
+    }
+
+    function handleCardDrop(e, targetPos) {
+      e.preventDefault();
+      const card = e.currentTarget;
+      card.classList.remove("drag-over");
+
+      if (!draggedData) return;
+
+      if (!depthChart[targetPos]) depthChart[targetPos] = [];
+
+      if (draggedData.type === "roster") {
+        const exists = depthChart[targetPos].some(p => p.num === draggedData.num && p.name === draggedData.name);
+        if (!exists) {
+          depthChart[targetPos].push({ name: draggedData.name, num: draggedData.num });
+        }
+      } else if (draggedData.type === "position") {
+        if (draggedData.pos === targetPos) {
+          const list = depthChart[targetPos];
+          const [movedPlayer] = list.splice(draggedData.index, 1);
+          list.push(movedPlayer);
+        } else {
+          const sourceList = depthChart[draggedData.pos];
+          const [movedPlayer] = sourceList.splice(draggedData.index, 1);
+          depthChart[targetPos].push(movedPlayer);
+        }
+      }
+
+      draggedData = null;
+      saveState();
+      render();
+    }
+
+    function renderMasterRoster() {
+      const rosterContainer = document.getElementById("master-roster-list");
+      rosterContainer.innerHTML = "";
+
+      masterRoster.forEach(player => {
+        const li = document.createElement("li");
+        li.className = "full-roster-item";
+        li.draggable = true;
+        li.dataset.name = player.name;
+        li.dataset.num = player.num;
+
+        li.ondragstart = handleRosterDragStart;
+
+        li.innerHTML = `<span class="num-tag" style="min-width:28px; color:var(--primary);">#${player.num}</span> <span>${player.name}</span>`;
+        rosterContainer.appendChild(li);
+      });
+    }
+
+    function render() {
+      allKeys.forEach(pos => {
+        const container = document.getElementById(`card-${pos}`);
+        if (!container) return;
+
+        container.innerHTML = "";
+
+        container.ondragover = handleCardDragOver;
+        container.ondragleave = handleCardDragLeave;
+        container.ondrop = (e) => handleCardDrop(e, pos);
+
+        const title = document.createElement("div");
+        title.className = "position-header";
+        const displayLabel = pos === "1" ? "1 (QB)" : pos === "2" ? "2 (FB)" : pos === "3" ? "3 (HB)" : pos;
+        title.innerHTML = `<span>${displayLabel}</span> <span>${(depthChart[pos] || []).length}</span>`;
+        container.appendChild(title);
+
+        const list = document.createElement("ul");
+        list.className = "player-list";
+
+        const players = depthChart[pos] || [];
+
+        if (players.length === 0) {
+          list.innerHTML = `<div class="empty-msg">Drop Player Here</div>`;
+        } else {
+          players.forEach((player, idx) => {
+            const li = document.createElement("li");
+            
+            let itemClass = "player-item ";
+            let rankLabel = "";
+            let badgeClass = "";
+
+            if (idx === 0) {
+              itemClass += "is-starter";
+              rankLabel = "ST";
+              badgeClass = "rank-badge rank-starter";
+            } else if (idx === 1) {
+              itemClass += "is-sub-blue";
+              rankLabel = "D2";
+              badgeClass = "rank-badge rank-sub-blue";
+            } else {
+              itemClass += "is-sub-gold";
+              rankLabel = `D${idx + 1}`;
+              badgeClass = "rank-badge rank-sub-gold";
+            }
+
+            li.className = itemClass;
+            li.draggable = true;
+            li.dataset.pos = pos;
+            li.dataset.index = idx;
+
+            li.ondragstart = handlePlayerDragStart;
+
+            li.innerHTML = `
+              <div class="player-info">
+                <span class="${badgeClass}">${rankLabel}</span>
+                <span class="num-tag">#${player.num}</span>
+                <span>${player.name}</span>
+              </div>
+              <button class="remove-btn" onclick="removePlayer('${pos}', ${idx})">&times;</button>
+            `;
+            list.appendChild(li);
+          });
+        }
+
+        container.appendChild(list);
+      });
+    }
+
+    function exportData() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(depthChart, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", "depth_chart_backup.json");
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    function importData(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const importedChart = JSON.parse(e.target.result);
+          depthChart = importedChart;
+          saveState();
+          render();
+          alert("Depth chart successfully loaded!");
+        } catch (err) {
+          alert("Invalid file format.");
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function resetDefault() {
+      if (confirm("Reset depth chart back to default?")) {
+        depthChart = JSON.parse(JSON.stringify(defaultDepthChart));
+        saveState();
+        render();
+      }
+    }
+
+    renderMasterRoster();
+    render();
+  </script>
+</body>
+</html>
