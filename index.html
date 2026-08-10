@@ -2,8 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Football Depth Chart Manager (44 & 21)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Football Depth Chart Manager</title>
+  
+  <!-- Firebase SDKs for Real-Time Cloud Storage -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
   <style>
     :root {
       --bg: #f8fafc;
@@ -20,37 +25,57 @@
       background-color: var(--bg);
       color: var(--text);
       margin: 0;
-      padding: 15px;
+      padding: 10px;
+      -webkit-tap-highlight-color: transparent;
     }
 
     h1 {
       text-align: center;
+      margin-top: 5px;
       margin-bottom: 2px;
       color: var(--primary);
-      font-size: 24px;
+      font-size: 22px;
     }
 
     p.subtitle {
       text-align: center;
       color: var(--text-muted);
-      margin-bottom: 15px;
-      font-size: 13px;
+      margin-bottom: 12px;
+      font-size: 12px;
     }
 
-    /* Action Toolbar (Save/Export/Import) */
+    /* Action Toolbar */
     .toolbar {
       max-width: 1400px;
-      margin: 0 auto 15px auto;
+      margin: 0 auto 12px auto;
       display: flex;
-      justify-content: flex-end;
-      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sync-status {
+      font-size: 11px;
+      font-weight: bold;
+      color: #16a34a;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .sync-dot {
+      width: 8px;
+      height: 8px;
+      background-color: #16a34a;
+      border-radius: 50%;
     }
 
     .toolbar button {
-      padding: 8px 14px;
+      padding: 6px 12px;
       border: 1px solid var(--card-border);
       border-radius: 6px;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: bold;
       background-color: #ffffff;
       color: var(--primary);
@@ -64,37 +89,83 @@
       border-color: var(--accent);
     }
 
+    /* Navigation Tabs */
+    .tab-navigation {
+      max-width: 1400px;
+      margin: 0 auto 15px auto;
+      display: flex;
+      gap: 10px;
+      border-bottom: 2px solid var(--card-border);
+      padding-bottom: 8px;
+    }
+
+    .nav-tab {
+      padding: 8px 18px;
+      border: 1px solid var(--card-border);
+      background: var(--card-bg);
+      color: var(--text-muted);
+      font-weight: bold;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.2s;
+    }
+
+    .nav-tab.active {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+      box-shadow: 0 2px 4px rgba(30, 58, 138, 0.2);
+    }
+
     /* Main Layout */
     .app-layout {
       display: flex;
-      gap: 15px;
+      gap: 12px;
       max-width: 1400px;
       margin: 0 auto;
-      flex-wrap: wrap;
+      flex-direction: row;
+    }
+
+    @media (max-width: 900px) {
+      .app-layout {
+        flex-direction: column-reverse;
+      }
     }
 
     .boards-container {
       flex: 3;
-      min-width: 750px;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .unit-panel {
       display: flex;
       flex-direction: column;
       gap: 20px;
+    }
+
+    .unit-panel.hidden {
+      display: none;
     }
 
     .formation-container {
       background: #ffffff;
       border: 2px dashed var(--card-border);
       border-radius: 10px;
-      padding: 15px;
+      padding: 12px;
       position: relative;
       box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      overflow-x: auto;
     }
 
     .board-title {
-      font-size: 16px;
+      font-size: 15px;
       font-weight: bold;
       color: var(--primary);
-      margin-bottom: 15px;
+      margin-bottom: 12px;
       border-bottom: 2px solid var(--primary);
       padding-bottom: 4px;
       display: flex;
@@ -103,12 +174,12 @@
 
     /* Level Dividers */
     .level-label {
-      font-size: 10px;
+      font-size: 9px;
       font-weight: bold;
       color: var(--text-muted);
       text-transform: uppercase;
       letter-spacing: 1px;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
       border-bottom: 1px solid #e2e8f0;
       padding-bottom: 2px;
     }
@@ -116,8 +187,9 @@
     /* Formation Rows */
     .formation-row {
       display: flex;
-      gap: 10px;
-      margin-bottom: 15px;
+      gap: 6px;
+      margin-bottom: 12px;
+      min-width: 600px;
     }
 
     .formation-row.secondary-corners { 
@@ -127,37 +199,45 @@
     }
     .formation-row.secondary-safety { 
       justify-content: center; 
-      margin-bottom: 15px;
+      margin-bottom: 12px;
     }
 
     .formation-row.linebackers-tight { 
       justify-content: center; 
-      gap: 20px; 
+      gap: 15px; 
     }
 
-    .formation-row.dl { justify-content: center; gap: 35px; }
+    .formation-row.dl { justify-content: center; gap: 20px; }
 
     /* Offense Line of Scrimmage & Backfield Rows */
-    .formation-row.oline { justify-content: center; gap: 12px; }
+    .formation-row.oline { justify-content: center; gap: 8px; }
     .formation-row.receivers-dropped { justify-content: space-between; padding: 0 10px; margin-top: -5px; }
-    .formation-row.backfield { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+    .formation-row.backfield { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+
+    /* Wishbone Formation Specific Rows */
+    .formation-row.wishbone-flanks {
+      justify-content: center;
+      gap: 120px;
+      margin-top: 4px;
+    }
 
     /* Tactical Position Cards */
     .position-card {
       background: var(--card-bg);
       border-radius: 6px;
       border: 2px solid var(--card-border);
-      min-width: 110px;
+      min-width: 105px;
       max-width: 140px;
       flex: 1;
-      overflow: hidden;
+      overflow: visible;
+      position: relative;
       box-shadow: 0 1px 2px rgba(0,0,0,0.05);
       transition: border-color 0.2s, transform 0.1s;
     }
 
-    .position-card.drag-over {
-      border-color: var(--accent);
-      background: #eff6ff;
+    .position-card.drag-over, .position-card.tap-target {
+      border-color: var(--accent) !important;
+      background: #eff6ff !important;
       transform: scale(1.02);
     }
 
@@ -166,7 +246,7 @@
 
     .position-header {
       background: #f1f5f9;
-      padding: 4px 8px;
+      padding: 4px 6px;
       font-weight: bold;
       font-size: 11px;
       display: flex;
@@ -174,14 +254,70 @@
       align-items: center;
       border-bottom: 1px solid var(--card-border);
       color: var(--primary);
-      pointer-events: none;
+    }
+
+    /* Position In-Card Search Input & Dropdown */
+    .card-search-container {
+      padding: 3px 4px;
+      background: #f1f5f9;
+      border-bottom: 1px solid var(--card-border);
+      position: relative;
+    }
+
+    .card-search-input {
+      width: 100%;
+      padding: 3px 5px;
+      border: 1px solid var(--card-border);
+      border-radius: 4px;
+      font-size: 10px;
+      box-sizing: border-box;
+      outline: none;
+      background: #ffffff;
+    }
+
+    .card-search-input:focus {
+      border-color: var(--accent);
+    }
+
+    .card-search-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: #ffffff;
+      border: 1px solid var(--card-border);
+      border-radius: 0 0 6px 6px;
+      max-height: 120px;
+      overflow-y: auto;
+      z-index: 100;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+      display: none;
+    }
+
+    .card-search-dropdown.active {
+      display: block;
+    }
+
+    .dropdown-item {
+      padding: 4px 6px;
+      font-size: 10px;
+      cursor: pointer;
+      border-bottom: 1px solid #f1f5f9;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .dropdown-item:hover {
+      background-color: #eff6ff;
+      color: var(--accent);
+      font-weight: bold;
     }
 
     .player-list {
       list-style: none;
       padding: 4px;
       margin: 0;
-      min-height: 50px;
+      min-height: 45px;
     }
 
     .player-item {
@@ -195,13 +331,22 @@
       align-items: center;
       cursor: grab;
       font-size: 11px;
+      touch-action: manipulation;
     }
 
-    .player-item:active { cursor: grabbing; }
+    .player-item.selected-touch {
+      border-color: #2563eb !important;
+      background-color: #dbeafe !important;
+    }
+
+    .player-item.search-match {
+      background-color: #fef08a !important;
+      border-color: #ca8a04 !important;
+    }
 
     .player-info {
       display: flex;
-      gap: 5px;
+      gap: 4px;
       align-items: center;
       pointer-events: none;
     }
@@ -219,25 +364,21 @@
       text-transform: uppercase;
     }
 
-    /* Starters: Black */
     .rank-starter { 
       background: #000000; 
       color: #ffffff; 
     }
 
-    /* Sub 1 (D2): Blue */
     .rank-sub-blue { 
       background: #1d4ed8; 
       color: #ffffff; 
     }
 
-    /* Sub 2+ (D3+): Gold */
     .rank-sub-gold { 
       background: #eab308; 
       color: #000000; 
     }
 
-    /* Player Text Colors */
     .player-item.is-starter {
       color: #000000;
       font-weight: bold;
@@ -260,12 +401,13 @@
       font-weight: bold;
       cursor: pointer;
       font-size: 13px;
+      padding: 0 4px;
     }
 
     /* Sidebar Roster Panel */
     .sidebar {
       flex: 1;
-      min-width: 230px;
+      min-width: 220px;
       background: var(--card-bg);
       border-radius: 8px;
       padding: 12px;
@@ -279,9 +421,26 @@
     .sidebar h2 {
       font-size: 14px;
       margin-top: 0;
+      margin-bottom: 8px;
       color: var(--primary);
       border-bottom: 1px solid var(--card-border);
-      padding-bottom: 8px;
+      padding-bottom: 6px;
+    }
+
+    .search-box {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      font-size: 12px;
+      margin-bottom: 10px;
+      box-sizing: border-box;
+      outline: none;
+    }
+
+    .search-box:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
     }
 
     .full-roster-list {
@@ -289,6 +448,7 @@
       padding: 0;
       margin: 0;
       overflow-y: auto;
+      max-height: 400px;
     }
 
     .full-roster-item {
@@ -296,17 +456,28 @@
       border-bottom: 1px solid #f1f5f9;
       display: flex;
       align-items: center;
+      justify-content: space-between;
       font-size: 11px;
       cursor: grab;
       background: #f8fafc;
       margin-bottom: 4px;
       border-radius: 4px;
       border: 1px solid var(--card-border);
+      touch-action: manipulation;
     }
 
     .full-roster-item:hover {
       border-color: var(--accent);
       background: #eff6ff;
+    }
+
+    .multi-badge {
+      font-size: 9px;
+      background: #e2e8f0;
+      color: #475569;
+      padding: 1px 5px;
+      border-radius: 10px;
+      font-weight: bold;
     }
 
     .empty-msg {
@@ -326,8 +497,12 @@
         margin: 0;
       }
 
-      .toolbar, .sidebar, .remove-btn, p.subtitle {
+      .toolbar, .sidebar, .remove-btn, p.subtitle, .search-box, .card-search-container, .tab-navigation {
         display: none !important;
+      }
+
+      .unit-panel.hidden {
+        display: flex !important;
       }
 
       .app-layout {
@@ -347,10 +522,14 @@
         page-break-inside: avoid;
       }
 
+      .formation-row {
+        min-width: 100% !important;
+      }
+
       .position-card {
         border: 1px solid #000000 !important;
         box-shadow: none !important;
-        min-width: 90px;
+        min-width: 80px;
       }
 
       .position-header {
@@ -371,92 +550,360 @@
     }
   </style>
 </head>
-<body>
+<body onclick="closeAllDropdowns()">
 
   <h1>🏈 Depth Chart Manager</h1>
-  <p class="subtitle">Drag players onto position cards. Auto-saves locally. Press Ctrl+P (Cmd+P) to print.</p>
+  <p class="subtitle">Switch tabs to view Defense, Offense, or Special Teams. Press Ctrl+P to print.</p>
 
-  <!-- Toolbar for Exporting and Importing Setup for Other Coaches -->
+  <!-- Toolbar -->
   <div class="toolbar">
-    <button onclick="exportData()">Export Setup (For Coaches)</button>
-    <button onclick="document.getElementById('import-file').click()">Import Setup</button>
-    <button onclick="resetDefault()" style="color:#ef4444;">Reset Default</button>
-    <input type="file" id="import-file" style="display:none;" onchange="importData(event)" accept=".json" />
+    <div class="sync-status">
+      <div class="sync-dot"></div>
+      <span id="sync-text">Live Cloud Sync Active</span>
+    </div>
+    <div style="display:flex; gap:6px;">
+      <button onclick="exportData()">Backup</button>
+      <button onclick="document.getElementById('import-file').click()">Import</button>
+      <button onclick="resetDefault()" style="color:#ef4444;">Reset</button>
+      <input type="file" id="import-file" style="display:none;" onchange="importData(event)" accept=".json" />
+    </div>
+  </div>
+
+  <!-- Tab Navigation -->
+  <div class="tab-navigation">
+    <button class="nav-tab active" id="tab-btn-defense" onclick="switchUnitTab('defense')">Defense (44 & 53)</button>
+    <button class="nav-tab" id="tab-btn-offense" onclick="switchUnitTab('offense')">Offense (20, 21, 22, 32)</button>
+    <button class="nav-tab" id="tab-btn-st" onclick="switchUnitTab('st')">Special Teams</button>
   </div>
 
   <div class="app-layout">
     
     <div class="boards-container">
       
-      <!-- 44 DEFENSE BOARD -->
-      <div class="formation-container" id="defense-board">
-        <div class="board-title">
-          <span>44 Defense</span>
-          <span style="font-size:12px; color:var(--text-muted); font-weight:normal;">Stack Front</span>
+      <!-- DEFENSE PANEL (44 & 53) -->
+      <div class="unit-panel" id="panel-defense">
+        
+        <!-- 44 DEFENSE BOARD -->
+        <div class="formation-container" id="defense-board-44">
+          <div class="board-title">
+            <span>44 Defense</span>
+            <span style="font-size:11px; color:var(--text-muted); font-weight:normal;">Stack Front</span>
+          </div>
+
+          <div class="level-label">Free Safety (Deep Center)</div>
+          <div class="formation-row secondary-safety">
+            <div class="position-card" id="card-44-FS" onclick="handleCardTap('44-FS')"></div>
+          </div>
+
+          <div class="level-label">Secondary / Cornerbacks (Press / Wide Edge)</div>
+          <div class="formation-row secondary-corners">
+            <div class="position-card" id="card-44-CB1" onclick="handleCardTap('44-CB1')"></div>
+            <div class="position-card" id="card-44-CB2" onclick="handleCardTap('44-CB2')"></div>
+          </div>
+
+          <div class="level-label">Linebacker Level (ROVER - WILL - MIKE - SAM)</div>
+          <div class="formation-row linebackers-tight">
+            <div class="position-card wide-olb" id="card-44-ROVER" onclick="handleCardTap('44-ROVER')"></div>
+            <div class="position-card" id="card-44-WILL" onclick="handleCardTap('44-WILL')"></div>
+            <div class="position-card" id="card-44-MIKE" onclick="handleCardTap('44-MIKE')"></div>
+            <div class="position-card wide-olb" id="card-44-SAM" onclick="handleCardTap('44-SAM')"></div>
+          </div>
+
+          <div class="level-label" style="margin-top: 12px;">Defensive Line (Front 4: WDE - DT1 - DT2 - SDE)</div>
+          <div class="formation-row dl">
+            <div class="position-card" id="card-44-WDE" onclick="handleCardTap('44-WDE')"></div>
+            <div class="position-card" id="card-44-DT1" onclick="handleCardTap('44-DT1')"></div>
+            <div class="position-card" id="card-44-DT2" onclick="handleCardTap('44-DT2')"></div>
+            <div class="position-card" id="card-44-SDE" onclick="handleCardTap('44-SDE')"></div>
+          </div>
         </div>
 
-        <div class="level-label">Free Safety (Deep Center)</div>
-        <div class="formation-row secondary-safety">
-          <div class="position-card" id="card-FS"></div>
-        </div>
+        <!-- 53 DEFENSE BOARD -->
+        <div class="formation-container" id="defense-board-53">
+          <div class="board-title">
+            <span>53 Defense</span>
+            <span style="font-size:11px; color:var(--text-muted); font-weight:normal;">Odd Front</span>
+          </div>
 
-        <div class="level-label">Secondary / Cornerbacks (Press / Wide Edge)</div>
-        <div class="formation-row secondary-corners">
-          <div class="position-card" id="card-CB1"></div>
-          <div class="position-card" id="card-CB2"></div>
-        </div>
+          <div class="level-label">Safeties / Deep Coverage</div>
+          <div class="formation-row secondary-corners">
+            <div class="position-card" id="card-53-FS" onclick="handleCardTap('53-FS')"></div>
+            <div class="position-card" id="card-53-SS" onclick="handleCardTap('53-SS')"></div>
+          </div>
 
-        <!-- Linebacker Level: WILL and MIKE Swapped -->
-        <div class="level-label">Linebacker Level (ROVER - WILL - MIKE - SAM)</div>
-        <div class="formation-row linebackers-tight">
-          <div class="position-card wide-olb" id="card-ROVER"></div>
-          <div class="position-card" id="card-WILL"></div>
-          <div class="position-card" id="card-MIKE"></div>
-          <div class="position-card wide-olb" id="card-SAM"></div>
-        </div>
+          <div class="level-label">Cornerbacks</div>
+          <div class="formation-row secondary-corners">
+            <div class="position-card" id="card-53-CB1" onclick="handleCardTap('53-CB1')"></div>
+            <div class="position-card" id="card-53-CB2" onclick="handleCardTap('53-CB2')"></div>
+          </div>
 
-        <!-- DL Front Alignment -->
-        <div class="level-label" style="margin-top: 15px;">Defensive Line (Front 4: WDE - DT1 - DT2 - SDE)</div>
-        <div class="formation-row dl">
-          <div class="position-card" id="card-WDE"></div>
-          <div class="position-card" id="card-DT1"></div>
-          <div class="position-card" id="card-DT2"></div>
-          <div class="position-card" id="card-SDE"></div>
+          <div class="level-label">Linebacker Level (WILL - MIKE - SAM)</div>
+          <div class="formation-row linebackers-tight">
+            <div class="position-card" id="card-53-WILL" onclick="handleCardTap('53-WILL')"></div>
+            <div class="position-card" id="card-53-MIKE" onclick="handleCardTap('53-MIKE')"></div>
+            <div class="position-card" id="card-53-SAM" onclick="handleCardTap('53-SAM')"></div>
+          </div>
+
+          <div class="level-label" style="margin-top: 12px;">Defensive Line (5-Man Front: DE1 - DT1 - NT - DT2 - DE2)</div>
+          <div class="formation-row dl">
+            <div class="position-card" id="card-53-DE1" onclick="handleCardTap('53-DE1')"></div>
+            <div class="position-card" id="card-53-DT1" onclick="handleCardTap('53-DT1')"></div>
+            <div class="position-card" id="card-53-NT" onclick="handleCardTap('53-NT')"></div>
+            <div class="position-card" id="card-53-DT2" onclick="handleCardTap('53-DT2')"></div>
+            <div class="position-card" id="card-53-DE2" onclick="handleCardTap('53-DE2')"></div>
+          </div>
         </div>
 
       </div>
 
-      <!-- 21 OFFENSE BOARD -->
-      <div class="formation-container" id="offense-board">
-        <div class="board-title">
-          <span>21 Offense</span>
-          <span style="font-size:12px; color:var(--text-muted); font-weight:normal;">I-Formation</span>
+      <!-- OFFENSE PANEL (20, 21, 22, 32) -->
+      <div class="unit-panel hidden" id="panel-offense">
+        
+        <!-- 20 OFFENSE BOARD -->
+        <div class="formation-container" id="offense-board-20">
+          <div class="board-title">
+            <span>20 Offense</span>
+            <span style="font-size:11px; color:var(--text-muted); font-weight:normal;">2 RBs - 0 TEs - 3 WRs</span>
+          </div>
+
+          <div class="level-label">Offensive Line</div>
+          <div class="formation-row oline">
+            <div class="position-card" id="card-20-LT" onclick="handleCardTap('20-LT')"></div>
+            <div class="position-card" id="card-20-LG" onclick="handleCardTap('20-LG')"></div>
+            <div class="position-card" id="card-20-C" onclick="handleCardTap('20-C')"></div>
+            <div class="position-card" id="card-20-RG" onclick="handleCardTap('20-RG')"></div>
+            <div class="position-card" id="card-20-RT" onclick="handleCardTap('20-RT')"></div>
+          </div>
+
+          <div class="level-label">Wide Receivers (X - Y - Z)</div>
+          <div class="formation-row receivers-dropped">
+            <div class="position-card wideout" id="card-20-X" onclick="handleCardTap('20-X')"></div>
+            <div class="position-card wideout" id="card-20-Y" onclick="handleCardTap('20-Y')"></div>
+            <div class="position-card wideout" id="card-20-Z" onclick="handleCardTap('20-Z')"></div>
+          </div>
+
+          <div class="level-label" style="margin-top: 12px;">Backfield (1 - 2 - 3)</div>
+          <div class="formation-row backfield">
+            <div class="position-card" id="card-20-1" onclick="handleCardTap('20-1')"></div>
+            <div class="position-card" id="card-20-2" onclick="handleCardTap('20-2')"></div>
+            <div class="position-card" id="card-20-3" onclick="handleCardTap('20-3')"></div>
+          </div>
         </div>
 
-        <!-- Offensive Line & TE -->
-        <div class="level-label">Offensive Line (LT - LG - C - RG - RT - TE)</div>
-        <div class="formation-row oline">
-          <div class="position-card" id="card-LT"></div>
-          <div class="position-card" id="card-LG"></div>
-          <div class="position-card" id="card-C"></div>
-          <div class="position-card" id="card-RG"></div>
-          <div class="position-card" id="card-RT"></div>
-          <div class="position-card" id="card-TE"></div>
+        <!-- 21 OFFENSE BOARD -->
+        <div class="formation-container" id="offense-board-21">
+          <div class="board-title">
+            <span>21 Offense</span>
+            <span style="font-size:11px; color:var(--text-muted); font-weight:normal;">2 RBs - 1 TE - 2 WRs</span>
+          </div>
+
+          <div class="level-label">Offensive Line & TE</div>
+          <div class="formation-row oline">
+            <div class="position-card" id="card-21-LT" onclick="handleCardTap('21-LT')"></div>
+            <div class="position-card" id="card-21-LG" onclick="handleCardTap('21-LG')"></div>
+            <div class="position-card" id="card-21-C" onclick="handleCardTap('21-C')"></div>
+            <div class="position-card" id="card-21-RG" onclick="handleCardTap('21-RG')"></div>
+            <div class="position-card" id="card-21-RT" onclick="handleCardTap('21-RT')"></div>
+            <div class="position-card" id="card-21-TE" onclick="handleCardTap('21-TE')"></div>
+          </div>
+
+          <div class="level-label">Wideouts (X - Z)</div>
+          <div class="formation-row receivers-dropped">
+            <div class="position-card wideout" id="card-21-X" onclick="handleCardTap('21-X')"></div>
+            <div class="position-card wideout" id="card-21-Z" onclick="handleCardTap('21-Z')"></div>
+          </div>
+
+          <div class="level-label" style="margin-top: 12px;">Backfield (1 - 2 - 3 Stack)</div>
+          <div class="formation-row backfield">
+            <div class="position-card" id="card-21-1" onclick="handleCardTap('21-1')"></div>
+            <div class="position-card" id="card-21-2" onclick="handleCardTap('21-2')"></div>
+            <div class="position-card" id="card-21-3" onclick="handleCardTap('21-3')"></div>
+          </div>
         </div>
 
-        <!-- Receivers X & Z -->
-        <div class="level-label">Wideouts / Flankers (Split Wide)</div>
-        <div class="formation-row receivers-dropped">
-          <div class="position-card wideout" id="card-X"></div>
-          <div class="position-card wideout" id="card-Z"></div>
+        <!-- 22 OFFENSE BOARD -->
+        <div class="formation-container" id="offense-board-22">
+          <div class="board-title">
+            <span>22 Offense</span>
+            <span style="font-size:11px; color:var(--text-muted); font-weight:normal;">2 RBs - 2 TEs - 1 WR</span>
+          </div>
+
+          <div class="level-label">Offensive Line & Dual TEs</div>
+          <div class="formation-row oline">
+            <div class="position-card" id="card-22-TE1" onclick="handleCardTap('22-TE1')"></div>
+            <div class="position-card" id="card-22-LT" onclick="handleCardTap('22-LT')"></div>
+            <div class="position-card" id="card-22-LG" onclick="handleCardTap('22-LG')"></div>
+            <div class="position-card" id="card-22-C" onclick="handleCardTap('22-C')"></div>
+            <div class="position-card" id="card-22-RG" onclick="handleCardTap('22-RG')"></div>
+            <div class="position-card" id="card-22-RT" onclick="handleCardTap('22-RT')"></div>
+            <div class="position-card" id="card-22-TE2" onclick="handleCardTap('22-TE2')"></div>
+          </div>
+
+          <div class="level-label">Single Receiver (X)</div>
+          <div class="formation-row receivers-dropped" style="justify-content:center;">
+            <div class="position-card wideout" id="card-22-X" onclick="handleCardTap('22-X')"></div>
+          </div>
+
+          <div class="level-label" style="margin-top: 12px;">Backfield (1 - 2 - 3 Stack)</div>
+          <div class="formation-row backfield">
+            <div class="position-card" id="card-22-1" onclick="handleCardTap('22-1')"></div>
+            <div class="position-card" id="card-22-2" onclick="handleCardTap('22-2')"></div>
+            <div class="position-card" id="card-22-3" onclick="handleCardTap('22-3')"></div>
+          </div>
         </div>
 
-        <!-- Backfield Stack -->
-        <div class="level-label" style="margin-top: 15px;">Backfield (1 - 2 - 3 Stack)</div>
-        <div class="formation-row backfield">
-          <div class="position-card" id="card-1"></div>
-          <div class="position-card" id="card-2"></div>
-          <div class="position-card" id="card-3"></div>
+        <!-- 32 OFFENSE BOARD (WISHBONE ORIENTATION) -->
+        <div class="formation-container" id="offense-board-32">
+          <div class="board-title">
+            <span>32 Offense</span>
+            <span style="font-size:11px; color:var(--text-muted); font-weight:normal;">3 RBs - 2 TEs - Wishbone Alignment</span>
+          </div>
+
+          <div class="level-label">Offensive Line & Dual TEs</div>
+          <div class="formation-row oline">
+            <div class="position-card" id="card-32-TE1" onclick="handleCardTap('32-TE1')"></div>
+            <div class="position-card" id="card-32-LT" onclick="handleCardTap('32-LT')"></div>
+            <div class="position-card" id="card-32-LG" onclick="handleCardTap('32-LG')"></div>
+            <div class="position-card" id="card-32-C" onclick="handleCardTap('32-C')"></div>
+            <div class="position-card" id="card-32-RG" onclick="handleCardTap('32-RG')"></div>
+            <div class="position-card" id="card-32-RT" onclick="handleCardTap('32-RT')"></div>
+            <div class="position-card" id="card-32-TE2" onclick="handleCardTap('32-TE2')"></div>
+          </div>
+
+          <div class="level-label" style="margin-top: 12px;">Wishbone Backfield (1 Under Center / 2 Fullback / 3 & 4 Split Flanks)</div>
+          <div class="formation-row backfield">
+            <div class="position-card" id="card-32-1" onclick="handleCardTap('32-1')"></div>
+            <div class="position-card" id="card-32-2" onclick="handleCardTap('32-2')"></div>
+          </div>
+          <div class="formation-row wishbone-flanks">
+            <div class="position-card" id="card-32-3" onclick="handleCardTap('32-3')"></div>
+            <div class="position-card" id="card-32-4" onclick="handleCardTap('32-4')"></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- SPECIAL TEAMS PANEL (Punt, Kickoff, Kick Return, Field Goal) -->
+      <div class="unit-panel hidden" id="panel-st">
+        
+        <!-- PUNT TEAM -->
+        <div class="formation-container" id="st-board-punt">
+          <div class="board-title">
+            <span>Punt Team</span>
+            <span style="font-size:11px; color:var(--text-muted); font-weight:normal;">Shield / Pro Punt</span>
+          </div>
+
+          <div class="level-label">Gunners (Wide Left & Right)</div>
+          <div class="formation-row receivers-dropped">
+            <div class="position-card wideout" id="card-PUNT-GL" onclick="handleCardTap('PUNT-GL')"></div>
+            <div class="position-card wideout" id="card-PUNT-GR" onclick="handleCardTap('PUNT-GR')"></div>
+          </div>
+
+          <div class="level-label">Punt Line (LS - Guards - Tackles - Wings)</div>
+          <div class="formation-row oline">
+            <div class="position-card" id="card-PUNT-LW" onclick="handleCardTap('PUNT-LW')"></div>
+            <div class="position-card" id="card-PUNT-LT" onclick="handleCardTap('PUNT-LT')"></div>
+            <div class="position-card" id="card-PUNT-LG" onclick="handleCardTap('PUNT-LG')"></div>
+            <div class="position-card" id="card-PUNT-LS" onclick="handleCardTap('PUNT-LS')"></div>
+            <div class="position-card" id="card-PUNT-RG" onclick="handleCardTap('PUNT-RG')"></div>
+            <div class="position-card" id="card-PUNT-RT" onclick="handleCardTap('PUNT-RT')"></div>
+            <div class="position-card" id="card-PUNT-RW" onclick="handleCardTap('PUNT-RW')"></div>
+          </div>
+
+          <div class="level-label" style="margin-top: 12px;">Personal Protector & Punter</div>
+          <div class="formation-row backfield">
+            <div class="position-card" id="card-PUNT-PP" onclick="handleCardTap('PUNT-PP')"></div>
+            <div class="position-card" id="card-PUNT-P" onclick="handleCardTap('PUNT-P')"></div>
+          </div>
+        </div>
+
+        <!-- KICKOFF TEAM -->
+        <div class="formation-container" id="st-board-kickoff">
+          <div class="board-title">
+            <span>Kickoff Team</span>
+            <span style="font-size:11px; color:var(--text-muted); font-weight:normal;">10-Man Coverage + Kicker</span>
+          </div>
+
+          <div class="level-label">Left Coverage Lane (L5 - L4 - L3 - L2 - L1)</div>
+          <div class="formation-row oline">
+            <div class="position-card" id="card-KO-L5" onclick="handleCardTap('KO-L5')"></div>
+            <div class="position-card" id="card-KO-L4" onclick="handleCardTap('KO-L4')"></div>
+            <div class="position-card" id="card-KO-L3" onclick="handleCardTap('KO-L3')"></div>
+            <div class="position-card" id="card-KO-L2" onclick="handleCardTap('KO-L2')"></div>
+            <div class="position-card" id="card-KO-L1" onclick="handleCardTap('KO-L1')"></div>
+          </div>
+
+          <div class="level-label">Kicker</div>
+          <div class="formation-row backfield">
+            <div class="position-card" id="card-KO-K" onclick="handleCardTap('KO-K')"></div>
+          </div>
+
+          <div class="level-label">Right Coverage Lane (R1 - R2 - R3 - R4 - R5)</div>
+          <div class="formation-row oline">
+            <div class="position-card" id="card-KO-R1" onclick="handleCardTap('KO-R1')"></div>
+            <div class="position-card" id="card-KO-R2" onclick="handleCardTap('KO-R2')"></div>
+            <div class="position-card" id="card-KO-R3" onclick="handleCardTap('KO-R3')"></div>
+            <div class="position-card" id="card-KO-R4" onclick="handleCardTap('KO-R4')"></div>
+            <div class="position-card" id="card-KO-R5" onclick="handleCardTap('KO-R5')"></div>
+          </div>
+        </div>
+
+        <!-- KICK RETURN TEAM -->
+        <div class="formation-container" id="st-board-kickreturn">
+          <div class="board-title">
+            <span>Kick Return Team</span>
+            <span style="font-size:11px; color:var(--text-muted); font-weight:normal;">Front Wall - Wedge - Returners</span>
+          </div>
+
+          <div class="level-label">Front Blocking Line (5 Players)</div>
+          <div class="formation-row oline">
+            <div class="position-card" id="card-KR-F1" onclick="handleCardTap('KR-F1')"></div>
+            <div class="position-card" id="card-KR-F2" onclick="handleCardTap('KR-F2')"></div>
+            <div class="position-card" id="card-KR-F3" onclick="handleCardTap('KR-F3')"></div>
+            <div class="position-card" id="card-KR-F4" onclick="handleCardTap('KR-F4')"></div>
+            <div class="position-card" id="card-KR-F5" onclick="handleCardTap('KR-F5')"></div>
+          </div>
+
+          <div class="level-label">Wedge / Off-Blockers (4 Players)</div>
+          <div class="formation-row oline">
+            <div class="position-card" id="card-KR-W1" onclick="handleCardTap('KR-W1')"></div>
+            <div class="position-card" id="card-KR-W2" onclick="handleCardTap('KR-W2')"></div>
+            <div class="position-card" id="card-KR-W3" onclick="handleCardTap('KR-W3')"></div>
+            <div class="position-card" id="card-KR-W4" onclick="handleCardTap('KR-W4')"></div>
+          </div>
+
+          <div class="level-label" style="margin-top: 12px;">Deep Returners (2 Players)</div>
+          <div class="formation-row receivers-dropped" style="justify-content:center; gap:40px;">
+            <div class="position-card" id="card-KR-KR1" onclick="handleCardTap('KR-KR1')"></div>
+            <div class="position-card" id="card-KR-KR2" onclick="handleCardTap('KR-KR2')"></div>
+          </div>
+        </div>
+
+        <!-- FIELD GOAL / PAT TEAM -->
+        <div class="formation-container" id="st-board-fg">
+          <div class="board-title">
+            <span>Field Goal / PAT Team</span>
+            <span style="font-size:11px; color:var(--text-muted); font-weight:normal;">Protection Line - Snapper - Holder - Kicker</span>
+          </div>
+
+          <div class="level-label">Protection Line (E - T - G - LS - G - T - E - WingL - WingR)</div>
+          <div class="formation-row oline">
+            <div class="position-card" id="card-FG-WL" onclick="handleCardTap('FG-WL')"></div>
+            <div class="position-card" id="card-FG-LE" onclick="handleCardTap('FG-LE')"></div>
+            <div class="position-card" id="card-FG-LT" onclick="handleCardTap('FG-LT')"></div>
+            <div class="position-card" id="card-FG-LG" onclick="handleCardTap('FG-LG')"></div>
+            <div class="position-card" id="card-FG-LS" onclick="handleCardTap('FG-LS')"></div>
+            <div class="position-card" id="card-FG-RG" onclick="handleCardTap('FG-RG')"></div>
+            <div class="position-card" id="card-FG-RT" onclick="handleCardTap('FG-RT')"></div>
+            <div class="position-card" id="card-FG-RE" onclick="handleCardTap('FG-RE')"></div>
+            <div class="position-card" id="card-FG-WR" onclick="handleCardTap('FG-WR')"></div>
+          </div>
+
+          <div class="level-label" style="margin-top: 12px;">Backfield (Holder & Kicker)</div>
+          <div class="formation-row backfield">
+            <div class="position-card" id="card-FG-H" onclick="handleCardTap('FG-H')"></div>
+            <div class="position-card" id="card-FG-K" onclick="handleCardTap('FG-K')"></div>
+          </div>
         </div>
 
       </div>
@@ -465,166 +912,325 @@
 
     <!-- Master Roster Sidebar -->
     <div class="sidebar">
-      <h2>Master Roster (Last Name)</h2>
+      <h2>Master Roster</h2>
+      <input type="text" id="search-input" class="search-box" placeholder="Search first/last name or #..." oninput="filterRoster()" />
       <ul class="full-roster-list" id="master-roster-list"></ul>
     </div>
   </div>
 
   <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBxAet3UzgBNuMUyUgj2MDWgrK5X63IPvg",
+      authDomain: "u-depth-chart.firebaseapp.com",
+      projectId: "u-depth-chart",
+      storageBucket: "u-depth-chart.firebasestorage.app",
+      messagingSenderId: "303577845736",
+      appId: "1:303577845736:web:34588bbe5e07f1322e1e5d",
+    };
+
+    let db = null;
+    let cloudEnabled = false;
+
+    try {
+      if (firebaseConfig.apiKey !== "YOUR_API_KEY") {
+        firebase.initializeApp(firebaseConfig);
+        db = firebase.firestore();
+        cloudEnabled = true;
+      }
+    } catch (err) {
+      console.warn("Firebase not configured. Using local storage mode.", err);
+    }
+
     const masterRoster = [
-      { num: "2", name: "Ibrahim" },
-      { num: "4", name: "Cambigianis" },
-      { num: "6", name: "Henderson" },
-      { num: "7", name: "Silva" },
-      { num: "8", name: "Kilkenny" },
-      { num: "10", name: "Mancini" },
-      { num: "11", name: "Berish" },
-      { num: "12", name: "Barry" },
-      { num: "13", name: "Veto" },
-      { num: "15", name: "Swansen" },
-      { num: "17", name: "Dicob" },
-      { num: "19", name: "Nardella" },
-      { num: "20", name: "Furfaro" },
-      { num: "21", name: "Ward" },
-      { num: "22", name: "Pestone" },
-      { num: "27", name: "Lacerra" },
-      { num: "33", name: "Frascone" },
-      { num: "34", name: "Flemming" },
-      { num: "40", name: "Sokol" },
-      { num: "44", name: "Jones" },
-      { num: "48", name: "Sweeny" },
-      { num: "50", name: "Convery" },
-      { num: "52", name: "Piqueras" },
-      { num: "56", name: "Russell" },
-      { num: "66", name: "Mucciacciaro" },
-      { num: "99", name: "Crean" }
+      { num: "2", firstName: "Mohammed", lastName: "Ibrahim" },
+      { num: "4", firstName: "Vincent", lastName: "Cambigianis" },
+      { num: "6", firstName: "Andrew", lastName: "Henderson" },
+      { num: "7", firstName: "Jayden", lastName: "Silva" },
+      { num: "8", firstName: "James", lastName: "Kilkenny" },
+      { num: "10", firstName: "Luke", lastName: "Mancini" },
+      { num: "11", firstName: "Dorian", lastName: "Berish" },
+      { num: "12", firstName: "Richard", lastName: "Barry" },
+      { num: "13", firstName: "Landon", lastName: "Veto" },
+      { num: "15", firstName: "Henry", lastName: "Swansen" },
+      { num: "17", firstName: "David", lastName: "Dicob" },
+      { num: "19", firstName: "Paul", lastName: "Nardella" },
+      { num: "20", firstName: "Jack", lastName: "Furfaro" },
+      { num: "21", firstName: "Nash", lastName: "Ward" },
+      { num: "22", firstName: "Jaxson", lastName: "Pestone" },
+      { num: "27", firstName: "Sean", lastName: "Lacerra" },
+      { num: "33", firstName: "Michael", lastName: "Frascone" },
+      { num: "34", firstName: "Eddie", lastName: "Flemming" },
+      { num: "40", firstName: "Chris", lastName: "Sokol" },
+      { num: "44", firstName: "Caden", lastName: "Jones" },
+      { num: "48", firstName: "Michael", lastName: "Sweeny" },
+      { num: "50", firstName: "Colin", lastName: "Convery" },
+      { num: "52", firstName: "John", lastName: "Piqueras" },
+      { num: "56", firstName: "Ryan", lastName: "Russell" },
+      { num: "66", firstName: "Luca", lastName: "Mucciacciaro" },
+      { num: "99", firstName: "Conrad", lastName: "Crean" }
     ];
 
-    const defenseKeys = ["CB1", "FS", "CB2", "ROVER", "WILL", "MIKE", "SAM", "WDE", "DT1", "DT2", "SDE"];
-    const offenseKeys = ["X", "LT", "LG", "C", "RG", "RT", "TE", "Z", "1", "2", "3"];
-    const allKeys = [...defenseKeys, ...offenseKeys];
+    const defense44Keys = ["44-CB1", "44-FS", "44-CB2", "44-ROVER", "44-WILL", "44-MIKE", "44-SAM", "44-WDE", "44-DT1", "44-DT2", "44-SDE"];
+    const defense53Keys = ["53-CB1", "53-FS", "53-SS", "53-CB2", "53-WILL", "53-MIKE", "53-SAM", "53-DE1", "53-DT1", "53-NT", "53-DT2", "53-DE2"];
+    
+    const offense20Keys = ["20-LT", "20-LG", "20-C", "20-RG", "20-RT", "20-X", "20-Y", "20-Z", "20-1", "20-2", "20-3"];
+    const offense21Keys = ["21-X", "21-LT", "21-LG", "21-C", "21-RG", "21-RT", "21-TE", "21-Z", "21-1", "21-2", "21-3"];
+    const offense22Keys = ["22-TE1", "22-LT", "22-LG", "22-C", "22-RG", "22-RT", "22-TE2", "22-X", "22-1", "22-2", "22-3"];
+    const offense32Keys = ["32-TE1", "32-LT", "32-LG", "32-C", "32-RG", "32-RT", "32-TE2", "32-1", "32-2", "32-3", "32-4"];
+
+    const stPuntKeys = ["PUNT-GL", "PUNT-GR", "PUNT-LW", "PUNT-LT", "PUNT-LG", "PUNT-LS", "PUNT-RG", "PUNT-RT", "PUNT-RW", "PUNT-PP", "PUNT-P"];
+    const stKickoffKeys = ["KO-L5", "KO-L4", "KO-L3", "KO-L2", "KO-L1", "KO-K", "KO-R1", "KO-R2", "KO-R3", "KO-R4", "KO-R5"];
+    const stKickReturnKeys = ["KR-F1", "KR-F2", "KR-F3", "KR-F4", "KR-F5", "KR-W1", "KR-W2", "KR-W3", "KR-W4", "KR-KR1", "KR-KR2"];
+    const stFGKeys = ["FG-WL", "FG-LE", "FG-LT", "FG-LG", "FG-LS", "FG-RG", "FG-RT", "FG-RE", "FG-WR", "FG-H", "FG-K"];
+
+    const allKeys = [
+      ...defense44Keys, ...defense53Keys, 
+      ...offense20Keys, ...offense21Keys, ...offense22Keys, ...offense32Keys,
+      ...stPuntKeys, ...stKickoffKeys, ...stKickReturnKeys, ...stFGKeys
+    ];
 
     const defaultDepthChart = {
-      // 44 Defense (WILL & MIKE Swapped)
-      "WDE":   [{ name: "Ibrahim", num: "2" }],
-      "DT1":   [{ name: "Convery", num: "50" }],
-      "DT2":   [{ name: "Dicob", num: "17" }],
-      "SDE":   [{ name: "Frascone", num: "33" }],
-      "ROVER": [{ name: "Flemming", num: "34" }],
-      "WILL":  [{ name: "Veto", num: "13" }],
-      "MIKE":  [{ name: "Berish", num: "11" }],
-      "SAM":   [{ name: "Russell", num: "56" }],
-      "CB1":   [{ name: "Silva", num: "7" }],
-      "FS":    [{ name: "Kilkenny", num: "8" }],
-      "CB2":   [{ name: "Mancini", num: "10" }],
+      "44-WDE":   [{ name: "Ibrahim", num: "2" }],
+      "44-DT1":   [{ name: "Convery", num: "50" }],
+      "44-DT2":   [{ name: "Dicob", num: "17" }],
+      "44-SDE":   [{ name: "Frascone", num: "33" }],
+      "44-ROVER": [{ name: "Flemming", num: "34" }],
+      "44-WILL":  [{ name: "Veto", num: "13" }],
+      "44-MIKE":  [{ name: "Berish", num: "11" }],
+      "44-SAM":   [{ name: "Russell", num: "56" }],
+      "44-CB1":   [{ name: "Silva", num: "7" }],
+      "44-FS":    [{ name: "Kilkenny", num: "8" }],
+      "44-CB2":   [{ name: "Mancini", num: "10" }],
 
-      // 21 Offense
-      "X":    [{ name: "Henderson", num: "6" }, { name: "Nardella", num: "19" }],
-      "LT":   [{ name: "Mucciacciaro", num: "66" }],
-      "LG":   [{ name: "Cambigianis", num: "4" }],
-      "C":    [{ name: "Piqueras", num: "52" }],
-      "RG":   [{ name: "Sokol", num: "40" }],
-      "RT":   [{ name: "Crean", num: "99" }],
-      "TE":   [{ name: "Swansen", num: "15" }],
-      "Z":    [{ name: "Barry", num: "12" }, { name: "Furfaro", num: "20" }, { name: "Ward", num: "21" }],
-      "1":    [{ name: "Mancini", num: "10" }],
-      "2":    [{ name: "Sweeny", num: "48" }],
-      "3":    [{ name: "Pestone", num: "22" }, { name: "Jones", num: "44" }]
+      "21-X":    [{ name: "Henderson", num: "6" }, { name: "Nardella", num: "19" }],
+      "21-LT":   [{ name: "Mucciacciaro", num: "66" }],
+      "21-LG":   [{ name: "Cambigianis", num: "4" }],
+      "21-C":    [{ name: "Piqueras", num: "52" }],
+      "21-RG":   [{ name: "Sokol", num: "40" }],
+      "21-RT":   [{ name: "Crean", num: "99" }],
+      "21-TE":   [{ name: "Swansen", num: "15" }],
+      "21-Z":    [{ name: "Barry", num: "12" }, { name: "Furfaro", num: "20" }, { name: "Ward", num: "21" }],
+      "21-1":    [{ name: "Mancini", num: "10" }],
+      "21-2":    [{ name: "Sweeny", num: "48" }],
+      "21-3":    [{ name: "Pestone", num: "22" }, { name: "Jones", num: "44" }]
     };
 
     let depthChart = JSON.parse(localStorage.getItem("depthChartData")) || JSON.parse(JSON.stringify(defaultDepthChart));
+    let selectedTouchPlayer = null;
+
+    function switchUnitTab(unit) {
+      document.getElementById('panel-defense').classList.toggle('hidden', unit !== 'defense');
+      document.getElementById('panel-offense').classList.toggle('hidden', unit !== 'offense');
+      document.getElementById('panel-st').classList.toggle('hidden', unit !== 'st');
+
+      document.getElementById('tab-btn-defense').classList.toggle('active', unit === 'defense');
+      document.getElementById('tab-btn-offense').classList.toggle('active', unit === 'offense');
+      document.getElementById('tab-btn-st').classList.toggle('active', unit === 'st');
+    }
 
     function saveState() {
       localStorage.setItem("depthChartData", JSON.stringify(depthChart));
+      
+      if (cloudEnabled && db) {
+        document.getElementById("sync-text").textContent = "Syncing...";
+        db.collection("rosters").doc("main10u").set({ depthChart: depthChart })
+          .then(() => {
+            document.getElementById("sync-text").textContent = "Live Cloud Sync Active";
+          })
+          .catch((err) => {
+            console.error("Cloud save failed:", err);
+            document.getElementById("sync-text").textContent = "Saved Locally";
+          });
+      }
     }
 
-    function removePlayer(pos, index) {
+    if (cloudEnabled && db) {
+      db.collection("rosters").doc("main10u").onSnapshot((doc) => {
+        if (doc.exists && doc.data().depthChart) {
+          depthChart = doc.data().depthChart;
+          localStorage.setItem("depthChartData", JSON.stringify(depthChart));
+          render();
+        }
+      });
+    } else {
+      document.getElementById("sync-text").textContent = "Local Storage Mode";
+    }
+
+    function removePlayer(pos, index, e) {
+      if (e) e.stopPropagation();
       depthChart[pos].splice(index, 1);
       saveState();
       render();
     }
 
+    function filterCardDropdown(pos, searchTerm) {
+      const dropdown = document.getElementById(`dropdown-${pos}`);
+      if (!dropdown) return;
+
+      const term = searchTerm.toLowerCase().trim();
+      if (!term) {
+        dropdown.classList.remove("active");
+        return;
+      }
+
+      dropdown.innerHTML = "";
+      const matches = masterRoster.filter(p => 
+        p.firstName.toLowerCase().includes(term) || 
+        p.lastName.toLowerCase().includes(term) || 
+        p.num.toLowerCase().includes(term)
+      );
+
+      if (matches.length === 0) {
+        dropdown.innerHTML = `<div class="dropdown-item" style="color:var(--text-muted);">No match</div>`;
+      } else {
+        matches.forEach(player => {
+          const item = document.createElement("div");
+          item.className = "dropdown-item";
+          item.innerHTML = `<span><strong>#${player.num}</strong> ${player.firstName} ${player.lastName}</span><span>+ Add</span>`;
+          item.onclick = (e) => {
+            e.stopPropagation();
+            addPlayerToPosition(pos, player.lastName, player.num);
+            dropdown.classList.remove("active");
+            document.getElementById(`input-${pos}`).value = "";
+          };
+          dropdown.appendChild(item);
+        });
+      }
+
+      dropdown.classList.add("active");
+    }
+
+    function addPlayerToPosition(pos, name, num) {
+      if (!depthChart[pos]) depthChart[pos] = [];
+      depthChart[pos].push({ name, num });
+      saveState();
+      render();
+    }
+
+    function closeAllDropdowns() {
+      document.querySelectorAll('.card-search-dropdown').forEach(d => d.classList.remove('active'));
+    }
+
     let draggedData = null;
 
     function handleRosterDragStart(e) {
-      draggedData = {
-        type: "roster",
-        name: e.target.dataset.name,
-        num: e.target.dataset.num
-      };
+      draggedData = { type: "roster", name: e.target.dataset.name, num: e.target.dataset.num };
       e.dataTransfer.effectAllowed = "copy";
     }
 
     function handlePlayerDragStart(e) {
-      draggedData = {
-        type: "position",
-        pos: e.target.dataset.pos,
-        index: parseInt(e.target.dataset.index)
+      draggedData = { 
+        type: "position", 
+        name: e.target.dataset.name, 
+        num: e.target.dataset.num, 
+        sourcePos: e.target.dataset.pos, 
+        sourceIndex: parseInt(e.target.dataset.index) 
       };
       e.dataTransfer.effectAllowed = "move";
     }
 
     function handleCardDragOver(e) {
       e.preventDefault();
-      const card = e.currentTarget;
-      card.classList.add("drag-over");
+      e.currentTarget.classList.add("drag-over");
     }
 
     function handleCardDragLeave(e) {
-      const card = e.currentTarget;
-      card.classList.remove("drag-over");
+      e.currentTarget.classList.remove("drag-over");
     }
 
     function handleCardDrop(e, targetPos) {
       e.preventDefault();
-      const card = e.currentTarget;
-      card.classList.remove("drag-over");
-
+      e.currentTarget.classList.remove("drag-over");
       if (!draggedData) return;
 
-      if (!depthChart[targetPos]) depthChart[targetPos] = [];
-
-      if (draggedData.type === "roster") {
-        const exists = depthChart[targetPos].some(p => p.num === draggedData.num && p.name === draggedData.name);
-        if (!exists) {
-          depthChart[targetPos].push({ name: draggedData.name, num: draggedData.num });
-        }
-      } else if (draggedData.type === "position") {
-        if (draggedData.pos === targetPos) {
-          const list = depthChart[targetPos];
-          const [movedPlayer] = list.splice(draggedData.index, 1);
-          list.push(movedPlayer);
-        } else {
-          const sourceList = depthChart[draggedData.pos];
-          const [movedPlayer] = sourceList.splice(draggedData.index, 1);
-          depthChart[targetPos].push(movedPlayer);
-        }
+      if (draggedData.type === "position") {
+        if (draggedData.sourcePos === targetPos) return;
+        depthChart[draggedData.sourcePos].splice(draggedData.sourceIndex, 1);
+        addPlayerToPosition(targetPos, draggedData.name, draggedData.num);
+      } else {
+        addPlayerToPosition(targetPos, draggedData.name, draggedData.num);
       }
 
       draggedData = null;
-      saveState();
+    }
+
+    function handleTouchSelect(name, num, posKey, index, e) {
+      if (e) e.stopPropagation();
+      selectedTouchPlayer = { name, num, posKey, index };
+      render();
+    }
+
+    function handleCardTap(targetPos) {
+      if (!selectedTouchPlayer) return;
+
+      if (selectedTouchPlayer.posKey) {
+        if (selectedTouchPlayer.posKey !== targetPos) {
+          depthChart[selectedTouchPlayer.posKey].splice(selectedTouchPlayer.index, 1);
+          addPlayerToPosition(targetPos, selectedTouchPlayer.name, selectedTouchPlayer.num);
+        }
+      } else {
+        addPlayerToPosition(targetPos, selectedTouchPlayer.name, selectedTouchPlayer.num);
+      }
+
+      selectedTouchPlayer = null;
+      render();
+    }
+
+    function getPlayerPositionsCount(num) {
+      let count = 0;
+      allKeys.forEach(key => {
+        if (depthChart[key]) {
+          count += depthChart[key].filter(p => p.num === num).length;
+        }
+      });
+      return count;
+    }
+
+    function filterRoster() {
+      renderMasterRoster();
       render();
     }
 
     function renderMasterRoster() {
       const rosterContainer = document.getElementById("master-roster-list");
+      const searchTerm = (document.getElementById("search-input") ? document.getElementById("search-input").value : "").toLowerCase().trim();
       rosterContainer.innerHTML = "";
 
       masterRoster.forEach(player => {
+        const matches = player.firstName.toLowerCase().includes(searchTerm) || 
+                        player.lastName.toLowerCase().includes(searchTerm) || 
+                        player.num.toLowerCase().includes(searchTerm);
+        if (searchTerm && !matches) return;
+
+        const spotCount = getPlayerPositionsCount(player.num);
+
         const li = document.createElement("li");
         li.className = "full-roster-item";
         li.draggable = true;
-        li.dataset.name = player.name;
+        li.dataset.name = player.lastName;
         li.dataset.num = player.num;
 
-        li.ondragstart = handleRosterDragStart;
+        if (selectedTouchPlayer && selectedTouchPlayer.num === player.num) {
+          li.classList.add("selected-touch");
+        }
 
-        li.innerHTML = `<span class="num-tag" style="min-width:28px; color:var(--primary);">#${player.num}</span> <span>${player.name}</span>`;
+        li.ondragstart = handleRosterDragStart;
+        li.onclick = (e) => handleTouchSelect(player.lastName, player.num, null, null, e);
+
+        li.innerHTML = `
+          <div>
+            <span class="num-tag" style="min-width:26px; color:var(--primary);">#${player.num}</span> 
+            <span>${player.firstName} ${player.lastName}</span>
+          </div>
+          ${spotCount > 0 ? `<span class="multi-badge">${spotCount} Spot${spotCount > 1 ? 's' : ''}</span>` : ''}
+        `;
         rosterContainer.appendChild(li);
       });
     }
 
     function render() {
+      const searchTerm = (document.getElementById("search-input") ? document.getElementById("search-input").value : "").toLowerCase().trim();
+
       allKeys.forEach(pos => {
         const container = document.getElementById(`card-${pos}`);
         if (!container) return;
@@ -635,11 +1241,27 @@
         container.ondragleave = handleCardDragLeave;
         container.ondrop = (e) => handleCardDrop(e, pos);
 
+        if (selectedTouchPlayer) {
+          container.classList.add("tap-target");
+        } else {
+          container.classList.remove("tap-target");
+        }
+
+        const rawPosName = pos.split('-').slice(1).join('-');
         const title = document.createElement("div");
         title.className = "position-header";
-        const displayLabel = pos === "1" ? "1 (QB)" : pos === "2" ? "2 (FB)" : pos === "3" ? "3 (HB)" : pos;
+        const displayLabel = rawPosName === "1" ? "1 (QB)" : rawPosName === "2" ? "2 (FB)" : rawPosName === "3" ? "3 (HB)" : rawPosName === "4" ? "4 (RB)" : rawPosName;
         title.innerHTML = `<span>${displayLabel}</span> <span>${(depthChart[pos] || []).length}</span>`;
         container.appendChild(title);
+
+        const searchDiv = document.createElement("div");
+        searchDiv.className = "card-search-container";
+        searchDiv.onclick = (e) => e.stopPropagation();
+        searchDiv.innerHTML = `
+          <input type="text" id="input-${pos}" class="card-search-input" placeholder="+ Find player..." oninput="filterCardDropdown('${pos}', this.value)" onfocus="filterCardDropdown('${pos}', this.value)" />
+          <div id="dropdown-${pos}" class="card-search-dropdown"></div>
+        `;
+        container.appendChild(searchDiv);
 
         const list = document.createElement("ul");
         list.className = "player-list";
@@ -647,7 +1269,7 @@
         const players = depthChart[pos] || [];
 
         if (players.length === 0) {
-          list.innerHTML = `<div class="empty-msg">Drop Player Here</div>`;
+          list.innerHTML = `<div class="empty-msg">${selectedTouchPlayer ? "Tap to Add/Move" : "Drop Player"}</div>`;
         } else {
           players.forEach((player, idx) => {
             const li = document.createElement("li");
@@ -670,12 +1292,27 @@
               badgeClass = "rank-badge rank-sub-gold";
             }
 
+            const masterEntry = masterRoster.find(m => m.num === player.num);
+            const isMatch = searchTerm && masterEntry && (
+              masterEntry.firstName.toLowerCase().includes(searchTerm) || 
+              masterEntry.lastName.toLowerCase().includes(searchTerm) || 
+              masterEntry.num.toLowerCase().includes(searchTerm)
+            );
+            const isSelected = selectedTouchPlayer && selectedTouchPlayer.num === player.num;
+
+            if (isMatch || isSelected) {
+              itemClass += " search-match";
+            }
+
             li.className = itemClass;
             li.draggable = true;
             li.dataset.pos = pos;
             li.dataset.index = idx;
+            li.dataset.name = player.name;
+            li.dataset.num = player.num;
 
             li.ondragstart = handlePlayerDragStart;
+            li.onclick = (e) => handleTouchSelect(player.name, player.num, pos, idx, e);
 
             li.innerHTML = `
               <div class="player-info">
@@ -683,7 +1320,7 @@
                 <span class="num-tag">#${player.num}</span>
                 <span>${player.name}</span>
               </div>
-              <button class="remove-btn" onclick="removePlayer('${pos}', ${idx})">&times;</button>
+              <button class="remove-btn" onclick="removePlayer('${pos}', ${idx}, event)">&times;</button>
             `;
             list.appendChild(li);
           });
