@@ -71,7 +71,7 @@
       border-radius: 50%;
     }
 
-    .toolbar button {
+    .toolbar button, .copy-week-btn {
       padding: 6px 12px;
       border: 1px solid var(--card-border);
       border-radius: 6px;
@@ -84,8 +84,62 @@
       transition: all 0.2s;
     }
 
-    .toolbar button:hover {
+    .toolbar button:hover, .copy-week-btn:hover {
       background-color: #eff6ff;
+      border-color: var(--accent);
+    }
+
+    /* Week Schedule Control Bar */
+    .week-bar {
+      max-width: 1400px;
+      margin: 0 auto 12px auto;
+      background: #ffffff;
+      border: 1px solid var(--card-border);
+      padding: 8px 12px;
+      border-radius: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    }
+
+    .week-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .week-label {
+      font-size: 12px;
+      font-weight: bold;
+      color: var(--primary);
+    }
+
+    .week-select {
+      padding: 5px 8px;
+      border-radius: 6px;
+      border: 1px solid var(--card-border);
+      font-size: 12px;
+      font-weight: bold;
+      color: var(--primary);
+      background: #f8fafc;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .opponent-input {
+      padding: 5px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--card-border);
+      font-size: 12px;
+      outline: none;
+      width: 200px;
+    }
+
+    .opponent-input:focus {
       border-color: var(--accent);
     }
 
@@ -129,7 +183,7 @@
 
     @media (max-width: 900px) {
       .app-layout {
-        flex-direction: column; /* Boards first, Master Roster below on mobile */
+        flex-direction: column;
       }
     }
 
@@ -399,7 +453,6 @@
       color: #000000; 
     }
 
-    /* Neutral Gray Badging After Spot 3 */
     .rank-sub-gray {
       background: #64748b;
       color: #ffffff;
@@ -551,7 +604,7 @@
         margin: 0;
       }
 
-      .toolbar, .sidebar, .remove-btn, .action-group, p.subtitle, .search-box, .card-search-container, .tab-navigation, .toggle-board-btn {
+      .toolbar, .sidebar, .remove-btn, .action-group, p.subtitle, .search-box, .card-search-container, .tab-navigation, .toggle-board-btn, .week-bar {
         display: none !important;
       }
 
@@ -611,7 +664,7 @@
 <body onclick="closeAllDropdowns()">
 
   <h1>🏈 Depth Chart Manager</h1>
-  <p class="subtitle">Use ▲/▼ to reorder starters & reserves. Positions past 3rd spot are neutral gray. Press Ctrl+P to print.</p>
+  <p class="subtitle">Select week/opponent, copy lineups between weeks, or reorder starters with ▲/▼. Press Ctrl+P to print.</p>
 
   <!-- Toolbar -->
   <div class="toolbar">
@@ -624,6 +677,29 @@
       <button onclick="document.getElementById('import-file').click()">Import</button>
       <button onclick="resetDefault()" style="color:#ef4444;">Reset</button>
       <input type="file" id="import-file" style="display:none;" onchange="importData(event)" accept=".json" />
+    </div>
+  </div>
+
+  <!-- Week & Schedule Control Bar -->
+  <div class="week-bar">
+    <div class="week-controls">
+      <span class="week-label">Schedule Week:</span>
+      <select id="week-select" class="week-select" onchange="changeWeek(this.value)">
+        <option value="0">Week 0</option>
+        <option value="1">Week 1</option>
+        <option value="2">Week 2</option>
+        <option value="3">Week 3</option>
+        <option value="4">Week 4</option>
+        <option value="5">Week 5</option>
+        <option value="6">Week 6</option>
+        <option value="7">Week 7</option>
+        <option value="8">Week 8</option>
+      </select>
+      <button class="copy-week-btn" onclick="copyWeekToPrompt()">📋 Copy Lineup To...</button>
+    </div>
+    <div class="week-controls">
+      <span class="week-label">Opponent / Label:</span>
+      <input type="text" id="opponent-input" class="opponent-input" placeholder="e.g., vs. Patriots / Preseason" oninput="updateOpponentLabel(this.value)" />
     </div>
   </div>
 
@@ -644,7 +720,7 @@
         <!-- 44 DEFENSE BOARD -->
         <div class="formation-container" id="defense-board-44">
           <div class="board-title">
-            <span>44 Defense <span style="font-size:11px; color:var(--text-muted); font-weight:normal; margin-left:8px;">Stack Front</span></span>
+            <span>44 Defense <span style="font-size:11px; color:var(--text-muted); font-weight:normal; margin-left:8px;">Stack Front (11 Positions)</span></span>
             <button class="toggle-board-btn" onclick="toggleFormation('body-44', this)">Hide</button>
           </div>
 
@@ -678,34 +754,33 @@
           </div>
         </div>
 
-        <!-- 53 DEFENSE BOARD -->
+        <!-- 53 DEFENSE BOARD (EXACTLY 11 POSITIONS: 5 DL, 3 LB, 2 CB, 1 Safety) -->
         <div class="formation-container" id="defense-board-53">
           <div class="board-title">
-            <span>53 Defense <span style="font-size:11px; color:var(--text-muted); font-weight:normal; margin-left:8px;">Odd Front</span></span>
+            <span>53 Defense <span style="font-size:11px; color:var(--text-muted); font-weight:normal; margin-left:8px;">Odd Front (11 Positions)</span></span>
             <button class="toggle-board-btn" onclick="toggleFormation('body-53', this)">Hide</button>
           </div>
 
           <div class="formation-body" id="body-53">
-            <div class="level-label">Safeties / Deep Coverage</div>
-            <div class="formation-row secondary-corners">
+            <div class="level-label">Single Free Safety (Deep Center)</div>
+            <div class="formation-row secondary-safety">
               <div class="position-card" id="card-53-FS" onclick="handleCardTap('53-FS')"></div>
-              <div class="position-card" id="card-53-SS" onclick="handleCardTap('53-SS')"></div>
             </div>
 
-            <div class="level-label">Cornerbacks</div>
+            <div class="level-label">Cornerbacks (Press / Edge)</div>
             <div class="formation-row secondary-corners">
               <div class="position-card" id="card-53-CB1" onclick="handleCardTap('53-CB1')"></div>
               <div class="position-card" id="card-53-CB2" onclick="handleCardTap('53-CB2')"></div>
             </div>
 
-            <div class="level-label">Linebacker Level (WILL - MIKE - SAM)</div>
+            <div class="level-label">Linebacker Level (3 Linebackers: WILL - MIKE - SAM)</div>
             <div class="formation-row linebackers-tight">
               <div class="position-card" id="card-53-WILL" onclick="handleCardTap('53-WILL')"></div>
               <div class="position-card" id="card-53-MIKE" onclick="handleCardTap('53-MIKE')"></div>
               <div class="position-card" id="card-53-SAM" onclick="handleCardTap('53-SAM')"></div>
             </div>
 
-            <div class="level-label" style="margin-top: 12px;">Defensive Line (5-Man Front: DE1 - DT1 - NT - DT2 - DE2)</div>
+            <div class="level-label" style="margin-top: 12px;">Defensive Line (5 Linemen: DE1 - DT1 - NT - DT2 - DE2)</div>
             <div class="formation-row dl">
               <div class="position-card" id="card-53-DE1" onclick="handleCardTap('53-DE1')"></div>
               <div class="position-card" id="card-53-DT1" onclick="handleCardTap('53-DT1')"></div>
@@ -1050,7 +1125,7 @@
     ];
 
     const defense44Keys = ["44-CB1", "44-FS", "44-CB2", "44-ROVER", "44-WILL", "44-MIKE", "44-SAM", "44-WDE", "44-DT1", "44-DT2", "44-SDE"];
-    const defense53Keys = ["53-CB1", "53-FS", "53-SS", "53-CB2", "53-WILL", "53-MIKE", "53-SAM", "53-DE1", "53-DT1", "53-NT", "53-DT2", "53-DE2"];
+    const defense53Keys = ["53-CB1", "53-FS", "53-CB2", "53-WILL", "53-MIKE", "53-SAM", "53-DE1", "53-DT1", "53-NT", "53-DT2", "53-DE2"];
     
     const offense20Keys = ["20-LT", "20-LG", "20-C", "20-RG", "20-RT", "20-Y1", "20-X", "20-Z", "20-1", "20-2", "20-3"];
     const offense21Keys = ["21-X", "21-LT", "21-LG", "21-C", "21-RG", "21-RT", "21-Y1", "21-Z", "21-1", "21-2", "21-3"];
@@ -1094,8 +1169,58 @@
       "21-3":    [{ name: "Pestone", num: "22" }, { name: "Jones", num: "44" }]
     };
 
-    let depthChart = JSON.parse(localStorage.getItem("depthChartData")) || JSON.parse(JSON.stringify(defaultDepthChart));
+    let currentWeek = "0";
+    let weeklyData = JSON.parse(localStorage.getItem("footballWeeklyData")) || {};
+
+    function getWeekDoc(week) {
+      if (!weeklyData[week]) {
+        weeklyData[week] = {
+          opponent: "",
+          depthChart: JSON.parse(JSON.stringify(defaultDepthChart))
+        };
+      }
+      return weeklyData[week];
+    }
+
+    let depthChart = getWeekDoc(currentWeek).depthChart;
     let selectedTouchPlayer = null;
+
+    function changeWeek(newWeek) {
+      currentWeek = newWeek;
+      const weekObj = getWeekDoc(currentWeek);
+      depthChart = weekObj.depthChart;
+      document.getElementById("opponent-input").value = weekObj.opponent || "";
+      render();
+    }
+
+    function updateOpponentLabel(val) {
+      const weekObj = getWeekDoc(currentWeek);
+      weekObj.opponent = val;
+      saveState();
+    }
+
+    function copyWeekToPrompt() {
+      const targetWeek = prompt(`Copy current Week ${currentWeek} depth chart to which week? (Enter a number 0 to 8):`);
+      if (targetWeek === null) return;
+
+      const cleanedTarget = targetWeek.trim();
+      if (!["0", "1", "2", "3", "4", "5", "6", "7", "8"].includes(cleanedTarget)) {
+        alert("Invalid week number! Please enter a single digit between 0 and 8.");
+        return;
+      }
+
+      if (cleanedTarget === currentWeek) {
+        alert("Target week is the same as current week!");
+        return;
+      }
+
+      if (confirm(`Are you sure you want to overwrite Week ${cleanedTarget}'s depth chart with Week ${currentWeek}'s lineup? (Target opponent label will not be changed)`)) {
+        const targetWeekDoc = getWeekDoc(cleanedTarget);
+        targetWeekDoc.depthChart = JSON.parse(JSON.stringify(depthChart));
+        saveState();
+        alert(`Successfully copied Week ${currentWeek} depth chart to Week ${cleanedTarget}!`);
+      }
+    }
 
     function switchUnitTab(unit) {
       document.getElementById('panel-defense').classList.toggle('hidden', unit !== 'defense');
@@ -1115,11 +1240,16 @@
     }
 
     function saveState() {
-      localStorage.setItem("depthChartData", JSON.stringify(depthChart));
+      weeklyData[currentWeek] = {
+        opponent: document.getElementById("opponent-input").value || "",
+        depthChart: depthChart
+      };
+
+      localStorage.setItem("footballWeeklyData", JSON.stringify(weeklyData));
       
       if (cloudEnabled && db) {
         document.getElementById("sync-text").textContent = "Syncing...";
-        db.collection("rosters").doc("main10u").set({ depthChart: depthChart })
+        db.collection("rosters").doc("main10u_weeks").set({ weeklyData: weeklyData })
           .then(() => {
             document.getElementById("sync-text").textContent = "Live Cloud Sync Active";
           })
@@ -1131,10 +1261,13 @@
     }
 
     if (cloudEnabled && db) {
-      db.collection("rosters").doc("main10u").onSnapshot((doc) => {
-        if (doc.exists && doc.data().depthChart) {
-          depthChart = doc.data().depthChart;
-          localStorage.setItem("depthChartData", JSON.stringify(depthChart));
+      db.collection("rosters").doc("main10u_weeks").onSnapshot((doc) => {
+        if (doc.exists && doc.data().weeklyData) {
+          weeklyData = doc.data().weeklyData;
+          localStorage.setItem("footballWeeklyData", JSON.stringify(weeklyData));
+          const weekObj = getWeekDoc(currentWeek);
+          depthChart = weekObj.depthChart;
+          document.getElementById("opponent-input").value = weekObj.opponent || "";
           render();
         }
       });
@@ -1438,10 +1571,10 @@
     }
 
     function exportData() {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(depthChart, null, 2));
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(weeklyData, null, 2));
       const downloadAnchor = document.createElement('a');
       downloadAnchor.setAttribute("href", dataStr);
-      downloadAnchor.setAttribute("download", "depth_chart_backup.json");
+      downloadAnchor.setAttribute("download", "depth_chart_weekly_backup.json");
       document.body.appendChild(downloadAnchor);
       downloadAnchor.click();
       downloadAnchor.remove();
@@ -1454,11 +1587,14 @@
       const reader = new FileReader();
       reader.onload = function(e) {
         try {
-          const importedChart = JSON.parse(e.target.result);
-          depthChart = importedChart;
+          const importedData = JSON.parse(e.target.result);
+          weeklyData = importedData;
           saveState();
+          const weekObj = getWeekDoc(currentWeek);
+          depthChart = weekObj.depthChart;
+          document.getElementById("opponent-input").value = weekObj.opponent || "";
           render();
-          alert("Depth chart successfully loaded!");
+          alert("Weekly schedule & depth chart data successfully loaded!");
         } catch (err) {
           alert("Invalid file format.");
         }
@@ -1467,13 +1603,19 @@
     }
 
     function resetDefault() {
-      if (confirm("Reset depth chart back to default?")) {
-        depthChart = JSON.parse(JSON.stringify(defaultDepthChart));
+      if (confirm(`Reset Week ${currentWeek} back to default?`)) {
+        weeklyData[currentWeek] = {
+          opponent: "",
+          depthChart: JSON.parse(JSON.stringify(defaultDepthChart))
+        };
+        depthChart = weeklyData[currentWeek].depthChart;
+        document.getElementById("opponent-input").value = "";
         saveState();
         render();
       }
     }
 
+    document.getElementById("opponent-input").value = getWeekDoc(currentWeek).opponent || "";
     renderMasterRoster();
     render();
   </script>
