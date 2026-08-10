@@ -118,7 +118,7 @@
       box-shadow: 0 2px 4px rgba(30, 58, 138, 0.2);
     }
 
-    /* Main Layout */
+    /* Main Layout: Mobile Displays Roster at Bottom */
     .app-layout {
       display: flex;
       gap: 12px;
@@ -129,7 +129,7 @@
 
     @media (max-width: 900px) {
       .app-layout {
-        flex-direction: column-reverse;
+        flex-direction: column; /* Boards first, Master Roster below on mobile */
       }
     }
 
@@ -170,6 +170,26 @@
       padding-bottom: 4px;
       display: flex;
       justify-content: space-between;
+      align-items: center;
+    }
+
+    .toggle-board-btn {
+      background: #f1f5f9;
+      border: 1px solid var(--card-border);
+      color: var(--primary);
+      font-size: 11px;
+      font-weight: bold;
+      padding: 3px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .toggle-board-btn:hover {
+      background: #e2e8f0;
+    }
+
+    .formation-body.collapsed {
+      display: none !important;
     }
 
     /* Level Dividers */
@@ -497,12 +517,16 @@
         margin: 0;
       }
 
-      .toolbar, .sidebar, .remove-btn, p.subtitle, .search-box, .card-search-container, .tab-navigation {
+      .toolbar, .sidebar, .remove-btn, p.subtitle, .search-box, .card-search-container, .tab-navigation, .toggle-board-btn {
         display: none !important;
       }
 
       .unit-panel.hidden {
         display: flex !important;
+      }
+
+      .formation-body.collapsed {
+        display: block !important;
       }
 
       .app-layout {
@@ -553,7 +577,7 @@
 <body onclick="closeAllDropdowns()">
 
   <h1>🏈 Depth Chart Manager</h1>
-  <p class="subtitle">Switch tabs to view Defense, Offense, or Special Teams. Press Ctrl+P to print.</p>
+  <p class="subtitle">Switch tabs to view Defense, Offense, or Special Teams. Use Show/Hide to focus on calling plays.</p>
 
   <!-- Toolbar -->
   <div class="toolbar">
@@ -586,71 +610,75 @@
         <!-- 44 DEFENSE BOARD -->
         <div class="formation-container" id="defense-board-44">
           <div class="board-title">
-            <span>44 Defense</span>
-            <span style="font-size:11px; color:var(--text-muted); font-weight:normal;">Stack Front</span>
+            <span>44 Defense <span style="font-size:11px; color:var(--text-muted); font-weight:normal; margin-left:8px;">Stack Front</span></span>
+            <button class="toggle-board-btn" onclick="toggleFormation('body-44', this)">Hide</button>
           </div>
 
-          <div class="level-label">Free Safety (Deep Center)</div>
-          <div class="formation-row secondary-safety">
-            <div class="position-card" id="card-44-FS" onclick="handleCardTap('44-FS')"></div>
-          </div>
+          <div class="formation-body" id="body-44">
+            <div class="level-label">Free Safety (Deep Center)</div>
+            <div class="formation-row secondary-safety">
+              <div class="position-card" id="card-44-FS" onclick="handleCardTap('44-FS')"></div>
+            </div>
 
-          <div class="level-label">Secondary / Cornerbacks (Press / Wide Edge)</div>
-          <div class="formation-row secondary-corners">
-            <div class="position-card" id="card-44-CB1" onclick="handleCardTap('44-CB1')"></div>
-            <div class="position-card" id="card-44-CB2" onclick="handleCardTap('44-CB2')"></div>
-          </div>
+            <div class="level-label">Secondary / Cornerbacks (Press / Wide Edge)</div>
+            <div class="formation-row secondary-corners">
+              <div class="position-card" id="card-44-CB1" onclick="handleCardTap('44-CB1')"></div>
+              <div class="position-card" id="card-44-CB2" onclick="handleCardTap('44-CB2')"></div>
+            </div>
 
-          <div class="level-label">Linebacker Level (ROVER - WILL - MIKE - SAM)</div>
-          <div class="formation-row linebackers-tight">
-            <div class="position-card wide-olb" id="card-44-ROVER" onclick="handleCardTap('44-ROVER')"></div>
-            <div class="position-card" id="card-44-WILL" onclick="handleCardTap('44-WILL')"></div>
-            <div class="position-card" id="card-44-MIKE" onclick="handleCardTap('44-MIKE')"></div>
-            <div class="position-card wide-olb" id="card-44-SAM" onclick="handleCardTap('44-SAM')"></div>
-          </div>
+            <div class="level-label">Linebacker Level (ROVER - WILL - MIKE - SAM)</div>
+            <div class="formation-row linebackers-tight">
+              <div class="position-card wide-olb" id="card-44-ROVER" onclick="handleCardTap('44-ROVER')"></div>
+              <div class="position-card" id="card-44-WILL" onclick="handleCardTap('44-WILL')"></div>
+              <div class="position-card" id="card-44-MIKE" onclick="handleCardTap('44-MIKE')"></div>
+              <div class="position-card wide-olb" id="card-44-SAM" onclick="handleCardTap('44-SAM')"></div>
+            </div>
 
-          <div class="level-label" style="margin-top: 12px;">Defensive Line (Front 4: WDE - DT1 - DT2 - SDE)</div>
-          <div class="formation-row dl">
-            <div class="position-card" id="card-44-WDE" onclick="handleCardTap('44-WDE')"></div>
-            <div class="position-card" id="card-44-DT1" onclick="handleCardTap('44-DT1')"></div>
-            <div class="position-card" id="card-44-DT2" onclick="handleCardTap('44-DT2')"></div>
-            <div class="position-card" id="card-44-SDE" onclick="handleCardTap('44-SDE')"></div>
+            <div class="level-label" style="margin-top: 12px;">Defensive Line (Front 4: WDE - DT1 - DT2 - SDE)</div>
+            <div class="formation-row dl">
+              <div class="position-card" id="card-44-WDE" onclick="handleCardTap('44-WDE')"></div>
+              <div class="position-card" id="card-44-DT1" onclick="handleCardTap('44-DT1')"></div>
+              <div class="position-card" id="card-44-DT2" onclick="handleCardTap('44-DT2')"></div>
+              <div class="position-card" id="card-44-SDE" onclick="handleCardTap('44-SDE')"></div>
+            </div>
           </div>
         </div>
 
         <!-- 53 DEFENSE BOARD -->
         <div class="formation-container" id="defense-board-53">
           <div class="board-title">
-            <span>53 Defense</span>
-            <span style="font-size:11px; color:var(--text-muted); font-weight:normal;">Odd Front</span>
+            <span>53 Defense <span style="font-size:11px; color:var(--text-muted); font-weight:normal; margin-left:8px;">Odd Front</span></span>
+            <button class="toggle-board-btn" onclick="toggleFormation('body-53', this)">Hide</button>
           </div>
 
-          <div class="level-label">Safeties / Deep Coverage</div>
-          <div class="formation-row secondary-corners">
-            <div class="position-card" id="card-53-FS" onclick="handleCardTap('53-FS')"></div>
-            <div class="position-card" id="card-53-SS" onclick="handleCardTap('53-SS')"></div>
-          </div>
+          <div class="formation-body" id="body-53">
+            <div class="level-label">Safeties / Deep Coverage</div>
+            <div class="formation-row secondary-corners">
+              <div class="position-card" id="card-53-FS" onclick="handleCardTap('53-FS')"></div>
+              <div class="position-card" id="card-53-SS" onclick="handleCardTap('53-SS')"></div>
+            </div>
 
-          <div class="level-label">Cornerbacks</div>
-          <div class="formation-row secondary-corners">
-            <div class="position-card" id="card-53-CB1" onclick="handleCardTap('53-CB1')"></div>
-            <div class="position-card" id="card-53-CB2" onclick="handleCardTap('53-CB2')"></div>
-          </div>
+            <div class="level-label">Cornerbacks</div>
+            <div class="formation-row secondary-corners">
+              <div class="position-card" id="card-53-CB1" onclick="handleCardTap('53-CB1')"></div>
+              <div class="position-card" id="card-53-CB2" onclick="handleCardTap('53-CB2')"></div>
+            </div>
 
-          <div class="level-label">Linebacker Level (WILL - MIKE - SAM)</div>
-          <div class="formation-row linebackers-tight">
-            <div class="position-card" id="card-53-WILL" onclick="handleCardTap('53-WILL')"></div>
-            <div class="position-card" id="card-53-MIKE" onclick="handleCardTap('53-MIKE')"></div>
-            <div class="position-card" id="card-53-SAM" onclick="handleCardTap('53-SAM')"></div>
-          </div>
+            <div class="level-label">Linebacker Level (WILL - MIKE - SAM)</div>
+            <div class="formation-row linebackers-tight">
+              <div class="position-card" id="card-53-WILL" onclick="handleCardTap('53-WILL')"></div>
+              <div class="position-card" id="card-53-MIKE" onclick="handleCardTap('53-MIKE')"></div>
+              <div class="position-card" id="card-53-SAM" onclick="handleCardTap('53-SAM')"></div>
+            </div>
 
-          <div class="level-label" style="margin-top: 12px;">Defensive Line (5-Man Front: DE1 - DT1 - NT - DT2 - DE2)</div>
-          <div class="formation-row dl">
-            <div class="position-card" id="card-53-DE1" onclick="handleCardTap('53-DE1')"></div>
-            <div class="position-card" id="card-53-DT1" onclick="handleCardTap('53-DT1')"></div>
-            <div class="position-card" id="card-53-NT" onclick="handleCardTap('53-NT')"></div>
-            <div class="position-card" id="card-53-DT2" onclick="handleCardTap('53-DT2')"></div>
-            <div class="position-card" id="card-53-DE2" onclick="handleCardTap('53-DE2')"></div>
+            <div class="level-label" style="margin-top: 12px;">Defensive Line (5-Man Front: DE1 - DT1 - NT - DT2 - DE2)</div>
+            <div class="formation-row dl">
+              <div class="position-card" id="card-53-DE1" onclick="handleCardTap('53-DE1')"></div>
+              <div class="position-card" id="card-53-DT1" onclick="handleCardTap('53-DT1')"></div>
+              <div class="position-card" id="card-53-NT" onclick="handleCardTap('53-NT')"></div>
+              <div class="position-card" id="card-53-DT2" onclick="handleCardTap('53-DT2')"></div>
+              <div class="position-card" id="card-53-DE2" onclick="handleCardTap('53-DE2')"></div>
+            </div>
           </div>
         </div>
 
@@ -662,122 +690,130 @@
         <!-- 20 OFFENSE BOARD -->
         <div class="formation-container" id="offense-board-20">
           <div class="board-title">
-            <span>20 Offense</span>
-            <span style="font-size:11px; color:var(--text-muted); font-weight:normal;">2 RBs - 0 TEs - 3 WRs</span>
+            <span>20 Offense <span style="font-size:11px; color:var(--text-muted); font-weight:normal; margin-left:8px;">2 RBs - 0 TEs - 3 WRs</span></span>
+            <button class="toggle-board-btn" onclick="toggleFormation('body-20', this)">Hide</button>
           </div>
 
-          <div class="level-label">Offensive Line</div>
-          <div class="formation-row oline">
-            <div class="position-card" id="card-20-LT" onclick="handleCardTap('20-LT')"></div>
-            <div class="position-card" id="card-20-LG" onclick="handleCardTap('20-LG')"></div>
-            <div class="position-card" id="card-20-C" onclick="handleCardTap('20-C')"></div>
-            <div class="position-card" id="card-20-RG" onclick="handleCardTap('20-RG')"></div>
-            <div class="position-card" id="card-20-RT" onclick="handleCardTap('20-RT')"></div>
-          </div>
+          <div class="formation-body" id="body-20">
+            <div class="level-label">Offensive Line</div>
+            <div class="formation-row oline">
+              <div class="position-card" id="card-20-LT" onclick="handleCardTap('20-LT')"></div>
+              <div class="position-card" id="card-20-LG" onclick="handleCardTap('20-LG')"></div>
+              <div class="position-card" id="card-20-C" onclick="handleCardTap('20-C')"></div>
+              <div class="position-card" id="card-20-RG" onclick="handleCardTap('20-RG')"></div>
+              <div class="position-card" id="card-20-RT" onclick="handleCardTap('20-RT')"></div>
+            </div>
 
-          <div class="level-label">Wide Receivers (X - Y - Z)</div>
-          <div class="formation-row receivers-dropped">
-            <div class="position-card wideout" id="card-20-X" onclick="handleCardTap('20-X')"></div>
-            <div class="position-card wideout" id="card-20-Y" onclick="handleCardTap('20-Y')"></div>
-            <div class="position-card wideout" id="card-20-Z" onclick="handleCardTap('20-Z')"></div>
-          </div>
+            <div class="level-label">Wide Receivers (X - Y - Z)</div>
+            <div class="formation-row receivers-dropped">
+              <div class="position-card wideout" id="card-20-X" onclick="handleCardTap('20-X')"></div>
+              <div class="position-card wideout" id="card-20-Y" onclick="handleCardTap('20-Y')"></div>
+              <div class="position-card wideout" id="card-20-Z" onclick="handleCardTap('20-Z')"></div>
+            </div>
 
-          <div class="level-label" style="margin-top: 12px;">Backfield (1 - 2 - 3)</div>
-          <div class="formation-row backfield">
-            <div class="position-card" id="card-20-1" onclick="handleCardTap('20-1')"></div>
-            <div class="position-card" id="card-20-2" onclick="handleCardTap('20-2')"></div>
-            <div class="position-card" id="card-20-3" onclick="handleCardTap('20-3')"></div>
+            <div class="level-label" style="margin-top: 12px;">Backfield (1 - 2 - 3)</div>
+            <div class="formation-row backfield">
+              <div class="position-card" id="card-20-1" onclick="handleCardTap('20-1')"></div>
+              <div class="position-card" id="card-20-2" onclick="handleCardTap('20-2')"></div>
+              <div class="position-card" id="card-20-3" onclick="handleCardTap('20-3')"></div>
+            </div>
           </div>
         </div>
 
         <!-- 21 OFFENSE BOARD -->
         <div class="formation-container" id="offense-board-21">
           <div class="board-title">
-            <span>21 Offense</span>
-            <span style="font-size:11px; color:var(--text-muted); font-weight:normal;">2 RBs - 1 TE - 2 WRs</span>
+            <span>21 Offense <span style="font-size:11px; color:var(--text-muted); font-weight:normal; margin-left:8px;">2 RBs - 1 TE - 2 WRs</span></span>
+            <button class="toggle-board-btn" onclick="toggleFormation('body-21', this)">Hide</button>
           </div>
 
-          <div class="level-label">Offensive Line & TE</div>
-          <div class="formation-row oline">
-            <div class="position-card" id="card-21-LT" onclick="handleCardTap('21-LT')"></div>
-            <div class="position-card" id="card-21-LG" onclick="handleCardTap('21-LG')"></div>
-            <div class="position-card" id="card-21-C" onclick="handleCardTap('21-C')"></div>
-            <div class="position-card" id="card-21-RG" onclick="handleCardTap('21-RG')"></div>
-            <div class="position-card" id="card-21-RT" onclick="handleCardTap('21-RT')"></div>
-            <div class="position-card" id="card-21-TE" onclick="handleCardTap('21-TE')"></div>
-          </div>
+          <div class="formation-body" id="body-21">
+            <div class="level-label">Offensive Line & TE</div>
+            <div class="formation-row oline">
+              <div class="position-card" id="card-21-LT" onclick="handleCardTap('21-LT')"></div>
+              <div class="position-card" id="card-21-LG" onclick="handleCardTap('21-LG')"></div>
+              <div class="position-card" id="card-21-C" onclick="handleCardTap('21-C')"></div>
+              <div class="position-card" id="card-21-RG" onclick="handleCardTap('21-RG')"></div>
+              <div class="position-card" id="card-21-RT" onclick="handleCardTap('21-RT')"></div>
+              <div class="position-card" id="card-21-TE" onclick="handleCardTap('21-TE')"></div>
+            </div>
 
-          <div class="level-label">Wideouts (X - Z)</div>
-          <div class="formation-row receivers-dropped">
-            <div class="position-card wideout" id="card-21-X" onclick="handleCardTap('21-X')"></div>
-            <div class="position-card wideout" id="card-21-Z" onclick="handleCardTap('21-Z')"></div>
-          </div>
+            <div class="level-label">Wideouts (X - Z)</div>
+            <div class="formation-row receivers-dropped">
+              <div class="position-card wideout" id="card-21-X" onclick="handleCardTap('21-X')"></div>
+              <div class="position-card wideout" id="card-21-Z" onclick="handleCardTap('21-Z')"></div>
+            </div>
 
-          <div class="level-label" style="margin-top: 12px;">Backfield (1 - 2 - 3 Stack)</div>
-          <div class="formation-row backfield">
-            <div class="position-card" id="card-21-1" onclick="handleCardTap('21-1')"></div>
-            <div class="position-card" id="card-21-2" onclick="handleCardTap('21-2')"></div>
-            <div class="position-card" id="card-21-3" onclick="handleCardTap('21-3')"></div>
+            <div class="level-label" style="margin-top: 12px;">Backfield (1 - 2 - 3 Stack)</div>
+            <div class="formation-row backfield">
+              <div class="position-card" id="card-21-1" onclick="handleCardTap('21-1')"></div>
+              <div class="position-card" id="card-21-2" onclick="handleCardTap('21-2')"></div>
+              <div class="position-card" id="card-21-3" onclick="handleCardTap('21-3')"></div>
+            </div>
           </div>
         </div>
 
         <!-- 22 OFFENSE BOARD -->
         <div class="formation-container" id="offense-board-22">
           <div class="board-title">
-            <span>22 Offense</span>
-            <span style="font-size:11px; color:var(--text-muted); font-weight:normal;">2 RBs - 2 TEs - 1 WR</span>
+            <span>22 Offense <span style="font-size:11px; color:var(--text-muted); font-weight:normal; margin-left:8px;">2 RBs - 2 TEs - 1 WR</span></span>
+            <button class="toggle-board-btn" onclick="toggleFormation('body-22', this)">Hide</button>
           </div>
 
-          <div class="level-label">Offensive Line & Dual TEs</div>
-          <div class="formation-row oline">
-            <div class="position-card" id="card-22-TE1" onclick="handleCardTap('22-TE1')"></div>
-            <div class="position-card" id="card-22-LT" onclick="handleCardTap('22-LT')"></div>
-            <div class="position-card" id="card-22-LG" onclick="handleCardTap('22-LG')"></div>
-            <div class="position-card" id="card-22-C" onclick="handleCardTap('22-C')"></div>
-            <div class="position-card" id="card-22-RG" onclick="handleCardTap('22-RG')"></div>
-            <div class="position-card" id="card-22-RT" onclick="handleCardTap('22-RT')"></div>
-            <div class="position-card" id="card-22-TE2" onclick="handleCardTap('22-TE2')"></div>
-          </div>
+          <div class="formation-body" id="body-22">
+            <div class="level-label">Offensive Line & Dual TEs</div>
+            <div class="formation-row oline">
+              <div class="position-card" id="card-22-TE1" onclick="handleCardTap('22-TE1')"></div>
+              <div class="position-card" id="card-22-LT" onclick="handleCardTap('22-LT')"></div>
+              <div class="position-card" id="card-22-LG" onclick="handleCardTap('22-LG')"></div>
+              <div class="position-card" id="card-22-C" onclick="handleCardTap('22-C')"></div>
+              <div class="position-card" id="card-22-RG" onclick="handleCardTap('22-RG')"></div>
+              <div class="position-card" id="card-22-RT" onclick="handleCardTap('22-RT')"></div>
+              <div class="position-card" id="card-22-TE2" onclick="handleCardTap('22-TE2')"></div>
+            </div>
 
-          <div class="level-label">Single Receiver (X)</div>
-          <div class="formation-row receivers-dropped" style="justify-content:center;">
-            <div class="position-card wideout" id="card-22-X" onclick="handleCardTap('22-X')"></div>
-          </div>
+            <div class="level-label">Single Receiver (X)</div>
+            <div class="formation-row receivers-dropped" style="justify-content:center;">
+              <div class="position-card wideout" id="card-22-X" onclick="handleCardTap('22-X')"></div>
+            </div>
 
-          <div class="level-label" style="margin-top: 12px;">Backfield (1 - 2 - 3 Stack)</div>
-          <div class="formation-row backfield">
-            <div class="position-card" id="card-22-1" onclick="handleCardTap('22-1')"></div>
-            <div class="position-card" id="card-22-2" onclick="handleCardTap('22-2')"></div>
-            <div class="position-card" id="card-22-3" onclick="handleCardTap('22-3')"></div>
+            <div class="level-label" style="margin-top: 12px;">Backfield (1 - 2 - 3 Stack)</div>
+            <div class="formation-row backfield">
+              <div class="position-card" id="card-22-1" onclick="handleCardTap('22-1')"></div>
+              <div class="position-card" id="card-22-2" onclick="handleCardTap('22-2')"></div>
+              <div class="position-card" id="card-22-3" onclick="handleCardTap('22-3')"></div>
+            </div>
           </div>
         </div>
 
-        <!-- 32 OFFENSE BOARD (WISHBONE ORIENTATION) -->
+        <!-- 32 OFFENSE BOARD -->
         <div class="formation-container" id="offense-board-32">
           <div class="board-title">
-            <span>32 Offense</span>
-            <span style="font-size:11px; color:var(--text-muted); font-weight:normal;">3 RBs - 2 TEs - Wishbone Alignment</span>
+            <span>32 Offense <span style="font-size:11px; color:var(--text-muted); font-weight:normal; margin-left:8px;">3 RBs - 2 TEs - Wishbone Alignment</span></span>
+            <button class="toggle-board-btn" onclick="toggleFormation('body-32', this)">Hide</button>
           </div>
 
-          <div class="level-label">Offensive Line & Dual TEs</div>
-          <div class="formation-row oline">
-            <div class="position-card" id="card-32-TE1" onclick="handleCardTap('32-TE1')"></div>
-            <div class="position-card" id="card-32-LT" onclick="handleCardTap('32-LT')"></div>
-            <div class="position-card" id="card-32-LG" onclick="handleCardTap('32-LG')"></div>
-            <div class="position-card" id="card-32-C" onclick="handleCardTap('32-C')"></div>
-            <div class="position-card" id="card-32-RG" onclick="handleCardTap('32-RG')"></div>
-            <div class="position-card" id="card-32-RT" onclick="handleCardTap('32-RT')"></div>
-            <div class="position-card" id="card-32-TE2" onclick="handleCardTap('32-TE2')"></div>
-          </div>
+          <div class="formation-body" id="body-32">
+            <div class="level-label">Offensive Line & Dual TEs</div>
+            <div class="formation-row oline">
+              <div class="position-card" id="card-32-TE1" onclick="handleCardTap('32-TE1')"></div>
+              <div class="position-card" id="card-32-LT" onclick="handleCardTap('32-LT')"></div>
+              <div class="position-card" id="card-32-LG" onclick="handleCardTap('32-LG')"></div>
+              <div class="position-card" id="card-32-C" onclick="handleCardTap('32-C')"></div>
+              <div class="position-card" id="card-32-RG" onclick="handleCardTap('32-RG')"></div>
+              <div class="position-card" id="card-32-RT" onclick="handleCardTap('32-RT')"></div>
+              <div class="position-card" id="card-32-TE2" onclick="handleCardTap('32-TE2')"></div>
+            </div>
 
-          <div class="level-label" style="margin-top: 12px;">Wishbone Backfield (1 Under Center / 2 Fullback / 3 & 4 Split Flanks)</div>
-          <div class="formation-row backfield">
-            <div class="position-card" id="card-32-1" onclick="handleCardTap('32-1')"></div>
-            <div class="position-card" id="card-32-2" onclick="handleCardTap('32-2')"></div>
-          </div>
-          <div class="formation-row wishbone-flanks">
-            <div class="position-card" id="card-32-3" onclick="handleCardTap('32-3')"></div>
-            <div class="position-card" id="card-32-4" onclick="handleCardTap('32-4')"></div>
+            <div class="level-label" style="margin-top: 12px;">Wishbone Backfield (1 Under Center / 2 Fullback / 3 & 4 Split Flanks)</div>
+            <div class="formation-row backfield">
+              <div class="position-card" id="card-32-1" onclick="handleCardTap('32-1')"></div>
+              <div class="position-card" id="card-32-2" onclick="handleCardTap('32-2')"></div>
+            </div>
+            <div class="formation-row wishbone-flanks">
+              <div class="position-card" id="card-32-3" onclick="handleCardTap('32-3')"></div>
+              <div class="position-card" id="card-32-4" onclick="handleCardTap('32-4')"></div>
+            </div>
           </div>
         </div>
 
@@ -789,120 +825,128 @@
         <!-- PUNT TEAM -->
         <div class="formation-container" id="st-board-punt">
           <div class="board-title">
-            <span>Punt Team</span>
-            <span style="font-size:11px; color:var(--text-muted); font-weight:normal;">Shield / Pro Punt</span>
+            <span>Punt Team <span style="font-size:11px; color:var(--text-muted); font-weight:normal; margin-left:8px;">Shield / Pro Punt</span></span>
+            <button class="toggle-board-btn" onclick="toggleFormation('body-punt', this)">Hide</button>
           </div>
 
-          <div class="level-label">Gunners (Wide Left & Right)</div>
-          <div class="formation-row receivers-dropped">
-            <div class="position-card wideout" id="card-PUNT-GL" onclick="handleCardTap('PUNT-GL')"></div>
-            <div class="position-card wideout" id="card-PUNT-GR" onclick="handleCardTap('PUNT-GR')"></div>
-          </div>
+          <div class="formation-body" id="body-punt">
+            <div class="level-label">Gunners (Wide Left & Right)</div>
+            <div class="formation-row receivers-dropped">
+              <div class="position-card wideout" id="card-PUNT-GL" onclick="handleCardTap('PUNT-GL')"></div>
+              <div class="position-card wideout" id="card-PUNT-GR" onclick="handleCardTap('PUNT-GR')"></div>
+            </div>
 
-          <div class="level-label">Punt Line (LS - Guards - Tackles - Wings)</div>
-          <div class="formation-row oline">
-            <div class="position-card" id="card-PUNT-LW" onclick="handleCardTap('PUNT-LW')"></div>
-            <div class="position-card" id="card-PUNT-LT" onclick="handleCardTap('PUNT-LT')"></div>
-            <div class="position-card" id="card-PUNT-LG" onclick="handleCardTap('PUNT-LG')"></div>
-            <div class="position-card" id="card-PUNT-LS" onclick="handleCardTap('PUNT-LS')"></div>
-            <div class="position-card" id="card-PUNT-RG" onclick="handleCardTap('PUNT-RG')"></div>
-            <div class="position-card" id="card-PUNT-RT" onclick="handleCardTap('PUNT-RT')"></div>
-            <div class="position-card" id="card-PUNT-RW" onclick="handleCardTap('PUNT-RW')"></div>
-          </div>
+            <div class="level-label">Punt Line (LS - Guards - Tackles - Wings)</div>
+            <div class="formation-row oline">
+              <div class="position-card" id="card-PUNT-LW" onclick="handleCardTap('PUNT-LW')"></div>
+              <div class="position-card" id="card-PUNT-LT" onclick="handleCardTap('PUNT-LT')"></div>
+              <div class="position-card" id="card-PUNT-LG" onclick="handleCardTap('PUNT-LG')"></div>
+              <div class="position-card" id="card-PUNT-LS" onclick="handleCardTap('PUNT-LS')"></div>
+              <div class="position-card" id="card-PUNT-RG" onclick="handleCardTap('PUNT-RG')"></div>
+              <div class="position-card" id="card-PUNT-RT" onclick="handleCardTap('PUNT-RT')"></div>
+              <div class="position-card" id="card-PUNT-RW" onclick="handleCardTap('PUNT-RW')"></div>
+            </div>
 
-          <div class="level-label" style="margin-top: 12px;">Personal Protector & Punter</div>
-          <div class="formation-row backfield">
-            <div class="position-card" id="card-PUNT-PP" onclick="handleCardTap('PUNT-PP')"></div>
-            <div class="position-card" id="card-PUNT-P" onclick="handleCardTap('PUNT-P')"></div>
+            <div class="level-label" style="margin-top: 12px;">Personal Protector & Punter</div>
+            <div class="formation-row backfield">
+              <div class="position-card" id="card-PUNT-PP" onclick="handleCardTap('PUNT-PP')"></div>
+              <div class="position-card" id="card-PUNT-P" onclick="handleCardTap('PUNT-P')"></div>
+            </div>
           </div>
         </div>
 
         <!-- KICKOFF TEAM -->
         <div class="formation-container" id="st-board-kickoff">
           <div class="board-title">
-            <span>Kickoff Team</span>
-            <span style="font-size:11px; color:var(--text-muted); font-weight:normal;">10-Man Coverage + Kicker</span>
+            <span>Kickoff Team <span style="font-size:11px; color:var(--text-muted); font-weight:normal; margin-left:8px;">10-Man Coverage + Kicker</span></span>
+            <button class="toggle-board-btn" onclick="toggleFormation('body-ko', this)">Hide</button>
           </div>
 
-          <div class="level-label">Left Coverage Lane (L5 - L4 - L3 - L2 - L1)</div>
-          <div class="formation-row oline">
-            <div class="position-card" id="card-KO-L5" onclick="handleCardTap('KO-L5')"></div>
-            <div class="position-card" id="card-KO-L4" onclick="handleCardTap('KO-L4')"></div>
-            <div class="position-card" id="card-KO-L3" onclick="handleCardTap('KO-L3')"></div>
-            <div class="position-card" id="card-KO-L2" onclick="handleCardTap('KO-L2')"></div>
-            <div class="position-card" id="card-KO-L1" onclick="handleCardTap('KO-L1')"></div>
-          </div>
+          <div class="formation-body" id="body-ko">
+            <div class="level-label">Left Coverage Lane (L5 - L4 - L3 - L2 - L1)</div>
+            <div class="formation-row oline">
+              <div class="position-card" id="card-KO-L5" onclick="handleCardTap('KO-L5')"></div>
+              <div class="position-card" id="card-KO-L4" onclick="handleCardTap('KO-L4')"></div>
+              <div class="position-card" id="card-KO-L3" onclick="handleCardTap('KO-L3')"></div>
+              <div class="position-card" id="card-KO-L2" onclick="handleCardTap('KO-L2')"></div>
+              <div class="position-card" id="card-KO-L1" onclick="handleCardTap('KO-L1')"></div>
+            </div>
 
-          <div class="level-label">Kicker</div>
-          <div class="formation-row backfield">
-            <div class="position-card" id="card-KO-K" onclick="handleCardTap('KO-K')"></div>
-          </div>
+            <div class="level-label">Kicker</div>
+            <div class="formation-row backfield">
+              <div class="position-card" id="card-KO-K" onclick="handleCardTap('KO-K')"></div>
+            </div>
 
-          <div class="level-label">Right Coverage Lane (R1 - R2 - R3 - R4 - R5)</div>
-          <div class="formation-row oline">
-            <div class="position-card" id="card-KO-R1" onclick="handleCardTap('KO-R1')"></div>
-            <div class="position-card" id="card-KO-R2" onclick="handleCardTap('KO-R2')"></div>
-            <div class="position-card" id="card-KO-R3" onclick="handleCardTap('KO-R3')"></div>
-            <div class="position-card" id="card-KO-R4" onclick="handleCardTap('KO-R4')"></div>
-            <div class="position-card" id="card-KO-R5" onclick="handleCardTap('KO-R5')"></div>
+            <div class="level-label">Right Coverage Lane (R1 - R2 - R3 - R4 - R5)</div>
+            <div class="formation-row oline">
+              <div class="position-card" id="card-KO-R1" onclick="handleCardTap('KO-R1')"></div>
+              <div class="position-card" id="card-KO-R2" onclick="handleCardTap('KO-R2')"></div>
+              <div class="position-card" id="card-KO-R3" onclick="handleCardTap('KO-R3')"></div>
+              <div class="position-card" id="card-KO-R4" onclick="handleCardTap('KO-R4')"></div>
+              <div class="position-card" id="card-KO-R5" onclick="handleCardTap('KO-R5')"></div>
+            </div>
           </div>
         </div>
 
         <!-- KICK RETURN TEAM -->
         <div class="formation-container" id="st-board-kickreturn">
           <div class="board-title">
-            <span>Kick Return Team</span>
-            <span style="font-size:11px; color:var(--text-muted); font-weight:normal;">Front Wall - Wedge - Returners</span>
+            <span>Kick Return Team <span style="font-size:11px; color:var(--text-muted); font-weight:normal; margin-left:8px;">Front Wall - Wedge - Returners</span></span>
+            <button class="toggle-board-btn" onclick="toggleFormation('body-kr', this)">Hide</button>
           </div>
 
-          <div class="level-label">Front Blocking Line (5 Players)</div>
-          <div class="formation-row oline">
-            <div class="position-card" id="card-KR-F1" onclick="handleCardTap('KR-F1')"></div>
-            <div class="position-card" id="card-KR-F2" onclick="handleCardTap('KR-F2')"></div>
-            <div class="position-card" id="card-KR-F3" onclick="handleCardTap('KR-F3')"></div>
-            <div class="position-card" id="card-KR-F4" onclick="handleCardTap('KR-F4')"></div>
-            <div class="position-card" id="card-KR-F5" onclick="handleCardTap('KR-F5')"></div>
-          </div>
+          <div class="formation-body" id="body-kr">
+            <div class="level-label">Front Blocking Line (5 Players)</div>
+            <div class="formation-row oline">
+              <div class="position-card" id="card-KR-F1" onclick="handleCardTap('KR-F1')"></div>
+              <div class="position-card" id="card-KR-F2" onclick="handleCardTap('KR-F2')"></div>
+              <div class="position-card" id="card-KR-F3" onclick="handleCardTap('KR-F3')"></div>
+              <div class="position-card" id="card-KR-F4" onclick="handleCardTap('KR-F4')"></div>
+              <div class="position-card" id="card-KR-F5" onclick="handleCardTap('KR-F5')"></div>
+            </div>
 
-          <div class="level-label">Wedge / Off-Blockers (4 Players)</div>
-          <div class="formation-row oline">
-            <div class="position-card" id="card-KR-W1" onclick="handleCardTap('KR-W1')"></div>
-            <div class="position-card" id="card-KR-W2" onclick="handleCardTap('KR-W2')"></div>
-            <div class="position-card" id="card-KR-W3" onclick="handleCardTap('KR-W3')"></div>
-            <div class="position-card" id="card-KR-W4" onclick="handleCardTap('KR-W4')"></div>
-          </div>
+            <div class="level-label">Wedge / Off-Blockers (4 Players)</div>
+            <div class="formation-row oline">
+              <div class="position-card" id="card-KR-W1" onclick="handleCardTap('KR-W1')"></div>
+              <div class="position-card" id="card-KR-W2" onclick="handleCardTap('KR-W2')"></div>
+              <div class="position-card" id="card-KR-W3" onclick="handleCardTap('KR-W3')"></div>
+              <div class="position-card" id="card-KR-W4" onclick="handleCardTap('KR-W4')"></div>
+            </div>
 
-          <div class="level-label" style="margin-top: 12px;">Deep Returners (2 Players)</div>
-          <div class="formation-row receivers-dropped" style="justify-content:center; gap:40px;">
-            <div class="position-card" id="card-KR-KR1" onclick="handleCardTap('KR-KR1')"></div>
-            <div class="position-card" id="card-KR-KR2" onclick="handleCardTap('KR-KR2')"></div>
+            <div class="level-label" style="margin-top: 12px;">Deep Returners (2 Players)</div>
+            <div class="formation-row receivers-dropped" style="justify-content:center; gap:40px;">
+              <div class="position-card" id="card-KR-KR1" onclick="handleCardTap('KR-KR1')"></div>
+              <div class="position-card" id="card-KR-KR2" onclick="handleCardTap('KR-KR2')"></div>
+            </div>
           </div>
         </div>
 
         <!-- FIELD GOAL / PAT TEAM -->
         <div class="formation-container" id="st-board-fg">
           <div class="board-title">
-            <span>Field Goal / PAT Team</span>
-            <span style="font-size:11px; color:var(--text-muted); font-weight:normal;">Protection Line - Snapper - Holder - Kicker</span>
+            <span>Field Goal / PAT Team <span style="font-size:11px; color:var(--text-muted); font-weight:normal; margin-left:8px;">Protection Line - Snapper - Holder - Kicker</span></span>
+            <button class="toggle-board-btn" onclick="toggleFormation('body-fg', this)">Hide</button>
           </div>
 
-          <div class="level-label">Protection Line (E - T - G - LS - G - T - E - WingL - WingR)</div>
-          <div class="formation-row oline">
-            <div class="position-card" id="card-FG-WL" onclick="handleCardTap('FG-WL')"></div>
-            <div class="position-card" id="card-FG-LE" onclick="handleCardTap('FG-LE')"></div>
-            <div class="position-card" id="card-FG-LT" onclick="handleCardTap('FG-LT')"></div>
-            <div class="position-card" id="card-FG-LG" onclick="handleCardTap('FG-LG')"></div>
-            <div class="position-card" id="card-FG-LS" onclick="handleCardTap('FG-LS')"></div>
-            <div class="position-card" id="card-FG-RG" onclick="handleCardTap('FG-RG')"></div>
-            <div class="position-card" id="card-FG-RT" onclick="handleCardTap('FG-RT')"></div>
-            <div class="position-card" id="card-FG-RE" onclick="handleCardTap('FG-RE')"></div>
-            <div class="position-card" id="card-FG-WR" onclick="handleCardTap('FG-WR')"></div>
-          </div>
+          <div class="formation-body" id="body-fg">
+            <div class="level-label">Protection Line (E - T - G - LS - G - T - E - WingL - WingR)</div>
+            <div class="formation-row oline">
+              <div class="position-card" id="card-FG-WL" onclick="handleCardTap('FG-WL')"></div>
+              <div class="position-card" id="card-FG-LE" onclick="handleCardTap('FG-LE')"></div>
+              <div class="position-card" id="card-FG-LT" onclick="handleCardTap('FG-LT')"></div>
+              <div class="position-card" id="card-FG-LG" onclick="handleCardTap('FG-LG')"></div>
+              <div class="position-card" id="card-FG-LS" onclick="handleCardTap('FG-LS')"></div>
+              <div class="position-card" id="card-FG-RG" onclick="handleCardTap('FG-RG')"></div>
+              <div class="position-card" id="card-FG-RT" onclick="handleCardTap('FG-RT')"></div>
+              <div class="position-card" id="card-FG-RE" onclick="handleCardTap('FG-RE')"></div>
+              <div class="position-card" id="card-FG-WR" onclick="handleCardTap('FG-WR')"></div>
+            </div>
 
-          <div class="level-label" style="margin-top: 12px;">Backfield (Holder & Kicker)</div>
-          <div class="formation-row backfield">
-            <div class="position-card" id="card-FG-H" onclick="handleCardTap('FG-H')"></div>
-            <div class="position-card" id="card-FG-K" onclick="handleCardTap('FG-K')"></div>
+            <div class="level-label" style="margin-top: 12px;">Backfield (Holder & Kicker)</div>
+            <div class="formation-row backfield">
+              <div class="position-card" id="card-FG-H" onclick="handleCardTap('FG-H')"></div>
+              <div class="position-card" id="card-FG-K" onclick="handleCardTap('FG-K')"></div>
+            </div>
           </div>
         </div>
 
@@ -920,12 +964,12 @@
 
   <script>
     const firebaseConfig = {
-      apiKey: "AIzaSyBxAet3UzgBNuMUyUgj2MDWgrK5X63IPvg",
-      authDomain: "u-depth-chart.firebaseapp.com",
-      projectId: "u-depth-chart",
-      storageBucket: "u-depth-chart.firebasestorage.app",
-      messagingSenderId: "303577845736",
-      appId: "1:303577845736:web:34588bbe5e07f1322e1e5d",
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
     };
 
     let db = null;
@@ -1026,6 +1070,13 @@
       document.getElementById('tab-btn-defense').classList.toggle('active', unit === 'defense');
       document.getElementById('tab-btn-offense').classList.toggle('active', unit === 'offense');
       document.getElementById('tab-btn-st').classList.toggle('active', unit === 'st');
+    }
+
+    function toggleFormation(bodyId, btn) {
+      const body = document.getElementById(bodyId);
+      if (!body) return;
+      body.classList.toggle('collapsed');
+      btn.textContent = body.classList.contains('collapsed') ? 'Show' : 'Hide';
     }
 
     function saveState() {
