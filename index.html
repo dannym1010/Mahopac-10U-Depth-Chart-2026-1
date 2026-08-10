@@ -265,7 +265,6 @@
       gap: 6px;
       margin-bottom: 12px;
       min-width: 600px;
-      flex-wrap: wrap;
     }
 
     .formation-row.secondary-corners { 
@@ -290,11 +289,16 @@
     .formation-row.receivers-dropped { justify-content: space-between; padding: 0 10px; margin-top: -5px; }
     .formation-row.backfield { display: flex; flex-direction: column; align-items: center; gap: 8px; }
 
-    /* Positional Groups Alignment */
+    /* Positional Groups Horizontal Alignment */
     .formation-row.pos-group-row {
+      display: flex;
+      flex-direction: row;
       justify-content: flex-start;
+      align-items: flex-start;
       gap: 12px;
       min-width: 100%;
+      overflow-x: auto;
+      padding-bottom: 6px;
     }
 
     /* Wishbone Formation Specific Rows */
@@ -1074,76 +1078,40 @@
       <!-- POSITIONAL GROUPS PANEL -->
       <div class="unit-panel hidden" id="panel-groups">
         
-        <!-- OFFENSIVE POSITIONAL GROUPS BOARD -->
+        <!-- OFFENSIVE POSITIONAL GROUPS BOARD (HORIZONTAL ROW LAYOUT) -->
         <div class="formation-container" id="groups-board-offense">
           <div class="board-title">
-            <span>Offensive Positional Groups <span style="font-size:11px; color:var(--text-muted); font-weight:normal; margin-left:8px;">OLine, Center, WRs, RB, QB, TEs</span></span>
+            <span>Offensive Positional Groups <span style="font-size:11px; color:var(--text-muted); font-weight:normal; margin-left:8px;">Horizontal View</span></span>
             <button class="toggle-board-btn" onclick="toggleFormation('body-groups-offense', this)">Hide</button>
           </div>
 
           <div class="formation-body" id="body-groups-offense">
-            <div class="level-label">Offensive Line (Tackles & Guards)</div>
+            <div class="level-label">Offense Sub-Groups (OLine - Center - WRs - RB - QB - TEs)</div>
             <div class="formation-row pos-group-row">
               <div class="position-card" id="card-GRP-OLINE" onclick="handleCardTap('GRP-OLINE')"></div>
-            </div>
-
-            <div class="level-label">Center (Snap Specialist)</div>
-            <div class="formation-row pos-group-row">
               <div class="position-card" id="card-GRP-C" onclick="handleCardTap('GRP-C')"></div>
-            </div>
-
-            <div class="level-label">Wide Receivers (WRs: X & Z)</div>
-            <div class="formation-row pos-group-row">
               <div class="position-card" id="card-GRP-WRS" onclick="handleCardTap('GRP-WRS')"></div>
-            </div>
-
-            <div class="level-label">Running Backs (Fullbacks & Halfbacks)</div>
-            <div class="formation-row pos-group-row">
               <div class="position-card" id="card-GRP-RB" onclick="handleCardTap('GRP-RB')"></div>
-            </div>
-
-            <div class="level-label">Quarterbacks (Signal Callers)</div>
-            <div class="formation-row pos-group-row">
               <div class="position-card" id="card-GRP-QB" onclick="handleCardTap('GRP-QB')"></div>
-            </div>
-
-            <div class="level-label">Tight Ends (TEs: Y1 & Y2)</div>
-            <div class="formation-row pos-group-row">
               <div class="position-card" id="card-GRP-TES" onclick="handleCardTap('GRP-TES')"></div>
             </div>
           </div>
         </div>
 
-        <!-- DEFENSIVE POSITIONAL GROUPS BOARD -->
+        <!-- DEFENSIVE POSITIONAL GROUPS BOARD (HORIZONTAL ROW LAYOUT) -->
         <div class="formation-container" id="groups-board-defense">
           <div class="board-title">
-            <span>Defensive Positional Groups <span style="font-size:11px; color:var(--text-muted); font-weight:normal; margin-left:8px;">DT, DE, OLB, ILB, DB</span></span>
+            <span>Defensive Positional Groups <span style="font-size:11px; color:var(--text-muted); font-weight:normal; margin-left:8px;">Horizontal View</span></span>
             <button class="toggle-board-btn" onclick="toggleFormation('body-groups-defense', this)">Hide</button>
           </div>
 
           <div class="formation-body" id="body-groups-defense">
-            <div class="level-label">Defensive Tackles & Nose Tackles (DT / NT)</div>
+            <div class="level-label">Defense Sub-Groups (DT - DE - OLB - ILB - DB)</div>
             <div class="formation-row pos-group-row">
               <div class="position-card" id="card-GRP-DT" onclick="handleCardTap('GRP-DT')"></div>
-            </div>
-
-            <div class="level-label">Defensive Ends (DE / Edge Rushers)</div>
-            <div class="formation-row pos-group-row">
               <div class="position-card" id="card-GRP-DE" onclick="handleCardTap('GRP-DE')"></div>
-            </div>
-
-            <div class="level-label">Outside Linebackers (OLB: Rover & Sam)</div>
-            <div class="formation-row pos-group-row">
               <div class="position-card" id="card-GRP-OLB" onclick="handleCardTap('GRP-OLB')"></div>
-            </div>
-
-            <div class="level-label">Inside Linebackers (ILB: Mike & Will)</div>
-            <div class="formation-row pos-group-row">
               <div class="position-card" id="card-GRP-ILB" onclick="handleCardTap('GRP-ILB')"></div>
-            </div>
-
-            <div class="level-label">Defensive Backs & Secondary (DB: CBs & Safeties)</div>
-            <div class="formation-row pos-group-row">
               <div class="position-card" id="card-GRP-DB" onclick="handleCardTap('GRP-DB')"></div>
             </div>
           </div>
@@ -1169,8 +1137,8 @@
        storageBucket: "u-depth-chart.firebasestorage.app",
        messagingSenderId: "303577845736",
        appId: "1:303577845736:web:34588bbe5e07f1322e1e5d",
-       measurementId: "G-K15ZKX0S45"  
-   };
+       measurementId: "G-K15ZKX0S45" 
+    };
 
     let db = null;
     let cloudEnabled = false;
