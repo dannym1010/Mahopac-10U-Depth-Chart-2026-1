@@ -148,13 +148,14 @@
       max-width: 1400px;
       margin: 0 auto 15px auto;
       display: flex;
-      gap: 10px;
+      gap: 8px;
       border-bottom: 2px solid var(--card-border);
       padding-bottom: 8px;
+      flex-wrap: wrap;
     }
 
     .nav-tab {
-      padding: 8px 18px;
+      padding: 8px 16px;
       border: 1px solid var(--card-border);
       background: var(--card-bg);
       color: var(--text-muted);
@@ -264,6 +265,7 @@
       gap: 6px;
       margin-bottom: 12px;
       min-width: 600px;
+      flex-wrap: wrap;
     }
 
     .formation-row.secondary-corners { 
@@ -287,6 +289,13 @@
     .formation-row.oline { justify-content: center; gap: 8px; }
     .formation-row.receivers-dropped { justify-content: space-between; padding: 0 10px; margin-top: -5px; }
     .formation-row.backfield { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+
+    /* Positional Groups Alignment */
+    .formation-row.pos-group-row {
+      justify-content: flex-start;
+      gap: 12px;
+      min-width: 100%;
+    }
 
     /* Wishbone Formation Specific Rows */
     .formation-row.wishbone-flanks {
@@ -664,7 +673,7 @@
 <body onclick="closeAllDropdowns()">
 
   <h1>🏈 Depth Chart Manager</h1>
-  <p class="subtitle">Select week/opponent, copy lineups between weeks, or reorder starters with ▲/▼. Press Ctrl+P to print.</p>
+  <p class="subtitle">Switch tabs to view Defense, Offense, Special Teams, or Positional Groups. Press Ctrl+P to print.</p>
 
   <!-- Toolbar -->
   <div class="toolbar">
@@ -708,6 +717,7 @@
     <button class="nav-tab active" id="tab-btn-defense" onclick="switchUnitTab('defense')">Defense (44 & 53)</button>
     <button class="nav-tab" id="tab-btn-offense" onclick="switchUnitTab('offense')">Offense (20, 21, 22, 32)</button>
     <button class="nav-tab" id="tab-btn-st" onclick="switchUnitTab('st')">Special Teams</button>
+    <button class="nav-tab" id="tab-btn-groups" onclick="switchUnitTab('groups')">Positional Groups</button>
   </div>
 
   <div class="app-layout">
@@ -754,7 +764,7 @@
           </div>
         </div>
 
-        <!-- 53 DEFENSE BOARD (EXACTLY 11 POSITIONS: 5 DL, 3 LB, 2 CB, 1 Safety) -->
+        <!-- 53 DEFENSE BOARD -->
         <div class="formation-container" id="defense-board-53">
           <div class="board-title">
             <span>53 Defense <span style="font-size:11px; color:var(--text-muted); font-weight:normal; margin-left:8px;">Odd Front (11 Positions)</span></span>
@@ -1061,6 +1071,86 @@
 
       </div>
 
+      <!-- POSITIONAL GROUPS PANEL -->
+      <div class="unit-panel hidden" id="panel-groups">
+        
+        <!-- OFFENSIVE POSITIONAL GROUPS BOARD -->
+        <div class="formation-container" id="groups-board-offense">
+          <div class="board-title">
+            <span>Offensive Positional Groups <span style="font-size:11px; color:var(--text-muted); font-weight:normal; margin-left:8px;">OLine, Center, WRs, RB, QB, TEs</span></span>
+            <button class="toggle-board-btn" onclick="toggleFormation('body-groups-offense', this)">Hide</button>
+          </div>
+
+          <div class="formation-body" id="body-groups-offense">
+            <div class="level-label">Offensive Line (Tackles & Guards)</div>
+            <div class="formation-row pos-group-row">
+              <div class="position-card" id="card-GRP-OLINE" onclick="handleCardTap('GRP-OLINE')"></div>
+            </div>
+
+            <div class="level-label">Center (Snap Specialist)</div>
+            <div class="formation-row pos-group-row">
+              <div class="position-card" id="card-GRP-C" onclick="handleCardTap('GRP-C')"></div>
+            </div>
+
+            <div class="level-label">Wide Receivers (WRs: X & Z)</div>
+            <div class="formation-row pos-group-row">
+              <div class="position-card" id="card-GRP-WRS" onclick="handleCardTap('GRP-WRS')"></div>
+            </div>
+
+            <div class="level-label">Running Backs (Fullbacks & Halfbacks)</div>
+            <div class="formation-row pos-group-row">
+              <div class="position-card" id="card-GRP-RB" onclick="handleCardTap('GRP-RB')"></div>
+            </div>
+
+            <div class="level-label">Quarterbacks (Signal Callers)</div>
+            <div class="formation-row pos-group-row">
+              <div class="position-card" id="card-GRP-QB" onclick="handleCardTap('GRP-QB')"></div>
+            </div>
+
+            <div class="level-label">Tight Ends (TEs: Y1 & Y2)</div>
+            <div class="formation-row pos-group-row">
+              <div class="position-card" id="card-GRP-TES" onclick="handleCardTap('GRP-TES')"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- DEFENSIVE POSITIONAL GROUPS BOARD -->
+        <div class="formation-container" id="groups-board-defense">
+          <div class="board-title">
+            <span>Defensive Positional Groups <span style="font-size:11px; color:var(--text-muted); font-weight:normal; margin-left:8px;">DT, DE, OLB, ILB, DB</span></span>
+            <button class="toggle-board-btn" onclick="toggleFormation('body-groups-defense', this)">Hide</button>
+          </div>
+
+          <div class="formation-body" id="body-groups-defense">
+            <div class="level-label">Defensive Tackles & Nose Tackles (DT / NT)</div>
+            <div class="formation-row pos-group-row">
+              <div class="position-card" id="card-GRP-DT" onclick="handleCardTap('GRP-DT')"></div>
+            </div>
+
+            <div class="level-label">Defensive Ends (DE / Edge Rushers)</div>
+            <div class="formation-row pos-group-row">
+              <div class="position-card" id="card-GRP-DE" onclick="handleCardTap('GRP-DE')"></div>
+            </div>
+
+            <div class="level-label">Outside Linebackers (OLB: Rover & Sam)</div>
+            <div class="formation-row pos-group-row">
+              <div class="position-card" id="card-GRP-OLB" onclick="handleCardTap('GRP-OLB')"></div>
+            </div>
+
+            <div class="level-label">Inside Linebackers (ILB: Mike & Will)</div>
+            <div class="formation-row pos-group-row">
+              <div class="position-card" id="card-GRP-ILB" onclick="handleCardTap('GRP-ILB')"></div>
+            </div>
+
+            <div class="level-label">Defensive Backs & Secondary (DB: CBs & Safeties)</div>
+            <div class="formation-row pos-group-row">
+              <div class="position-card" id="card-GRP-DB" onclick="handleCardTap('GRP-DB')"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
     </div>
 
     <!-- Master Roster Sidebar -->
@@ -1079,8 +1169,8 @@
        storageBucket: "u-depth-chart.firebasestorage.app",
        messagingSenderId: "303577845736",
        appId: "1:303577845736:web:34588bbe5e07f1322e1e5d",
-       measurementId: "G-K15ZKX0S45" 
-    };
+       measurementId: "G-K15ZKX0S45"  
+   };
 
     let db = null;
     let cloudEnabled = false;
@@ -1137,10 +1227,16 @@
     const stKickReturnKeys = ["KR-F1", "KR-F2", "KR-F3", "KR-F4", "KR-F5", "KR-W1", "KR-W2", "KR-W3", "KR-W4", "KR-KR1", "KR-KR2"];
     const stFGKeys = ["FG-WL", "FG-LE", "FG-LT", "FG-LG", "FG-LS", "FG-RG", "FG-RT", "FG-RE", "FG-WR", "FG-H", "FG-K"];
 
+    const posGroupsKeys = [
+      "GRP-OLINE", "GRP-C", "GRP-WRS", "GRP-RB", "GRP-QB", "GRP-TES",
+      "GRP-DT", "GRP-DE", "GRP-OLB", "GRP-ILB", "GRP-DB"
+    ];
+
     const allKeys = [
       ...defense44Keys, ...defense53Keys, 
       ...offense20Keys, ...offense21Keys, ...offense22Keys, ...offense32Keys,
-      ...stPuntKeys, ...stKickoffKeys, ...stKickReturnKeys, ...stFGKeys
+      ...stPuntKeys, ...stKickoffKeys, ...stKickReturnKeys, ...stFGKeys,
+      ...posGroupsKeys
     ];
 
     const defaultDepthChart = {
@@ -1226,10 +1322,12 @@
       document.getElementById('panel-defense').classList.toggle('hidden', unit !== 'defense');
       document.getElementById('panel-offense').classList.toggle('hidden', unit !== 'offense');
       document.getElementById('panel-st').classList.toggle('hidden', unit !== 'st');
+      document.getElementById('panel-groups').classList.toggle('hidden', unit !== 'groups');
 
       document.getElementById('tab-btn-defense').classList.toggle('active', unit === 'defense');
       document.getElementById('tab-btn-offense').classList.toggle('active', unit === 'offense');
       document.getElementById('tab-btn-st').classList.toggle('active', unit === 'st');
+      document.getElementById('tab-btn-groups').classList.toggle('active', unit === 'groups');
     }
 
     function toggleFormation(bodyId, btn) {
