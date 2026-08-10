@@ -375,7 +375,7 @@
       font-weight: bold;
     }
 
-    /* Sub & Starter Colors */
+    /* Sub & Starter Rank Colors */
     .rank-badge {
       font-size: 8px;
       font-weight: bold;
@@ -399,6 +399,12 @@
       color: #000000; 
     }
 
+    /* Neutral Gray Badging After Spot 3 */
+    .rank-sub-gray {
+      background: #64748b;
+      color: #ffffff;
+    }
+
     .player-item.is-starter {
       color: #000000;
       font-weight: bold;
@@ -414,6 +420,34 @@
       font-weight: bold;
     }
 
+    .player-item.is-sub-gray {
+      color: #64748b;
+      font-weight: normal;
+    }
+
+    /* Reorder Action Controls */
+    .action-group {
+      display: flex;
+      align-items: center;
+      gap: 1px;
+    }
+
+    .reorder-btn {
+      background: none;
+      border: none;
+      color: #64748b;
+      font-size: 9px;
+      cursor: pointer;
+      padding: 1px 2px;
+      line-height: 1;
+      border-radius: 2px;
+    }
+
+    .reorder-btn:hover {
+      background: #e2e8f0;
+      color: var(--primary);
+    }
+
     .remove-btn {
       background: none;
       border: none;
@@ -421,7 +455,7 @@
       font-weight: bold;
       cursor: pointer;
       font-size: 13px;
-      padding: 0 4px;
+      padding: 0 3px;
     }
 
     /* Sidebar Roster Panel */
@@ -517,7 +551,7 @@
         margin: 0;
       }
 
-      .toolbar, .sidebar, .remove-btn, p.subtitle, .search-box, .card-search-container, .tab-navigation, .toggle-board-btn {
+      .toolbar, .sidebar, .remove-btn, .action-group, p.subtitle, .search-box, .card-search-container, .tab-navigation, .toggle-board-btn {
         display: none !important;
       }
 
@@ -577,7 +611,7 @@
 <body onclick="closeAllDropdowns()">
 
   <h1>🏈 Depth Chart Manager</h1>
-  <p class="subtitle">Switch tabs to view Defense, Offense, or Special Teams. Use Show/Hide to focus on calling plays.</p>
+  <p class="subtitle">Use ▲/▼ to reorder starters & reserves. Positions past 3rd spot are neutral gray. Press Ctrl+P to print.</p>
 
   <!-- Toolbar -->
   <div class="toolbar">
@@ -690,24 +724,24 @@
         <!-- 20 OFFENSE BOARD -->
         <div class="formation-container" id="offense-board-20">
           <div class="board-title">
-            <span>20 Offense <span style="font-size:11px; color:var(--text-muted); font-weight:normal; margin-left:8px;">2 RBs - 0 TEs - 3 WRs</span></span>
+            <span>20 Offense <span style="font-size:11px; color:var(--text-muted); font-weight:normal; margin-left:8px;">2 RBs - 1 TE (Y1) - 2 WRs</span></span>
             <button class="toggle-board-btn" onclick="toggleFormation('body-20', this)">Hide</button>
           </div>
 
           <div class="formation-body" id="body-20">
-            <div class="level-label">Offensive Line</div>
+            <div class="level-label">Offensive Line & TE (Y1)</div>
             <div class="formation-row oline">
               <div class="position-card" id="card-20-LT" onclick="handleCardTap('20-LT')"></div>
               <div class="position-card" id="card-20-LG" onclick="handleCardTap('20-LG')"></div>
               <div class="position-card" id="card-20-C" onclick="handleCardTap('20-C')"></div>
               <div class="position-card" id="card-20-RG" onclick="handleCardTap('20-RG')"></div>
               <div class="position-card" id="card-20-RT" onclick="handleCardTap('20-RT')"></div>
+              <div class="position-card" id="card-20-Y1" onclick="handleCardTap('20-Y1')"></div>
             </div>
 
-            <div class="level-label">Wide Receivers (X - Y - Z)</div>
+            <div class="level-label">Wide Receivers (X - Z)</div>
             <div class="formation-row receivers-dropped">
               <div class="position-card wideout" id="card-20-X" onclick="handleCardTap('20-X')"></div>
-              <div class="position-card wideout" id="card-20-Y" onclick="handleCardTap('20-Y')"></div>
               <div class="position-card wideout" id="card-20-Z" onclick="handleCardTap('20-Z')"></div>
             </div>
 
@@ -723,19 +757,19 @@
         <!-- 21 OFFENSE BOARD -->
         <div class="formation-container" id="offense-board-21">
           <div class="board-title">
-            <span>21 Offense <span style="font-size:11px; color:var(--text-muted); font-weight:normal; margin-left:8px;">2 RBs - 1 TE - 2 WRs</span></span>
+            <span>21 Offense <span style="font-size:11px; color:var(--text-muted); font-weight:normal; margin-left:8px;">2 RBs - 1 TE (Y1) - 2 WRs</span></span>
             <button class="toggle-board-btn" onclick="toggleFormation('body-21', this)">Hide</button>
           </div>
 
           <div class="formation-body" id="body-21">
-            <div class="level-label">Offensive Line & TE</div>
+            <div class="level-label">Offensive Line & TE (Y1)</div>
             <div class="formation-row oline">
               <div class="position-card" id="card-21-LT" onclick="handleCardTap('21-LT')"></div>
               <div class="position-card" id="card-21-LG" onclick="handleCardTap('21-LG')"></div>
               <div class="position-card" id="card-21-C" onclick="handleCardTap('21-C')"></div>
               <div class="position-card" id="card-21-RG" onclick="handleCardTap('21-RG')"></div>
               <div class="position-card" id="card-21-RT" onclick="handleCardTap('21-RT')"></div>
-              <div class="position-card" id="card-21-TE" onclick="handleCardTap('21-TE')"></div>
+              <div class="position-card" id="card-21-Y1" onclick="handleCardTap('21-Y1')"></div>
             </div>
 
             <div class="level-label">Wideouts (X - Z)</div>
@@ -756,20 +790,20 @@
         <!-- 22 OFFENSE BOARD -->
         <div class="formation-container" id="offense-board-22">
           <div class="board-title">
-            <span>22 Offense <span style="font-size:11px; color:var(--text-muted); font-weight:normal; margin-left:8px;">2 RBs - 2 TEs - 1 WR</span></span>
+            <span>22 Offense <span style="font-size:11px; color:var(--text-muted); font-weight:normal; margin-left:8px;">2 RBs - 2 TEs (Y1 & Y2) - 1 WR</span></span>
             <button class="toggle-board-btn" onclick="toggleFormation('body-22', this)">Hide</button>
           </div>
 
           <div class="formation-body" id="body-22">
-            <div class="level-label">Offensive Line & Dual TEs</div>
+            <div class="level-label">Offensive Line & Dual TEs (Y1 & Y2)</div>
             <div class="formation-row oline">
-              <div class="position-card" id="card-22-TE1" onclick="handleCardTap('22-TE1')"></div>
+              <div class="position-card" id="card-22-Y1" onclick="handleCardTap('22-Y1')"></div>
               <div class="position-card" id="card-22-LT" onclick="handleCardTap('22-LT')"></div>
               <div class="position-card" id="card-22-LG" onclick="handleCardTap('22-LG')"></div>
               <div class="position-card" id="card-22-C" onclick="handleCardTap('22-C')"></div>
               <div class="position-card" id="card-22-RG" onclick="handleCardTap('22-RG')"></div>
               <div class="position-card" id="card-22-RT" onclick="handleCardTap('22-RT')"></div>
-              <div class="position-card" id="card-22-TE2" onclick="handleCardTap('22-TE2')"></div>
+              <div class="position-card" id="card-22-Y2" onclick="handleCardTap('22-Y2')"></div>
             </div>
 
             <div class="level-label">Single Receiver (X)</div>
@@ -789,20 +823,20 @@
         <!-- 32 OFFENSE BOARD -->
         <div class="formation-container" id="offense-board-32">
           <div class="board-title">
-            <span>32 Offense <span style="font-size:11px; color:var(--text-muted); font-weight:normal; margin-left:8px;">3 RBs - 2 TEs - Wishbone Alignment</span></span>
+            <span>32 Offense <span style="font-size:11px; color:var(--text-muted); font-weight:normal; margin-left:8px;">3 RBs - 2 TEs (Y1 & Y2) - Wishbone Alignment</span></span>
             <button class="toggle-board-btn" onclick="toggleFormation('body-32', this)">Hide</button>
           </div>
 
           <div class="formation-body" id="body-32">
-            <div class="level-label">Offensive Line & Dual TEs</div>
+            <div class="level-label">Offensive Line & Dual TEs (Y1 & Y2)</div>
             <div class="formation-row oline">
-              <div class="position-card" id="card-32-TE1" onclick="handleCardTap('32-TE1')"></div>
+              <div class="position-card" id="card-32-Y1" onclick="handleCardTap('32-Y1')"></div>
               <div class="position-card" id="card-32-LT" onclick="handleCardTap('32-LT')"></div>
               <div class="position-card" id="card-32-LG" onclick="handleCardTap('32-LG')"></div>
               <div class="position-card" id="card-32-C" onclick="handleCardTap('32-C')"></div>
               <div class="position-card" id="card-32-RG" onclick="handleCardTap('32-RG')"></div>
               <div class="position-card" id="card-32-RT" onclick="handleCardTap('32-RT')"></div>
-              <div class="position-card" id="card-32-TE2" onclick="handleCardTap('32-TE2')"></div>
+              <div class="position-card" id="card-32-Y2" onclick="handleCardTap('32-Y2')"></div>
             </div>
 
             <div class="level-label" style="margin-top: 12px;">Wishbone Backfield (1 Under Center / 2 Fullback / 3 & 4 Split Flanks)</div>
@@ -964,14 +998,13 @@
 
   <script>
     const firebaseConfig = {
-       apiKey: "AIzaSyBxAet3UzgBNuMUyUgj2MDWgrK5X63IPvg",
-       authDomain: "u-depth-chart.firebaseapp.com",
-       projectId: "u-depth-chart",
-       storageBucket: "u-depth-chart.firebasestorage.app",
-       messagingSenderId: "303577845736",
-       appId: "1:303577845736:web:34588bbe5e07f1322e1e5d",
-       measurementId: "G-K15ZKX0S45" 
-   };
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
 
     let db = null;
     let cloudEnabled = false;
@@ -1018,10 +1051,10 @@
     const defense44Keys = ["44-CB1", "44-FS", "44-CB2", "44-ROVER", "44-WILL", "44-MIKE", "44-SAM", "44-WDE", "44-DT1", "44-DT2", "44-SDE"];
     const defense53Keys = ["53-CB1", "53-FS", "53-SS", "53-CB2", "53-WILL", "53-MIKE", "53-SAM", "53-DE1", "53-DT1", "53-NT", "53-DT2", "53-DE2"];
     
-    const offense20Keys = ["20-LT", "20-LG", "20-C", "20-RG", "20-RT", "20-X", "20-Y", "20-Z", "20-1", "20-2", "20-3"];
-    const offense21Keys = ["21-X", "21-LT", "21-LG", "21-C", "21-RG", "21-RT", "21-TE", "21-Z", "21-1", "21-2", "21-3"];
-    const offense22Keys = ["22-TE1", "22-LT", "22-LG", "22-C", "22-RG", "22-RT", "22-TE2", "22-X", "22-1", "22-2", "22-3"];
-    const offense32Keys = ["32-TE1", "32-LT", "32-LG", "32-C", "32-RG", "32-RT", "32-TE2", "32-1", "32-2", "32-3", "32-4"];
+    const offense20Keys = ["20-LT", "20-LG", "20-C", "20-RG", "20-RT", "20-Y1", "20-X", "20-Z", "20-1", "20-2", "20-3"];
+    const offense21Keys = ["21-X", "21-LT", "21-LG", "21-C", "21-RG", "21-RT", "21-Y1", "21-Z", "21-1", "21-2", "21-3"];
+    const offense22Keys = ["22-Y1", "22-LT", "22-LG", "22-C", "22-RG", "22-RT", "22-Y2", "22-X", "22-1", "22-2", "22-3"];
+    const offense32Keys = ["32-Y1", "32-LT", "32-LG", "32-C", "32-RG", "32-RT", "32-Y2", "32-1", "32-2", "32-3", "32-4"];
 
     const stPuntKeys = ["PUNT-GL", "PUNT-GR", "PUNT-LW", "PUNT-LT", "PUNT-LG", "PUNT-LS", "PUNT-RG", "PUNT-RT", "PUNT-RW", "PUNT-PP", "PUNT-P"];
     const stKickoffKeys = ["KO-L5", "KO-L4", "KO-L3", "KO-L2", "KO-L1", "KO-K", "KO-R1", "KO-R2", "KO-R3", "KO-R4", "KO-R5"];
@@ -1053,7 +1086,7 @@
       "21-C":    [{ name: "Piqueras", num: "52" }],
       "21-RG":   [{ name: "Sokol", num: "40" }],
       "21-RT":   [{ name: "Crean", num: "99" }],
-      "21-TE":   [{ name: "Swansen", num: "15" }],
+      "21-Y1":   [{ name: "Swansen", num: "15" }],
       "21-Z":    [{ name: "Barry", num: "12" }, { name: "Furfaro", num: "20" }, { name: "Ward", num: "21" }],
       "21-1":    [{ name: "Mancini", num: "10" }],
       "21-2":    [{ name: "Sweeny", num: "48" }],
@@ -1111,6 +1144,19 @@
     function removePlayer(pos, index, e) {
       if (e) e.stopPropagation();
       depthChart[pos].splice(index, 1);
+      saveState();
+      render();
+    }
+
+    function movePlayerOrder(pos, index, direction, e) {
+      if (e) e.stopPropagation();
+      const targetIndex = index + direction;
+      if (targetIndex < 0 || targetIndex >= depthChart[pos].length) return;
+
+      const temp = depthChart[pos][index];
+      depthChart[pos][index] = depthChart[pos][targetIndex];
+      depthChart[pos][targetIndex] = temp;
+
       saveState();
       render();
     }
@@ -1338,10 +1384,14 @@
               itemClass += "is-sub-blue";
               rankLabel = "D2";
               badgeClass = "rank-badge rank-sub-blue";
-            } else {
+            } else if (idx === 2) {
               itemClass += "is-sub-gold";
-              rankLabel = `D${idx + 1}`;
+              rankLabel = "D3";
               badgeClass = "rank-badge rank-sub-gold";
+            } else {
+              itemClass += "is-sub-gray";
+              rankLabel = `D${idx + 1}`;
+              badgeClass = "rank-badge rank-sub-gray";
             }
 
             const masterEntry = masterRoster.find(m => m.num === player.num);
@@ -1372,7 +1422,11 @@
                 <span class="num-tag">#${player.num}</span>
                 <span>${player.name}</span>
               </div>
-              <button class="remove-btn" onclick="removePlayer('${pos}', ${idx}, event)">&times;</button>
+              <div class="action-group">
+                <button class="reorder-btn" onclick="movePlayerOrder('${pos}', ${idx}, -1, event)" ${idx === 0 ? 'style="opacity:0.3; pointer-events:none;"' : ''}>▲</button>
+                <button class="reorder-btn" onclick="movePlayerOrder('${pos}', ${idx}, 1, event)" ${idx === players.length - 1 ? 'style="opacity:0.3; pointer-events:none;"' : ''}>▼</button>
+                <button class="remove-btn" onclick="removePlayer('${pos}', ${idx}, event)">&times;</button>
+              </div>
             `;
             list.appendChild(li);
           });
