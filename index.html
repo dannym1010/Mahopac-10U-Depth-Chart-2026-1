@@ -1124,20 +1124,24 @@
 
       </div>
 
-      <!-- MAIN DEPTH CHART PANEL (ALL GREY BADGES) -->
+      <!-- DEPTH CHART PANEL (QB -> C ORDER, ALL GREY BADGES) -->
       <div class="unit-panel hidden" id="panel-groups">
         
         <!-- OFFENSIVE POSITIONAL GROUPS BOARD -->
         <div class="formation-container" id="groups-board-offense">
           <div class="board-title">
-            <span>Offensive Positional Groups <span style="font-size:11px; color:var(--text-muted); font-weight:normal; margin-left:8px;">Horizontal Layout</span></span>
+            <span>Offensive Depth Chart <span style="font-size:11px; color:var(--text-muted); font-weight:normal; margin-left:8px;">Horizontal Layout</span></span>
             <button class="toggle-board-btn" onclick="toggleFormation('body-groups-offense', this)">Hide</button>
           </div>
 
           <div class="formation-body" id="body-groups-offense">
-            <div class="level-label">Offense Sub-Groups (QB - [FB over RB] - WRs - TEs - C - OT - OG)</div>
+            <div class="level-label">Offense Sub-Groups (QB -> C directly below -> [FB over RB] -> WRs -> TEs -> OT -> OG)</div>
             <div class="formation-row pos-group-row">
-              <div class="position-card" id="card-GRP-QB" onclick="handleCardTap('GRP-QB')"></div>
+              <!-- QB and Center stacked below QB -->
+              <div class="pos-stack">
+                <div class="position-card" id="card-GRP-QB" onclick="handleCardTap('GRP-QB')"></div>
+                <div class="position-card" id="card-GRP-C" onclick="handleCardTap('GRP-C')"></div>
+              </div>
               
               <!-- Stacked Fullback and Running Back Column -->
               <div class="pos-stack">
@@ -1147,7 +1151,6 @@
 
               <div class="position-card" id="card-GRP-WRS" onclick="handleCardTap('GRP-WRS')"></div>
               <div class="position-card" id="card-GRP-TES" onclick="handleCardTap('GRP-TES')"></div>
-              <div class="position-card" id="card-GRP-C" onclick="handleCardTap('GRP-C')"></div>
               <div class="position-card" id="card-GRP-OT" onclick="handleCardTap('GRP-OT')"></div>
               <div class="position-card" id="card-GRP-OG" onclick="handleCardTap('GRP-OG')"></div>
             </div>
@@ -1157,7 +1160,7 @@
         <!-- DEFENSIVE POSITIONAL GROUPS BOARD -->
         <div class="formation-container" id="groups-board-defense">
           <div class="board-title">
-            <span>Defensive Positional Groups <span style="font-size:11px; color:var(--text-muted); font-weight:normal; margin-left:8px;">Horizontal Layout</span></span>
+            <span>Defensive Depth Chart <span style="font-size:11px; color:var(--text-muted); font-weight:normal; margin-left:8px;">Horizontal Layout</span></span>
             <button class="toggle-board-btn" onclick="toggleFormation('body-groups-defense', this)">Hide</button>
           </div>
 
@@ -1194,7 +1197,7 @@ const firebaseConfig = {
        storageBucket: "u-depth-chart.firebasestorage.app",
        messagingSenderId: "303577845736",
        appId: "1:303577845736:web:34588bbe5e07f1322e1e5d",
-       measurementId: "G-K15ZKX0S45" 
+       measurementId: "G-K15ZKX0S45"
     };
 
     let db = null;
@@ -1236,10 +1239,7 @@ const firebaseConfig = {
       { num: "52", firstName: "John", lastName: "Piqueras" },
       { num: "56", firstName: "Ryan", lastName: "Russell" },
       { num: "66", firstName: "Luca", lastName: "Mucciacciaro" },
-      { num: "99", firstName: "Conrad", lastName: "Crean" },
-      { num: "", firstName: "Jimmy", lastName: "" },
-      { num: "", firstName: "Terry", lastName: "" },
-      { num: "", firstName: "Austin", lastName: "" }
+      { num: "99", firstName: "Conrad", lastName: "Crean" }
     ];
 
     const defense44Keys = ["44-CB1", "44-FS", "44-CB2", "44-ROVER", "44-WILL", "44-MIKE", "44-SAM", "44-WDE", "44-DT1", "44-DT2", "44-SDE"];
@@ -1256,7 +1256,7 @@ const firebaseConfig = {
     const stFGKeys = ["FG-WL", "FG-LE", "FG-LT", "FG-LG", "FG-LS", "FG-RG", "FG-RT", "FG-RE", "FG-WR", "FG-H", "FG-K"];
 
     const posGroupsKeys = [
-      "GRP-QB", "GRP-FB", "GRP-RB", "GRP-WRS", "GRP-TES", "GRP-C", "GRP-OT", "GRP-OG",
+      "GRP-QB", "GRP-C", "GRP-FB", "GRP-RB", "GRP-WRS", "GRP-TES", "GRP-OT", "GRP-OG",
       "GRP-DT", "GRP-DE", "GRP-OLB", "GRP-ILB", "GRP-CB", "GRP-S"
     ];
 
@@ -1608,27 +1608,27 @@ const firebaseConfig = {
       masterRoster.forEach(player => {
         const matches = player.firstName.toLowerCase().includes(searchTerm) || 
                         player.lastName.toLowerCase().includes(searchTerm) || 
-                        (player.num && player.num.toLowerCase().includes(searchTerm));
+                        player.num.toLowerCase().includes(searchTerm);
         if (searchTerm && !matches) return;
 
-        const spotCount = player.num ? getPlayerPositionsCount(player.num) : 0;
+        const spotCount = getPlayerPositionsCount(player.num);
 
         const li = document.createElement("li");
         li.className = "full-roster-item";
         li.draggable = true;
-        li.dataset.name = player.firstName;
+        li.dataset.name = player.lastName;
         li.dataset.num = player.num;
 
-        if (selectedTouchPlayer && selectedTouchPlayer.name === player.firstName) {
+        if (selectedTouchPlayer && selectedTouchPlayer.num === player.num) {
           li.classList.add("selected-touch");
         }
 
         li.ondragstart = handleRosterDragStart;
-        li.onclick = (e) => handleTouchSelect(player.firstName, player.num, null, null, e);
+        li.onclick = (e) => handleTouchSelect(player.lastName, player.num, null, null, e);
 
         li.innerHTML = `
           <div>
-            <span class="num-tag" style="min-width:26px; color:var(--primary);">${player.num ? '#' + player.num : ''}</span> 
+            <span class="num-tag" style="min-width:26px; color:var(--primary);">#${player.num}</span> 
             <span>${player.firstName} ${player.lastName}</span>
           </div>
           ${spotCount > 0 ? `<span class="multi-badge">${spotCount} Spot${spotCount > 1 ? 's' : ''}</span>` : ''}
@@ -1717,13 +1717,13 @@ const firebaseConfig = {
               badgeClass = "rank-badge rank-sub-gray";
             }
 
-            const masterEntry = masterRoster.find(m => m.firstName === player.name || m.lastName === player.name);
+            const masterEntry = masterRoster.find(m => m.num === player.num);
             const isMatch = searchTerm && masterEntry && (
               masterEntry.firstName.toLowerCase().includes(searchTerm) || 
               masterEntry.lastName.toLowerCase().includes(searchTerm) || 
-              (masterEntry.num && masterEntry.num.toLowerCase().includes(searchTerm))
+              masterEntry.num.toLowerCase().includes(searchTerm)
             );
-            const isSelected = selectedTouchPlayer && selectedTouchPlayer.name === player.name;
+            const isSelected = selectedTouchPlayer && selectedTouchPlayer.num === player.num;
 
             if (isMatch || isSelected) {
               itemClass += " search-match";
@@ -1742,7 +1742,7 @@ const firebaseConfig = {
             li.innerHTML = `
               <div class="player-info">
                 <span class="${badgeClass}">${rankLabel}</span>
-                <span class="num-tag">${player.num ? '#' + player.num : ''}</span>
+                <span class="num-tag">#${player.num}</span>
                 <span>${player.name}</span>
               </div>
               <div class="action-group">
