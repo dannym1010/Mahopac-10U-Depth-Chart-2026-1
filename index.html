@@ -550,7 +550,7 @@
     .reorder-btn:hover { background: #e2e8f0; color: var(--primary); }
     .remove-btn { background: none; border: none; color: #ef4444; font-weight: bold; cursor: pointer; font-size: 13px; padding: 0 3px; }
 
-    /* Practice Plan Styles */
+    /* Practice Plan Resizable Table Styles */
     .practice-table {
       width: 100%;
       border-collapse: collapse;
@@ -558,6 +558,7 @@
       background: #ffffff;
       font-size: 11px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      table-layout: fixed; /* Ensures strict column resizing persistence */
     }
 
     .practice-table th, .practice-table td {
@@ -565,11 +566,31 @@
       padding: 6px 8px;
       text-align: left;
       vertical-align: top;
+      box-sizing: border-box;
+      overflow: hidden;
+      position: relative;
     }
 
     .practice-table th {
       background: #f1f5f9;
       color: var(--primary);
+      user-select: none;
+    }
+
+    /* Column Resizer Handle */
+    .col-resizer {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 5px;
+      cursor: col-resize;
+      user-select: none;
+      height: 100%;
+      background: transparent;
+    }
+
+    .col-resizer:hover, .col-resizer.resizing {
+      background: var(--accent);
     }
 
     .prac-input, .prac-select, .prac-textarea {
@@ -585,7 +606,7 @@
     }
 
     .prac-textarea {
-      resize: vertical;
+      resize: vertical; /* Allows manual vertical expansion of rows */
       min-height: 44px;
       margin-top: 4px;
     }
@@ -710,11 +731,12 @@
     .multi-badge { font-size: 9px; background: #e2e8f0; color: #475569; padding: 1px 5px; border-radius: 10px; font-weight: bold; }
     .empty-msg { color: var(--text-muted); text-align: center; font-style: italic; font-size: 10px; margin-top: 10px; pointer-events: none; }
 
-    /* PRINT STYLES */
+    /* STRICT PRINT STYLES - STAYS EXACTLY AS VIEWED */
     @media print {
       body { background-color: #ffffff; padding: 0; margin: 0; }
-      .toolbar, .sidebar, .remove-btn, .action-group, p.subtitle, .search-box, .card-search-container, .tab-navigation, .toggle-board-btn, .week-bar, .board-controls, .add-row-btn, .add-form-btn, .row-actions, .pos-header-actions { display: none !important; }
+      .toolbar, .sidebar, .remove-btn, .action-group, p.subtitle, .search-box, .card-search-container, .tab-navigation, .toggle-board-btn, .week-bar, .board-controls, .add-row-btn, .add-form-btn, .row-actions, .pos-header-actions, .col-resizer { display: none !important; }
       
+      /* Strictly hide hidden tabs */
       .unit-panel.hidden { display: none !important; }
       .unit-panel:not(.hidden) { display: flex !important; flex-direction: column !important; }
       
@@ -727,11 +749,24 @@
       .position-header { background: #e2e8f0 !important; color: #000000 !important; border-bottom: 1px solid #000000 !important; }
       .player-item { border: 1px solid #cbd5e1 !important; }
       h1 { margin-top: 0; font-size: 18px; color: #000000; }
-      .practice-table { border: 2px solid #000000; width: 100%; }
-      .practice-table th, .practice-table td { border: 1px solid #000000; }
+      
+      /* Table Print Fidelity */
+      .practice-table { 
+        border: 2px solid #000000; 
+        width: 100% !important; 
+        table-layout: fixed !important; 
+      }
+      .practice-table th, .practice-table td { 
+        border: 1px solid #000000; 
+      }
       .prac-input, .prac-select, .prac-textarea {
-        border: none !important; background: transparent !important; padding: 0 !important;
-        appearance: none; -webkit-appearance: none; resize: none; color: #000000; margin: 0;
+        border: none !important; 
+        background: transparent !important; 
+        padding: 0 !important;
+        appearance: none; 
+        -webkit-appearance: none; 
+        color: #000000; 
+        margin: 0;
       }
       .station-block { border-bottom: 1px solid #ccc; margin-bottom: 4px; padding-bottom: 4px; }
       .coach-badge {
@@ -754,7 +789,7 @@
 <body onclick="closeAllDropdowns()">
 
   <h1>🏈 Football Operations Manager</h1>
-  <p class="subtitle">Manage Depth Charts, Custom Formations, and Practice Plans. Press Ctrl+P to print the current tab.</p>
+  <p class="subtitle">Manage Depth Charts, Custom Formations, and Resizable Practice Plans.</p>
 
   <!-- Toolbar -->
   <div class="toolbar">
@@ -857,15 +892,15 @@
             </div>
           </div>
           
-          <table class="practice-table">
+          <table class="practice-table" id="main-practice-table">
             <thead>
-              <tr>
-                <th style="width: 10%;">Time/Period</th>
-                <th style="width: 14%;">Category</th>
-                <th style="width: 25%;">Select Drill(s)</th>
-                <th style="width: 25%;">Drill Details & Instructions</th>
-                <th style="width: 10%;">Coach(es)</th>
-                <th style="width: 12%;">Coaching Focus</th>
+              <tr id="practice-header-row">
+                <th style="width: 10%;">Time/Period <div class="col-resizer"></div></th>
+                <th style="width: 14%;">Category <div class="col-resizer"></div></th>
+                <th style="width: 25%;">Select Drill(s) <div class="col-resizer"></div></th>
+                <th style="width: 25%;">Drill Details & Instructions <div class="col-resizer"></div></th>
+                <th style="width: 10%;">Coach(es) <div class="col-resizer"></div></th>
+                <th style="width: 12%;">Coaching Focus <div class="col-resizer"></div></th>
                 <th style="width: 4%; text-align:center;" class="no-print">❌</th>
               </tr>
             </thead>
@@ -939,9 +974,8 @@ const firebaseConfig = {
       { num: "99", firstName: "Conrad", lastName: "Crean" }
     ];
 
-    // DEFAULT FORMATIONS STRUCTURE
+    // DEFAULT FORMATIONS
     const defaultFormations = [
-      // OFFENSE
       {
         id: "form_11", unit: "offense", name: "11 Offense", subtitle: "1 RB - 1 TE (Y1) - 3 WRs (X, W, Z)", collapsed: false,
         rows: [
@@ -998,8 +1032,6 @@ const firebaseConfig = {
           ]}
         ]
       },
-
-      // DEFENSE
       {
         id: "form_44", unit: "defense", name: "44 Defense", subtitle: "Stack Front (11 Positions)", collapsed: false,
         rows: [
@@ -1034,8 +1066,6 @@ const firebaseConfig = {
           ]}
         ]
       },
-
-      // SPECIAL TEAMS
       {
         id: "form_ko", unit: "st", name: "Kickoff Team", subtitle: "8 Coverage + 3 Backs", collapsed: false,
         rows: [
@@ -1093,8 +1123,6 @@ const firebaseConfig = {
           ]}
         ]
       },
-
-      // DEPTH CHART
       {
         id: "form_grp_off", unit: "groups", name: "Offensive Depth Chart", subtitle: "Standard Format", collapsed: false,
         rows: [
@@ -1199,93 +1227,6 @@ const firebaseConfig = {
       "PUNT-KICKER": [{ name: "Jaxson", num: "22" }]
     };
 
-    // DRILL LIBRARY DATA
-    const drillLibrary = {
-      "Pre Practice": [
-        { name: "QB & Center Exchange", desc: "Instruction: Centers and QBs pair up to practice under-center and shotgun snaps before formal periods begin. Rotate through all QBs and Centers.", key: "100% snap accuracy" },
-        { name: "Specialists: Kicking & Holding", desc: "Instruction: Specialists work on snap, hold, and kick mechanics independently. Kickers work on approach drops and leg swing contact.", key: "Timing and rhythm" },
-        { name: "WR Routes with QB Throws", desc: "Instruction: QBs throw the basic route tree on air to WRs. Focus on timing, route depths, and getting arms warm.", key: "Crisp routes, accurate passes" },
-        { name: "Offensive Line Steps", desc: "Instruction: O-Line works through their first 2 steps (drive, reach, down, pull) on air or lightly against standing bags.", key: "First step quickness, pad level" }
-      ],
-      "Warm-Up & Breaks": [
-        { name: "Mandatory Water Break", desc: "Instruction: Blow whistle twice. Players remove helmets and jog to water stations. Emphasize fast hydration and hustling back to position groups.", key: "Hydrate and hustle" },
-        { name: "Dynamic Warm-Up", desc: "Instruction: Line team up on the sideline or hash marks. Coach leads cadence. Perform high knees, karaoke, butt kicks, shuffling, and 10-yard short sprints.", key: "Full speed, proper posture" },
-        { name: "Agility Ladder", desc: "Instruction: Set up 2-3 agility ladders. Players run through doing icky shuffle, two-in, and lateral quick steps. Keep the line moving fast.", key: "Eyes up, quick feet" },
-        { name: "Form Tackling (No Pads)", desc: "Instruction: Pair players up. Walk through the fit position, proper head placement, and wrap mechanics on air without taking players to the ground.", key: "Head across bow, sink hips" },
-        { name: "Team Stretch", desc: "Instruction: Players spread out in a circle or rows. Team captains lead stretches. Focus on hamstrings, quads, groins, and shoulders.", key: "Stretch tight muscles" }
-      ],
-      "Tackling (Whole Team)": [
-        { name: "Form Fit & Drive (Thud)", desc: "Instruction: Players start 2 yards apart. On whistle, step into the ball carrier, fit the shoulder to the numbers, wrap, and drive for 3 steps.", key: "Shoot hips, wrap cloth" },
-        { name: "Angle / Alley Tackle", desc: "Instruction: Defender takes an inside-out angle to intersect a runner aiming for the pylon. Break down and drive through the near hip.", key: "Near foot to near shoulder" },
-        { name: "Hawk (Rugby) Roll Tackle", desc: "Instruction: Defender targets the thighs of the runner, wraps legs tight, and rolls to the side using momentum to bring the runner down safely.", key: "Eyes on thighs, wrap and roll" },
-        { name: "Open Field Shimmy (Space)", desc: "Instruction: 10x10 yard grid. Defender tracks an elusive runner, breaks down 2 yards away, and executes a safe open-field wrap.", key: "Keep feet alive, track the hip" },
-        { name: "Ring of Fire / Gauntlet Tackle", desc: "Instruction: Defender stands in the middle of a circle. Coach calls out a number, and that player charges. Defender must quickly pivot, fit, and tackle.", key: "Fast reaction, lower center of gravity" },
-        { name: "Sideline Push-Out Tackle", desc: "Instruction: Runner tries to turn the corner up the sideline. Defender uses the sideline as an extra defender, attacking the inside hip to force them out.", key: "Pin to sideline, inside leverage" },
-        { name: "Profile / Head-On Drive", desc: "Instruction: Straight downhill tackling drill. Fit up on the ball carrier, shoot the hips on contact, and drive feet continuously.", key: "Drive feet on contact, no lunging" }
-      ],
-      "Tackle Circuit": [
-        { name: "Tackling Circuit (4 Groups)", desc: "Instruction: Divide team into 4 groups. Rotate every 3-5 mins on whistle. Station 1: Form fit. Station 2: Angle tackle. Station 3: Open field wrap. Station 4: Hawk Roll Tackle.", key: "Head up, wrap and squeeze" },
-        { name: "Turnover Circuit (4 Groups)", desc: "Instruction: Divide into 4 groups. Rotate every 3-5 mins. Station 1: Strip drill. Station 2: Fumble recovery (fall on it). Station 3: Tip drill (INTs). Station 4: Punch-out from behind.", key: "Secure the ball instantly" },
-        { name: "Blocking Circuit (4 Groups)", desc: "Instruction: Rotate every 3-5 mins. Station 1: 3-point stance get-off. Station 2: Drive block shield. Station 3: Down block angle. Station 4: Reach block step.", key: "Low pads, violent hands" },
-        { name: "Agility & Footwork Circuit", desc: "Instruction: Rotate every 3 mins. Station 1: Ladder drills. Station 2: Cone weave. Station 3: 5-10-5 shuttle. Station 4: Short hurdle jumps.", key: "Fast feet, stay balanced" }
-      ],
-      "QB (Quarterbacks)": [
-        { name: "Under Center Snap & Drop", desc: "Instruction: Center snaps to QB. QB executes 3-step or 5-step drop on air. Coach watches feet to ensure no false steps or heel clicking.", key: "Clean exchange, fast drop" },
-        { name: "Shotgun Snap & Quick Game", desc: "Instruction: QB takes shotgun snap. Instantly sets feet and throws a quick slant or hitch to a target. Focus on catching and throwing in one rhythm.", key: "Secure snap, quick release" },
-        { name: "Inside Zone / Dive Mesh Mechanics", desc: "Instruction: QB takes snap, opens hips, and rides the running back into the line. Practice leaving the ball in the belly as long as possible before pulling or handing off.", key: "Long ride, read the end" },
-        { name: "Play-Action Rollout", desc: "Instruction: QB executes a hard run fake to the back, drops the ball to the hip, snaps head around, and sprints to the edge to deliver a pass.", key: "Sell fake, sprint to edge" },
-        { name: "Target Accuracy Net Drill", desc: "Instruction: Set up a net or targets at 5, 10, and 15 yards. QBs drop back and throw 5 passes to each target aiming for the center pocket.", key: "Consistent release point" }
-      ],
-      "RB/FB (Running Backs)": [
-        { name: "Handoff Ball Security", desc: "Instruction: RBs practice receiving handoffs. Inside elbow must be up to form a pocket. Secure the ball immediately into the ribcage with 5 points of pressure.", key: "Squeeze tight, form pocket" },
-        { name: "Downhill A/B Gap Run", desc: "Instruction: RB takes the handoff and attacks the A or B gap immediately. Place bags simulating linemen. RB must hit the hole without dancing.", key: "No dancing, square shoulders" },
-        { name: "Outside Zone / Sweep Track", desc: "Instruction: Set cones marking a wide track. RB takes a toss or wide handoff, runs flat down the line, and cuts upfield outside the last cone.", key: "Read the edge block, cut vertical" },
-        { name: "Lead Block Mechanics (H-Back / FB)", desc: "Instruction: FB or H-Back steps up into the hole to deliver an inside-out block on a padded defender (LB). Run through the block.", key: "Low pad level, strike with hips" },
-        { name: "Pass Protection Pickup", desc: "Instruction: RB steps into the gap to absorb a blitzing linebacker (coach with a bag). Practice a wide base and delivering a punch to stop momentum.", key: "Wide base, punch to breastplate" }
-      ],
-      "WR/TE (Receivers & Tight Ends)": [
-        { name: "Stance & Release", desc: "Instruction: Receivers line up in proper 2-point stance (inside foot up). Explode off the line for 5 yards without any false steps or rocking.", key: "Explode off front foot, no false steps" },
-        { name: "Stalk Blocking", desc: "Instruction: WR sprints 5 yards at a defender, breaks down, buzzes feet, and engages the chest plate to block for a run play.", key: "Keep feet moving, inside hands" },
-        { name: "Route Tree Basics", desc: "Instruction: Run through the basic route tree (Slant, Out, Hitch, Go). Focus on sharp cuts at the correct yardage depth.", key: "Plant outside foot hard, sharp cuts" },
-        { name: "Catch & Tuck (Gauntlet)", desc: "Instruction: WR catches a pass over the middle and instantly tucks the ball away while running through two coaches holding pads.", key: "Look ball in, tuck instantly" }
-      ],
-      "OL (Offensive Line)": [
-        { name: "3-Point Stance & Get-Off", desc: "Instruction: Linemen line up in proper stances. On the snap count, explode out 5 yards. Watch for leaning, false steps, or high pad levels.", key: "Flat back, zero false steps" },
-        { name: "Base Drive Block", desc: "Instruction: OL fires out, takes a 6-inch power step, strikes the breastplate of a blocking shield, and drives hips forward for 5 yards.", key: "Thumbs up, elbows tight" },
-        { name: "Shock & Shed (Block Defeat)", desc: "Instruction: Lineman strikes a blocker with violent hands, extends arms to gain leverage, locates ball carrier, and rips off the block to make the tackle.", key: "Extend arms, rip off the block" },
-        { name: "Pull & Kickout", desc: "Instruction: Guard opens playside hip, pulls flat down the line behind the center, and delivers a trap/kickout block on a standing bag.", key: "Tight pulling path, strike hard" }
-      ],
-      "DL (Defensive Line)": [
-        { name: "Get-Off & Shoot Gap", desc: "Instruction: Line up DL on a football attached to a stick. When coach moves the ball, DL fires out instantly into their assigned gap.", key: "Eyes on ball, first step quickness" },
-        { name: "Rip Move & Attack Gap", desc: "Instruction: DL fires off, engages blocker, drops the inside shoulder, and violently rips the arm upward to clear the block and penetrate the gap.", key: "Drop shoulder, violent rip up" },
-        { name: "Swim (Arm-Over) Block Defeat", desc: "Instruction: DL strikes the blocker's breastplate, clubs with the outside hand, and swims the opposite arm over the blocker's shoulder to clear.", key: "Club hard, quick arm over" },
-        { name: "Bull Rush & Shed", desc: "Instruction: DL fires out low, shoots hands into the blocker's chest, drives legs to push the blocker back into the pocket, then sheds to the ball carrier.", key: "Low pad level, heavy hands" },
-        { name: "Read, React & Attack Gap", desc: "Instruction: DL reads the O-line step. If run block, drop anchor and shed. If pass set, transition instantly to Rip/Swim/Bull to attack the gap.", key: "Read the hat, react instantly" }
-      ],
-      "LB (Linebackers)": [
-        { name: "Key Read & Attack", desc: "Instruction: LB reads guard pull or down block, reacts instantly, scrapes tight to the line, and attacks the assigned gap downhill.", key: "Read the guard, attack downhill" },
-        { name: "Shock, Shed & Fill", desc: "Instruction: LB steps downhill to meet lead blocker, delivers a heavy two-hand strike to the chest, sheds using a rip move, and fills the gap.", key: "Violent strike, shed and tackle" },
-        { name: "Downhill Rip & Gap Fill", desc: "Instruction: LB reads run, attacks the A/B gap, uses a violent rip move to clear the climbing offensive lineman, and makes the tackle.", key: "Rip under the block, clear hips" },
-        { name: "Angle Tackling", desc: "Instruction: LB takes an inside-out pursuit angle toward a runner down the sideline, breaks down, and form tackles a bag.", key: "Track inside hip, wrap and squeeze" }
-      ],
-      "DB (Defensive Backs)": [
-        { name: "Defeat Stalk Block & Force", desc: "Instruction: DB reads run, attacks the WR's stalk block. Deliver a firm punch to the WR's chest, rip outside arm free, and force the runner inside to help.", key: "Punch, shed, force inside" },
-        { name: "Rip Off WR Block", desc: "Instruction: DB engages WR blocking on the perimeter, dips the inside shoulder, and rips through the block violently to make an alley tackle.", key: "Dip shoulder, rip through" },
-        { name: "Backpedal & Break", desc: "Instruction: DB backpedals 10 yards. On coach's signal, plant the back foot, drive forward at a 45-degree angle, and catch a ball.", key: "Low hips, zero false steps" },
-        { name: "Deep 1/3 Drop (Safety)", desc: "Instruction: Safety aligns 12 yards deep. Backpedals straight back reading the QB. Break to the deep sideline on a thrown ball.", key: "Deepest of the deepest" }
-      ],
-      "Special Teams": [
-        { name: "Kickoff Lane Spacing", desc: "Instruction: Line up kickoff team. Sprint 40 yards downfield ensuring every player maintains exactly 10 yards of spacing.", key: "Maintain lane integrity" },
-        { name: "Punt Shield Protection", desc: "Instruction: 3 players form a shield 5 yards behind line. Step inside to seal gaps, absorb rushers, and hold for 2 seconds.", key: "Head up, secure the inside gap" },
-        { name: "Kick Return Wedge", desc: "Instruction: Front blockers sprint back 15 yards, turn, and form a tight wall shoulder-to-shoulder to block for returner.", key: "Move together, drive block" }
-      ],
-      "Full Team / Installs": [
-        { name: "Offensive Play Install (Walkthrough)", desc: "Instruction: Huddle the full 11-man offensive unit. Walk through new plays vs. garbage cans or scout defense. No pads/helmets.", key: "Alignment, assignment, snap count" },
-        { name: "Defensive Front Install (Walkthrough)", desc: "Instruction: Walk through defensive alignments, blitz calls, and gap responsibilities against a scout offense. Half-speed.", key: "Communication, gap integrity" },
-        { name: "11-on-11 Run Game Scrimmage", desc: "Instruction: Live blocking and tackling. Offense runs strictly inside/outside run plays vs the starting defense.", key: "Physicality, execution at speed" }
-      ]
-    };
-
     const defaultPracticePlan = [
       { time: "10 Min", category: "Pre Practice", drill: "", coaches: [], desc: "", key: "", customDrill: "", isCircuit: true, stations: [
         { drill: "QB & Center Exchange", desc: "Instruction: Centers and QBs pair up to practice under-center and shotgun snaps before formal periods begin. Rotate through all QBs and Centers.", key: "100% snap accuracy", customDrill: "" },
@@ -1305,7 +1246,7 @@ const firebaseConfig = {
       { time: "20 Min", category: "Full Team / Installs", drill: "11-on-11 Run Game Scrimmage", coaches: [], desc: "Instruction: Live blocking and tackling. Offense runs strictly inside/outside run plays vs the starting defense.", key: "Physicality, execution at speed", customDrill: "", isCircuit: false }
     ];
 
-    // APPLICATION STATE
+    // STATE VARIABLES
     let savedCoaches = JSON.parse(localStorage.getItem("footballSavedCoaches")) || [];
     let practiceData = JSON.parse(localStorage.getItem("footballPracticeData")) || [];
     let currentPracticeId = null;
@@ -1328,19 +1269,15 @@ const firebaseConfig = {
     }
 
     function getWeekFormations(week) {
-      if (!weeklyData[week]) {
-        weeklyData[week] = { opponent: "" };
-      }
-      if (!weeklyData[week].formations || !Array.isArray(weeklyData[week].formations) || weeklyData[week].formations.length === 0) {
+      if (!weeklyData[week]) weeklyData[week] = { opponent: "" };
+      if (!Array.isArray(weeklyData[week].formations) || weeklyData[week].formations.length === 0) {
         weeklyData[week].formations = JSON.parse(JSON.stringify(defaultFormations));
       }
       return weeklyData[week].formations;
     }
 
     function getWeekDepthChart(week) {
-      if (!weeklyData[week]) {
-        weeklyData[week] = { opponent: "" };
-      }
+      if (!weeklyData[week]) weeklyData[week] = { opponent: "" };
       if (!weeklyData[week].depthChart || typeof weeklyData[week].depthChart !== 'object') {
         weeklyData[week].depthChart = JSON.parse(JSON.stringify(defaultDepthChartAssignments));
       }
@@ -1554,7 +1491,7 @@ const firebaseConfig = {
       }
     }
 
-    /* DYNAMIC FORMATIONS & POSITIONS MANAGEMENT */
+    /* DYNAMIC FORMATIONS & POSITIONS */
     function createFormationPrompt(unit) {
       const name = prompt(`Enter new ${unit.toUpperCase()} formation name:`, "New Formation");
       if(!name) return;
@@ -1931,7 +1868,7 @@ const firebaseConfig = {
       document.getElementById("sync-text").textContent = "Local Storage Mode";
     }
 
-    /* PRACTICE PLAN LOGIC */
+    /* PRACTICE PLAN & TABLE RESIZING LOGIC */
     function toggleCircuitMode(idx, isChecked) {
       const plan = getCurrentPractice().plan;
       plan[idx].isCircuit = isChecked;
@@ -1943,19 +1880,6 @@ const firebaseConfig = {
       }
       saveState();
       renderPracticePlan();
-    }
-
-    function getAllDrillOptions(selectedVal) {
-      let html = `<option value="">-- Select Drill --</option>`;
-      Object.keys(drillLibrary).forEach(cat => {
-        html += `<optgroup label="${cat}">`;
-        drillLibrary[cat].forEach(d => {
-          html += `<option value="${d.name}" ${selectedVal === d.name ? 'selected' : ''}>${d.name}</option>`;
-        });
-        html += `</optgroup>`;
-      });
-      html += `<option value="Custom" ${selectedVal === 'Custom' ? 'selected' : ''}>Custom Drill / Write In</option>`;
-      return html;
     }
 
     function renderPracticePlan() {
@@ -2118,6 +2042,42 @@ const firebaseConfig = {
 
         tbody.appendChild(tr);
       });
+
+      initTableResizing();
+    }
+
+    function initTableResizing() {
+      const table = document.getElementById("main-practice-table");
+      if (!table) return;
+      const cols = table.querySelectorAll("th");
+      
+      cols.forEach(th => {
+        const resizer = th.querySelector(".col-resizer");
+        if (!resizer) return;
+
+        let startX, startWidth;
+
+        resizer.onmousedown = function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          startX = e.pageX;
+          startWidth = th.offsetWidth;
+          resizer.classList.add("resizing");
+
+          document.onmousemove = function(e) {
+            const newWidth = startWidth + (e.pageX - startX);
+            if (newWidth > 40) {
+              th.style.width = newWidth + "px";
+            }
+          };
+
+          document.onmouseup = function() {
+            document.onmousemove = null;
+            document.onmouseup = null;
+            resizer.classList.remove("resizing");
+          };
+        };
+      });
     }
 
     function addPracticeRow() {
@@ -2266,7 +2226,7 @@ const firebaseConfig = {
       }
     }
 
-    /* PLAYER DRAG & DROP / ROSTER LOGIC */
+    /* PLAYER DRAG & DROP LOGIC */
     function removePlayer(posId, index, e) {
       if (e) e.stopPropagation();
       if(depthChart[posId]) {
@@ -2454,11 +2414,6 @@ const firebaseConfig = {
       });
     }
 
-    function render() {
-      renderActiveBoards();
-      renderMasterRoster();
-    }
-
     function exportData() {
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ weeklyData, practiceData, savedCoaches }, null, 2));
       const downloadAnchor = document.createElement('a');
@@ -2492,7 +2447,7 @@ const firebaseConfig = {
     }
 
     function resetDefault() {
-      if (confirm(`Reset Week ${currentWeek} back to default formations and depth chart?`)) {
+      if (confirm(`Reset Week ${currentWeek} depth chart back to default?`)) {
         weeklyData[currentWeek] = {
           opponent: "",
           depthChart: JSON.parse(JSON.stringify(defaultDepthChartAssignments)),
@@ -2507,7 +2462,7 @@ const firebaseConfig = {
       }
     }
 
-    // Initialize application safely on load
+    // Initialize application on load
     initializeApp();
   </script>
 </body>
