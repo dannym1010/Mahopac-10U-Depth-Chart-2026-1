@@ -882,6 +882,7 @@
               <button class="toggle-board-btn" onclick="createNewPractice()">+ New</button>
               <button class="toggle-board-btn" onclick="editPracticeDetails()">✏️ Edit</button>
               <button class="toggle-board-btn" onclick="copyPracticePrompt()">📋 Copy</button>
+              <button class="toggle-board-btn" onclick="resetPracticePlanData()" style="color:#2563eb;" title="Reload default template">🔄 Reset Plan</button>
               <button class="toggle-board-btn" style="color:#ef4444;" onclick="deletePractice()">🗑️ Delete</button>
             </div>
             <div>
@@ -972,6 +973,87 @@ const firebaseConfig = {
       { num: "99", firstName: "Conrad", lastName: "Crean" }
     ];
 
+    // DRILL LIBRARY WITH NEW CATEGORIES
+    const drillLibrary = {
+      "Pre Practice": [
+        { name: "QB & Center Exchange", desc: "Instruction: Centers and QBs pair up to practice under-center and shotgun snaps before formal periods begin. Rotate through all QBs and Centers.", key: "100% snap accuracy" },
+        { name: "Specialists: Kicking & Holding", desc: "Instruction: Specialists work on snap, hold, and kick mechanics independently. Kickers work on approach drops and leg swing contact.", key: "Timing and rhythm" },
+        { name: "WR Routes with QB Throws", desc: "Instruction: QBs throw the basic route tree on air to WRs. Focus on timing, route depths, and getting arms warm.", key: "Crisp routes, accurate passes" },
+        { name: "Offensive Line Steps", desc: "Instruction: O-Line works through their first 2 steps (drive, reach, down, pull) on air or lightly against standing bags.", key: "First step quickness, pad level" }
+      ],
+      "Warm-Up & Breaks": [
+        { name: "Mandatory Water Break", desc: "Instruction: Blow whistle twice. Players remove helmets and jog to water stations. Emphasize fast hydration and hustling back to position groups.", key: "Hydrate and hustle" },
+        { name: "Dynamic Warm-Up", desc: "Instruction: Line team up on the sideline or hash marks. Coach leads cadence. Perform high knees, karaoke, butt kicks, shuffling, and 10-yard short sprints.", key: "Full speed, proper posture" },
+        { name: "Agility Ladder", desc: "Instruction: Set up 2-3 agility ladders. Players run through doing icky shuffle, two-in, and lateral quick steps. Keep the line moving fast.", key: "Eyes up, quick feet" },
+        { name: "Form Tackling (No Pads)", desc: "Instruction: Pair players up. Walk through the fit position, proper head placement, and wrap mechanics on air without taking players to the ground.", key: "Head across bow, sink hips" },
+        { name: "Team Stretch", desc: "Instruction: Players spread out in a circle or rows. Team captains lead stretches. Focus on hamstrings, quads, groins, and shoulders.", key: "Stretch tight muscles" }
+      ],
+      "Individual Offense": [
+        { name: "Individual Stance & Alignment", desc: "Instruction: Skill and line players work on correct 2-point or 3-point stances, splits, and alignment rules.", key: "Proper stance, eyes up" },
+        { name: "Individual Ball Handling & Mesh", desc: "Instruction: Quarterbacks, running backs, and receivers practice clean handoffs, pitches, and catch-tuck transitions in slow motion.", key: "Secure the ball" },
+        { name: "Individual Release & Stem", desc: "Instruction: Receivers and tight ends work on getting off the line of scrimmage past dummy defenders and selling the route stem.", key: "No false steps" },
+        { name: "Individual O-Line Fit & Drive", desc: "Instruction: Offensive linemen practice individual board or chute footwork and hand placement fit against a partner or shield.", key: "Thumbs up, low center of gravity" }
+      ],
+      "Individual Defense": [
+        { name: "Individual Defensive Stance & Keys", desc: "Instruction: Linebackers and defensive linemen practice low athletic stances and reading offensive guard keys on air.", key: "Flat back, eyes on key" },
+        { name: "Individual Shed & Strike", desc: "Instruction: Defending players practice delivering a heavy hand strike to a shield and instantly ripping or swimming off the block.", key: "Violent hands, clear hips" },
+        { name: "Individual Backpedal & Weave", desc: "Instruction: Defensive backs and linebackers practice smooth backpedals, side-shuffles, and directional transition breaks.", key: "Low hips, stay square" },
+        { name: "Individual Pursuit & Angle", desc: "Instruction: Individual defenders work on proper running angles to the sideline to cut off ball carriers.", key: "Angle to inside hip" }
+      ],
+      "Team Chalk Talk": [
+        { name: "Whiteboard Playbook Review", desc: "Instruction: Gather the full team in front of the whiteboard to install new plays, formations, and signals.", key: "Full attention, mental reps" },
+        { name: "Film Study & Tendencies", desc: "Instruction: Review video clips from previous games or opponent scouting to identify strengths, weaknesses, and alignments.", key: "Identify opponent tendencies" },
+        { name: "Situational Football Discussion", desc: "Instruction: Chalk talk covering special game situations (3rd down, red zone, 2-minute drill, goal line).", key: "Mental preparation & rules" },
+        { name: "Scouting Report & Game Plan", desc: "Instruction: Walk through the opponent's core defensive fronts or offensive tendencies and assign key responsibilities.", key: "Know your assignment" }
+      ],
+      "Tackling (Whole Team)": [
+        { name: "Form Fit & Drive (Thud)", desc: "Instruction: Players start 2 yards apart. On whistle, step into the ball carrier, fit the shoulder to the numbers, wrap, and drive for 3 steps.", key: "Shoot hips, wrap cloth" },
+        { name: "Angle / Alley Tackle", desc: "Instruction: Defender takes an inside-out angle to intersect a runner aiming for the pylon. Break down and drive through the near hip.", key: "Near foot to near shoulder" },
+        { name: "Hawk (Rugby) Roll Tackle", desc: "Instruction: Defender targets the thighs of the runner, wraps legs tight, and rolls to the side using momentum to bring the runner down safely.", key: "Eyes on thighs, wrap and roll" },
+        { name: "Open Field Shimmy (Space)", desc: "Instruction: 10x10 yard grid. Defender tracks an elusive runner, breaks down 2 yards away, and executes a safe open-field wrap.", key: "Keep feet alive, track the hip" }
+      ],
+      "Tackle Circuit": [
+        { name: "Tackling Circuit (4 Groups)", desc: "Instruction: Divide team into 4 groups. Rotate every 3-5 mins on whistle. Station 1: Form fit. Station 2: Angle tackle. Station 3: Open field wrap. Station 4: Hawk Roll Tackle.", key: "Head up, wrap and squeeze" },
+        { name: "Turnover Circuit (4 Groups)", desc: "Instruction: Divide into 4 groups. Rotate every 3-5 mins. Station 1: Strip drill. Station 2: Fumble recovery (fall on it). Station 3: Tip drill (INTs). Station 4: Punch-out from behind.", key: "Secure the ball instantly" }
+      ],
+      "QB (Quarterbacks)": [
+        { name: "Under Center Snap & Drop", desc: "Instruction: Center snaps to QB. QB executes 3-step or 5-step drop on air. Coach watches feet to ensure no false steps or heel clicking.", key: "Clean exchange, fast drop" },
+        { name: "Shotgun Snap & Quick Game", desc: "Instruction: QB takes shotgun snap. Instantly sets feet and throws a quick slant or hitch to a target. Focus on catching and throwing in one rhythm.", key: "Secure snap, quick release" }
+      ],
+      "RB/FB (Running Backs)": [
+        { name: "Handoff Ball Security", desc: "Instruction: RBs practice receiving handoffs. Inside elbow must be up to form a pocket. Secure the ball immediately into the ribcage with 5 points of pressure.", key: "Squeeze tight, form pocket" },
+        { name: "Downhill A/B Gap Run", desc: "Instruction: RB takes the handoff and attacks the A or B gap immediately. Place bags simulating linemen. RB must hit the hole without dancing.", key: "No dancing, square shoulders" }
+      ],
+      "WR/TE (Receivers & Tight Ends)": [
+        { name: "Stance & Release", desc: "Instruction: Receivers line up in proper 2-point stance (inside foot up). Explode off the line for 5 yards without any false steps or rocking.", key: "Explode off front foot, no false steps" },
+        { name: "Stalk Blocking", desc: "Instruction: WR sprints 5 yards at a defender, breaks down, buzzes feet, and engages the chest plate to block for a run play.", key: "Keep feet moving, inside hands" }
+      ],
+      "OL (Offensive Line)": [
+        { name: "3-Point Stance & Get-Off", desc: "Instruction: Linemen line up in proper stances. On the snap count, explode out 5 yards. Watch for leaning, false steps, or high pad levels.", key: "Flat back, zero false steps" },
+        { name: "Base Drive Block", desc: "Instruction: OL fires out, takes a 6-inch power step, strikes the breastplate of a blocking shield, and drives hips forward for 5 yards.", key: "Thumbs up, elbows tight" }
+      ],
+      "DL (Defensive Line)": [
+        { name: "Get-Off & Shoot Gap", desc: "Instruction: Line up DL on a football attached to a stick. When coach moves the ball, DL fires out instantly into their assigned gap.", key: "Eyes on ball, first step quickness" },
+        { name: "Rip Move & Attack Gap", desc: "Instruction: DL fires off, engages blocker, drops the inside shoulder, and violently rips the arm upward to clear the block and penetrate the gap.", key: "Drop shoulder, violent rip up" }
+      ],
+      "LB (Linebackers)": [
+        { name: "Key Read & Attack", desc: "Instruction: LB reads guard pull or down block, reacts instantly, scrapes tight to the line, and attacks the assigned gap downhill.", key: "Read the guard, attack downhill" },
+        { name: "Shock, Shed & Fill", desc: "Instruction: LB steps downhill to meet lead blocker, delivers a heavy two-hand strike to the chest, sheds using a rip move, and fills the gap.", key: "Violent strike, shed and tackle" }
+      ],
+      "DB (Defensive Backs)": [
+        { name: "Defeat Stalk Block & Force", desc: "Instruction: DB reads run, attacks the WR's stalk block. Deliver a firm punch to the WR's chest, rip outside arm free, and force the runner inside to help.", key: "Punch, shed, force inside" },
+        { name: "Rip Off WR Block", desc: "Instruction: DB engages WR blocking on the perimeter, dips the inside shoulder, and rips through the block violently to make an alley tackle.", key: "Dip shoulder, rip through" }
+      ],
+      "Special Teams": [
+        { name: "Kickoff Lane Spacing", desc: "Instruction: Line up kickoff team. Sprint 40 yards downfield ensuring every player maintains exactly 10 yards of spacing.", key: "Maintain lane integrity" },
+        { name: "Punt Shield Protection", desc: "Instruction: 3 players form a shield 5 yards behind line. Step inside to seal gaps, absorb rushers, and hold for 2 seconds.", key: "Head up, secure the inside gap" }
+      ],
+      "Full Team / Installs": [
+        { name: "Offensive Play Install (Walkthrough)", desc: "Instruction: Huddle the full 11-man offensive unit. Walk through new plays vs. garbage cans or scout defense. No pads/helmets.", key: "Alignment, assignment, snap count" },
+        { name: "Defensive Front Install (Walkthrough)", desc: "Instruction: Walk through defensive alignments, blitz calls, and gap responsibilities against a scout offense. Half-speed.", key: "Communication, gap integrity" }
+      ]
+    };
+
     // DEFAULT FORMATIONS
     const defaultFormations = [
       {
@@ -985,48 +1067,6 @@ const firebaseConfig = {
           ]},
           { id: "row_11_bk", label: "Backfield (1 - 4)", rowClass: "backfield", positions: [
             { id: "11-1", name: "1 (QB)" }, { id: "11-4", name: "4 (RB)" }
-          ]}
-        ]
-      },
-      {
-        id: "form_21", unit: "offense", name: "21 Offense", subtitle: "2 RBs - 1 TE (Y1) - 2 WRs (X Left, Z Right)", collapsed: false,
-        rows: [
-          { id: "row_21_ol", label: "Offensive Line & TE (Y1)", rowClass: "oline", positions: [
-            { id: "21-LT", name: "LT" }, { id: "21-LG", name: "LG" }, { id: "21-C", name: "C" }, { id: "21-RG", name: "RG" }, { id: "21-RT", name: "RT" }, { id: "21-Y1", name: "Y1" }
-          ]},
-          { id: "row_21_wr", label: "Wideouts (X, Z)", rowClass: "receivers", positions: [
-            { id: "21-X", name: "X" }, { id: "21-Z", name: "Z" }
-          ]},
-          { id: "row_21_bk", label: "Backfield (1 - 2 - 3 Stack)", rowClass: "backfield", positions: [
-            { id: "21-1", name: "1 (QB)" }, { id: "21-2", name: "2 (FB)" }, { id: "21-3", name: "3 (HB)" }
-          ]}
-        ]
-      },
-      {
-        id: "form_22", unit: "offense", name: "22 Offense", subtitle: "2 RBs - 2 TEs (Y1 & Y2) - 1 WR", collapsed: false,
-        rows: [
-          { id: "row_22_ol", label: "Offensive Line & Dual TEs (Y1 & Y2)", rowClass: "oline", positions: [
-            { id: "22-Y1", name: "Y1" }, { id: "22-LT", name: "LT" }, { id: "22-LG", name: "LG" }, { id: "22-C", name: "C" }, { id: "22-RG", name: "RG" }, { id: "22-RT", name: "RT" }, { id: "22-Y2", name: "Y2" }
-          ]},
-          { id: "row_22_wr", label: "Single Receiver", rowClass: "receivers", positions: [
-            { id: "22-X", name: "X" }
-          ]},
-          { id: "row_22_bk", label: "Backfield (1 - 2 - 3 Stack)", rowClass: "backfield", positions: [
-            { id: "22-1", name: "1 (QB)" }, { id: "22-2", name: "2 (FB)" }, { id: "22-3", name: "3 (HB)" }
-          ]}
-        ]
-      },
-      {
-        id: "form_32", unit: "offense", name: "32 Offense", subtitle: "3 RBs - 2 TEs (Y1 & Y2) - Wishbone Alignment", collapsed: false,
-        rows: [
-          { id: "row_32_ol", label: "Offensive Line & Dual TEs (Y1 & Y2)", rowClass: "oline", positions: [
-            { id: "32-Y1", name: "Y1" }, { id: "32-LT", name: "LT" }, { id: "32-LG", name: "LG" }, { id: "32-C", name: "C" }, { id: "32-RG", name: "RG" }, { id: "32-RT", name: "RT" }, { id: "32-Y2", name: "Y2" }
-          ]},
-          { id: "row_32_bk1", label: "Wishbone Backfield (1 Under Center / 2 Fullback)", rowClass: "backfield", positions: [
-            { id: "32-1", name: "1 (QB)" }, { id: "32-2", name: "2 (FB)" }
-          ]},
-          { id: "row_32_bk2", label: "Split Flanks (3 & 4)", rowClass: "oline", positions: [
-            { id: "32-3", name: "3 (HB)" }, { id: "32-4", name: "4 (RB)" }
           ]}
         ]
       },
@@ -1048,23 +1088,6 @@ const firebaseConfig = {
         ]
       },
       {
-        id: "form_53", unit: "defense", name: "53 Defense", subtitle: "Odd Front (11 Positions)", collapsed: false,
-        rows: [
-          { id: "row_53_fs", label: "Single Free Safety", rowClass: "secondary-safety", positions: [
-            { id: "53-FS", name: "FS" }
-          ]},
-          { id: "row_53_cb", label: "Cornerbacks", rowClass: "secondary-corners", positions: [
-            { id: "53-CB1", name: "CB 1" }, { id: "53-CB2", name: "CB 2" }
-          ]},
-          { id: "row_53_lb", label: "Linebacker Level (WILL - MIKE - SAM)", rowClass: "linebackers-tight", positions: [
-            { id: "53-WILL", name: "WILL" }, { id: "53-MIKE", name: "MIKE" }, { id: "53-SAM", name: "SAM" }
-          ]},
-          { id: "row_53_dl", label: "Defensive Line (DE1 - DT1 - NT - DT2 - DE2)", rowClass: "dl", positions: [
-            { id: "53-DE1", name: "DE 1" }, { id: "53-DT1", name: "DT 1" }, { id: "53-NT", name: "NT" }, { id: "53-DT2", name: "DT 2" }, { id: "53-DE2", name: "DE 2" }
-          ]}
-        ]
-      },
-      {
         id: "form_ko", unit: "st", name: "Kickoff Team", subtitle: "8 Coverage + 3 Backs", collapsed: false,
         rows: [
           { id: "row_ko_line", label: "Front Coverage Line (L1-L4, R4-R1)", rowClass: "oline", positions: [
@@ -1073,51 +1096,6 @@ const firebaseConfig = {
           ]},
           { id: "row_ko_bk", label: "Backfield Level (LBH - Kicker - RBH)", rowClass: "oline", positions: [
             { id: "KO-LBH", name: "LBH" }, { id: "KO-KICKER", name: "Kicker" }, { id: "KO-RBH", name: "RBH" }
-          ]}
-        ]
-      },
-      {
-        id: "form_kr", unit: "st", name: "Kick Return Team", subtitle: "5 Line + 6 Staggered Returners", collapsed: false,
-        rows: [
-          { id: "row_kr_line", label: "Front Blocking Line (T - G - C - G - T)", rowClass: "oline", positions: [
-            { id: "KR-T1", name: "T1" }, { id: "KR-G1", name: "G1" }, { id: "KR-C", name: "C" }, { id: "KR-G2", name: "G2" }, { id: "KR-T2", name: "T2" }
-          ]},
-          { id: "row_kr_w1", label: "Wedge Level 1", rowClass: "oline", positions: [
-            { id: "KR-XL1", name: "XL1" }, { id: "KR-XR1", name: "XR1" }
-          ]},
-          { id: "row_kr_w2", label: "Wedge Level 2", rowClass: "oline", positions: [
-            { id: "KR-XL2", name: "XL2" }, { id: "KR-XR2", name: "XR2" }
-          ]},
-          { id: "row_kr_w3", label: "Deep Returners", rowClass: "oline", positions: [
-            { id: "KR-XL3", name: "XL3" }, { id: "KR-XR3", name: "XR3" }
-          ]}
-        ]
-      },
-      {
-        id: "form_punt", unit: "st", name: "Punt Team", subtitle: "Protection Line - Wings - Backfield", collapsed: false,
-        rows: [
-          { id: "row_punt_ol", label: "Punt Protection Line", rowClass: "oline", positions: [
-            { id: "PUNT-Y2", name: "Y2" }, { id: "PUNT-LT", name: "LT" }, { id: "PUNT-LG", name: "LG" }, { id: "PUNT-C", name: "C" }, { id: "PUNT-RG", name: "RG" }, { id: "PUNT-RT", name: "RT" }, { id: "PUNT-Y1", name: "Y1" }
-          ]},
-          { id: "row_punt_gn", label: "Wide Gunners (3 & 4)", rowClass: "receivers", positions: [
-            { id: "PUNT-3", name: "Gunner 3" }, { id: "PUNT-4", name: "Gunner 4" }
-          ]},
-          { id: "row_punt_bk", label: "Personal Protector & Punter", rowClass: "backfield", positions: [
-            { id: "PUNT-2", name: "PP (#2)" }, { id: "PUNT-KICKER", name: "Punter" }
-          ]}
-        ]
-      },
-      {
-        id: "form_fg", unit: "st", name: "Field Goal / PAT Team", subtitle: "Line - Wings - Holder - Kicker", collapsed: false,
-        rows: [
-          { id: "row_fg_ol", label: "Protection Line", rowClass: "oline", positions: [
-            { id: "FG-LE", name: "LE" }, { id: "FG-LT", name: "LT" }, { id: "FG-LG", name: "LG" }, { id: "FG-LS", name: "LS" }, { id: "FG-RG", name: "RG" }, { id: "FG-RT", name: "RT" }, { id: "FG-RE", name: "RE" }
-          ]},
-          { id: "row_fg_wg", label: "Wing Blockers", rowClass: "receivers", positions: [
-            { id: "FG-WL", name: "Wing L" }, { id: "FG-WR", name: "Wing R" }
-          ]},
-          { id: "row_fg_bk", label: "Holder & Kicker", rowClass: "backfield", positions: [
-            { id: "FG-H", name: "Holder" }, { id: "FG-K", name: "Kicker" }
           ]}
         ]
       },
@@ -1134,20 +1112,6 @@ const firebaseConfig = {
             { id: "GRP-QB", name: "QB" }, { id: "GRP-FB", name: "FB" }, { id: "GRP-RB", name: "RB" }
           ]}
         ]
-      },
-      {
-        id: "form_grp_def", unit: "groups", name: "Defensive Depth Chart", subtitle: "44 Stack Format", collapsed: false,
-        rows: [
-          { id: "row_grp_sec", label: "Secondary Level", rowClass: "secondary-corners", positions: [
-            { id: "GRP-CB1", name: "CB 1" }, { id: "GRP-FS", name: "FS" }, { id: "GRP-CB2", name: "CB 2" }
-          ]},
-          { id: "row_grp_lb", label: "Linebacker Level (ROVER - WILL - MIKE - SAM)", rowClass: "linebackers-tight", positions: [
-            { id: "GRP-ROVER", name: "ROVER" }, { id: "GRP-WILL", name: "WILL" }, { id: "GRP-MIKE", name: "MIKE" }, { id: "GRP-SAM", name: "SAM" }
-          ]},
-          { id: "row_grp_dl", label: "Defensive Line (WDE - DT1 - DT2 - SDE)", rowClass: "dl", positions: [
-            { id: "GRP-WDE", name: "WDE" }, { id: "GRP-DT1", name: "DT 1" }, { id: "GRP-DT2", name: "DT 2" }, { id: "GRP-SDE", name: "SDE" }
-          ]}
-        ]
       }
     ];
 
@@ -1162,110 +1126,7 @@ const firebaseConfig = {
       "44-SAM":   [{ name: "Russell", num: "56" }],
       "44-CB1":   [{ name: "Silva", num: "7" }],
       "44-FS":    [{ name: "Kilkenny", num: "8" }],
-      "44-CB2":   [{ name: "Mancini", num: "10" }],
-
-      "21-X":    [{ name: "Henderson", num: "6" }, { name: "Nardella", num: "19" }],
-      "21-LT":   [{ name: "Mucciacciaro", num: "66" }],
-      "21-LG":   [{ name: "Cambigianis", num: "4" }],
-      "21-C":    [{ name: "Piqueras", num: "52" }],
-      "21-RG":   [{ name: "Sokol", num: "40" }],
-      "21-RT":   [{ name: "Crean", num: "99" }],
-      "21-Y1":   [{ name: "Swansen", num: "15" }],
-      "21-Z":    [{ name: "Barry", num: "12" }, { name: "Furfaro", num: "20" }, { name: "Ward", num: "21" }],
-      "21-1":    [{ name: "Mancini", num: "10" }],
-      "21-2":    [{ name: "Sweeny", num: "48" }],
-      "21-3":    [{ name: "Pestone", num: "22" }, { name: "Jones", num: "44" }],
-
-      "GRP-LT": [{ name: "Mucciacciaro", num: "66" }],
-      "GRP-LG": [{ name: "Cambigianis", num: "4" }],
-      "GRP-C": [{ name: "Piqueras", num: "52" }],
-      "GRP-RG": [{ name: "Sokol", num: "40" }],
-      "GRP-RT": [{ name: "Crean", num: "99" }],
-      "GRP-TES": [{ name: "Swansen", num: "15" }],
-      "GRP-X": [{ name: "Henderson", num: "6" }, { name: "Nardella", num: "19" }],
-      "GRP-Z": [{ name: "Barry", num: "12" }, { name: "Furfaro", num: "20" }],
-      "GRP-QB": [{ name: "Mancini", num: "10" }],
-      "GRP-FB": [{ name: "Sweeny", num: "48" }],
-      "GRP-RB": [{ name: "Pestone", num: "22" }, { name: "Jones", num: "44" }],
-
-      "GRP-FS": [{ name: "Kilkenny", num: "8" }],
-      "GRP-CB1": [{ name: "Silva", num: "7" }],
-      "GRP-CB2": [{ name: "Mancini", num: "10" }],
-      "GRP-ROVER": [{ name: "Flemming", num: "34" }],
-      "GRP-WILL": [{ name: "Veto", num: "13" }],
-      "GRP-MIKE": [{ name: "Berish", num: "11" }],
-      "GRP-SAM": [{ name: "Russell", num: "56" }],
-      "GRP-WDE": [{ name: "Ibrahim", num: "2" }],
-      "GRP-DT1": [{ name: "Convery", num: "50" }],
-      "GRP-DT2": [{ name: "Dicob", num: "17" }],
-      "GRP-SDE": [{ name: "Frascone", num: "33" }],
-
-      "KO-L1": [{ name: "Sokol", num: "40" }],
-      "KO-L2": [{ name: "Cambigianis", num: "4" }, { name: "Barry", num: "12" }],
-      "KO-L3": [{ name: "Piqueras", num: "52" }],
-      "KO-L4": [{ name: "Frascone", num: "33" }],
-      "KO-R4": [{ name: "Cambigianis", num: "4" }],
-      "KO-R3": [{ name: "Barry", num: "12" }],
-      "KO-R2": [{ name: "Jones", num: "44" }],
-      "KO-R1": [{ name: "Mancini", num: "10" }],
-      "KO-LBH": [{ name: "Pestone", num: "22" }],
-      "KO-KICKER": [{ name: "Veto", num: "13" }, { name: "Barry", num: "12" }],
-      "KO-RBH": [{ name: "Silva", num: "7" }],
-
-      "PUNT-Y2": [{ name: "Sokol", num: "40" }],
-      "PUNT-LT": [{ name: "Ryan", num: "56" }],
-      "PUNT-LG": [{ name: "Jimmy", num: "" }],
-      "PUNT-C": [{ name: "Nash", num: "21" }],
-      "PUNT-RG": [{ name: "Henry", num: "15" }],
-      "PUNT-RT": [{ name: "Andrew", num: "6" }],
-      "PUNT-Y1": [{ name: "John", num: "52" }],
-      "PUNT-3": [{ name: "Richie", num: "12" }],
-      "PUNT-4": [{ name: "Luke", num: "10" }],
-      "PUNT-2": [{ name: "Landon", num: "13" }],
-      "PUNT-KICKER": [{ name: "Jaxson", num: "22" }]
-    };
-
-    // PRACTICE DRILL LIBRARY
-    // Kept local so the Practice Plan works even when no external drill data is loaded.
-    const drillLibrary = {
-      "Pre Practice": [
-        { name: "QB & Center Exchange", desc: "Centers and QBs pair up to practice under-center and shotgun snaps.", key: "100% snap accuracy" },
-        { name: "Specialists: Kicking & Holding", desc: "Specialists work on snap, hold, and kick mechanics.", key: "Timing and rhythm" },
-        { name: "WR Routes with QB Throws", desc: "QBs throw the basic route tree on air to WRs.", key: "Crisp routes" },
-        { name: "Offensive Line Steps", desc: "O-Line works through their first two steps on air.", key: "First step quickness" }
-      ],
-      "Warm-Up & Breaks": [
-        { name: "Dynamic Warm-Up", desc: "High knees, karaoke, butt kicks, shuffling, and short sprints.", key: "Full speed, proper posture" },
-        { name: "Mandatory Water Break", desc: "Players hydrate quickly and return to position groups.", key: "Hydrate and hustle" }
-      ],
-      "Tackle Circuit": [
-        { name: "Form Fit & Drive (Thud)", desc: "Fit the shoulder to the numbers, wrap, and drive.", key: "Shoot hips, wrap cloth" },
-        { name: "Angle / Alley Tackle", desc: "Take an inside-out angle and finish under control.", key: "Near foot to near shoulder" },
-        { name: "Shed & Tackle", desc: "Strike a blocking shield, shed, then square to the runner.", key: "Violent shed, eyes to target" },
-        { name: "Open Field Shimmy (Space)", desc: "Track an elusive runner and break down in space.", key: "Keep feet alive, track the hip" }
-      ],
-      "Full Team / Installs": [
-        { name: "Offensive Play Install (Walkthrough)", desc: "Walk through new plays with emphasis on alignment and assignments.", key: "Alignment, assignment, snap count" },
-        { name: "11-on-11 Run Game Scrimmage", desc: "Run inside and outside concepts against the defense at controlled speed.", key: "Execution and communication" }
-      ],
-      "Offense": [
-        { name: "Inside Run", desc: "Run inside concepts with clear blocking landmarks.", key: "Pad level and leverage" },
-        { name: "Outside Run", desc: "Work perimeter runs with correct aiming points.", key: "Edge and pursuit" },
-        { name: "Pass Game", desc: "Run route concepts with QB timing and progression.", key: "Timing and spacing" }
-      ],
-      "Defense": [
-        { name: "Run Fits", desc: "Rehearse gap fits, leverage, and pursuit.", key: "Gap integrity" },
-        { name: "Tackling", desc: "Work safe form tackling and leverage fundamentals.", key: "Eyes and leverage" },
-        { name: "Pass Coverage", desc: "Rehearse alignment, drops, and communication.", key: "Eyes and communication" }
-      ],
-      "Special Teams": [
-        { name: "Kickoff Coverage", desc: "Rehearse lane integrity and coverage responsibilities.", key: "Lane discipline" },
-        { name: "Punt Protection", desc: "Work protection calls, releases, and coverage responsibilities.", key: "Protection communication" },
-        { name: "Kick Return", desc: "Rehearse blocking leverage and return landmarks.", key: "Blocks and ball security" }
-      ],
-      "Circuits (4-Stations)": [
-        { name: "Fundamentals Circuit", desc: "Rotate through four fundamentals stations.", key: "Technique and tempo" }
-      ]
+      "44-CB2":   [{ name: "Mancini", num: "10" }]
     };
 
     const defaultPracticePlan = [
@@ -1299,14 +1160,6 @@ const firebaseConfig = {
 
     function saveCoaches() {
       localStorage.setItem("footballSavedCoaches", JSON.stringify(savedCoaches));
-    }
-
-    function findDrillByName(drillName) {
-      for (const cat in drillLibrary) {
-        const found = drillLibrary[cat].find(d => d.name === drillName);
-        if (found) return found;
-      }
-      return null;
     }
 
     function getWeekFormations(week) {
@@ -1344,6 +1197,7 @@ const firebaseConfig = {
       }
 
       practiceData.forEach((p, pIdx) => {
+        if (!p) return;
         if (!p.id) p.id = (Date.now() + pIdx).toString();
         if (!p.title) p.title = "Practice " + (pIdx + 1);
         if (!Array.isArray(p.plan) || p.plan.length === 0) {
@@ -1393,7 +1247,7 @@ const firebaseConfig = {
 
     function getCurrentPractice() {
       sanitizePracticeData();
-      let p = practiceData.find(prac => prac.id === currentPracticeId);
+      let p = practiceData.find(prac => prac && prac.id === currentPracticeId);
       if (!p && practiceData.length > 0) {
         currentPracticeId = practiceData[0].id;
         p = practiceData[0];
@@ -1409,12 +1263,6 @@ const firebaseConfig = {
       if (!Array.isArray(p.plan) || p.plan.length === 0) {
         p.plan = JSON.parse(JSON.stringify(defaultPracticePlan));
       }
-      p.plan.forEach(row => {
-        if (!row || typeof row !== "object") return;
-        if (!Array.isArray(row.coaches)) row.coaches = [];
-        if (typeof row.isCircuit !== "boolean") row.isCircuit = false;
-        if (!Array.isArray(row.stations)) row.stations = [];
-      });
       return p;
     }
 
@@ -1490,6 +1338,16 @@ const firebaseConfig = {
          p.plan = JSON.parse(JSON.stringify(practiceData[targetIdx].plan));
          saveState();
          renderPracticePlan();
+      }
+    }
+
+    function resetPracticePlanData() {
+      const p = getCurrentPractice();
+      if(confirm(`Reset "${p.title}" back to the default practice plan template?`)) {
+        p.plan = JSON.parse(JSON.stringify(defaultPracticePlan));
+        saveState();
+        renderPracticePlan();
+        alert("Practice plan successfully reset to default.");
       }
     }
 
@@ -1995,174 +1853,180 @@ const firebaseConfig = {
       const tbody = document.getElementById("practice-rows");
       if (!tbody) return;
       
-      tbody.innerHTML = "";
-      const current = getCurrentPractice();
-      if (!current || !Array.isArray(current.plan) || current.plan.length === 0) {
-        if (current) {
+      try {
+        tbody.innerHTML = "";
+        const current = getCurrentPractice();
+        if (!current || !Array.isArray(current.plan)) return;
+        const plan = current.plan;
+
+        if (plan.length === 0) {
           current.plan = JSON.parse(JSON.stringify(defaultPracticePlan));
         }
-      }
-      const plan = current.plan;
 
-      plan.forEach((row, idx) => {
-        const tr = document.createElement("tr");
+        current.plan.forEach((row, idx) => {
+          if (!row) return;
+          const tr = document.createElement("tr");
 
-        let catOptions = `<option value="">-- Select Category --</option>`;
-        Object.keys(drillLibrary).forEach(cat => {
-             catOptions += `<option value="${cat}" ${row.category === cat ? 'selected' : ''}>${cat}</option>`;
-        });
-        catOptions += `<option value="Custom" ${row.category === "Custom" ? 'selected' : ''}>Custom Category</option>`;
+          let catOptions = `<option value="">-- Select Category --</option>`;
+          Object.keys(drillLibrary).forEach(cat => {
+               catOptions += `<option value="${cat}" ${row.category === cat ? 'selected' : ''}>${cat}</option>`;
+          });
+          catOptions += `<option value="Custom" ${row.category === "Custom" ? 'selected' : ''}>Custom Category</option>`;
 
-        let circuitToggle = `
-          <div style="margin-top:6px;" class="no-print">
-            <label style="font-size:10px; font-weight:bold; cursor:pointer; color:var(--primary);">
-              <input type="checkbox" onchange="toggleCircuitMode(${idx}, this.checked)" ${row.isCircuit ? 'checked' : ''}> 
-              Enable Stations
-            </label>
-          </div>
-        `;
+          let circuitToggle = `
+            <div style="margin-top:6px;" class="no-print">
+              <label style="font-size:10px; font-weight:bold; cursor:pointer; color:var(--primary);">
+                <input type="checkbox" onchange="toggleCircuitMode(${idx}, this.checked)" ${row.isCircuit ? 'checked' : ''}> 
+                Enable Stations
+              </label>
+            </div>
+          `;
 
-        let coachBadges = '';
-        const rowCoaches = Array.isArray(row.coaches) ? row.coaches : [];
-        rowCoaches.forEach(c => {
-          coachBadges += `<span class="coach-badge" onclick="removeCoachFromRow(${idx}, '${c}')" title="Click to remove">${c} <span class="no-print">&times;</span></span>`;
-        });
-        
-        let coachSelectOptions = `<option value="">+ Coach</option><option value="NEW">+ New Coach</option>`;
-        savedCoaches.forEach(c => {
-          coachSelectOptions += `<option value="${c}">${c}</option>`;
-        });
+          let coachBadges = '';
+          const rowCoaches = Array.isArray(row.coaches) ? row.coaches : [];
+          rowCoaches.forEach(c => {
+            coachBadges += `<span class="coach-badge" onclick="removeCoachFromRow(${idx}, '${c}')" title="Click to remove">${c} <span class="no-print">&times;</span></span>`;
+          });
+          
+          let coachSelectOptions = `<option value="">+ Coach</option><option value="NEW">+ New Coach</option>`;
+          savedCoaches.forEach(c => {
+            coachSelectOptions += `<option value="${c}">${c}</option>`;
+          });
 
-        if (row.isCircuit) {
-           if (!Array.isArray(row.stations) || row.stations.length === 0) {
-             row.stations = [
-               { drill: "", desc: "", key: "", customDrill: "" },
-               { drill: "", desc: "", key: "", customDrill: "" }
-             ];
-           }
-           let stationSelects = `
-             <div style="margin-bottom:8px;" class="no-print">
-                <strong>Stations:</strong> 
-                <select class="prac-select" style="width:auto; display:inline-block;" onchange="updateCircuitStations(${idx}, this.value)">
-                  <option value="2" ${row.stations.length===2?'selected':''}>2</option>
-                  <option value="3" ${row.stations.length===3?'selected':''}>3</option>
-                  <option value="4" ${row.stations.length===4?'selected':''}>4</option>
-                  <option value="5" ${row.stations.length===5?'selected':''}>5</option>
-                  <option value="6" ${row.stations.length===6?'selected':''}>6</option>
-                </select>
-             </div>
-           `;
-           
-           let stationDetails = `<div style="margin-top:24px;" class="no-print"></div>`;
-           let stationKeys = `<div style="margin-top:24px;" class="no-print"></div>`;
-
-           row.stations.forEach((st, i) => {
-              const stActiveDrillName = st.drill === 'Custom' ? (st.customDrill || 'Football Drill') : (st.drill || 'Football Drill');
-              const stVideoSearchQuery = encodeURIComponent("10u youth football " + stActiveDrillName);
-              const stVideoUrl = `https://www.youtube.com/results?search_query=${stVideoSearchQuery}`;
-
-              stationSelects += `
-                <div class="station-block">
-                  <div class="station-title">Station ${i+1}</div>
-                  <select class="prac-select" onchange="updateCircuitDrill(${idx}, ${i}, this.value)">
-                    ${getAllDrillOptions(st.drill)}
+          if (row.isCircuit) {
+             if (!Array.isArray(row.stations) || row.stations.length === 0) {
+               row.stations = [
+                 { drill: "", desc: "", key: "", customDrill: "" },
+                 { drill: "", desc: "", key: "", customDrill: "" }
+               ];
+             }
+             let stationSelects = `
+               <div style="margin-bottom:8px;" class="no-print">
+                  <strong>Stations:</strong> 
+                  <select class="prac-select" style="width:auto; display:inline-block;" onchange="updateCircuitStations(${idx}, this.value)">
+                    <option value="2" ${row.stations.length===2?'selected':''}>2</option>
+                    <option value="3" ${row.stations.length===3?'selected':''}>3</option>
+                    <option value="4" ${row.stations.length===4?'selected':''}>4</option>
+                    <option value="5" ${row.stations.length===5?'selected':''}>5</option>
+                    <option value="6" ${row.stations.length===6?'selected':''}>6</option>
                   </select>
-                  ${st.drill === 'Custom' || (!st.drill && st.customDrill) ? `<input type="text" class="prac-input" style="margin-top:4px;" placeholder="Custom drill..." value="${st.customDrill || ''}" onchange="updateCircuitData(${idx}, ${i}, 'customDrill', this.value)">` : ''}
-                  ${st.drill ? `<div style="margin-top:4px;"><a href="${stVideoUrl}" target="_blank" class="video-link-btn no-print">▶️ Watch Video</a></div>` : ''}
+               </div>
+             `;
+             
+             let stationDetails = `<div style="margin-top:24px;" class="no-print"></div>`;
+             let stationKeys = `<div style="margin-top:24px;" class="no-print"></div>`;
+
+             row.stations.forEach((st, i) => {
+                if (!st) st = { drill: "", desc: "", key: "", customDrill: "" };
+                const stActiveDrillName = st.drill === 'Custom' ? (st.customDrill || 'Football Drill') : (st.drill || 'Football Drill');
+                const stVideoSearchQuery = encodeURIComponent("10u youth football " + stActiveDrillName);
+                const stVideoUrl = `https://www.youtube.com/results?search_query=${stVideoSearchQuery}`;
+
+                stationSelects += `
+                  <div class="station-block">
+                    <div class="station-title">Station ${i+1}</div>
+                    <select class="prac-select" onchange="updateCircuitDrill(${idx}, ${i}, this.value)">
+                      ${getAllDrillOptions(st.drill)}
+                    </select>
+                    ${st.drill === 'Custom' || (!st.drill && st.customDrill) ? `<input type="text" class="prac-input" style="margin-top:4px;" placeholder="Custom drill..." value="${st.customDrill || ''}" onchange="updateCircuitData(${idx}, ${i}, 'customDrill', this.value)">` : ''}
+                    ${st.drill ? `<div style="margin-top:4px;"><a href="${stVideoUrl}" target="_blank" class="video-link-btn no-print">▶️ Watch Video</a></div>` : ''}
+                  </div>
+                `;
+
+                stationDetails += `
+                  <div class="station-block">
+                    <div class="station-title no-print" style="opacity:0;">Spacing</div>
+                    <textarea class="prac-textarea" style="min-height:55px;" onchange="updateCircuitData(${idx}, ${i}, 'desc', this.value)" placeholder="Station ${i+1} description...">${st.desc || ''}</textarea>
+                  </div>
+                `;
+
+                stationKeys += `
+                  <div class="station-block" style="min-height:76px;">
+                    <div class="station-title no-print" style="opacity:0;">Spacing</div>
+                    <input type="text" class="prac-input" value="${st.key || ''}" onchange="updateCircuitData(${idx}, ${i}, 'key', this.value)" placeholder="Focus...">
+                  </div>
+                `;
+             });
+
+             tr.innerHTML = `
+              <td><input type="text" class="prac-input" value="${row.time || ''}" onchange="updatePracticeData(${idx}, 'time', this.value)" placeholder="e.g. 15 Min"></td>
+              <td>
+                <select class="prac-select" onchange="updatePracticeCategory(${idx}, this.value)">
+                  ${catOptions}
+                </select>
+                ${circuitToggle}
+              </td>
+              <td>${stationSelects}</td>
+              <td>${stationDetails}</td>
+              <td>
+                <div style="margin-bottom:4px;">${coachBadges}</div>
+                <select class="prac-select no-print" onchange="handleCoachSelection(${idx}, this.value)">
+                  ${coachSelectOptions}
+                </select>
+              </td>
+              <td>${stationKeys}</td>
+              <td class="no-print" style="text-align:center;">
+                <div style="display:flex; flex-direction:column; gap:4px; align-items:center;">
+                  <button class="reorder-btn" onclick="movePracticeRow(${idx}, -1)">▲</button>
+                  <button class="reorder-btn" onclick="movePracticeRow(${idx}, 1)">▼</button>
+                  <button class="remove-btn" onclick="removePracticeRow(${idx})">&times;</button>
                 </div>
-              `;
+              </td>
+            `;
 
-              stationDetails += `
-                <div class="station-block">
-                  <div class="station-title no-print" style="opacity:0;">Spacing</div>
-                  <textarea class="prac-textarea" style="min-height:55px;" onchange="updateCircuitData(${idx}, ${i}, 'desc', this.value)" placeholder="Station ${i+1} description...">${st.desc || ''}</textarea>
+          } else {
+            let drillOptions = `<option value="">-- Select Drill --</option>`;
+            if (row.category && drillLibrary[row.category]) {
+              drillLibrary[row.category].forEach(d => {
+                drillOptions += `<option value="${d.name}" ${row.drill === d.name ? 'selected' : ''}>${d.name}</option>`;
+              });
+            }
+            drillOptions += `<option value="Custom" ${row.drill === "Custom" ? 'selected' : ''}>Custom Drill / Write In</option>`;
+
+            const activeDrillName = row.drill === 'Custom' ? (row.customDrill || 'Football Drill') : (row.drill || 'Football Drill');
+            const videoSearchQuery = encodeURIComponent("10u youth football " + activeDrillName);
+            const videoUrl = `https://www.youtube.com/results?search_query=${videoSearchQuery}`;
+
+            tr.innerHTML = `
+              <td><input type="text" class="prac-input" value="${row.time || ''}" onchange="updatePracticeData(${idx}, 'time', this.value)" placeholder="e.g. 15 Min"></td>
+              <td>
+                <select class="prac-select" onchange="updatePracticeCategory(${idx}, this.value)">
+                  ${catOptions}
+                </select>
+                ${circuitToggle}
+              </td>
+              <td>
+                <select class="prac-select" onchange="updatePracticeDrill(${idx}, this.value)">
+                  ${drillOptions}
+                </select>
+                ${row.drill === 'Custom' || !row.drill ? `<input type="text" class="prac-input" style="margin-top:4px;" placeholder="Custom drill name..." value="${row.customDrill || ''}" onchange="updatePracticeData(${idx}, 'customDrill', this.value)">` : ''}
+                ${row.drill ? `<a href="${videoUrl}" target="_blank" class="video-link-btn no-print">▶️ Watch Video Demo</a>` : ''}
+              </td>
+              <td><textarea class="prac-textarea" onchange="updatePracticeData(${idx}, 'desc', this.value)" placeholder="Drill description & setup...">${row.desc || ''}</textarea></td>
+              <td>
+                <div style="margin-bottom:4px;">${coachBadges}</div>
+                <select class="prac-select no-print" onchange="handleCoachSelection(${idx}, this.value)">
+                  ${coachSelectOptions}
+                </select>
+              </td>
+              <td><input type="text" class="prac-input" value="${row.key || ''}" onchange="updatePracticeData(${idx}, 'key', this.value)" placeholder="Key coaching focus..."></td>
+              <td class="no-print" style="text-align:center;">
+                <div style="display:flex; flex-direction:column; gap:4px; align-items:center;">
+                  <button class="reorder-btn" onclick="movePracticeRow(${idx}, -1)">▲</button>
+                  <button class="reorder-btn" onclick="movePracticeRow(${idx}, 1)">▼</button>
+                  <button class="remove-btn" onclick="removePracticeRow(${idx})">&times;</button>
                 </div>
-              `;
-
-              stationKeys += `
-                <div class="station-block" style="min-height:76px;">
-                  <div class="station-title no-print" style="opacity:0;">Spacing</div>
-                  <input type="text" class="prac-input" value="${st.key || ''}" onchange="updateCircuitData(${idx}, ${i}, 'key', this.value)" placeholder="Focus...">
-                </div>
-              `;
-           });
-
-           tr.innerHTML = `
-            <td><input type="text" class="prac-input" value="${row.time || ''}" onchange="updatePracticeData(${idx}, 'time', this.value)" placeholder="e.g. 15 Min"></td>
-            <td>
-              <select class="prac-select" onchange="updatePracticeCategory(${idx}, this.value)">
-                ${catOptions}
-              </select>
-              ${circuitToggle}
-            </td>
-            <td>${stationSelects}</td>
-            <td>${stationDetails}</td>
-            <td>
-              <div style="margin-bottom:4px;">${coachBadges}</div>
-              <select class="prac-select no-print" onchange="handleCoachSelection(${idx}, this.value)">
-                ${coachSelectOptions}
-              </select>
-            </td>
-            <td>${stationKeys}</td>
-            <td class="no-print" style="text-align:center;">
-              <div style="display:flex; flex-direction:column; gap:4px; align-items:center;">
-                <button class="reorder-btn" onclick="movePracticeRow(${idx}, -1)">▲</button>
-                <button class="reorder-btn" onclick="movePracticeRow(${idx}, 1)">▼</button>
-                <button class="remove-btn" onclick="removePracticeRow(${idx})">&times;</button>
-              </div>
-            </td>
-          `;
-
-        } else {
-          let drillOptions = `<option value="">-- Select Drill --</option>`;
-          if (row.category && drillLibrary[row.category]) {
-            drillLibrary[row.category].forEach(d => {
-              drillOptions += `<option value="${d.name}" ${row.drill === d.name ? 'selected' : ''}>${d.name}</option>`;
-            });
+              </td>
+            `;
           }
-          drillOptions += `<option value="Custom" ${row.drill === "Custom" ? 'selected' : ''}>Custom Drill / Write In</option>`;
 
-          const activeDrillName = row.drill === 'Custom' ? (row.customDrill || 'Football Drill') : (row.drill || 'Football Drill');
-          const videoSearchQuery = encodeURIComponent("10u youth football " + activeDrillName);
-          const videoUrl = `https://www.youtube.com/results?search_query=${videoSearchQuery}`;
+          tbody.appendChild(tr);
+        });
 
-          tr.innerHTML = `
-            <td><input type="text" class="prac-input" value="${row.time || ''}" onchange="updatePracticeData(${idx}, 'time', this.value)" placeholder="e.g. 15 Min"></td>
-            <td>
-              <select class="prac-select" onchange="updatePracticeCategory(${idx}, this.value)">
-                ${catOptions}
-              </select>
-              ${circuitToggle}
-            </td>
-            <td>
-              <select class="prac-select" onchange="updatePracticeDrill(${idx}, this.value)">
-                ${drillOptions}
-              </select>
-              ${row.drill === 'Custom' || !row.drill ? `<input type="text" class="prac-input" style="margin-top:4px;" placeholder="Custom drill name..." value="${row.customDrill || ''}" onchange="updatePracticeData(${idx}, 'customDrill', this.value)">` : ''}
-              ${row.drill ? `<a href="${videoUrl}" target="_blank" class="video-link-btn no-print">▶️ Watch Video Demo</a>` : ''}
-            </td>
-            <td><textarea class="prac-textarea" onchange="updatePracticeData(${idx}, 'desc', this.value)" placeholder="Drill description & setup...">${row.desc || ''}</textarea></td>
-            <td>
-              <div style="margin-bottom:4px;">${coachBadges}</div>
-              <select class="prac-select no-print" onchange="handleCoachSelection(${idx}, this.value)">
-                ${coachSelectOptions}
-              </select>
-            </td>
-            <td><input type="text" class="prac-input" value="${row.key || ''}" onchange="updatePracticeData(${idx}, 'key', this.value)" placeholder="Key coaching focus..."></td>
-            <td class="no-print" style="text-align:center;">
-              <div style="display:flex; flex-direction:column; gap:4px; align-items:center;">
-                <button class="reorder-btn" onclick="movePracticeRow(${idx}, -1)">▲</button>
-                <button class="reorder-btn" onclick="movePracticeRow(${idx}, 1)">▼</button>
-                <button class="remove-btn" onclick="removePracticeRow(${idx})">&times;</button>
-              </div>
-            </td>
-          `;
-        }
-
-        tbody.appendChild(tr);
-      });
-
-      initTableResizing();
+        initTableResizing();
+      } catch (err) {
+        console.error("Error rendering practice plan:", err);
+      }
     }
 
     function initTableResizing() {
@@ -2213,7 +2077,10 @@ const firebaseConfig = {
         customDrill: "", 
         coaches: [], 
         isCircuit: false,
-        stations: []
+        stations: [
+          { drill: "", desc: "", key: "", customDrill: "" },
+          { drill: "", desc: "", key: "", customDrill: "" }
+        ]
       });
       saveState();
       renderPracticePlan();
