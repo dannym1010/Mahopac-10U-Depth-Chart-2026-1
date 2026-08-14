@@ -927,7 +927,7 @@ const firebaseConfig = {
        storageBucket: "u-depth-chart.firebasestorage.app",
        messagingSenderId: "303577845736",
        appId: "1:303577845736:web:34588bbe5e07f1322e1e5d",
-       measurementId: "G-K15ZKX0S45" "
+       measurementId: "G-K15ZKX0S45" 
     };
 
     let db = null;
@@ -1225,6 +1225,49 @@ const firebaseConfig = {
       "PUNT-KICKER": [{ name: "Jaxson", num: "22" }]
     };
 
+    // PRACTICE DRILL LIBRARY
+    // Kept local so the Practice Plan works even when no external drill data is loaded.
+    const drillLibrary = {
+      "Pre Practice": [
+        { name: "QB & Center Exchange", desc: "Centers and QBs pair up to practice under-center and shotgun snaps.", key: "100% snap accuracy" },
+        { name: "Specialists: Kicking & Holding", desc: "Specialists work on snap, hold, and kick mechanics.", key: "Timing and rhythm" },
+        { name: "WR Routes with QB Throws", desc: "QBs throw the basic route tree on air to WRs.", key: "Crisp routes" },
+        { name: "Offensive Line Steps", desc: "O-Line works through their first two steps on air.", key: "First step quickness" }
+      ],
+      "Warm-Up & Breaks": [
+        { name: "Dynamic Warm-Up", desc: "High knees, karaoke, butt kicks, shuffling, and short sprints.", key: "Full speed, proper posture" },
+        { name: "Mandatory Water Break", desc: "Players hydrate quickly and return to position groups.", key: "Hydrate and hustle" }
+      ],
+      "Tackle Circuit": [
+        { name: "Form Fit & Drive (Thud)", desc: "Fit the shoulder to the numbers, wrap, and drive.", key: "Shoot hips, wrap cloth" },
+        { name: "Angle / Alley Tackle", desc: "Take an inside-out angle and finish under control.", key: "Near foot to near shoulder" },
+        { name: "Shed & Tackle", desc: "Strike a blocking shield, shed, then square to the runner.", key: "Violent shed, eyes to target" },
+        { name: "Open Field Shimmy (Space)", desc: "Track an elusive runner and break down in space.", key: "Keep feet alive, track the hip" }
+      ],
+      "Full Team / Installs": [
+        { name: "Offensive Play Install (Walkthrough)", desc: "Walk through new plays with emphasis on alignment and assignments.", key: "Alignment, assignment, snap count" },
+        { name: "11-on-11 Run Game Scrimmage", desc: "Run inside and outside concepts against the defense at controlled speed.", key: "Execution and communication" }
+      ],
+      "Offense": [
+        { name: "Inside Run", desc: "Run inside concepts with clear blocking landmarks.", key: "Pad level and leverage" },
+        { name: "Outside Run", desc: "Work perimeter runs with correct aiming points.", key: "Edge and pursuit" },
+        { name: "Pass Game", desc: "Run route concepts with QB timing and progression.", key: "Timing and spacing" }
+      ],
+      "Defense": [
+        { name: "Run Fits", desc: "Rehearse gap fits, leverage, and pursuit.", key: "Gap integrity" },
+        { name: "Tackling", desc: "Work safe form tackling and leverage fundamentals.", key: "Eyes and leverage" },
+        { name: "Pass Coverage", desc: "Rehearse alignment, drops, and communication.", key: "Eyes and communication" }
+      ],
+      "Special Teams": [
+        { name: "Kickoff Coverage", desc: "Rehearse lane integrity and coverage responsibilities.", key: "Lane discipline" },
+        { name: "Punt Protection", desc: "Work protection calls, releases, and coverage responsibilities.", key: "Protection communication" },
+        { name: "Kick Return", desc: "Rehearse blocking leverage and return landmarks.", key: "Blocks and ball security" }
+      ],
+      "Circuits (4-Stations)": [
+        { name: "Fundamentals Circuit", desc: "Rotate through four fundamentals stations.", key: "Technique and tempo" }
+      ]
+    };
+
     const defaultPracticePlan = [
       { time: "10 Min", category: "Pre Practice", drill: "", coaches: [], desc: "", key: "", customDrill: "", isCircuit: true, stations: [
         { drill: "QB & Center Exchange", desc: "Instruction: Centers and QBs pair up to practice under-center and shotgun snaps before formal periods begin. Rotate through all QBs and Centers.", key: "100% snap accuracy", customDrill: "" },
@@ -1350,7 +1393,29 @@ const firebaseConfig = {
 
     function getCurrentPractice() {
       sanitizePracticeData();
-      return practiceData.find(p => p.id === currentPracticeId) || practiceData[0];
+      let p = practiceData.find(prac => prac.id === currentPracticeId);
+      if (!p && practiceData.length > 0) {
+        currentPracticeId = practiceData[0].id;
+        p = practiceData[0];
+      }
+      if (!p) {
+        p = {
+          id: Date.now().toString(),
+          title: "Practice 1",
+          plan: JSON.parse(JSON.stringify(defaultPracticePlan))
+        };
+        practiceData.push(p);
+      }
+      if (!Array.isArray(p.plan) || p.plan.length === 0) {
+        p.plan = JSON.parse(JSON.stringify(defaultPracticePlan));
+      }
+      p.plan.forEach(row => {
+        if (!row || typeof row !== "object") return;
+        if (!Array.isArray(row.coaches)) row.coaches = [];
+        if (typeof row.isCircuit !== "boolean") row.isCircuit = false;
+        if (!Array.isArray(row.stations)) row.stations = [];
+      });
+      return p;
     }
 
     function populatePracticeDropdown() {
@@ -2148,10 +2213,7 @@ const firebaseConfig = {
         customDrill: "", 
         coaches: [], 
         isCircuit: false,
-        stations: [
-          { drill: "", desc: "", key: "", customDrill: "" },
-          { drill: "", desc: "", key: "", customDrill: "" }
-        ]
+        stations: []
       });
       saveState();
       renderPracticePlan();
