@@ -770,27 +770,28 @@
     @media print {
       @page { size: letter portrait; margin: 0.25in; }
       body { background-color: #ffffff; padding: 0; margin: 0; font-size: 7.5px; }
-      .toolbar, .sidebar, .remove-btn, .action-group, p.subtitle, .search-box, .card-search-container, .tab-navigation, .toggle-board-btn, .week-bar, .board-controls, .add-row-btn, .add-form-btn, .row-actions, .pos-header-actions, .col-resizer { display: none !important; }
       
-      .unit-panel.hidden { display: none !important; }
-      .unit-panel:not(.hidden) { display: flex !important; flex-direction: column !important; }
+      .toolbar, .sidebar, .remove-btn, .action-group, p.subtitle, .search-box, .card-search-container, .tab-navigation, .toggle-board-btn, .week-bar, .board-controls, .add-row-btn, .add-form-btn, .row-actions, .pos-header-actions, .col-resizer, .practice-dashboard { display: none !important; }
+      
+      .app-layout, .boards-container, .unit-panel:not(.hidden) { display: block !important; }
       
       .formation-body.collapsed { display: block !important; }
-      .app-layout { display: block; max-width: 100%; }
-      .boards-container { gap: 8px; min-width: 100%; }
-      .formation-container { border: 1px solid #000000; box-shadow: none; padding: 4px; page-break-inside: avoid; margin-bottom: 4px; }
-      .formation-row { min-width: 100% !important; }
+      .formation-container { border: 1px solid #000000; box-shadow: none; padding: 4px; page-break-inside: auto !important; margin-bottom: 4px; }
+      .formation-row { min-width: 100% !important; page-break-inside: avoid; }
+      
       .position-card { border: 1px solid #000000 !important; box-shadow: none !important; min-width: 65px; }
       .position-header { background: #e2e8f0 !important; color: #000000 !important; border-bottom: 1px solid #000000 !important; font-size: 8px; padding: 2px 3px; }
       .player-item { border: 1px solid #cbd5e1 !important; font-size: 7.5px; padding: 2px 3px; margin-bottom: 2px; }
-      h1 { margin-top: 0; font-size: 12px; color: #000000; }
+      h1 { margin-top: 0; font-size: 12px; color: #000000; text-align: center; }
       
       .practice-table { 
         border: 2px solid #000000; 
         width: 100% !important; 
         table-layout: auto !important; 
         font-size: 7px !important;
+        page-break-inside: auto;
       }
+      .practice-table tr { page-break-inside: avoid; page-break-after: auto; }
       .practice-table th, .practice-table td { 
         border: 1px solid #000000 !important; 
         padding: 2px 3px !important; 
@@ -805,8 +806,6 @@
       .rotation-timer { color: #000000 !important; font-size: 7.5px !important; }
       .print-only-inline { display: inline !important; }
 
-      .practice-dashboard { display: none !important; }
-
       .prac-input, .prac-select {
         border: none !important; 
         background: transparent !important; 
@@ -814,25 +813,27 @@
         appearance: none; 
         -webkit-appearance: none; 
         color: #000000 !important; 
-        font-size: 7.5px !important;
+        font-size: 7px !important;
         margin: 0;
+        white-space: normal !important;
       }
 
-      /* Fallback for native text elements on print */
+      /* Text block replacements only for multi-line textareas */
       .print-text-node {
         display: block !important;
-        font-size: 7.5px;
+        font-size: 7px;
         white-space: pre-wrap;
         word-break: break-word;
         color: #000000;
-        padding: 2px 0;
+        padding: 0;
+        margin: 0;
       }
 
       .prac-textarea { display: none !important; }
 
-      .station-block { border-bottom: 1px solid #ccc; margin-bottom: 2px; padding-bottom: 2px; }
+      .station-block { border-bottom: 1px solid #ccc; margin-bottom: 2px; padding-bottom: 2px; page-break-inside: avoid; }
       .coach-badge {
-        background: transparent !important; color: #000000 !important; padding: 0 !important; margin: 0 !important; font-size: 7.5px !important; font-weight: normal !important;
+        background: transparent !important; color: #000000 !important; padding: 0 !important; margin: 0 !important; font-size: 7px !important; font-weight: normal !important;
       }
       .coach-badge::after { content: ", "; }
       .coach-badge:last-child::after { content: ""; }
@@ -2031,15 +2032,10 @@ const firebaseConfig = {
 
     // Force full expansion of textareas right before print and swap them to clean printable divs
     window.addEventListener('beforeprint', () => {
-      document.querySelectorAll('.prac-textarea, .prac-input, .prac-select').forEach(el => {
+      document.querySelectorAll('.prac-textarea').forEach(el => {
         const div = document.createElement('div');
         div.className = 'print-text-node';
-        if (el.tagName === 'SELECT') {
-           div.textContent = el.options[el.selectedIndex] ? el.options[el.selectedIndex].text : '';
-        } else {
-           div.textContent = el.value || '';
-        }
-        
+        div.textContent = el.value || '';
         el.parentNode.insertBefore(div, el);
       });
     });
