@@ -558,7 +558,7 @@
       background: #ffffff;
       font-size: 11px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-      table-layout: fixed; /* Ensures strict column resizing persistence */
+      table-layout: fixed;
     }
 
     .practice-table th, .practice-table td {
@@ -606,7 +606,7 @@
     }
 
     .prac-textarea {
-      resize: vertical; /* Allows manual vertical expansion of rows */
+      resize: vertical;
       min-height: 44px;
       margin-top: 4px;
     }
@@ -731,12 +731,11 @@
     .multi-badge { font-size: 9px; background: #e2e8f0; color: #475569; padding: 1px 5px; border-radius: 10px; font-weight: bold; }
     .empty-msg { color: var(--text-muted); text-align: center; font-style: italic; font-size: 10px; margin-top: 10px; pointer-events: none; }
 
-    /* STRICT PRINT STYLES - STAYS EXACTLY AS VIEWED */
+    /* PRINT STYLES */
     @media print {
       body { background-color: #ffffff; padding: 0; margin: 0; }
       .toolbar, .sidebar, .remove-btn, .action-group, p.subtitle, .search-box, .card-search-container, .tab-navigation, .toggle-board-btn, .week-bar, .board-controls, .add-row-btn, .add-form-btn, .row-actions, .pos-header-actions, .col-resizer { display: none !important; }
       
-      /* Strictly hide hidden tabs */
       .unit-panel.hidden { display: none !important; }
       .unit-panel:not(.hidden) { display: flex !important; flex-direction: column !important; }
       
@@ -750,7 +749,6 @@
       .player-item { border: 1px solid #cbd5e1 !important; }
       h1 { margin-top: 0; font-size: 18px; color: #000000; }
       
-      /* Table Print Fidelity */
       .practice-table { 
         border: 2px solid #000000; 
         width: 100% !important; 
@@ -929,7 +927,7 @@ const firebaseConfig = {
        storageBucket: "u-depth-chart.firebasestorage.app",
        messagingSenderId: "303577845736",
        appId: "1:303577845736:web:34588bbe5e07f1322e1e5d",
-       measurementId: "G-K15ZKX0S45"
+       measurementId: "G-K15ZKX0S45" "
     };
 
     let db = null;
@@ -1238,7 +1236,7 @@ const firebaseConfig = {
       { time: "15 Min", category: "Tackle Circuit", drill: "", coaches: [], desc: "", key: "", customDrill: "", isCircuit: true, stations: [
         { drill: "Form Fit & Drive (Thud)", desc: "Instruction: Players start 2 yards apart. On whistle, step into the ball carrier, fit the shoulder to the numbers, wrap, and drive for 3 steps.", key: "Shoot hips, wrap cloth", customDrill: "" },
         { drill: "Angle / Alley Tackle", desc: "Instruction: Defender takes an inside-out angle to intersect a runner aiming for the pylon. Break down and drive through the near hip.", key: "Near foot to near shoulder", customDrill: "" },
-        { drill: "Hawk (Rugby) Roll Tackle", desc: "Instruction: Defender targets the thighs of the runner, wraps legs tight, and rolls to the side using momentum to bring the runner down safely.", key: "Eyes on thighs, wrap and roll", customDrill: "" },
+        { drill: "Shed & Tackle", desc: "Instruction: Defender strikes a blocking shield, sheds it using a rip or club, and immediately squares up to tackle a secondary runner.", key: "Violent shed, snap eyes to target", customDrill: "" },
         { drill: "Open Field Shimmy (Space)", desc: "Instruction: 10x10 yard grid. Defender tracks an elusive runner, breaks down 2 yards away, and executes a safe open-field wrap.", key: "Keep feet alive, track the hip", customDrill: "" }
       ]},
       { time: "5 Min", category: "Warm-Up & Breaks", drill: "Mandatory Water Break", coaches: [], desc: "Instruction: Blow whistle twice. Players remove helmets and jog to water stations. Emphasize fast hydration and hustling back to position groups.", key: "Hydrate and hustle", customDrill: "", isCircuit: false },
@@ -1285,6 +1283,15 @@ const firebaseConfig = {
     }
 
     function sanitizePracticeData() {
+      try {
+        let stored = localStorage.getItem("footballPracticeData");
+        if (stored) {
+          practiceData = JSON.parse(stored);
+        }
+      } catch(e) {
+        practiceData = [];
+      }
+
       if (!Array.isArray(practiceData) || practiceData.length === 0) {
         practiceData = [{
           id: Date.now().toString(),
@@ -1292,11 +1299,29 @@ const firebaseConfig = {
           plan: JSON.parse(JSON.stringify(defaultPracticePlan))
         }];
       }
+
       practiceData.forEach((p, pIdx) => {
         if (!p.id) p.id = (Date.now() + pIdx).toString();
         if (!p.title) p.title = "Practice " + (pIdx + 1);
-        if (!Array.isArray(p.plan)) p.plan = JSON.parse(JSON.stringify(defaultPracticePlan));
+        if (!Array.isArray(p.plan) || p.plan.length === 0) {
+          p.plan = JSON.parse(JSON.stringify(defaultPracticePlan));
+        }
+        
+        p.plan.forEach(row => {
+          if (!row) return;
+          if (!row.coaches || !Array.isArray(row.coaches)) row.coaches = [];
+          if (typeof row.isCircuit === 'undefined') {
+            row.isCircuit = (row.category === 'Tackle Circuit' || row.category === 'Circuits (4-Stations)' || row.category === 'Pre Practice');
+          }
+          if (row.isCircuit && (!Array.isArray(row.stations) || row.stations.length === 0)) {
+            row.stations = [
+              { drill: "", desc: "", key: "", customDrill: "" },
+              { drill: "", desc: "", key: "", customDrill: "" }
+            ];
+          }
+        });
       });
+
       if (!currentPracticeId || !practiceData.find(p => p.id === currentPracticeId)) {
         currentPracticeId = practiceData[0].id;
       }
@@ -1309,7 +1334,8 @@ const firebaseConfig = {
       let weekParam = urlParams.get('week');
       if (weekParam && weeklyData[weekParam]) {
         currentWeek = weekParam;
-        document.getElementById("week-select").value = currentWeek;
+        const wSelect = document.getElementById("week-select");
+        if(wSelect) wSelect.value = currentWeek;
       }
 
       depthChart = getWeekDepthChart(currentWeek);
@@ -1349,16 +1375,17 @@ const firebaseConfig = {
     }
 
     function createNewPractice() {
-      const title = prompt("Enter Practice Title (e.g., 'Practice 2 - Aug 15'):", "Practice " + (practiceData.length + 1) + " - " + new Date().toLocaleDateString());
-      if (!title) return;
+      const defaultTitle = "Practice " + (practiceData.length + 1) + " - " + new Date().toLocaleDateString();
+      const title = prompt("Enter Practice Title (e.g., 'Practice 2 - Aug 15'):", defaultTitle);
+      if (!title || title.trim() === "") return;
       
       const newPlan = {
         id: Date.now().toString(),
-        title: title,
+        title: title.trim(),
         plan: JSON.parse(JSON.stringify(defaultPracticePlan)) 
       };
       
-      if(confirm("Copy current practice plan? (Click 'Cancel' for a fresh default template)")) {
+      if(confirm("Copy current practice plan layout into this new practice? (Click 'Cancel' for a clean template)")) {
          newPlan.plan = JSON.parse(JSON.stringify(getCurrentPractice().plan));
       }
 
@@ -1372,7 +1399,7 @@ const firebaseConfig = {
     function editPracticeDetails() {
       const p = getCurrentPractice();
       const newTitle = prompt("Edit Practice Title:", p.title);
-      if(newTitle) {
+      if(newTitle && newTitle.trim() !== "") {
         p.title = newTitle.trim();
         saveState();
         populatePracticeDropdown();
@@ -1472,11 +1499,13 @@ const firebaseConfig = {
       const sidebar = document.getElementById('sidebar-panel');
       const mainWeekBar = document.getElementById('main-week-bar');
       if (unit === 'practice') {
-        sidebar.classList.add('hidden');
-        mainWeekBar.classList.add('hidden');
+        if(sidebar) sidebar.classList.add('hidden');
+        if(mainWeekBar) mainWeekBar.classList.add('hidden');
+        populatePracticeDropdown();
+        renderPracticePlan();
       } else {
-        sidebar.classList.remove('hidden');
-        mainWeekBar.classList.remove('hidden');
+        if(sidebar) sidebar.classList.remove('hidden');
+        if(mainWeekBar) mainWeekBar.classList.remove('hidden');
         renderActiveBoards();
       }
     }
@@ -1494,7 +1523,7 @@ const firebaseConfig = {
     /* DYNAMIC FORMATIONS & POSITIONS */
     function createFormationPrompt(unit) {
       const name = prompt(`Enter new ${unit.toUpperCase()} formation name:`, "New Formation");
-      if(!name) return;
+      if(!name || name.trim() === "") return;
       const subtitle = prompt("Enter subtitle/description:", "Personnel / Alignment details");
       const forms = getWeekFormations(currentWeek);
       
@@ -1521,7 +1550,7 @@ const firebaseConfig = {
       const form = forms.find(f => f.id === formId);
       if(!form) return;
       const newName = prompt("Edit Formation Name:", form.name);
-      if(newName) {
+      if(newName && newName.trim() !== "") {
         form.name = newName.trim();
         const newSub = prompt("Edit Subtitle:", form.subtitle || "");
         if(newSub !== null) form.subtitle = newSub.trim();
@@ -1558,7 +1587,7 @@ const firebaseConfig = {
       const form = forms.find(f => f.id === formId);
       if(!form) return;
       const label = prompt("Enter Row/Level Name (e.g., 'Linebackers', 'Backfield'):", "New Level");
-      if(!label) return;
+      if(!label || label.trim() === "") return;
       form.rows.push({
         id: "row_" + Date.now(),
         label: label.trim(),
@@ -1578,7 +1607,7 @@ const firebaseConfig = {
       const row = form.rows.find(r => r.id === rowId);
       if(!row) return;
       const newLabel = prompt("Edit Row/Level Name:", row.label);
-      if(newLabel) {
+      if(newLabel && newLabel.trim() !== "") {
         row.label = newLabel.trim();
         saveState();
         renderActiveBoards();
@@ -1603,7 +1632,7 @@ const firebaseConfig = {
       const row = form.rows.find(r => r.id === rowId);
       if(!row) return;
       const posName = prompt("Enter Position Name (e.g. 'LT', 'MIKE', 'SLOT'):", "POS");
-      if(!posName) return;
+      if(!posName || posName.trim() === "") return;
       
       const newPosId = "pos_" + Date.now();
       row.positions.push({
@@ -1626,7 +1655,7 @@ const firebaseConfig = {
       if(!pos) return;
 
       const newName = prompt("Rename Position Tag:", pos.name || pos.id);
-      if(newName) {
+      if(newName && newName.trim() !== "") {
         pos.name = newName.trim();
         saveState();
         renderActiveBoards();
@@ -1702,7 +1731,7 @@ const firebaseConfig = {
 
         const bodyDiv = formDiv.querySelector(".formation-body");
 
-        form.rows.forEach(row => {
+        (form.rows || []).forEach(row => {
           const rowWrap = document.createElement("div");
           rowWrap.className = "row-container";
           
@@ -1719,7 +1748,7 @@ const firebaseConfig = {
 
           const posRowEl = rowWrap.querySelector(".formation-row");
 
-          row.positions.forEach(pos => {
+          (row.positions || []).forEach(pos => {
             const card = document.createElement("div");
             card.className = "position-card";
             card.id = `card-${pos.id}`;
@@ -1870,10 +1899,12 @@ const firebaseConfig = {
 
     /* PRACTICE PLAN & TABLE RESIZING LOGIC */
     function toggleCircuitMode(idx, isChecked) {
-      const plan = getCurrentPractice().plan;
-      plan[idx].isCircuit = isChecked;
-      if (isChecked && (!plan[idx].stations || plan[idx].stations.length === 0)) {
-        plan[idx].stations = [
+      const current = getCurrentPractice();
+      if (!current || !Array.isArray(current.plan) || !current.plan[idx]) return;
+      const row = current.plan[idx];
+      row.isCircuit = isChecked;
+      if (isChecked && (!Array.isArray(row.stations) || row.stations.length === 0)) {
+        row.stations = [
           { drill: "", desc: "", key: "", customDrill: "" },
           { drill: "", desc: "", key: "", customDrill: "" }
         ];
@@ -1882,12 +1913,31 @@ const firebaseConfig = {
       renderPracticePlan();
     }
 
+    function getAllDrillOptions(selectedVal) {
+      let html = `<option value="">-- Select Drill --</option>`;
+      Object.keys(drillLibrary).forEach(cat => {
+        html += `<optgroup label="${cat}">`;
+        drillLibrary[cat].forEach(d => {
+          html += `<option value="${d.name}" ${selectedVal === d.name ? 'selected' : ''}>${d.name}</option>`;
+        });
+        html += `</optgroup>`;
+      });
+      html += `<option value="Custom" ${selectedVal === 'Custom' ? 'selected' : ''}>Custom Drill / Write In</option>`;
+      return html;
+    }
+
     function renderPracticePlan() {
       const tbody = document.getElementById("practice-rows");
       if (!tbody) return;
       
       tbody.innerHTML = "";
-      const plan = getCurrentPractice().plan;
+      const current = getCurrentPractice();
+      if (!current || !Array.isArray(current.plan) || current.plan.length === 0) {
+        if (current) {
+          current.plan = JSON.parse(JSON.stringify(defaultPracticePlan));
+        }
+      }
+      const plan = current.plan;
 
       plan.forEach((row, idx) => {
         const tr = document.createElement("tr");
@@ -1908,12 +1958,10 @@ const firebaseConfig = {
         `;
 
         let coachBadges = '';
-        const rowCoaches = row.coaches || [];
-        if (rowCoaches.length > 0) {
-          rowCoaches.forEach(c => {
-            coachBadges += `<span class="coach-badge" onclick="removeCoachFromRow(${idx}, '${c}')" title="Click to remove">${c} <span class="no-print">&times;</span></span>`;
-          });
-        }
+        const rowCoaches = Array.isArray(row.coaches) ? row.coaches : [];
+        rowCoaches.forEach(c => {
+          coachBadges += `<span class="coach-badge" onclick="removeCoachFromRow(${idx}, '${c}')" title="Click to remove">${c} <span class="no-print">&times;</span></span>`;
+        });
         
         let coachSelectOptions = `<option value="">+ Coach</option><option value="NEW">+ New Coach</option>`;
         savedCoaches.forEach(c => {
@@ -1921,6 +1969,12 @@ const firebaseConfig = {
         });
 
         if (row.isCircuit) {
+           if (!Array.isArray(row.stations) || row.stations.length === 0) {
+             row.stations = [
+               { drill: "", desc: "", key: "", customDrill: "" },
+               { drill: "", desc: "", key: "", customDrill: "" }
+             ];
+           }
            let stationSelects = `
              <div style="margin-bottom:8px;" class="no-print">
                 <strong>Stations:</strong> 
@@ -1969,7 +2023,7 @@ const firebaseConfig = {
            });
 
            tr.innerHTML = `
-            <td><input type="text" class="prac-input" value="${row.time}" onchange="updatePracticeData(${idx}, 'time', this.value)" placeholder="e.g. 15 Min"></td>
+            <td><input type="text" class="prac-input" value="${row.time || ''}" onchange="updatePracticeData(${idx}, 'time', this.value)" placeholder="e.g. 15 Min"></td>
             <td>
               <select class="prac-select" onchange="updatePracticeCategory(${idx}, this.value)">
                 ${catOptions}
@@ -2008,7 +2062,7 @@ const firebaseConfig = {
           const videoUrl = `https://www.youtube.com/results?search_query=${videoSearchQuery}`;
 
           tr.innerHTML = `
-            <td><input type="text" class="prac-input" value="${row.time}" onchange="updatePracticeData(${idx}, 'time', this.value)" placeholder="e.g. 15 Min"></td>
+            <td><input type="text" class="prac-input" value="${row.time || ''}" onchange="updatePracticeData(${idx}, 'time', this.value)" placeholder="e.g. 15 Min"></td>
             <td>
               <select class="prac-select" onchange="updatePracticeCategory(${idx}, this.value)">
                 ${catOptions}
@@ -2022,14 +2076,14 @@ const firebaseConfig = {
               ${row.drill === 'Custom' || !row.drill ? `<input type="text" class="prac-input" style="margin-top:4px;" placeholder="Custom drill name..." value="${row.customDrill || ''}" onchange="updatePracticeData(${idx}, 'customDrill', this.value)">` : ''}
               ${row.drill ? `<a href="${videoUrl}" target="_blank" class="video-link-btn no-print">▶️ Watch Video Demo</a>` : ''}
             </td>
-            <td><textarea class="prac-textarea" onchange="updatePracticeData(${idx}, 'desc', this.value)" placeholder="Drill description & setup...">${row.desc}</textarea></td>
+            <td><textarea class="prac-textarea" onchange="updatePracticeData(${idx}, 'desc', this.value)" placeholder="Drill description & setup...">${row.desc || ''}</textarea></td>
             <td>
               <div style="margin-bottom:4px;">${coachBadges}</div>
               <select class="prac-select no-print" onchange="handleCoachSelection(${idx}, this.value)">
                 ${coachSelectOptions}
               </select>
             </td>
-            <td><input type="text" class="prac-input" value="${row.key}" onchange="updatePracticeData(${idx}, 'key', this.value)" placeholder="Key coaching focus..."></td>
+            <td><input type="text" class="prac-input" value="${row.key || ''}" onchange="updatePracticeData(${idx}, 'key', this.value)" placeholder="Key coaching focus..."></td>
             <td class="no-print" style="text-align:center;">
               <div style="display:flex; flex-direction:column; gap:4px; align-items:center;">
                 <button class="reorder-btn" onclick="movePracticeRow(${idx}, -1)">▲</button>
@@ -2081,19 +2135,40 @@ const firebaseConfig = {
     }
 
     function addPracticeRow() {
-      getCurrentPractice().plan.push({ time: "", category: "", drill: "", desc: "", key: "", customDrill: "", coaches: [], isCircuit: false });
+      const current = getCurrentPractice();
+      if (!current) return;
+      if (!Array.isArray(current.plan)) current.plan = [];
+      
+      current.plan.push({ 
+        time: "15 Min", 
+        category: "Warm-Up & Breaks", 
+        drill: "", 
+        desc: "", 
+        key: "", 
+        customDrill: "", 
+        coaches: [], 
+        isCircuit: false,
+        stations: [
+          { drill: "", desc: "", key: "", customDrill: "" },
+          { drill: "", desc: "", key: "", customDrill: "" }
+        ]
+      });
       saveState();
       renderPracticePlan();
     }
 
     function removePracticeRow(idx) {
-      getCurrentPractice().plan.splice(idx, 1);
+      const current = getCurrentPractice();
+      if (!current || !Array.isArray(current.plan)) return;
+      current.plan.splice(idx, 1);
       saveState();
       renderPracticePlan();
     }
 
     function movePracticeRow(index, direction) {
-      const plan = getCurrentPractice().plan;
+      const current = getCurrentPractice();
+      if (!current || !Array.isArray(current.plan)) return;
+      const plan = current.plan;
       const targetIndex = index + direction;
       if (targetIndex < 0 || targetIndex >= plan.length) return;
 
@@ -2106,22 +2181,26 @@ const firebaseConfig = {
     }
 
     function updatePracticeData(idx, field, value) {
-      getCurrentPractice().plan[idx][field] = value;
+      const current = getCurrentPractice();
+      if (!current || !Array.isArray(current.plan) || !current.plan[idx]) return;
+      current.plan[idx][field] = value;
       saveState();
     }
 
     function updatePracticeCategory(idx, catValue) {
-      const plan = getCurrentPractice().plan;
-      plan[idx].category = catValue;
-      plan[idx].drill = "";
-      plan[idx].desc = "";
-      plan[idx].key = "";
-      plan[idx].customDrill = "";
+      const current = getCurrentPractice();
+      if (!current || !Array.isArray(current.plan) || !current.plan[idx]) return;
+      const row = current.plan[idx];
+      row.category = catValue;
+      row.drill = "";
+      row.desc = "";
+      row.key = "";
+      row.customDrill = "";
       
       if (catValue === "Tackle Circuit" || catValue === "Circuits (4-Stations)" || catValue === "Pre Practice") {
-        plan[idx].isCircuit = true;
-        if (!plan[idx].stations || plan[idx].stations.length === 0) {
-           plan[idx].stations = [
+        row.isCircuit = true;
+        if (!Array.isArray(row.stations) || row.stations.length === 0) {
+           row.stations = [
              { drill: "", desc: "", key: "", customDrill: "" },
              { drill: "", desc: "", key: "", customDrill: "" },
              { drill: "", desc: "", key: "", customDrill: "" },
@@ -2135,18 +2214,20 @@ const firebaseConfig = {
     }
 
     function updatePracticeDrill(idx, drillValue) {
-      const plan = getCurrentPractice().plan;
-      plan[idx].drill = drillValue;
+      const current = getCurrentPractice();
+      if (!current || !Array.isArray(current.plan) || !current.plan[idx]) return;
+      const row = current.plan[idx];
+      row.drill = drillValue;
       
-      if (drillValue !== "Custom" && plan[idx].category && drillLibrary[plan[idx].category]) {
-        const drillObj = drillLibrary[plan[idx].category].find(d => d.name === drillValue);
+      if (drillValue !== "Custom" && row.category && drillLibrary[row.category]) {
+        const drillObj = drillLibrary[row.category].find(d => d.name === drillValue);
         if (drillObj) {
-          plan[idx].desc = drillObj.desc;
-          plan[idx].key = drillObj.key;
+          row.desc = drillObj.desc || "";
+          row.key = drillObj.key || "";
         }
       } else {
-        plan[idx].desc = "";
-        plan[idx].key = "";
+        row.desc = "";
+        row.key = "";
       }
       
       saveState();
@@ -2154,9 +2235,11 @@ const firebaseConfig = {
     }
 
     function updateCircuitStations(rowIdx, newCount) {
-      const plan = getCurrentPractice().plan;
+      const current = getCurrentPractice();
+      if (!current || !Array.isArray(current.plan) || !current.plan[rowIdx]) return;
       const target = parseInt(newCount);
-      const row = plan[rowIdx];
+      const row = current.plan[rowIdx];
+      if (!Array.isArray(row.stations)) row.stations = [];
       while (row.stations.length < target) {
         row.stations.push({ drill: "", desc: "", key: "", customDrill: "" });
       }
@@ -2168,14 +2251,17 @@ const firebaseConfig = {
     }
 
     function updateCircuitDrill(rowIdx, stationIdx, drillValue) {
-      const plan = getCurrentPractice().plan;
-      const st = plan[rowIdx].stations[stationIdx];
+      const current = getCurrentPractice();
+      if (!current || !Array.isArray(current.plan) || !current.plan[rowIdx]) return;
+      const row = current.plan[rowIdx];
+      if (!Array.isArray(row.stations) || !row.stations[stationIdx]) return;
+      const st = row.stations[stationIdx];
       st.drill = drillValue;
       if (drillValue !== "Custom") {
         const drillObj = findDrillByName(drillValue);
         if (drillObj) {
-          st.desc = drillObj.desc;
-          st.key = drillObj.key;
+          st.desc = drillObj.desc || "";
+          st.key = drillObj.key || "";
         }
       } else {
         st.desc = "";
@@ -2186,15 +2272,20 @@ const firebaseConfig = {
     }
 
     function updateCircuitData(rowIdx, stationIdx, field, value) {
-      const plan = getCurrentPractice().plan;
-      plan[rowIdx].stations[stationIdx][field] = value;
+      const current = getCurrentPractice();
+      if (!current || !Array.isArray(current.plan) || !current.plan[rowIdx]) return;
+      const row = current.plan[rowIdx];
+      if (!Array.isArray(row.stations) || !row.stations[stationIdx]) return;
+      row.stations[stationIdx][field] = value;
       saveState();
     }
 
     function handleCoachSelection(rowIdx, value) {
       if (!value) return;
-      const plan = getCurrentPractice().plan;
-      if (!plan[rowIdx].coaches) plan[rowIdx].coaches = [];
+      const current = getCurrentPractice();
+      if (!current || !Array.isArray(current.plan) || !current.plan[rowIdx]) return;
+      const row = current.plan[rowIdx];
+      if (!Array.isArray(row.coaches)) row.coaches = [];
 
       if (value === "NEW") {
         const newCoach = prompt("Enter new coach name:");
@@ -2204,13 +2295,13 @@ const firebaseConfig = {
             savedCoaches.push(cleanName);
             saveCoaches();
           }
-          if (!plan[rowIdx].coaches.includes(cleanName)) {
-            plan[rowIdx].coaches.push(cleanName);
+          if (!row.coaches.includes(cleanName)) {
+            row.coaches.push(cleanName);
           }
         }
       } else {
-        if (!plan[rowIdx].coaches.includes(value)) {
-          plan[rowIdx].coaches.push(value);
+        if (!row.coaches.includes(value)) {
+          row.coaches.push(value);
         }
       }
       saveState();
@@ -2218,9 +2309,11 @@ const firebaseConfig = {
     }
 
     function removeCoachFromRow(rowIdx, coachName) {
-      const plan = getCurrentPractice().plan;
-      if (plan[rowIdx] && plan[rowIdx].coaches) {
-        plan[rowIdx].coaches = plan[rowIdx].coaches.filter(c => c !== coachName);
+      const current = getCurrentPractice();
+      if (!current || !Array.isArray(current.plan) || !current.plan[rowIdx]) return;
+      const row = current.plan[rowIdx];
+      if (Array.isArray(row.coaches)) {
+        row.coaches = row.coaches.filter(c => c !== coachName);
         saveState();
         renderPracticePlan();
       }
@@ -2229,7 +2322,7 @@ const firebaseConfig = {
     /* PLAYER DRAG & DROP LOGIC */
     function removePlayer(posId, index, e) {
       if (e) e.stopPropagation();
-      if(depthChart[posId]) {
+      if(depthChart && depthChart[posId]) {
         depthChart[posId].splice(index, 1);
         saveState();
         renderActiveBoards();
@@ -2239,6 +2332,7 @@ const firebaseConfig = {
 
     function movePlayerOrder(posId, index, direction, e) {
       if (e) e.stopPropagation();
+      if(!depthChart) return;
       const list = depthChart[posId];
       if(!list) return;
       const targetIndex = index + direction;
@@ -2256,7 +2350,7 @@ const firebaseConfig = {
       const dropdown = document.getElementById(`dropdown-${posId}`);
       if (!dropdown) return;
 
-      const term = searchTerm.toLowerCase().trim();
+      const term = (searchTerm || "").toLowerCase().trim();
       if (!term) {
         dropdown.classList.remove("active");
         return;
@@ -2290,6 +2384,7 @@ const firebaseConfig = {
     }
 
     function addPlayerToPosition(posId, name, num) {
+      if (!depthChart) depthChart = getWeekDepthChart(currentWeek);
       if (!depthChart[posId]) depthChart[posId] = [];
       depthChart[posId].push({ name, num });
       saveState();
@@ -2318,6 +2413,8 @@ const firebaseConfig = {
       document.querySelectorAll(".position-card").forEach(c => c.classList.remove("drag-over"));
       if (!draggedData) return;
 
+      if (!depthChart) depthChart = getWeekDepthChart(currentWeek);
+
       if (draggedData.type === "position") {
         if (draggedData.sourcePos === targetPos) return;
         if (depthChart[draggedData.sourcePos]) {
@@ -2340,6 +2437,8 @@ const firebaseConfig = {
 
     function handleCardTap(targetPos) {
       if (!selectedTouchPlayer) return;
+
+      if (!depthChart) depthChart = getWeekDepthChart(currentWeek);
 
       if (selectedTouchPlayer.posKey) {
         if (selectedTouchPlayer.posKey !== targetPos) {
@@ -2447,7 +2546,7 @@ const firebaseConfig = {
     }
 
     function resetDefault() {
-      if (confirm(`Reset Week ${currentWeek} depth chart back to default?`)) {
+      if (confirm(`Reset Week ${currentWeek} back to default?`)) {
         weeklyData[currentWeek] = {
           opponent: "",
           depthChart: JSON.parse(JSON.stringify(defaultDepthChartAssignments)),
