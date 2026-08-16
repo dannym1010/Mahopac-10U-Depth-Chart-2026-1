@@ -1107,14 +1107,8 @@
           <div class="board-title no-print" style="padding: 8px; margin-bottom:0;">
             <div style="display:flex; align-items:center; gap:12px;">
               <span>Wristband Builder</span>
-              <label class="admin-only" style="font-size:11px; background:#f1f5f9; padding:4px 8px; border-radius:4px;">
-                Start Index #: 
-                <input type="number" id="wb-start-idx" class="wb-play-input" style="width:40px; font-weight:bold; border:1px solid #ccc; background:#fff; border-radius:3px; padding:2px;" onchange="updateWbStartIdx(this.value)">
-              </label>
             </div>
             <div style="display:flex; gap:4px; flex-wrap:wrap;">
-              <button class="add-row-btn admin-only" onclick="addWbPage()">+ Col</button>
-              <button class="add-row-btn admin-only" onclick="removeWbPage()">- Col</button>
               <button class="add-row-btn admin-only" onclick="addWbRow()">+ Row</button>
               <button class="add-row-btn admin-only" onclick="removeWbRow()">- Row</button>
               <button class="toolbar button" onclick="window.print()" style="padding:4px 10px; margin-left:6px;">🖨️ Print Wristband</button>
@@ -1214,7 +1208,7 @@ const firebaseConfig = {
        storageBucket: "u-depth-chart.firebasestorage.app",
        messagingSenderId: "303577845736",
        appId: "1:303577845736:web:34588bbe5e07f1322e1e5d",
-       measurementId: "G-K15ZKX0S45" 
+       measurementId: "G-K15ZKX0S45"
     };
 
     let db = null;
@@ -1268,7 +1262,7 @@ const firebaseConfig = {
       { num: "2", firstName: "Mohammed", lastName: "Ibrahim" },
       { num: "4", firstName: "Vincent", lastName: "Cambigianis" },
       { num: "6", firstName: "Andrew", lastName: "Henderson" },
-      { num: "7", firstName: "Jayden", lastName: "Silva" },
+      { num: "7", Jayden: "Jayden", lastName: "Silva" },
       { num: "8", firstName: "James", lastName: "Kilkenny" },
       { num: "10", firstName: "Luke", lastName: "Mancini" },
       { num: "11", firstName: "Dorian", lastName: "Berish" },
@@ -1486,6 +1480,16 @@ const firebaseConfig = {
       localStorage.setItem("footballSavedCoaches", JSON.stringify(savedCoaches));
     }
 
+    function findDrillByName(drillName) {
+      for (const cat in drillLibrary) {
+        const found = drillLibrary[cat].find(d => d.name === drillName);
+        if (found) return found;
+      }
+      const customFound = savedCustomDrills.find(d => d.name === drillName);
+      if (customFound) return customFound;
+      return null;
+    }
+
     function timeToMins(timeStr) {
       if(!timeStr) return 0;
       let [h, m] = timeStr.split(':');
@@ -1585,11 +1589,10 @@ const firebaseConfig = {
         if (!p.id) p.id = (Date.now() + pIdx).toString();
         if (!p.title) p.title = "Practice " + (pIdx + 1);
         
-        // Migrate old folder format to Year/Week/Day
         if (!p.year) p.year = (p.date ? p.date.substring(0,4) : new Date().getFullYear().toString());
         if (!p.week) p.week = p.folder || "Week 1";
         if (!p.day) p.day = p.date || "Monday";
-        delete p.folder; // Clean up old data
+        delete p.folder; 
 
         if (!p.date) p.date = new Date().toISOString().split('T')[0];
         if (!p.startTime) p.startTime = "17:00";
@@ -2022,7 +2025,7 @@ const firebaseConfig = {
                     </div>
                   </td>
                   <td class="wb-play-cell wb-body-${cell.color}">
-                      <input type="text" class="wb-play-input" value="${cell.text}" oninput="updateWbPlayText(${cIdx}, ${r}, this.value)" />
+                      <input type="text" id="wb-${cIdx}-${r}-${Math.random().toString(36).substr(2, 5)}" class="wb-play-input" value="${cell.text}" oninput="updateWbPlayText(${cIdx}, ${r}, this.value)" />
                       <div class="wb-cell-controls admin-only no-print">
                          <button class="wb-cell-color-btn" onclick="cycleWbCellColor(${cIdx}, ${r})" title="Change Cell Color">🎨</button>
                       </div>
@@ -2066,29 +2069,6 @@ const firebaseConfig = {
       
       saveState();
       renderWristband();
-    }
-
-    function addWbPage() {
-      if (userRole !== 'admin') return;
-      initWristbandData();
-      const wbData = weeklyData[currentWeek].wristbandData;
-      wbData.columns.push({
-         color: "white",
-         plays: Array(wbData.rows).fill("").map(() => ({ text: "", color: "white" }))
-      });
-      saveState();
-      renderWristband();
-    }
-
-    function removeWbPage() {
-      if (userRole !== 'admin') return;
-      initWristbandData();
-      const wbData = weeklyData[currentWeek].wristbandData;
-      if (wbData.columns.length > 1) {
-         wbData.columns.pop();
-         saveState();
-         renderWristband();
-      }
     }
 
     function addWbRow() {
@@ -2751,9 +2731,9 @@ const firebaseConfig = {
                     <select class="prac-select" onchange="updateCircuitDrill(${idx}, ${i}, this.value)">
                       ${getAllDrillOptions(st.drill)}
                     </select>
-                    ${st.drill === 'Custom' || (!st.drill && st.customDrill) ? `<input type="text" class="prac-input" style="margin-top:3px;" placeholder="Custom drill..." value="${st.customDrill || ''}" oninput="updateCircuitTextData(${idx}, ${i}, 'customDrill', this.value)">` : ''}
+                    ${st.drill === 'Custom' || (!st.drill && st.customDrill) ? `<input type="text" id="circ-cdrill-${idx}-${i}-${Math.random().toString(36).substr(2, 5)}" class="prac-input" style="margin-top:3px;" placeholder="Custom drill..." value="${st.customDrill || ''}" oninput="updateCircuitTextData(${idx}, ${i}, 'customDrill', this.value)">` : ''}
                     <div style="margin-top:3px;" class="no-print">
-                      <input type="text" class="prac-input" style="font-size:10px; padding:2px;" placeholder="Optional video link..." value="${st.videoLink}" oninput="updateCircuitTextData(${idx}, ${i}, 'videoLink', this.value)">
+                      <input type="text" id="circ-vlink-${idx}-${i}-${Math.random().toString(36).substr(2, 5)}" class="prac-input" style="font-size:10px; padding:2px;" placeholder="Optional video link..." value="${st.videoLink}" oninput="updateCircuitTextData(${idx}, ${i}, 'videoLink', this.value)">
                     </div>
                     ${st.videoLink ? `<div style="margin-top:2px;"><a href="${st.videoLink}" target="_blank" class="video-link-btn no-print">🔗 View Link</a></div>` : ''}
                   </div>
@@ -2761,13 +2741,13 @@ const firebaseConfig = {
 
                 let stationDescHtml = `
                   <div class="station-block">
-                    <textarea class="prac-textarea" oninput="autoResizeTextarea(this); updateCircuitTextData(${idx}, ${i}, 'desc', this.value);" placeholder="${blockLabel} ${i+1} description...">${st.desc || ''}</textarea>
+                    <textarea id="circ-desc-${idx}-${i}-${Math.random().toString(36).substr(2, 5)}" class="prac-textarea" oninput="autoResizeTextarea(this); updateCircuitTextData(${idx}, ${i}, 'desc', this.value);" placeholder="${blockLabel} ${i+1} description...">${st.desc || ''}</textarea>
                   </div>
                 `;
 
                 let stationKeysHtml = `
                   <div class="station-block">
-                    <input type="text" class="prac-input" value="${st.key || ''}" oninput="updateCircuitTextData(${idx}, ${i}, 'key', this.value);" placeholder="Focus...">
+                    <input type="text" id="circ-key-${idx}-${i}-${Math.random().toString(36).substr(2, 5)}" class="prac-input" value="${st.key || ''}" oninput="updateCircuitTextData(${idx}, ${i}, 'key', this.value);" placeholder="Focus...">
                   </div>
                 `;
 
@@ -2888,20 +2868,20 @@ const firebaseConfig = {
                 <select class="prac-select" onchange="updatePracticeDrill(${idx}, this.value)">
                   ${drillOptions}
                 </select>
-                ${row.drill === 'Custom' || !row.drill ? `<input type="text" class="prac-input" style="margin-top:4px;" placeholder="Custom drill name..." value="${row.customDrill || ''}" oninput="updatePracticeTextData(${idx}, 'customDrill', this.value)">` : ''}
+                ${row.drill === 'Custom' || !row.drill ? `<input type="text" id="cdrill-${idx}-${Math.random().toString(36).substr(2, 5)}" class="prac-input" style="margin-top:4px;" placeholder="Custom drill name..." value="${row.customDrill || ''}" oninput="updatePracticeTextData(${idx}, 'customDrill', this.value)">` : ''}
                 <div style="margin-top:4px;" class="no-print">
-                  <input type="text" class="prac-input" style="font-size:10px; padding:2px;" placeholder="Optional video link..." value="${row.videoLink}" oninput="updatePracticeTextData(${idx}, 'videoLink', this.value)">
+                  <input type="text" id="vlink-${idx}-${Math.random().toString(36).substr(2, 5)}" class="prac-input" style="font-size:10px; padding:2px;" placeholder="Optional video link..." value="${row.videoLink}" oninput="updatePracticeTextData(${idx}, 'videoLink', this.value)">
                 </div>
                 ${row.videoLink ? `<div style="margin-top:2px;"><a href="${row.videoLink}" target="_blank" class="video-link-btn no-print">🔗 View Link</a></div>` : ''}
               </td>
-              <td><textarea class="prac-textarea" oninput="autoResizeTextarea(this); updatePracticeTextData(${idx}, 'desc', this.value);" placeholder="Drill description & setup...">${row.desc || ''}</textarea></td>
+              <td><textarea id="desc-${idx}-${Math.random().toString(36).substr(2, 5)}" class="prac-textarea" oninput="autoResizeTextarea(this); updatePracticeTextData(${idx}, 'desc', this.value);" placeholder="Drill description & setup...">${row.desc || ''}</textarea></td>
               <td>
                 <div style="margin-bottom:4px;">${coachBadges}</div>
                 <select class="prac-select no-print admin-only" onchange="handleCoachSelection(${idx}, this.value)">
                   ${coachSelectOptions}
                 </select>
               </td>
-              <td><input type="text" class="prac-input" value="${row.key || ''}" oninput="updatePracticeTextData(${idx}, 'key', this.value);" placeholder="Key coaching focus..."></td>
+              <td><input type="text" id="key-${idx}-${Math.random().toString(36).substr(2, 5)}" class="prac-input" value="${row.key || ''}" oninput="updatePracticeTextData(${idx}, 'key', this.value);" placeholder="Key coaching focus..."></td>
               <td class="no-print admin-only" style="text-align:center;">
                 <div style="display:flex; flex-direction:column; gap:4px; align-items:center;">
                   <button class="reorder-btn" onclick="movePracticeRow(${idx}, -1)">▲</button>
@@ -3066,10 +3046,14 @@ const firebaseConfig = {
       row.drill = drillValue;
       
       if (drillValue !== "Custom") {
+        row.customDrill = ""; 
         const drillObj = findDrillByName(drillValue);
         if (drillObj) {
           row.desc = drillObj.desc || "";
           row.key = drillObj.key || "";
+        } else if (drillValue === "") {
+          row.desc = "";
+          row.key = "";
         }
       } else {
         row.desc = "";
@@ -3106,10 +3090,14 @@ const firebaseConfig = {
       const st = row.stations[stationIdx];
       st.drill = drillValue;
       if (drillValue !== "Custom") {
+        st.customDrill = "";
         const drillObj = findDrillByName(drillValue);
         if (drillObj) {
           st.desc = drillObj.desc || "";
           st.key = drillObj.key || "";
+        } else if (drillValue === "") {
+          st.desc = "";
+          st.key = "";
         }
       } else {
         st.desc = "";
