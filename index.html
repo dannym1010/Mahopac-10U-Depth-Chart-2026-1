@@ -937,7 +937,7 @@
         width: 0.25in !important; /* Narrow number box */
       }
       #panel-wristband .wb-play-input { display: none !important; }
-      #panel-wristband .wb-cell-controls { display: none !important; }
+      #panel-wristband .wb-cell-color-btn { display: none !important; }
       #panel-wristband .print-text-node.wb-print-text {
         font-size: 8.5px !important;
         padding: 0 2px !important;
@@ -1056,7 +1056,7 @@
     </div>
     <div class="week-controls">
       <span class="week-label">Opponent / Label:</span>
-      <input type="text" id="opponent-input" class="opponent-input" placeholder="e.g., vs. Patriots / Preseason" oninput="updateOpponentLabel(this.value)" />
+      <input type="text" id="opponent-input" class="opponent-input" placeholder="e.g., vs. Patriots / Preseason" onchange="updateOpponentLabel(this.value)" />
     </div>
   </div>
 
@@ -1109,9 +1109,11 @@
               <span>Wristband Builder</span>
             </div>
             <div style="display:flex; gap:4px; flex-wrap:wrap;">
+              <button class="add-row-btn admin-only" onclick="addWbPage()">+ Col</button>
+              <button class="add-row-btn admin-only" onclick="removeWbPage()">- Col</button>
               <button class="add-row-btn admin-only" onclick="addWbRow()">+ Row</button>
               <button class="add-row-btn admin-only" onclick="removeWbRow()">- Row</button>
-              <button class="toolbar button" onclick="window.print()" style="padding:4px 10px; margin-left:6px;">🖨️ Print Wristband</button>
+              <button class="toolbar button" onclick="if(document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur(); setTimeout(()=>window.print(), 100);" style="padding:4px 10px; margin-left:6px;">🖨️ Print Wristband</button>
             </div>
           </div>
           
@@ -1151,7 +1153,7 @@
             </div>
             <div>
               <button class="add-row-btn admin-only" onclick="addPracticeRow()">+ Add Period</button>
-              <button class="toolbar button" onclick="window.print()" style="padding:4px 10px; margin-left:6px;">🖨️ Print Plan</button>
+              <button class="toolbar button" onclick="if(document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur(); setTimeout(()=>window.print(), 100);" style="padding:4px 10px; margin-left:6px;">🖨️ Print Plan</button>
             </div>
           </div>
 
@@ -1258,11 +1260,16 @@ const firebaseConfig = {
       document.getElementById('auth-btn').classList.remove('locked');
     }
 
+    function isUserEditing() {
+      const active = document.activeElement;
+      return active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.tagName === 'SELECT');
+    }
+
     const masterRoster = [
       { num: "2", firstName: "Mohammed", lastName: "Ibrahim" },
       { num: "4", firstName: "Vincent", lastName: "Cambigianis" },
       { num: "6", firstName: "Andrew", lastName: "Henderson" },
-      { num: "7", Jayden: "Jayden", lastName: "Silva" },
+      { num: "7", firstName: "Jayden", lastName: "Silva" },
       { num: "8", firstName: "James", lastName: "Kilkenny" },
       { num: "10", firstName: "Luke", lastName: "Mancini" },
       { num: "11", firstName: "Dorian", lastName: "Berish" },
@@ -1460,7 +1467,6 @@ const firebaseConfig = {
     ];
 
     const wbColors = ['blue', 'yellow', 'green', 'red', 'white'];
-    let saveTimeout = null;
 
     // STATE VARIABLES
     let practiceTemplates = JSON.parse(localStorage.getItem("footballPracticeTemplates")) || [];
@@ -1528,16 +1534,16 @@ const firebaseConfig = {
         weeklyData[currentWeek].wristbandData = {
            rows: 16,
            columns: [
-              { color: "blue", plays: Array(16).fill("").map((_, i) => ({ text: "", color: "blue" })) },
-              { color: "yellow", plays: Array(16).fill("").map((_, i) => ({ text: "", color: "yellow" })) }
+              { color: "blue", plays: Array(16).fill("").map(() => ({ text: "", color: "blue" })) },
+              { color: "yellow", plays: Array(16).fill("").map(() => ({ text: "", color: "yellow" })) }
            ]
         };
       } else if (weeklyData[currentWeek].wristband) {
          weeklyData[currentWeek].wristbandData = {
            rows: 16,
            columns: [
-              { color: "blue", plays: Array(16).fill("").map((_, i) => ({ text: "", color: "blue" })) },
-              { color: "yellow", plays: Array(16).fill("").map((_, i) => ({ text: "", color: "yellow" })) }
+              { color: "blue", plays: Array(16).fill("").map(() => ({ text: "", color: "blue" })) },
+              { color: "yellow", plays: Array(16).fill("").map(() => ({ text: "", color: "yellow" })) }
            ]
          };
          delete weeklyData[currentWeek].wristband; 
@@ -2025,7 +2031,7 @@ const firebaseConfig = {
                     </div>
                   </td>
                   <td class="wb-play-cell wb-body-${cell.color}">
-                      <input type="text" id="wb-${cIdx}-${r}-${Math.random().toString(36).substr(2, 5)}" class="wb-play-input" value="${cell.text}" oninput="updateWbPlayText(${cIdx}, ${r}, this.value)" />
+                      <input type="text" class="wb-play-input" value="${cell.text}" onchange="updateWbPlayText(${cIdx}, ${r}, this.value)" />
                       <div class="wb-cell-controls admin-only no-print">
                          <button class="wb-cell-color-btn" onclick="cycleWbCellColor(${cIdx}, ${r})" title="Change Cell Color">🎨</button>
                       </div>
@@ -2041,7 +2047,7 @@ const firebaseConfig = {
     function updateWbPlayText(colIdx, rowIdx, val) {
       if (userRole !== 'admin') return;
       weeklyData[currentWeek].wristbandData.columns[colIdx].plays[rowIdx].text = val;
-      triggerDebouncedSave();
+      saveState();
     }
 
     function cycleWbColColor(colIdx) {
@@ -2069,6 +2075,29 @@ const firebaseConfig = {
       
       saveState();
       renderWristband();
+    }
+
+    function addWbPage() {
+      if (userRole !== 'admin') return;
+      initWristbandData();
+      const wbData = weeklyData[currentWeek].wristbandData;
+      wbData.columns.push({
+         color: "white",
+         plays: Array(wbData.rows).fill("").map(() => ({ text: "", color: "white" }))
+      });
+      saveState();
+      renderWristband();
+    }
+
+    function removeWbPage() {
+      if (userRole !== 'admin') return;
+      initWristbandData();
+      const wbData = weeklyData[currentWeek].wristbandData;
+      if (wbData.columns.length > 1) {
+         wbData.columns.pop();
+         saveState();
+         renderWristband();
+      }
     }
 
     function addWbRow() {
@@ -2432,16 +2461,6 @@ const firebaseConfig = {
       });
     }
 
-    function triggerDebouncedSave() {
-      clearTimeout(saveTimeout);
-      localStorage.setItem("footballPracticeData", JSON.stringify(practiceData));
-      localStorage.setItem("footballWeeklyData", JSON.stringify(weeklyData));
-      
-      saveTimeout = setTimeout(() => {
-          saveState();
-      }, 1500);
-    }
-
     function saveState() {
       if (userRole !== 'admin') return;
 
@@ -2505,11 +2524,14 @@ const firebaseConfig = {
             practiceTemplates = data.practiceTemplates;
             localStorage.setItem("footballPracticeTemplates", JSON.stringify(practiceTemplates));
           }
-          renderActiveBoards();
-          if (activeUnit === 'wristband') renderWristband();
-          renderMasterRoster();
-          populatePracticeDropdown();
-          renderPracticePlan();
+          
+          if (!isUserEditing()) {
+             renderActiveBoards();
+             if (activeUnit === 'wristband') renderWristband();
+             renderMasterRoster();
+             populatePracticeDropdown();
+             renderPracticePlan();
+          }
         }
       });
     } else {
@@ -2522,7 +2544,8 @@ const firebaseConfig = {
       const current = getCurrentPractice();
       if (!current || !Array.isArray(current.plan) || !current.plan[idx]) return;
       current.plan[idx][field] = value;
-      triggerDebouncedSave();
+      saveState();
+      if (field === 'time') renderPracticePlan(); // Time edits need immediate layout shift
     }
     
     function updateCircuitTextData(rowIdx, stationIdx, field, value) {
@@ -2531,7 +2554,7 @@ const firebaseConfig = {
       if (!current || !Array.isArray(current.plan) || !current.plan[rowIdx]) return;
       if (!Array.isArray(current.plan[rowIdx].stations) || !current.plan[rowIdx].stations[stationIdx]) return;
       current.plan[rowIdx].stations[stationIdx][field] = value;
-      triggerDebouncedSave();
+      saveState();
     }
 
     function updatePeriodType(idx, val) {
@@ -2579,6 +2602,10 @@ const firebaseConfig = {
 
     // Force full expansion of textareas right before print and swap them to clean printable divs
     window.addEventListener('beforeprint', () => {
+      if (document.activeElement && typeof document.activeElement.blur === 'function') {
+         document.activeElement.blur(); // Forces onchange to fire and save local edits
+      }
+      
       document.querySelectorAll('.prac-textarea, .wb-play-input').forEach(el => {
         const div = document.createElement('div');
         div.className = 'print-text-node';
@@ -2731,9 +2758,9 @@ const firebaseConfig = {
                     <select class="prac-select" onchange="updateCircuitDrill(${idx}, ${i}, this.value)">
                       ${getAllDrillOptions(st.drill)}
                     </select>
-                    ${st.drill === 'Custom' || (!st.drill && st.customDrill) ? `<input type="text" id="circ-cdrill-${idx}-${i}-${Math.random().toString(36).substr(2, 5)}" class="prac-input" style="margin-top:3px;" placeholder="Custom drill..." value="${st.customDrill || ''}" oninput="updateCircuitTextData(${idx}, ${i}, 'customDrill', this.value)">` : ''}
+                    ${st.drill === 'Custom' || (!st.drill && st.customDrill) ? `<input type="text" class="prac-input" style="margin-top:3px;" placeholder="Custom drill..." value="${st.customDrill || ''}" onchange="updateCircuitTextData(${idx}, ${i}, 'customDrill', this.value)">` : ''}
                     <div style="margin-top:3px;" class="no-print">
-                      <input type="text" id="circ-vlink-${idx}-${i}-${Math.random().toString(36).substr(2, 5)}" class="prac-input" style="font-size:10px; padding:2px;" placeholder="Optional video link..." value="${st.videoLink}" oninput="updateCircuitTextData(${idx}, ${i}, 'videoLink', this.value)">
+                      <input type="text" class="prac-input" style="font-size:10px; padding:2px;" placeholder="Optional video link..." value="${st.videoLink}" onchange="updateCircuitTextData(${idx}, ${i}, 'videoLink', this.value)">
                     </div>
                     ${st.videoLink ? `<div style="margin-top:2px;"><a href="${st.videoLink}" target="_blank" class="video-link-btn no-print">🔗 View Link</a></div>` : ''}
                   </div>
@@ -2741,13 +2768,13 @@ const firebaseConfig = {
 
                 let stationDescHtml = `
                   <div class="station-block">
-                    <textarea id="circ-desc-${idx}-${i}-${Math.random().toString(36).substr(2, 5)}" class="prac-textarea" oninput="autoResizeTextarea(this); updateCircuitTextData(${idx}, ${i}, 'desc', this.value);" placeholder="${blockLabel} ${i+1} description...">${st.desc || ''}</textarea>
+                    <textarea class="prac-textarea" oninput="autoResizeTextarea(this)" onchange="updateCircuitTextData(${idx}, ${i}, 'desc', this.value)" placeholder="${blockLabel} ${i+1} description...">${st.desc || ''}</textarea>
                   </div>
                 `;
 
                 let stationKeysHtml = `
                   <div class="station-block">
-                    <input type="text" id="circ-key-${idx}-${i}-${Math.random().toString(36).substr(2, 5)}" class="prac-input" value="${st.key || ''}" oninput="updateCircuitTextData(${idx}, ${i}, 'key', this.value);" placeholder="Focus...">
+                    <input type="text" class="prac-input" value="${st.key || ''}" onchange="updateCircuitTextData(${idx}, ${i}, 'key', this.value)" placeholder="Focus...">
                   </div>
                 `;
 
@@ -2868,20 +2895,20 @@ const firebaseConfig = {
                 <select class="prac-select" onchange="updatePracticeDrill(${idx}, this.value)">
                   ${drillOptions}
                 </select>
-                ${row.drill === 'Custom' || !row.drill ? `<input type="text" id="cdrill-${idx}-${Math.random().toString(36).substr(2, 5)}" class="prac-input" style="margin-top:4px;" placeholder="Custom drill name..." value="${row.customDrill || ''}" oninput="updatePracticeTextData(${idx}, 'customDrill', this.value)">` : ''}
+                ${row.drill === 'Custom' || !row.drill ? `<input type="text" class="prac-input" style="margin-top:4px;" placeholder="Custom drill name..." value="${row.customDrill || ''}" onchange="updatePracticeTextData(${idx}, 'customDrill', this.value)">` : ''}
                 <div style="margin-top:4px;" class="no-print">
-                  <input type="text" id="vlink-${idx}-${Math.random().toString(36).substr(2, 5)}" class="prac-input" style="font-size:10px; padding:2px;" placeholder="Optional video link..." value="${row.videoLink}" oninput="updatePracticeTextData(${idx}, 'videoLink', this.value)">
+                  <input type="text" class="prac-input" style="font-size:10px; padding:2px;" placeholder="Optional video link..." value="${row.videoLink}" onchange="updatePracticeTextData(${idx}, 'videoLink', this.value)">
                 </div>
                 ${row.videoLink ? `<div style="margin-top:2px;"><a href="${row.videoLink}" target="_blank" class="video-link-btn no-print">🔗 View Link</a></div>` : ''}
               </td>
-              <td><textarea id="desc-${idx}-${Math.random().toString(36).substr(2, 5)}" class="prac-textarea" oninput="autoResizeTextarea(this); updatePracticeTextData(${idx}, 'desc', this.value);" placeholder="Drill description & setup...">${row.desc || ''}</textarea></td>
+              <td><textarea class="prac-textarea" oninput="autoResizeTextarea(this)" onchange="updatePracticeTextData(${idx}, 'desc', this.value)" placeholder="Drill description & setup...">${row.desc || ''}</textarea></td>
               <td>
                 <div style="margin-bottom:4px;">${coachBadges}</div>
                 <select class="prac-select no-print admin-only" onchange="handleCoachSelection(${idx}, this.value)">
                   ${coachSelectOptions}
                 </select>
               </td>
-              <td><input type="text" id="key-${idx}-${Math.random().toString(36).substr(2, 5)}" class="prac-input" value="${row.key || ''}" oninput="updatePracticeTextData(${idx}, 'key', this.value);" placeholder="Key coaching focus..."></td>
+              <td><input type="text" class="prac-input" value="${row.key || ''}" onchange="updatePracticeTextData(${idx}, 'key', this.value)" placeholder="Key coaching focus..."></td>
               <td class="no-print admin-only" style="text-align:center;">
                 <div style="display:flex; flex-direction:column; gap:4px; align-items:center;">
                   <button class="reorder-btn" onclick="movePracticeRow(${idx}, -1)">▲</button>
