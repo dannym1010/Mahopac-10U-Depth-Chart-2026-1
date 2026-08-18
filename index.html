@@ -720,7 +720,7 @@
       background: #ffffff;
       font-size: 11px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-      table-layout: auto;
+      table-layout: fixed; /* Forced Fixed for clean resizing */
     }
 
     .practice-table th, .practice-table td {
@@ -730,6 +730,7 @@
       vertical-align: top;
       box-sizing: border-box;
       position: relative;
+      word-wrap: break-word;
     }
 
     .practice-table th {
@@ -757,12 +758,13 @@
     .col-resizer {
       position: absolute;
       top: 0;
-      right: 0;
-      width: 5px;
+      right: -3px;
+      width: 6px;
       cursor: col-resize;
       user-select: none;
       height: 100%;
       background: transparent;
+      z-index: 10;
     }
 
     .col-resizer:hover, .col-resizer.resizing {
@@ -911,7 +913,7 @@
     /* PRINT STYLES - SINGLE PAGE OPTIMIZATION & FULL TEXT VISIBILITY */
     @media print {
       @page { size: letter portrait; margin: 0.25in; }
-      body { background-color: #ffffff; padding: 0; margin: 0; font-size: 7.5px; }
+      body { background-color: #ffffff; padding: 0; margin: 0; font-size: 10px; }
       
       .toolbar, .sidebar, .remove-btn, .action-group, p.subtitle, .search-box, .card-search-container, .tab-navigation, .toggle-board-btn, .week-bar, .board-controls, .add-row-btn, .add-form-btn, .row-actions, .pos-header-actions, .col-resizer, .practice-dashboard { display: none !important; }
       
@@ -922,58 +924,55 @@
       .formation-container { border: 1px solid #000000; box-shadow: none; padding: 4px; page-break-inside: auto !important; margin-bottom: 4px; }
       .formation-row { min-width: 100% !important; page-break-inside: avoid; }
       .position-card { border: 1px solid #000000 !important; box-shadow: none !important; min-width: 65px; }
-      .position-header { background: #e2e8f0 !important; color: #000000 !important; border-bottom: 1px solid #000000 !important; font-size: 8px; padding: 2px 3px; }
-      .player-item { border: 1px solid #cbd5e1 !important; font-size: 7.5px; padding: 2px 3px; margin-bottom: 2px; }
+      .position-header { background: #e2e8f0 !important; color: #000000 !important; border-bottom: 1px solid #000000 !important; font-size: 9px; padding: 2px 3px; }
+      .player-item { border: 1px solid #cbd5e1 !important; font-size: 9px; padding: 2px 3px; margin-bottom: 2px; }
       h1 { margin-top: 0; font-size: 12px; color: #000000; text-align: center; }
       
       /* Wristband Print Specifics - Tailored for physical insert */
       #panel-wristband .wb-exact-table {
         border: 2px solid #000000; 
-        width: 5.25in !important; /* Ideal wristband physical width */
+        width: 5.25in !important; 
         margin: 0;
         table-layout: fixed !important; 
       }
       #panel-wristband .wb-exact-table td {
-        height: 0.18in !important; /* Perfect physical wristband row height */
+        height: 0.18in !important; 
       }
       #panel-wristband .wb-sub-idx {
-        width: 0.25in !important; /* Narrow number box */
+        width: 0.25in !important; 
       }
       #panel-wristband .wb-play-input { display: none !important; }
       #panel-wristband .wb-cell-controls { display: none !important; }
       #panel-wristband .print-text-node.wb-print-text {
-        font-size: 8.5px !important;
+        font-size: 8.5px !important; /* Kept strictly sized for wristband */
         padding: 0 2px !important;
         font-weight: bold;
         text-transform: uppercase;
         font-family: "Times New Roman", Times, serif !important;
-      }
-      #panel-wristband input[type="text"] {
-        border: none !important;
-        background: transparent !important;
       }
 
       /* Practice Table Print */
       .practice-table { 
         border: 2px solid #000000; 
         width: 100% !important; 
-        table-layout: auto !important; 
-        font-size: 7px !important;
+        table-layout: fixed !important; 
+        font-size: 10px !important; /* INCREASED */
         page-break-inside: auto;
       }
       .practice-table tr { page-break-inside: avoid; page-break-after: auto; }
       .practice-table th, .practice-table td { 
         border: 1px solid #000000 !important; 
-        padding: 2px 3px !important; 
-        overflow: visible !important;
+        padding: 3px 4px !important; 
+        overflow: hidden !important;
+        word-wrap: break-word;
       }
       .practice-table tbody tr:nth-child(odd) { background-color: #ffffff !important; }
       .practice-table tbody tr:nth-child(even) { background-color: #f4f6f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 
       .prac-time-input-wrap { display: none !important; }
       
-      .period-schedule-time { color: #000000 !important; font-size: 8px !important; margin-top: 2px; }
-      .rotation-timer { color: #000000 !important; font-size: 7.5px !important; }
+      .period-schedule-time { color: #000000 !important; font-size: 11px !important; margin-top: 2px; }
+      .rotation-timer { color: #000000 !important; font-size: 10px !important; }
       .print-only-inline { display: inline !important; }
 
       .prac-input, .prac-select {
@@ -983,13 +982,13 @@
         appearance: none; 
         -webkit-appearance: none; 
         color: #000000 !important; 
-        font-size: 7.5px !important;
+        font-size: 10px !important; /* INCREASED */
         margin: 0;
       }
 
       .print-text-node {
         display: block !important;
-        font-size: 7.5px;
+        font-size: 10px !important; /* INCREASED */
         white-space: pre-wrap;
         word-break: break-word;
         color: #000000;
@@ -999,15 +998,15 @@
       .prac-textarea { display: none !important; }
       .station-block { border-bottom: 1px solid #ccc; margin-bottom: 2px; padding-bottom: 2px; page-break-inside: avoid; }
       .coach-badge {
-        background: transparent !important; color: #000000 !important; padding: 0 !important; margin: 0 !important; font-size: 7.5px !important; font-weight: normal !important;
+        background: transparent !important; color: #000000 !important; padding: 0 !important; margin: 0 !important; font-size: 10px !important; font-weight: normal !important; /* INCREASED */
       }
       .coach-badge::after { content: ", "; }
       .coach-badge:last-child::after { content: ""; }
       .no-print { display: none !important; }
       
       .print-only-header { display: block !important; text-align: center; margin-bottom: 4px; }
-      .print-only-header h2 { margin: 0 0 2px 0; font-size: 12px; }
-      .print-only-header p { margin: 0; font-size: 9px; color: #333; }
+      .print-only-header h2 { margin: 0 0 2px 0; font-size: 14px; }
+      .print-only-header p { margin: 0; font-size: 11px; color: #333; }
     }
 
     @media screen {
@@ -1599,7 +1598,7 @@ const firebaseConfig = {
         if (!p.endTime) p.endTime = "19:00";
         if (!p.lastEdited) p.lastEdited = Date.now();
         
-        // Fix: Removed the buggy empty plan failsafe. Blank arrays are fully allowed now.
+        // Allowed completely blank arrays! No forced template resets.
         if (!Array.isArray(p.plan)) {
           p.plan = [];
         }
@@ -1672,6 +1671,14 @@ const firebaseConfig = {
       renderActiveBoards();
       populatePracticeDropdown();
       renderPracticePlan();
+    }
+
+    function markPracticeEdited() {
+      if (userRole !== 'admin') return;
+      const p = getCurrentPractice();
+      if (p) {
+        p.lastEdited = Date.now();
+      }
     }
 
     function getCurrentPractice() {
@@ -1788,8 +1795,7 @@ const firebaseConfig = {
 
     function changePractice(id) {
       currentPracticeId = id;
-      const p = getCurrentPractice();
-      if(p) p.lastEdited = Date.now();
+      markPracticeEdited();
       renderPracticePlan();
       populatePracticeDropdown();
       triggerDebouncedSave();
@@ -1882,7 +1888,7 @@ const firebaseConfig = {
       p.day = newDay.trim();
       p.title = newTitle.trim();
       p.date = newDate.trim();
-      p.lastEdited = Date.now();
+      markPracticeEdited();
       
       saveState();
       populatePracticeDropdown();
@@ -1907,7 +1913,7 @@ const firebaseConfig = {
       
       if(confirm(`Overwrite current plan "${p.title}" with "${practiceData[targetIdx].title}"?`)) {
          p.plan = JSON.parse(JSON.stringify(practiceData[targetIdx].plan));
-         p.lastEdited = Date.now();
+         markPracticeEdited();
          saveState();
          renderPracticePlan();
       }
@@ -1919,7 +1925,7 @@ const firebaseConfig = {
       if(!p) return;
       if(confirm(`Reset "${p.title}" back to the default practice plan template?`)) {
         p.plan = JSON.parse(JSON.stringify(defaultPracticePlan));
-        p.lastEdited = Date.now();
+        markPracticeEdited();
         saveState();
         renderPracticePlan();
         alert("Practice plan successfully reset to default.");
@@ -1949,7 +1955,7 @@ const firebaseConfig = {
       const p = getCurrentPractice();
       if(!p) return;
       p[field] = value;
-      p.lastEdited = Date.now();
+      markPracticeEdited();
       saveState();
       renderPracticePlan();
     }
@@ -2613,10 +2619,12 @@ const firebaseConfig = {
 
     function triggerDebouncedSave() {
       clearTimeout(saveTimeout);
+      // Immediately save to local storage for speed
       localStorage.setItem("footballPracticeData", JSON.stringify(practiceData));
       localStorage.setItem("footballWeeklyData", JSON.stringify(weeklyData));
       localStorage.setItem("footballDynamicDrills", JSON.stringify(dynamicDrills));
       
+      // Debounce the cloud sync so it doesn't interrupt typing
       saveTimeout = setTimeout(() => {
           saveState();
       }, 1500);
@@ -3066,34 +3074,51 @@ const firebaseConfig = {
       if (userRole !== 'admin') return;
       const table = document.getElementById("main-practice-table");
       if (!table) return;
-      const cols = table.querySelectorAll("th");
       
-      cols.forEach(th => {
+      // Force fixed layout for precise column control
+      table.style.tableLayout = "fixed";
+
+      const ths = table.querySelectorAll("thead th");
+      ths.forEach((th, i) => {
         const resizer = th.querySelector(".col-resizer");
         if (!resizer) return;
 
-        let startX, startWidth;
-
-        resizer.onmousedown = function(e) {
+        resizer.addEventListener("mousedown", function(e) {
           e.preventDefault();
           e.stopPropagation();
-          startX = e.pageX;
-          startWidth = th.offsetWidth;
+
+          const startX = e.pageX;
+          const startWidth = th.offsetWidth;
+          
+          const nextTh = ths[i + 1];
+          const nextStartWidth = nextTh ? nextTh.offsetWidth : 0;
+          const tableWidth = table.offsetWidth;
+
           resizer.classList.add("resizing");
 
-          document.onmousemove = function(e) {
-            const newWidth = startWidth + (e.pageX - startX);
-            if (newWidth > 40) {
-              th.style.width = newWidth + "px";
+          const onMouseMove = function(e) {
+            const diffX = e.pageX - startX;
+            const newWidth = startWidth + diffX;
+
+            if (newWidth > 30 && nextTh) {
+              const newNextWidth = nextStartWidth - diffX;
+              if (newNextWidth > 30) {
+                // Convert back to percentages so it stays responsive
+                th.style.width = ((newWidth / tableWidth) * 100) + "%";
+                nextTh.style.width = ((newNextWidth / tableWidth) * 100) + "%";
+              }
             }
           };
 
-          document.onmouseup = function() {
-            document.onmousemove = null;
-            document.onmouseup = null;
+          const onMouseUp = function() {
+            document.removeEventListener("mousemove", onMouseMove);
+            document.removeEventListener("mouseup", onMouseUp);
             resizer.classList.remove("resizing");
           };
-        };
+
+          document.addEventListener("mousemove", onMouseMove);
+          document.addEventListener("mouseup", onMouseUp);
+        });
       });
     }
 
