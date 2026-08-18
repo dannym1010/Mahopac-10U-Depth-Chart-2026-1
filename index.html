@@ -931,15 +931,15 @@
       /* Wristband Print Specifics - Tailored for physical insert */
       #panel-wristband .wb-exact-table {
         border: 2px solid #000000; 
-        width: 5.25in !important; 
+        width: 5.25in !important; /* Ideal wristband physical width */
         margin: 0;
         table-layout: fixed !important; 
       }
       #panel-wristband .wb-exact-table td {
-        height: 0.18in !important; 
+        height: 0.18in !important; /* Perfect physical wristband row height */
       }
       #panel-wristband .wb-sub-idx {
-        width: 0.25in !important; 
+        width: 0.25in !important; /* Narrow number box */
       }
       #panel-wristband .wb-play-input { display: none !important; }
       #panel-wristband .wb-cell-controls { display: none !important; }
@@ -1314,77 +1314,77 @@ const firebaseConfig = {
 
     const defaultDynamicDrills = {
       "Indy Offense": [
-        { name: "Individual Stance & Alignment", desc: "Instruction: Skill and line players work on correct 2-point or 3-point stances, splits, and alignment rules.", key: "Proper stance, eyes up" },
-        { name: "Individual Ball Handling & Mesh", desc: "Instruction: Quarterbacks, running backs, and receivers practice clean handoffs, pitches, and catch-tuck transitions in slow motion.", key: "Secure the ball" },
-        { name: "Individual Release & Stem", desc: "Instruction: Receivers and tight ends work on getting off the line of scrimmage past dummy defenders and selling the route stem.", key: "No false steps" },
-        { name: "Individual O-Line Fit & Drive", desc: "Instruction: Offensive linemen practice individual board or chute footwork and hand placement fit against a partner or shield.", key: "Thumbs up, low center of gravity" },
-        { name: "Under Center Snap & Drop", desc: "Instruction: Center snaps to QB. QB executes 3-step or 5-step drop on air. Coach watches feet to ensure no false steps or heel clicking.", key: "Clean exchange, fast drop" },
-        { name: "Shotgun Snap & Quick Game", desc: "Instruction: QB takes shotgun snap. Instantly sets feet and throws a quick slant or hitch to a target. Focus on catching and throwing in one rhythm.", key: "Secure snap, quick release" },
-        { name: "Inside Zone / Dive Mesh Mechanics", desc: "Instruction: QB takes snap, opens hips, and rides the running back into the line. Practice leaving the ball in the belly as long as possible before pulling or handing off.", key: "Long ride, read the end" },
-        { name: "Play-Action Rollout", desc: "Instruction: QB executes a hard run fake to the back, drops the ball to the hip, snaps head around, and sprints to the edge to deliver a pass.", key: "Sell fake, sprint to edge" },
-        { name: "Target Accuracy Net Drill", desc: "Instruction: Set up a net or targets at 5, 10, and 15 yards. QBs drop back and throw 5 passes to each target aiming for the center pocket.", key: "Consistent release point" },
-        { name: "Handoff Ball Security", desc: "Instruction: RBs practice receiving handoffs. Inside elbow must be up to form a pocket. Secure the ball immediately into the ribcage with 5 points of pressure.", key: "Squeeze tight, form pocket" },
-        { name: "Downhill A/B Gap Run", desc: "Instruction: RB takes the handoff and attacks the A or B gap immediately. Place bags simulating linemen. RB must hit the hole without dancing.", key: "No dancing, square shoulders" },
-        { name: "Outside Zone / Sweep Track", desc: "Instruction: Set cones marking a wide track. RB takes a toss or wide handoff, runs flat down the line, and cuts upfield outside the last cone.", key: "Read the edge block, cut vertical" },
-        { name: "Lead Block Mechanics (H-Back / FB)", desc: "Instruction: FB or H-Back steps up into the hole to deliver an inside-out block on a padded defender (LB). Run through the block.", key: "Low pad level, strike with hips" },
-        { name: "Pass Protection Pickup", desc: "Instruction: RB steps into the gap to absorb a blitzing linebacker (coach with a bag). Practice a wide base and delivering a punch to stop momentum.", key: "Wide base, punch to breastplate" },
-        { name: "Stance & Release", desc: "Instruction: Receivers line up in proper 2-point stance (inside foot up). Explode off the line for 5 yards without any false steps or rocking.", key: "Explode off front foot, no false steps" },
-        { name: "Stalk Blocking", desc: "Instruction: WR sprints 5 yards at a defender, breaks down, buzzes feet, and engages the chest plate to block for a run play.", key: "Keep feet moving, inside hands" },
-        { name: "Route Tree Basics", desc: "Instruction: Run through the basic route tree (Slant, Out, Hitch, Go). Focus on sharp cuts at the correct yardage depth.", key: "Plant outside foot hard, sharp cuts" },
-        { name: "Catch & Tuck (Gauntlet)", desc: "Instruction: WR catches a pass over the middle and instantly tucks the ball away while running through two coaches holding pads.", key: "Look ball in, tuck instantly" },
-        { name: "3-Point Stance & Get-Off", desc: "Instruction: Linemen line up in proper stances. On the snap count, explode out 5 yards. Watch for leaning, false steps, or high pad levels.", key: "Flat back, zero false steps" },
-        { name: "Base Drive Block", desc: "Instruction: OL fires out, takes a 6-inch power step, strikes the breastplate of a blocking shield, and drives hips forward for 5 yards.", key: "Thumbs up, elbows tight" },
-        { name: "Shock & Shed (Block Defeat)", desc: "Instruction: Lineman strikes a blocker with violent hands, extends arms to gain leverage, locates ball carrier, and rips off the block to make the tackle.", key: "Extend arms, rip off the block" },
-        { name: "Pull & Kickout", desc: "Instruction: Guard opens playside hip, pulls flat down the line behind the center, and delivers a trap/kickout block on a standing bag.", key: "Tight pulling path, strike hard" }
+        { name: "Individual Stance & Alignment", desc: "Setup: Line players up on a single yard line with 2-yard splits.\nInstruction: Skill and line players work on correct 2-point or 3-point stances, splits, and alignment rules.", key: "Proper stance, eyes up" },
+        { name: "Individual Ball Handling & Mesh", desc: "Setup: QBs and RBs pair up with one football per pair.\nInstruction: Quarterbacks, running backs, and receivers practice clean handoffs, pitches, and catch-tuck transitions in slow motion.", key: "Secure the ball" },
+        { name: "Individual Release & Stem", desc: "Setup: Place a trash can or dummy at the line of scrimmage to simulate a press corner.\nInstruction: Receivers and tight ends work on getting off the line of scrimmage past dummy defenders and selling the route stem.", key: "No false steps" },
+        { name: "Individual O-Line Fit & Drive", desc: "Setup: Use a blocking sled, hand shields, or a chute. Pair up OL if using shields.\nInstruction: Offensive linemen practice individual board or chute footwork and hand placement fit against a partner or shield.", key: "Thumbs up, low center of gravity" },
+        { name: "Under Center Snap & Drop", desc: "Setup: Pair QBs and Centers. Use the painted yard line as the line of scrimmage.\nInstruction: Center snaps to QB. QB executes 3-step or 5-step drop on air. Coach watches feet to ensure no false steps or heel clicking.", key: "Clean exchange, fast drop" },
+        { name: "Shotgun Snap & Quick Game", desc: "Setup: Center/QB pairs. Have a coach or standing dummy 5 yards out as a target.\nInstruction: QB takes shotgun snap. Instantly sets feet and throws a quick slant or hitch to a target. Focus on catching and throwing in one rhythm.", key: "Secure snap, quick release" },
+        { name: "Inside Zone / Dive Mesh Mechanics", desc: "Setup: Center, QB, and RB group. Coach stands as the defensive end read.\nInstruction: QB takes snap, opens hips, and rides the running back into the line. Practice leaving the ball in the belly as long as possible before pulling or handing off.", key: "Long ride, read the end" },
+        { name: "Play-Action Rollout", desc: "Setup: Center, QB, RB. Cones marking the edge.\nInstruction: QB executes a hard run fake to the back, drops the ball to the hip, snaps head around, and sprints to the edge to deliver a pass.", key: "Sell fake, sprint to edge" },
+        { name: "Target Accuracy Net Drill", desc: "Setup: Passing net or 3 garbage cans placed at 5, 10, and 15 yards.\nInstruction: Set up a net or targets at 5, 10, and 15 yards. QBs drop back and throw 5 passes to each target aiming for the center pocket.", key: "Consistent release point" },
+        { name: "Handoff Ball Security", desc: "Setup: 2 lines of RBs facing a coach who holds the ball.\nInstruction: RBs practice receiving handoffs. Inside elbow must be up to form a pocket. Secure the ball immediately into the ribcage with 5 points of pressure.", key: "Squeeze tight, form pocket" },
+        { name: "Downhill A/B Gap Run", desc: "Setup: 4 stand-up dummies simulating the defensive line. 2 hash marks acting as the boundary.\nInstruction: RB takes the handoff and attacks the A or B gap immediately. Place bags simulating linemen. RB must hit the hole without dancing.", key: "No dancing, square shoulders" },
+        { name: "Outside Zone / Sweep Track", desc: "Setup: 4 cones placed in an arc to the sideline simulating the block track.\nInstruction: Set cones marking a wide track. RB takes a toss or wide handoff, runs flat down the line, and cuts upfield outside the last cone.", key: "Read the edge block, cut vertical" },
+        { name: "Lead Block Mechanics (H-Back / FB)", desc: "Setup: Coach or LB with a hit shield 3 yards deep in the hole.\nInstruction: FB or H-Back steps up into the hole to deliver an inside-out block on a padded defender (LB). Run through the block.", key: "Low pad level, strike with hips" },
+        { name: "Pass Protection Pickup", desc: "Setup: RB stands in the pocket. Coach with a bag rushes from varying angles.\nInstruction: RB steps into the gap to absorb a blitzing linebacker (coach with a bag). Practice a wide base and delivering a punch to stop momentum.", key: "Wide base, punch to breastplate" },
+        { name: "Stance & Release", desc: "Setup: Receivers line up on a yard line. Coach stands 5 yards away with a whistle.\nInstruction: Receivers line up in proper 2-point stance (inside foot up). Explode off the line for 5 yards without any false steps or rocking.", key: "Explode off front foot, no false steps" },
+        { name: "Stalk Blocking", desc: "Setup: WRs facing DBs holding hand shields, 5 yards apart.\nInstruction: WR sprints 5 yards at a defender, breaks down, buzzes feet, and engages the chest plate to block for a run play.", key: "Keep feet moving, inside hands" },
+        { name: "Route Tree Basics", desc: "Setup: 3 cones placed at 5, 10, and 15 yards to mark break depths.\nInstruction: Run through the basic route tree (Slant, Out, Hitch, Go). Focus on sharp cuts at the correct yardage depth.", key: "Plant outside foot hard, sharp cuts" },
+        { name: "Catch & Tuck (Gauntlet)", desc: "Setup: Two coaches standing 3 yards apart holding hit shields. QB 10 yards away.\nInstruction: WR catches a pass over the middle and instantly tucks the ball away while running through two coaches holding pads.", key: "Look ball in, tuck instantly" },
+        { name: "3-Point Stance & Get-Off", desc: "Setup: All linemen on a single yard line. Coach uses a ball on a stick for snap count.\nInstruction: Linemen line up in proper stances. On the snap count, explode out 5 yards. Watch for leaning, false steps, or high pad levels.", key: "Flat back, zero false steps" },
+        { name: "Base Drive Block", desc: "Setup: Pair linemen up. One holds a hit shield.\nInstruction: OL fires out, takes a 6-inch power step, strikes the breastplate of a blocking shield, and drives hips forward for 5 yards.", key: "Thumbs up, elbows tight" },
+        { name: "Shock & Shed (Block Defeat)", desc: "Setup: Defender paired with an offensive blocker holding a shield.\nInstruction: Lineman strikes a blocker with violent hands, extends arms to gain leverage, locates ball carrier, and rips off the block to make the tackle.", key: "Extend arms, rip off the block" },
+        { name: "Pull & Kickout", desc: "Setup: Center snapping, Guard pulling. Stand-up dummy placed at the edge for the kickout.\nInstruction: Guard opens playside hip, pulls flat down the line behind the center, and delivers a trap/kickout block on a standing bag.", key: "Tight pulling path, strike hard" }
       ],
       "Indy Defense": [
-        { name: "Individual Defensive Stance & Keys", desc: "Instruction: Linebackers and defensive linemen practice low athletic stances and reading offensive guard keys on air.", key: "Flat back, eyes on key" },
-        { name: "Individual Shed & Strike", desc: "Instruction: Defending players practice delivering a heavy hand strike to a shield and instantly ripping or swimming off the block.", key: "Violent hands, clear hips" },
-        { name: "Individual Backpedal & Weave", desc: "Instruction: Defensive backs and linebackers practice smooth backpedals, side-shuffles, and directional transition breaks.", key: "Low hips, stay square" },
-        { name: "Individual Pursuit & Angle", desc: "Instruction: Individual defenders work on proper running angles to the sideline to cut off ball carriers.", key: "Angle to inside hip" },
-        { name: "Get-Off & Shoot Gap", desc: "Instruction: Line up DL on a football attached to a stick. When coach moves the ball, DL fires out instantly into their assigned gap.", key: "Eyes on ball, first step quickness" },
-        { name: "Rip Move & Attack Gap", desc: "Instruction: DL fires off, engages blocker, drops the inside shoulder, and violently rips the arm upward to clear the block and penetrate the gap.", key: "Drop shoulder, violent rip up" },
-        { name: "Swim (Arm-Over) Block Defeat", desc: "Instruction: DL strikes the blocker's breastplate, clubs with the outside hand, and swims the opposite arm over the blocker's shoulder to clear.", key: "Club hard, quick arm over" },
-        { name: "Bull Rush & Shed", desc: "Instruction: DL fires out low, shoots hands into the blocker's chest, drives legs to push the blocker back into the pocket, then sheds to the ball carrier.", key: "Low pad level, heavy hands" },
-        { name: "Read, React & Attack Gap", desc: "Instruction: DL reads the O-line step. If run block, drop anchor and shed. If pass set, transition instantly to Rip/Swim/Bull to attack the gap.", key: "Read the hat, react instantly" },
-        { name: "Key Read & Attack", desc: "Instruction: LB reads guard pull or down block, reacts instantly, scrapes tight to the line, and attacks the assigned gap downhill.", key: "Read the guard, attack downhill" },
-        { name: "Shock, Shed & Fill", desc: "Instruction: LB steps downhill to meet lead blocker, delivers a heavy two-hand strike to the chest, sheds using a rip move, and fills the gap.", key: "Violent strike, shed and tackle" },
-        { name: "Downhill Rip & Gap Fill", desc: "Instruction: LB reads run, attacks the A/B gap, uses a violent rip move to clear the climbing offensive lineman, and makes the tackle.", key: "Rip under the block, clear hips" },
-        { name: "Angle Tackling", desc: "Instruction: LB takes an inside-out pursuit angle toward a runner down the sideline, breaks down, and form tackles a bag.", key: "Track inside hip, wrap and squeeze" },
-        { name: "Defeat Stalk Block & Force", desc: "Instruction: DB reads run, attacks the WR's stalk block. Deliver a firm punch to the WR's chest, rip outside arm free, and force the runner inside to help.", key: "Punch, shed, force inside" },
-        { name: "Rip Off WR Block", desc: "Instruction: DB engages WR blocking on the perimeter, dips the inside shoulder, and rips through the block violently to make an alley tackle.", key: "Dip shoulder, rip through" },
-        { name: "Backpedal & Break", desc: "Instruction: DB backpedals 10 yards. On coach's signal, plant the back foot, drive forward at a 45-degree angle, and catch a ball.", key: "Low hips, zero false steps" },
-        { name: "Deep 1/3 Drop (Safety)", desc: "Instruction: Safety aligns 12 yards deep. Backpedals straight back reading the QB. Break to the deep sideline on a thrown ball.", key: "Deepest of the deepest" }
+        { name: "Individual Defensive Stance & Keys", desc: "Setup: Linebackers 4 yards off the line. Coach acts as the Guard.\nInstruction: Linebackers and defensive linemen practice low athletic stances and reading offensive guard keys on air.", key: "Flat back, eyes on key" },
+        { name: "Individual Shed & Strike", desc: "Setup: Defenders facing offensive players with shields.\nInstruction: Defending players practice delivering a heavy hand strike to a shield and instantly ripping or swimming off the block.", key: "Violent hands, clear hips" },
+        { name: "Individual Backpedal & Weave", desc: "Setup: DBs in 2 lines. Coach stands in front directing with hand signals.\nInstruction: Defensive backs and linebackers practice smooth backpedals, side-shuffles, and directional transition breaks.", key: "Low hips, stay square" },
+        { name: "Individual Pursuit & Angle", desc: "Setup: Ball carrier on the sideline. Defender starting inside the hash.\nInstruction: Individual defenders work on proper running angles to the sideline to cut off ball carriers.", key: "Angle to inside hip" },
+        { name: "Get-Off & Shoot Gap", desc: "Setup: Football attached to a stick/towel. DL aligned on a yard line.\nInstruction: Line up DL on a football attached to a stick. When coach moves the ball, DL fires out instantly into their assigned gap.", key: "Eyes on ball, first step quickness" },
+        { name: "Rip Move & Attack Gap", desc: "Setup: DL paired with OL holding shields.\nInstruction: DL fires off, engages blocker, drops the inside shoulder, and violently rips the arm upward to clear the block and penetrate the gap.", key: "Drop shoulder, violent rip up" },
+        { name: "Swim (Arm-Over) Block Defeat", desc: "Setup: DL paired with OL holding shields.\nInstruction: DL strikes the blocker's breastplate, clubs with the outside hand, and swims the opposite arm over the blocker's shoulder to clear.", key: "Club hard, quick arm over" },
+        { name: "Bull Rush & Shed", desc: "Setup: DL paired with heavier OL holding shields.\nInstruction: DL fires out low, shoots hands into the blocker's chest, drives legs to push the blocker back into the pocket, then sheds to the ball carrier.", key: "Low pad level, heavy hands" },
+        { name: "Read, React & Attack Gap", desc: "Setup: DL facing an offensive lineman. Coach stands behind DL signaling the OL to pass set or run block.\nInstruction: DL reads the O-line step. If run block, drop anchor and shed. If pass set, transition instantly to Rip/Swim/Bull to attack the gap.", key: "Read the hat, react instantly" },
+        { name: "Key Read & Attack", desc: "Setup: LB aligned 4 yards deep. 2 Guards in front.\nInstruction: LB reads guard pull or down block, reacts instantly, scrapes tight to the line, and attacks the assigned gap downhill.", key: "Read the guard, attack downhill" },
+        { name: "Shock, Shed & Fill", desc: "Setup: LB facing a lead blocker holding a shield. Ball carrier stands behind the shield.\nInstruction: LB steps downhill to meet lead blocker, delivers a heavy two-hand strike to the chest, sheds using a rip move, and fills the gap.", key: "Violent strike, shed and tackle" },
+        { name: "Downhill Rip & Gap Fill", desc: "Setup: 4 cones mapping out the A and B gaps. Blocker in the gap.\nInstruction: LB reads run, attacks the A/B gap, uses a violent rip move to clear the climbing offensive lineman, and makes the tackle.", key: "Rip under the block, clear hips" },
+        { name: "Angle Tackling", desc: "Setup: 10x10 grid. Runner starts on one corner, tackler on the opposite diagonal.\nInstruction: LB takes an inside-out pursuit angle toward a runner down the sideline, breaks down, and form tackles a bag.", key: "Track inside hip, wrap and squeeze" },
+        { name: "Defeat Stalk Block & Force", desc: "Setup: DB facing WR with a shield 5 yards apart. RB running an outside sweep.\nInstruction: DB reads run, attacks the WR's stalk block. Deliver a firm punch to the WR's chest, rip outside arm free, and force the runner inside to help.", key: "Punch, shed, force inside" },
+        { name: "Rip Off WR Block", desc: "Setup: DB engaged with a WR. Ball carrier heading up the alley.\nInstruction: DB engages WR blocking on the perimeter, dips the inside shoulder, and rips through the block violently to make an alley tackle.", key: "Dip shoulder, rip through" },
+        { name: "Backpedal & Break", desc: "Setup: DBs on the numbers. Coach with a ball in the middle of the field.\nInstruction: DB backpedals 10 yards. On coach's signal, plant the back foot, drive forward at a 45-degree angle, and catch a ball.", key: "Low hips, zero false steps" },
+        { name: "Deep 1/3 Drop (Safety)", desc: "Setup: Safety starting 10 yards deep. Coach as QB.\nInstruction: Safety aligns 12 yards deep. Backpedals straight back reading the QB. Break to the deep sideline on a thrown ball.", key: "Deepest of the deepest" }
       ],
       "Team Offense": [
-        { name: "Offensive Play Install (Walkthrough)", desc: "Instruction: Huddle the full 11-man offensive unit. Walk through new plays vs. garbage cans or scout defense. No pads/helmets.", key: "Alignment, assignment, snap count" },
-        { name: "11-on-11 Run Game Scrimmage", desc: "Instruction: Live blocking and tackling. Offense runs strictly inside/outside run plays vs the starting defense.", key: "Physicality, execution at speed" },
-        { name: "Team Chalk Talk - Offense", desc: "Instruction: Gather the offensive unit in front of the whiteboard to install new plays, formations, and signals.", key: "Full attention, mental reps" }
+        { name: "Offensive Play Install (Walkthrough)", desc: "Setup: 11 offensive players huddle on the +20 yard line. Place trash cans as defensive linemen.\nInstruction: Huddle the full 11-man offensive unit. Walk through new plays vs. garbage cans or scout defense. No pads/helmets.", key: "Alignment, assignment, snap count" },
+        { name: "11-on-11 Run Game Scrimmage", desc: "Setup: Full 11 on 11 formatted on the hash marks. Referees/coaches spotting the ball.\nInstruction: Live blocking and tackling. Offense runs strictly inside/outside run plays vs the starting defense.", key: "Physicality, execution at speed" },
+        { name: "Team Chalk Talk - Offense", desc: "Setup: Bring the whiteboard onto the field or hash.\nInstruction: Gather the offensive unit in front of the whiteboard to install new plays, formations, and signals.", key: "Full attention, mental reps" }
       ],
       "Team Defense": [
-        { name: "Defensive Front Install (Walkthrough)", desc: "Instruction: Walk through defensive alignments, blitz calls, and gap responsibilities against a scout offense. Half-speed.", key: "Communication, gap integrity" },
-        { name: "Form Fit & Drive (Thud)", desc: "Instruction: Players start 2 yards apart. On whistle, step into the ball carrier, fit the shoulder to the numbers, wrap, and drive for 3 steps.", key: "Shoot hips, wrap cloth" },
-        { name: "Angle / Alley Tackle", desc: "Instruction: Defender takes an inside-out angle to intersect a runner aiming for the pylon. Break down and drive through the near hip.", key: "Near foot to near shoulder" },
-        { name: "Hawk (Rugby) Roll Tackle", desc: "Instruction: Defender targets the thighs of the runner, wraps legs tight, and rolls to the side using momentum to bring the runner down safely.", key: "Eyes on thighs, wrap and roll" },
-        { name: "Open Field Shimmy (Space)", desc: "Instruction: 10x10 yard grid. Defender tracks an elusive runner, breaks down 2 yards away, and executes a safe open-field wrap.", key: "Keep feet alive, track the hip" },
-        { name: "Tackling Circuit (4 Groups)", desc: "Instruction: Divide team into 4 groups. Rotate every 3-5 mins on whistle. Station 1: Form fit. Station 2: Angle tackle. Station 3: Open field wrap. Station 4: Hawk Roll Tackle.", key: "Head up, wrap and squeeze" },
-        { name: "Turnover Circuit (4 Groups)", desc: "Instruction: Divide into 4 groups. Rotate every 3-5 mins. Station 1: Strip drill. Station 2: Fumble recovery (fall on it). Station 3: Tip drill (INTs). Station 4: Punch-out from behind.", key: "Secure the ball instantly" }
+        { name: "Defensive Front Install (Walkthrough)", desc: "Setup: Full defensive unit vs a scout offense (can be coaches or subs) holding shields.\nInstruction: Walk through defensive alignments, blitz calls, and gap responsibilities against a scout offense. Half-speed.", key: "Communication, gap integrity" },
+        { name: "Form Fit & Drive (Thud)", desc: "Setup: Pair players of similar size 2 yards apart on a yard line.\nInstruction: Players start 2 yards apart. On whistle, step into the ball carrier, fit the shoulder to the numbers, wrap, and drive for 3 steps.", key: "Shoot hips, wrap cloth" },
+        { name: "Angle / Alley Tackle", desc: "Setup: Set up a cone alley 10 yards wide. Ball carrier and tackler 15 yards apart.\nInstruction: Defender takes an inside-out angle to intersect a runner aiming for the pylon. Break down and drive through the near hip.", key: "Near foot to near shoulder" },
+        { name: "Hawk (Rugby) Roll Tackle", desc: "Setup: 2 mats or soft landing zones. Tackler and dummy 3 yards apart.\nInstruction: Defender targets the thighs of the runner, wraps legs tight, and rolls to the side using momentum to bring the runner down safely.", key: "Eyes on thighs, wrap and roll" },
+        { name: "Open Field Shimmy (Space)", desc: "Setup: 10x10 yard grid marked by cones. 1 tackler, 1 runner.\nInstruction: 10x10 yard grid. Defender tracks an elusive runner, breaks down 2 yards away, and executes a safe open-field wrap.", key: "Keep feet alive, track the hip" },
+        { name: "Tackling Circuit (4 Groups)", desc: "Setup: Split the field into 4 quadrants. 1 coach per station.\nInstruction: Divide team into 4 groups. Rotate every 3-5 mins on whistle. Station 1: Form fit. Station 2: Angle tackle. Station 3: Open field wrap. Station 4: Hawk Roll Tackle.", key: "Head up, wrap and squeeze" },
+        { name: "Turnover Circuit (4 Groups)", desc: "Setup: Split the field into 4 quadrants. Ensure footballs are at every station.\nInstruction: Divide into 4 groups. Rotate every 3-5 mins. Station 1: Strip drill. Station 2: Fumble recovery (fall on it). Station 3: Tip drill (INTs). Station 4: Punch-out from behind.", key: "Secure the ball instantly" }
       ],
       "Special Teams & General": [
-        { name: "Kickoff Lane Spacing", desc: "Instruction: Line up kickoff team. Sprint 40 yards downfield ensuring every player maintains exactly 10 yards of spacing.", key: "Maintain lane integrity" },
-        { name: "Punt Shield Protection", desc: "Instruction: 3 players form a shield 5 yards behind line. Step inside to seal gaps, absorb rushers, and hold for 2 seconds.", key: "Head up, secure the inside gap" },
-        { name: "Kick Return Wedge", desc: "Instruction: Front blockers sprint back 15 yards, turn, and form a tight wall shoulder-to-shoulder to block for returner.", key: "Move together, drive block" },
-        { name: "QB & Center Exchange", desc: "Instruction: Centers and QBs pair up to practice under-center and shotgun snaps before formal periods begin. Rotate through all QBs and Centers.", key: "100% snap accuracy" },
-        { name: "Specialists: Kicking & Holding", desc: "Instruction: Specialists work on snap, hold, and kick mechanics independently. Kickers work on approach drops and leg swing contact.", key: "Timing and rhythm" },
-        { name: "WR Routes with QB Throws", desc: "Instruction: QBs throw the basic route tree on air to WRs. Focus on timing, route depths, and getting arms warm.", key: "Crisp routes, accurate passes" },
-        { name: "Offensive Line Steps", desc: "Instruction: O-Line works through their first 2 steps (drive, reach, down, pull) on air or lightly against standing bags.", key: "First step quickness, pad level" },
-        { name: "Mandatory Water Break", desc: "Instruction: Blow whistle twice. Players remove helmets and jog to water stations. Emphasize fast hydration and hustling back to position groups.", key: "Hydrate and hustle" },
-        { name: "Dynamic Warm-Up", desc: "Instruction: Line team up on the sideline or hash marks. Coach leads cadence. Perform high knees, karaoke, butt kicks, shuffling, and 10-yard short sprints.", key: "Full speed, proper posture" },
-        { name: "Agility Ladder", desc: "Instruction: Set up 2-3 agility ladders. Players run through doing icky shuffle, two-in, and lateral quick steps. Keep the line moving fast.", key: "Eyes up, quick feet" },
-        { name: "Form Tackling (No Pads)", desc: "Instruction: Pair players up. Walk through the fit position, proper head placement, and wrap mechanics on air without taking players to the ground.", key: "Head across bow, sink hips" },
-        { name: "Team Stretch", desc: "Instruction: Players spread out in a circle or rows. Team captains lead stretches. Focus on hamstrings, quads, groins, and shoulders.", key: "Stretch tight muscles" },
-        { name: "Blocking Circuit (4 Groups)", desc: "Instruction: Rotate every 3-5 mins. Station 1: 3-point stance get-off. Station 2: Drive block shield. Station 3: Down block angle. Station 4: Reach block step.", key: "Low pads, violent hands" },
-        { name: "Agility & Footwork Circuit", desc: "Instruction: Rotate every 3 mins. Station 1: Ladder drills. Station 2: Cone weave. Station 3: 5-10-5 shuttle. Station 4: Short hurdle jumps.", key: "Fast feet, stay balanced" }
+        { name: "Kickoff Lane Spacing", desc: "Setup: Full kickoff unit aligned on the 40 yard line.\nInstruction: Line up kickoff team. Sprint 40 yards downfield ensuring every player maintains exactly 10 yards of spacing.", key: "Maintain lane integrity" },
+        { name: "Punt Shield Protection", desc: "Setup: 3 players form a shield 5 yards behind the line of scrimmage. 3 rushers on the line.\nInstruction: 3 players form a shield 5 yards behind line. Step inside to seal gaps, absorb rushers, and hold for 2 seconds.", key: "Head up, secure the inside gap" },
+        { name: "Kick Return Wedge", desc: "Setup: Front blockers aligned on the 30 yard line. Returner deep.\nInstruction: Front blockers sprint back 15 yards, turn, and form a tight wall shoulder-to-shoulder to block for returner.", key: "Move together, drive block" },
+        { name: "QB & Center Exchange", desc: "Setup: 2 footballs per pair. Centers line up on a yard line.\nInstruction: Centers and QBs pair up to practice under-center and shotgun snaps before formal periods begin. Rotate through all QBs and Centers.", key: "100% snap accuracy" },
+        { name: "Specialists: Kicking & Holding", desc: "Setup: Kicker and Holder working independently on the hash.\nInstruction: Specialists work on snap, hold, and kick mechanics independently. Kickers work on approach drops and leg swing contact.", key: "Timing and rhythm" },
+        { name: "WR Routes with QB Throws", desc: "Setup: QBs on hash mark, WRs split out 10 yards. Cones marking route breaks optional.\nInstruction: QBs throw the basic route tree on air to WRs. Focus on timing, route depths, and getting arms warm.", key: "Crisp routes, accurate passes" },
+        { name: "Offensive Line Steps", desc: "Setup: All linemen on a yard line, 2-yard splits.\nInstruction: O-Line works through their first 2 steps (drive, reach, down, pull) on air or lightly against standing bags.", key: "First step quickness, pad level" },
+        { name: "Mandatory Water Break", desc: "Setup: Water stations set up behind the bench area.\nInstruction: Blow whistle twice. Players remove helmets and jog to water stations. Emphasize fast hydration and hustling back to position groups.", key: "Hydrate and hustle" },
+        { name: "Dynamic Warm-Up", desc: "Setup: Team lines up in 4 even rows on the sideline facing the field.\nInstruction: Line team up on the sideline or hash marks. Coach leads cadence. Perform high knees, karaoke, butt kicks, shuffling, and 10-yard short sprints.", key: "Full speed, proper posture" },
+        { name: "Agility Ladder", desc: "Setup: Set up 2-3 agility ladders 5 yards apart.\nInstruction: Set up 2-3 agility ladders. Players run through doing icky shuffle, two-in, and lateral quick steps. Keep the line moving fast.", key: "Eyes up, quick feet" },
+        { name: "Form Tackling (No Pads)", desc: "Setup: Pair players up. Walk through the fit position, proper head placement, and wrap mechanics on air without taking players to the ground.\nInstruction: Pair players up. Walk through the fit position, proper head placement, and wrap mechanics on air without taking players to the ground.", key: "Head across bow, sink hips" },
+        { name: "Team Stretch", desc: "Setup: Players spread out in a circle or rows. Team captains in the center.\nInstruction: Players spread out in a circle or rows. Team captains lead stretches. Focus on hamstrings, quads, groins, and shoulders.", key: "Stretch tight muscles" },
+        { name: "Blocking Circuit (4 Groups)", desc: "Setup: 4 stations. Require 4 coaches and multiple hit shields.\nInstruction: Rotate every 3-5 mins. Station 1: 3-point stance get-off. Station 2: Drive block shield. Station 3: Down block angle. Station 4: Reach block step.", key: "Low pads, violent hands" },
+        { name: "Agility & Footwork Circuit", desc: "Setup: 4 stations. Cones and ladders required.\nInstruction: Rotate every 3 mins. Station 1: Ladder drills. Station 2: Cone weave. Station 3: 5-10-5 shuttle. Station 4: Short hurdle jumps.", key: "Fast feet, stay balanced" }
       ]
     };
 
@@ -1452,10 +1452,10 @@ const firebaseConfig = {
 
     const defaultPracticePlan = [
       { time: 10, category: "Pre Practice", drill: "", coaches: [], desc: "", key: "", customDrill: "", periodType: "circuit", stations: [
-        { drill: "QB & Center Exchange", desc: "Instruction: Centers and QBs pair up to practice under-center and shotgun snaps before formal periods begin. Rotate through all QBs and Centers.", key: "100% snap accuracy", customDrill: "", coaches: [] },
-        { drill: "Specialists: Kicking & Holding", desc: "Instruction: Specialists work on snap, hold, and kick mechanics independently.", key: "Timing and rhythm", customDrill: "", coaches: [] }
+        { drill: "QB & Center Exchange", desc: "Setup: 2 footballs per pair. Centers line up on a yard line.\nInstruction: Centers and QBs pair up to practice under-center and shotgun snaps before formal periods begin. Rotate through all QBs and Centers.", key: "100% snap accuracy", customDrill: "", coaches: [] },
+        { drill: "Specialists: Kicking & Holding", desc: "Setup: Kicker and Holder working independently on the hash.\nInstruction: Specialists work on snap, hold, and kick mechanics independently. Kickers work on approach drops and leg swing contact.", key: "Timing and rhythm", customDrill: "", coaches: [] }
       ]},
-      { time: 10, category: "Warm-Up & Breaks", drill: "Dynamic Warm-Up", coaches: [], desc: "Instruction: Line team up on the sideline or hash marks. Coach leads cadence.", key: "Full speed, proper posture", customDrill: "", periodType: "normal" }
+      { time: 10, category: "Warm-Up & Breaks", drill: "Dynamic Warm-Up", coaches: [], desc: "Setup: Team lines up in 4 even rows on the sideline facing the field.\nInstruction: Line team up on the sideline or hash marks. Coach leads cadence. Perform high knees, karaoke, butt kicks, shuffling, and 10-yard short sprints.", key: "Full speed, proper posture", customDrill: "", periodType: "normal" }
     ];
 
     const wbColors = ['blue', 'yellow', 'green', 'red', 'white'];
@@ -1500,6 +1500,12 @@ const firebaseConfig = {
       if (!weeklyData[week]) weeklyData[week] = { opponent: "" };
       if (!Array.isArray(weeklyData[week].formations) || weeklyData[week].formations.length === 0) {
         weeklyData[week].formations = JSON.parse(JSON.stringify(defaultFormations));
+      } else {
+        defaultFormations.forEach(df => {
+          if (!weeklyData[week].formations.find(f => f.id === df.id)) {
+            weeklyData[week].formations.push(JSON.parse(JSON.stringify(df)));
+          }
+        });
       }
       return weeklyData[week].formations;
     }
@@ -1552,10 +1558,6 @@ const firebaseConfig = {
     function sanitizePracticeData() {
       if (!dynamicDrills || Object.keys(dynamicDrills).length === 0) {
           dynamicDrills = JSON.parse(JSON.stringify(defaultDynamicDrills));
-          const oldCustom = JSON.parse(localStorage.getItem("footballCustomDrills")) || [];
-          if (oldCustom && oldCustom.length > 0) {
-              dynamicDrills["Special Teams & General"] = dynamicDrills["Special Teams & General"].concat(oldCustom);
-          }
       }
 
       try {
@@ -1587,7 +1589,6 @@ const firebaseConfig = {
         if (!p) return;
         if (!p.id) p.id = (Date.now() + pIdx).toString();
         if (!p.title) p.title = "Practice " + (pIdx + 1);
-        
         if (!p.year) p.year = (p.date ? p.date.substring(0,4) : new Date().getFullYear().toString());
         if (!p.week) p.week = p.folder || "Week 1";
         if (!p.day) p.day = p.date || "Monday";
@@ -1598,56 +1599,14 @@ const firebaseConfig = {
         if (!p.endTime) p.endTime = "19:00";
         if (!p.lastEdited) p.lastEdited = Date.now();
         
-        // Allowed completely blank arrays! No forced template resets.
         if (!Array.isArray(p.plan)) {
           p.plan = [];
         }
-        
-        p.plan.forEach(row => {
-          if (!row) return;
-          if (typeof row.time === 'string') {
-            let parsed = parseInt(row.time.replace(/[^0-9]/g, ''));
-            row.time = isNaN(parsed) ? 10 : parsed;
-          }
-          if (typeof row.time === 'undefined') row.time = 10;
-          if (typeof row.periodType === 'undefined') {
-             row.periodType = row.isCircuit ? 'circuit' : 'normal';
-          }
-          if (!row.coaches || !Array.isArray(row.coaches)) row.coaches = [];
-          if ((row.periodType === 'circuit' || row.periodType === 'groups') && (!Array.isArray(row.stations) || row.stations.length === 0)) {
-            row.stations = [
-              { drill: "", desc: "", key: "", customDrill: "", coaches: [], videoLink: "" },
-              { drill: "", desc: "", key: "", customDrill: "", coaches: [], videoLink: "" }
-            ];
-          }
-          if ((row.periodType === 'circuit' || row.periodType === 'groups') && Array.isArray(row.stations)) {
-            row.stations.forEach(st => {
-              if (st) {
-                if (!st.coaches || !Array.isArray(st.coaches)) st.coaches = [];
-                if (typeof st.videoLink === 'undefined') st.videoLink = "";
-              }
-            });
-          }
-          if (typeof row.videoLink === 'undefined') row.videoLink = "";
-        });
       });
 
       if (!currentPracticeId || !practiceData.find(p => p.id === currentPracticeId)) {
-        const todayStr = new Date().toISOString().split('T')[0];
-        let closest = null;
-        let minDiff = Infinity;
-        practiceData.forEach(p => {
-           if (p.date && p.date >= todayStr) {
-               let diff = new Date(p.date) - new Date(todayStr);
-               if (diff < minDiff) { minDiff = diff; closest = p.id; }
-           }
-        });
-        if (closest) {
-           currentPracticeId = closest;
-        } else {
-           let sorted = [...practiceData].sort((a,b) => (b.lastEdited || 0) - (a.lastEdited || 0));
-           if(sorted.length > 0) currentPracticeId = sorted[0].id;
-        }
+        let sorted = [...practiceData].sort((a,b) => (b.lastEdited || 0) - (a.lastEdited || 0));
+        if(sorted.length > 0) currentPracticeId = sorted[0].id;
       }
     }
 
@@ -1682,8 +1641,11 @@ const firebaseConfig = {
     }
 
     function getCurrentPractice() {
-      sanitizePracticeData();
       let p = practiceData.find(prac => prac && prac.id === currentPracticeId);
+      if (!p && practiceData.length > 0) {
+        currentPracticeId = practiceData[0].id;
+        p = practiceData[0];
+      }
       return p;
     }
 
@@ -2462,6 +2424,19 @@ const firebaseConfig = {
       row.positions[targetIdx] = temp;
       saveState();
       renderActiveBoards();
+    }
+
+    function toggleFormationCollapse(formId) {
+      const forms = getWeekFormations(currentWeek);
+      const form = forms.find(f => f.id === formId);
+      if(form) {
+        form.collapsed = !form.collapsed;
+        localStorage.setItem("footballWeeklyData", JSON.stringify(weeklyData));
+        if (userRole === 'admin') {
+          triggerDebouncedSave();
+        }
+        renderActiveBoards();
+      }
     }
 
     function renderActiveBoards() {
