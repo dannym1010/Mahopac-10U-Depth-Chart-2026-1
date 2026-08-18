@@ -211,6 +211,7 @@
     body.view-only .player-item {
       cursor: default !important;
     }
+    /* ---------------------------------------- */
 
     /* Action Toolbar */
     .toolbar {
@@ -1058,22 +1059,22 @@
       .formation-container { border: 1px solid #000000; box-shadow: none; padding: 4px; page-break-inside: auto !important; margin-bottom: 4px; }
       .formation-row { min-width: 100% !important; page-break-inside: avoid; }
       .position-card { border: 1px solid #000000 !important; box-shadow: none !important; min-width: 65px; }
-      .position-header { background: #e2e8f0 !important; color: #000000 !important; border-bottom: 1px solid #000000 !important; font-size: 9px; padding: 2px 3px; }
-      .player-item { border: 1px solid #cbd5e1 !important; font-size: 9px; padding: 2px 3px; margin-bottom: 2px; }
+      .position-header { background: #e2e8f0 !important; color: #000000 !important; border-bottom: 1px solid #000000 !important; font-size: 8px; padding: 2px 3px; }
+      .player-item { border: 1px solid #cbd5e1 !important; font-size: 7.5px; padding: 2px 3px; margin-bottom: 2px; }
       h1 { margin-top: 0; font-size: 12px; color: #000000; text-align: center; }
       
       /* Wristband Print Specifics - Tailored for physical insert */
       #panel-wristband .wb-exact-table {
         border: 2px solid #000000; 
-        width: 5.25in !important; 
+        width: 5.25in !important; /* Ideal wristband physical width */
         margin: 0;
         table-layout: fixed !important; 
       }
       #panel-wristband .wb-exact-table td {
-        height: 0.18in !important; 
+        height: 0.18in !important; /* Perfect physical wristband row height */
       }
       #panel-wristband .wb-sub-idx {
-        width: 0.25in !important; 
+        width: 0.25in !important; /* Narrow number box */
       }
       #panel-wristband .wb-play-input { display: none !important; }
       #panel-wristband .wb-cell-controls { display: none !important; }
@@ -1083,6 +1084,10 @@
         font-weight: bold;
         text-transform: uppercase;
         font-family: "Times New Roman", Times, serif !important;
+      }
+      #panel-wristband input[type="text"] {
+        border: none !important;
+        background: transparent !important;
       }
 
       /* Scouting Print Specifics */
@@ -1137,7 +1142,7 @@
       .prac-textarea { display: none !important; }
       .station-block { border-bottom: 1px solid #ccc; margin-bottom: 2px; padding-bottom: 2px; page-break-inside: avoid; }
       .coach-badge {
-        background: transparent !important; color: #000000 !important; padding: 0 !important; margin: 0 !important; font-size: 10px !important; font-weight: normal !important; 
+        background: transparent !important; color: #000000 !important; padding: 0 !important; margin: 0 !important; font-size: 10px !important; font-weight: normal !important;
       }
       .coach-badge::after { content: ", "; }
       .coach-badge:last-child::after { content: ""; }
@@ -1313,6 +1318,17 @@
           </div>
           
           <div class="scouting-grid">
+             <div class="station-block no-print" style="grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 15px; background: #f8fafc; padding: 12px; border-radius: 6px; border: 1px solid var(--card-border);">
+                <label style="font-size: 12px; font-weight: bold; color: var(--primary); display: flex; align-items: center; gap: 6px;">
+                   Year: <input type="text" id="scout-year" class="prac-input" style="width: 80px;" oninput="updateScouting('year', this.value)">
+                </label>
+                <label style="font-size: 12px; font-weight: bold; color: var(--primary); display: flex; align-items: center; gap: 6px;">
+                   Week: <input type="text" id="scout-week" class="prac-input" style="width: 100px;" oninput="updateScouting('week', this.value)">
+                </label>
+                <label style="font-size: 12px; font-weight: bold; color: var(--primary); display: flex; align-items: center; gap: 6px;">
+                   Opponent: <input type="text" id="scout-opponent" class="prac-input" style="width: 200px;" oninput="updateScouting('opponent', this.value)">
+                </label>
+             </div>
              <div class="station-block">
                 <div class="station-title">Team Overview & Game Notes</div>
                 <textarea id="scout-teamOverview" class="prac-textarea scout-textarea" oninput="autoResizeTextarea(this); updateScouting('teamOverview', this.value)" placeholder="General notes about the opponent..."></textarea>
@@ -1440,7 +1456,7 @@ const firebaseConfig = {
        storageBucket: "u-depth-chart.firebasestorage.app",
        messagingSenderId: "303577845736",
        appId: "1:303577845736:web:34588bbe5e07f1322e1e5d",
-       measurementId: "G-K15ZKX0S45"
+       measurementId: "G-K15ZKX0S45" 
     };
 
     let db = null;
@@ -1480,7 +1496,6 @@ const firebaseConfig = {
         }
       });
     } else {
-      // Local testing mode if Firebase not initialized
       document.getElementById("auth-overlay").style.display = "none";
       userRole = localStorage.getItem('footballUserRole') || 'admin';
       applyRole(userRole);
@@ -1550,7 +1565,6 @@ const firebaseConfig = {
           const role = doc.data().role || 'viewer';
           applyRole(role);
         } else {
-          // Check if this is the first user ever; if so, make them admin
           db.collection("users").get().then((snap) => {
             const isFirstUser = snap.empty;
             const newRole = isFirstUser ? 'admin' : 'viewer';
@@ -1597,6 +1611,7 @@ const firebaseConfig = {
       return active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.tagName === 'SELECT');
     }
 
+    // Default Drills Object
     const defaultDynamicDrills = {
       "Indy Offense": [
         { name: "Individual Stance & Alignment", desc: "Setup: Line players up on a single yard line with 2-yard splits.\nInstruction: Skill and line players work on correct 2-point or 3-point stances, splits, and alignment rules.", key: "Proper stance, eyes up" },
@@ -1730,20 +1745,6 @@ const firebaseConfig = {
             { id: "GRP-QB", name: "QB" }, { id: "GRP-FB", name: "FB" }, { id: "GRP-RB", name: "RB" }
           ]}
         ]
-      },
-      {
-        id: "form_grp_def", unit: "groups", name: "Defensive Depth Chart", subtitle: "Standard 4-4 Front", collapsed: false,
-        rows: [
-          { id: "row_grp_d_sec", label: "Secondary Level", rowClass: "secondary-corners", positions: [
-            { id: "GRP-CB1", name: "CB 1" }, { id: "GRP-FS", name: "FS" }, { id: "GRP-CB2", name: "CB 2" }
-          ]},
-          { id: "row_grp_d_lb", label: "Linebacker Level", rowClass: "linebackers-tight", positions: [
-            { id: "GRP-ROVER", name: "ROVER" }, { id: "GRP-WILL", name: "WILL" }, { id: "GRP-MIKE", name: "MIKE" }, { id: "GRP-SAM", name: "SAM" }
-          ]},
-          { id: "row_grp_d_dl", label: "Defensive Line", rowClass: "dl", positions: [
-            { id: "GRP-WDE", name: "WDE" }, { id: "GRP-DT1", name: "DT 1" }, { id: "GRP-DT2", name: "DT 2" }, { id: "GRP-SDE", name: "SDE" }
-          ]}
-        ]
       }
     ];
 
@@ -1821,6 +1822,9 @@ const firebaseConfig = {
       if (!weeklyData[currentWeek]) weeklyData[currentWeek] = {};
       if (!weeklyData[currentWeek].scouting) {
         weeklyData[currentWeek].scouting = {
+           year: new Date().getFullYear().toString(),
+           week: "Week " + currentWeek,
+           opponent: weeklyData[currentWeek].opponent || "",
            teamOverview: "",
            keyPlayers: "",
            offenseTendencies: "",
@@ -1840,6 +1844,21 @@ const firebaseConfig = {
               { color: "yellow", plays: Array(16).fill("").map(() => ({ text: "", color: "yellow" })) }
            ]
         };
+      } else if (weeklyData[currentWeek].wristband) {
+         weeklyData[currentWeek].wristbandData = {
+           rows: 16,
+           columns: [
+              { color: "blue", plays: Array(16).fill("").map(() => ({ text: "", color: "blue" })) },
+              { color: "yellow", plays: Array(16).fill("").map(() => ({ text: "", color: "yellow" })) }
+           ]
+         };
+         delete weeklyData[currentWeek].wristband; 
+      } else if (weeklyData[currentWeek].wristbandData.pages) {
+         weeklyData[currentWeek].wristbandData.columns = weeklyData[currentWeek].wristbandData.pages.map(p => {
+             return { color: p.color, plays: p.plays.map(pt => ({ text: pt || "", color: p.color })) };
+         });
+         delete weeklyData[currentWeek].wristbandData.pages;
+         delete weeklyData[currentWeek].wristbandData.startIndex;
       }
       
       weeklyData[currentWeek].wristbandData.columns.forEach(c => {
@@ -2075,6 +2094,8 @@ const firebaseConfig = {
       const tIdx = parseInt(tmplChoice) - 1;
       if (tIdx >= 0 && tIdx < practiceTemplates.length) {
           basePlan = JSON.parse(JSON.stringify(practiceTemplates[tIdx].plan));
+      } else if (tmplChoice !== "0") {
+          if(!confirm("Invalid template choice. Start blank?")) return;
       }
 
       const defaultDate = new Date().toISOString().split('T')[0];
@@ -2146,7 +2167,7 @@ const firebaseConfig = {
       p.day = newDay.trim();
       p.title = newTitle.trim();
       p.date = newDate.trim();
-      p.lastEdited = Date.now();
+      markPracticeEdited();
       
       saveState();
       populatePracticeDropdown();
@@ -2171,7 +2192,7 @@ const firebaseConfig = {
       
       if(confirm(`Overwrite current plan "${p.title}" with "${practiceData[targetIdx].title}"?`)) {
          p.plan = JSON.parse(JSON.stringify(practiceData[targetIdx].plan));
-         p.lastEdited = Date.now();
+         markPracticeEdited();
          saveState();
          renderPracticePlan();
       }
@@ -2183,7 +2204,7 @@ const firebaseConfig = {
       if(!p) return;
       if(confirm(`Reset "${p.title}" back to the default practice plan template?`)) {
         p.plan = JSON.parse(JSON.stringify(defaultPracticePlan));
-        p.lastEdited = Date.now();
+        markPracticeEdited();
         saveState();
         renderPracticePlan();
         alert("Practice plan successfully reset to default.");
@@ -2213,7 +2234,7 @@ const firebaseConfig = {
       const p = getCurrentPractice();
       if(!p) return;
       p[field] = value;
-      p.lastEdited = Date.now();
+      markPracticeEdited();
       saveState();
       renderPracticePlan();
     }
@@ -2241,11 +2262,21 @@ const firebaseConfig = {
       if (userRole !== 'admin') return;
       if (!weeklyData[currentWeek]) weeklyData[currentWeek] = {};
       weeklyData[currentWeek].opponent = val;
+      
+      initScoutingData();
+      weeklyData[currentWeek].scouting.opponent = val;
+      
+      const scoutOpp = document.getElementById('scout-opponent');
+      if (scoutOpp) scoutOpp.value = val;
+      
       saveState();
       
       const printTitle = document.getElementById('print-scout-title');
       if (printTitle && activeUnit === 'scouting') {
-         printTitle.textContent = `Scouting Report: ${val || `Week ${currentWeek}`}`;
+         const scout = weeklyData[currentWeek].scouting;
+         const yr = scout.year ? `${scout.year} ` : "";
+         const wk = scout.week ? `${scout.week} - ` : "";
+         printTitle.textContent = `Scouting Report: ${yr}${wk}${val || 'Week ' + currentWeek}`;
       }
     }
 
@@ -2333,25 +2364,48 @@ const firebaseConfig = {
       initScoutingData();
       const scout = weeklyData[currentWeek].scouting;
       
-      const fields = ['teamOverview', 'keyPlayers', 'offenseTendencies', 'defenseTendencies', 'specialTeams'];
-      fields.forEach(f => {
+      const textFields = ['teamOverview', 'keyPlayers', 'offenseTendencies', 'defenseTendencies', 'specialTeams'];
+      textFields.forEach(f => {
          const el = document.getElementById('scout-' + f);
          if (el) {
              el.value = scout[f] || "";
              autoResizeTextarea(el);
          }
       });
+
+      ['year', 'week', 'opponent'].forEach(f => {
+         const el = document.getElementById('scout-' + f);
+         if (el) el.value = scout[f] || "";
+      });
       
       const printTitle = document.getElementById('print-scout-title');
-      const opp = weeklyData[currentWeek].opponent || `Week ${currentWeek}`;
-      if (printTitle) printTitle.textContent = `Scouting Report: ${opp}`;
+      const opp = scout.opponent || weeklyData[currentWeek].opponent || `Week ${currentWeek}`;
+      const yr = scout.year ? `${scout.year} ` : "";
+      const wk = scout.week ? `${scout.week} - ` : "";
+      if (printTitle) printTitle.textContent = `Scouting Report: ${yr}${wk}${opp}`;
     }
 
     function updateScouting(field, value) {
       if (userRole !== 'admin') return;
       initScoutingData();
       weeklyData[currentWeek].scouting[field] = value;
+      
+      if (field === 'opponent') {
+         weeklyData[currentWeek].opponent = value;
+         const oppInput = document.getElementById("opponent-input");
+         if(oppInput) oppInput.value = value;
+      }
+      
       triggerDebouncedSave();
+
+      if (['year', 'week', 'opponent'].includes(field)) {
+         const scout = weeklyData[currentWeek].scouting;
+         const printTitle = document.getElementById('print-scout-title');
+         const opp = scout.opponent || weeklyData[currentWeek].opponent || `Week ${currentWeek}`;
+         const yr = scout.year ? `${scout.year} ` : "";
+         const wk = scout.week ? `${scout.week} - ` : "";
+         if (printTitle) printTitle.textContent = `Scouting Report: ${yr}${wk}${opp}`;
+      }
     }
 
     /* MASTER DRILLS LOGIC */
@@ -2391,7 +2445,7 @@ const firebaseConfig = {
                html += `
                  <div style="display: grid; grid-template-columns: 20% 50% 25% 5%; gap: 8px; font-weight: bold; font-size: 10px; color: var(--primary); margin-bottom: 6px; border-bottom: 1px solid #ccc; padding-bottom: 4px;">
                     <div>Drill Name</div>
-                    <div>Description & Instructions</div>
+                    <div>Setup & Instructions</div>
                     <div>Coaching Focus / Key</div>
                     <div class="admin-only" style="text-align:center;">Del</div>
                  </div>
@@ -2400,7 +2454,7 @@ const firebaseConfig = {
                   html += `
                      <div class="drill-item-row">
                         <div><input type="text" class="prac-input" value="${d.name}" oninput="updateDrillField('${cat}', ${i}, 'name', this.value)" placeholder="Drill Name"></div>
-                        <div><textarea class="prac-textarea" style="min-height:30px;" oninput="autoResizeTextarea(this); updateDrillField('${cat}', ${i}, 'desc', this.value);" placeholder="Instructions...">${d.desc}</textarea></div>
+                        <div><textarea class="prac-textarea" style="min-height:30px;" oninput="autoResizeTextarea(this); updateDrillField('${cat}', ${i}, 'desc', this.value);" placeholder="Setup: ...\nInstruction: ...">${d.desc}</textarea></div>
                         <div><input type="text" class="prac-input" value="${d.key}" oninput="updateDrillField('${cat}', ${i}, 'key', this.value)" placeholder="Focus..."></div>
                         <div class="admin-only" style="text-align:center; padding-top:4px;"><button class="remove-btn" onclick="deleteDrillFromCategory('${cat}', ${i}, event)">&times;</button></div>
                      </div>
@@ -2942,10 +2996,12 @@ const firebaseConfig = {
 
     function triggerDebouncedSave() {
       clearTimeout(saveTimeout);
+      // Immediately save to local storage for speed
       localStorage.setItem("footballPracticeData", JSON.stringify(practiceData));
       localStorage.setItem("footballWeeklyData", JSON.stringify(weeklyData));
       localStorage.setItem("footballDynamicDrills", JSON.stringify(dynamicDrills));
       
+      // Debounce the cloud sync so it doesn't interrupt typing
       saveTimeout = setTimeout(() => {
           saveState();
       }, 1500);
@@ -3031,6 +3087,7 @@ const firebaseConfig = {
       document.getElementById("sync-text").textContent = "Local Storage Mode";
     }
 
+    /* PRACTICE PLAN & TABLE RESIZING LOGIC */
     function updatePracticeTextData(idx, field, value) {
       if (userRole !== 'admin') return;
       const current = practiceData.find(p => p.id === currentPracticeId);
@@ -3086,6 +3143,7 @@ const firebaseConfig = {
       el.style.height = (el.scrollHeight + 2) + 'px';
     }
 
+    // Force full expansion of textareas right before print and swap them to clean printable divs
     window.addEventListener('beforeprint', () => {
       if (document.activeElement && typeof document.activeElement.blur === 'function') {
          document.activeElement.blur(); 
@@ -3127,8 +3185,9 @@ const firebaseConfig = {
            return;
         }
 
+        // Calculate Times
         let totalMins = timeToMins(current.endTime) - timeToMins(current.startTime);
-        if (totalMins < 0) totalMins += 1440; 
+        if (totalMins < 0) totalMins += 1440; // overnight check
         
         let preMins = 0;
         let scheduledMins = 0;
@@ -3140,6 +3199,7 @@ const firebaseConfig = {
         let preClock = timeToMins(current.startTime) - preMins;
         let mainClock = timeToMins(current.startTime);
 
+        // Render Dashboard Stats
         const statsDiv = document.getElementById("prac-stats");
         if (statsDiv) {
           const remaining = totalMins - scheduledMins;
@@ -3161,6 +3221,7 @@ const firebaseConfig = {
         current.plan.forEach((row, idx) => {
           if (!row) return;
 
+          // Calculate period timestamp
           let rowStartMins, rowEndMins;
           if (row.category === 'Pre Practice') {
              rowStartMins = preClock;
@@ -3674,7 +3735,7 @@ const firebaseConfig = {
           st.coaches.push(value);
         }
       }
-      markPracticeEdited();
+      current.lastEdited = Date.now();
       saveState();
       renderPracticePlan();
     }
@@ -3688,6 +3749,7 @@ const firebaseConfig = {
       const st = row.stations[stationIdx];
       if (Array.isArray(st.coaches)) {
         st.coaches = st.coaches.filter(c => c !== coachName);
+        current.lastEdited = Date.now();
         saveState();
         renderPracticePlan();
       }
