@@ -211,7 +211,6 @@
     body.view-only .player-item {
       cursor: default !important;
     }
-    /* ---------------------------------------- */
 
     /* Action Toolbar */
     .toolbar {
@@ -1059,23 +1058,19 @@
       .formation-container { border: 1px solid #000000; box-shadow: none; padding: 4px; page-break-inside: auto !important; margin-bottom: 4px; }
       .formation-row { min-width: 100% !important; page-break-inside: avoid; }
       .position-card { border: 1px solid #000000 !important; box-shadow: none !important; min-width: 65px; }
-      .position-header { background: #e2e8f0 !important; color: #000000 !important; border-bottom: 1px solid #000000 !important; font-size: 8px; padding: 2px 3px; }
+      .position-header { background: #e2e8f0 !important; color: #000000 !important; border-bottom: 1px solid #000000 !important; font-size: 9px; padding: 2px 3px; }
       .player-item { border: 1px solid #cbd5e1 !important; font-size: 7.5px; padding: 2px 3px; margin-bottom: 2px; }
       h1 { margin-top: 0; font-size: 12px; color: #000000; text-align: center; }
       
-      /* Wristband Print Specifics - Tailored for physical insert */
+      /* Wristband Print Specifics */
       #panel-wristband .wb-exact-table {
         border: 2px solid #000000; 
-        width: 5.25in !important; /* Ideal wristband physical width */
+        width: 5.25in !important; 
         margin: 0;
         table-layout: fixed !important; 
       }
-      #panel-wristband .wb-exact-table td {
-        height: 0.18in !important; /* Perfect physical wristband row height */
-      }
-      #panel-wristband .wb-sub-idx {
-        width: 0.25in !important; /* Narrow number box */
-      }
+      #panel-wristband .wb-exact-table td { height: 0.18in !important; }
+      #panel-wristband .wb-sub-idx { width: 0.25in !important; }
       #panel-wristband .wb-play-input { display: none !important; }
       #panel-wristband .wb-cell-controls { display: none !important; }
       #panel-wristband .print-text-node.wb-print-text {
@@ -1203,7 +1198,7 @@
       </div>
       <div class="user-profile-bar">
         <span id="user-display-email" style="font-weight:bold; color:var(--primary);"></span>
-        <span id="user-role-badge" class="role-badge role-viewer">VIEWER</span>
+        <span id="user-role-badge" class="role-badge role-viewer">COACH</span>
         <button class="toggle-board-btn no-print" onclick="signOutUser()">🚪 Sign Out</button>
       </div>
     </div>
@@ -1249,6 +1244,7 @@
     <button class="nav-tab" id="tab-btn-scouting" onclick="switchUnitTab('scouting')">Scouting</button>
     <button class="nav-tab" id="tab-btn-drills" onclick="switchUnitTab('drills')">Drills</button>
     <button class="nav-tab" id="tab-btn-practice" onclick="switchUnitTab('practice')">Practice Plan</button>
+    <button class="nav-tab admin-only" id="tab-btn-users" onclick="switchUnitTab('users')">👥 Manage Users</button>
   </div>
 
   <div class="app-layout">
@@ -1438,6 +1434,21 @@
         </div>
       </div>
 
+      <!-- USER MANAGEMENT PANEL (HEAD COACH ONLY) -->
+      <div class="unit-panel hidden" id="panel-users">
+        <div class="formation-container">
+          <div class="board-title">
+            <span>👥 Staff & User Permissions</span>
+          </div>
+          <p style="font-size:12px; color:var(--text-muted); margin-bottom:15px;">
+            Manage coaching staff access levels. <strong>Head Coaches</strong> have full editing rights across all playbooks and plans. <strong>Coaches</strong> have read-only access to view and print.
+          </p>
+          <div id="users-table-container" style="overflow-x: auto;">
+             <!-- Injected by JS -->
+          </div>
+        </div>
+      </div>
+
     </div>
 
     <!-- Master Roster Sidebar -->
@@ -1457,6 +1468,7 @@ const firebaseConfig = {
        messagingSenderId: "303577845736",
        appId: "1:303577845736:web:34588bbe5e07f1322e1e5d",
        measurementId: "G-K15ZKX0S45" 
+
     };
 
     let db = null;
@@ -1478,6 +1490,7 @@ const firebaseConfig = {
     let currentUser = null;
     let userRole = 'viewer'; 
     let isSignUpMode = false;
+    let userRoleUnsubscribe = null;
 
     // Listen to Firebase Auth state
     if (auth) {
@@ -1487,12 +1500,13 @@ const firebaseConfig = {
           currentUser = user;
           overlay.style.display = "none";
           document.getElementById("user-display-email").textContent = user.email || user.displayName;
-          fetchUserRole(user);
+          listenToUserRole(user);
         } else {
           currentUser = null;
           overlay.style.display = "flex";
           document.body.classList.add("view-only");
           document.getElementById("user-display-email").textContent = "";
+          if (userRoleUnsubscribe) userRoleUnsubscribe();
         }
       });
     } else {
@@ -1553,14 +1567,15 @@ const firebaseConfig = {
       }
     }
 
-    function fetchUserRole(user) {
+    function listenToUserRole(user) {
       if (!db) {
         applyRole('admin');
         return;
       }
+      if (userRoleUnsubscribe) userRoleUnsubscribe();
       
       const userRef = db.collection("users").doc(user.uid);
-      userRef.get().then((doc) => {
+      userRoleUnsubscribe = userRef.onSnapshot((doc) => {
         if (doc.exists) {
           const role = doc.data().role || 'viewer';
           applyRole(role);
@@ -1570,15 +1585,15 @@ const firebaseConfig = {
             const newRole = isFirstUser ? 'admin' : 'viewer';
             userRef.set({
               email: user.email,
-              displayName: user.displayName || '',
+              displayName: user.displayName || user.email.split('@')[0],
               role: newRole,
               createdAt: Date.now()
             });
             applyRole(newRole);
           });
         }
-      }).catch((err) => {
-        console.warn("Could not fetch user role, defaulting to viewer.", err);
+      }, (err) => {
+        console.warn("Could not listen to user role, defaulting to viewer.", err);
         applyRole('viewer');
       });
     }
@@ -1589,12 +1604,13 @@ const firebaseConfig = {
       
       const badge = document.getElementById("user-role-badge");
       if (badge) {
-        badge.textContent = role.toUpperCase();
+        badge.textContent = role === 'admin' ? 'HEAD COACH' : 'COACH';
         badge.className = `role-badge ${role === 'admin' ? 'role-admin' : 'role-viewer'}`;
       }
 
       if (role === 'admin') {
         document.body.classList.remove('view-only');
+        loadUsersTable();
       } else {
         document.body.classList.add('view-only');
       }
@@ -1604,6 +1620,53 @@ const firebaseConfig = {
       if (activeUnit === 'scouting') renderScouting();
       if (activeUnit === 'drills') renderDrillsTab();
       renderPracticePlan();
+    }
+
+    /* IN-APP USER MANAGEMENT */
+    function loadUsersTable() {
+      const container = document.getElementById("users-table-container");
+      if (!container || !db) return;
+
+      db.collection("users").onSnapshot((snapshot) => {
+         let html = `
+           <table class="practice-table" style="table-layout:auto; font-size:12px;">
+             <thead>
+               <tr>
+                 <th>Coach Name / Email</th>
+                 <th>Access Level</th>
+                 <th>User ID</th>
+               </tr>
+             </thead>
+             <tbody>
+         `;
+
+         snapshot.forEach(doc => {
+            const u = doc.data();
+            const isMe = currentUser && doc.id === currentUser.uid;
+            html += `
+              <tr>
+                <td><strong>${u.displayName || u.email}</strong><br><span style="font-size:10px; color:var(--text-muted);">${u.email}</span></td>
+                <td>
+                  <select class="week-select" onchange="updateUserRole('${doc.id}', this.value)" ${isMe ? 'disabled title="You cannot demote yourself"' : ''}>
+                    <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Head Coach (Full Edit Access)</option>
+                    <option value="viewer" ${u.role === 'viewer' ? 'selected' : ''}>Coach (View-Only Access)</option>
+                  </select>
+                </td>
+                <td style="font-size:10px; color:var(--text-muted);">${doc.id}</td>
+              </tr>
+            `;
+         });
+
+         html += `</tbody></table>`;
+         container.innerHTML = html;
+      });
+    }
+
+    function updateUserRole(uid, newRole) {
+      if (userRole !== 'admin' || !db) return;
+      db.collection("users").doc(uid).update({ role: newRole })
+        .then(() => alert("User access level updated successfully!"))
+        .catch(err => alert("Error updating user: " + err.message));
     }
 
     function isUserEditing() {
@@ -1743,6 +1806,20 @@ const firebaseConfig = {
           ]},
           { id: "row_grp_bk", label: "Backfield Stack", rowClass: "backfield", positions: [
             { id: "GRP-QB", name: "QB" }, { id: "GRP-FB", name: "FB" }, { id: "GRP-RB", name: "RB" }
+          ]}
+        ]
+      },
+      {
+        id: "form_grp_def", unit: "groups", name: "Defensive Depth Chart", subtitle: "Standard 4-4 Front", collapsed: false,
+        rows: [
+          { id: "row_grp_d_sec", label: "Secondary Level", rowClass: "secondary-corners", positions: [
+            { id: "GRP-CB1", name: "CB 1" }, { id: "GRP-FS", name: "FS" }, { id: "GRP-CB2", name: "CB 2" }
+          ]},
+          { id: "row_grp_d_lb", label: "Linebacker Level", rowClass: "linebackers-tight", positions: [
+            { id: "GRP-ROVER", name: "ROVER" }, { id: "GRP-WILL", name: "WILL" }, { id: "GRP-MIKE", name: "MIKE" }, { id: "GRP-SAM", name: "SAM" }
+          ]},
+          { id: "row_grp_d_dl", label: "Defensive Line", rowClass: "dl", positions: [
+            { id: "GRP-WDE", name: "WDE" }, { id: "GRP-DT1", name: "DT 1" }, { id: "GRP-DT2", name: "DT 2" }, { id: "GRP-SDE", name: "SDE" }
           ]}
         ]
       }
@@ -2094,8 +2171,6 @@ const firebaseConfig = {
       const tIdx = parseInt(tmplChoice) - 1;
       if (tIdx >= 0 && tIdx < practiceTemplates.length) {
           basePlan = JSON.parse(JSON.stringify(practiceTemplates[tIdx].plan));
-      } else if (tmplChoice !== "0") {
-          if(!confirm("Invalid template choice. Start blank?")) return;
       }
 
       const defaultDate = new Date().toISOString().split('T')[0];
@@ -2167,7 +2242,7 @@ const firebaseConfig = {
       p.day = newDay.trim();
       p.title = newTitle.trim();
       p.date = newDate.trim();
-      markPracticeEdited();
+      p.lastEdited = Date.now();
       
       saveState();
       populatePracticeDropdown();
@@ -2192,7 +2267,7 @@ const firebaseConfig = {
       
       if(confirm(`Overwrite current plan "${p.title}" with "${practiceData[targetIdx].title}"?`)) {
          p.plan = JSON.parse(JSON.stringify(practiceData[targetIdx].plan));
-         markPracticeEdited();
+         p.lastEdited = Date.now();
          saveState();
          renderPracticePlan();
       }
@@ -2204,7 +2279,7 @@ const firebaseConfig = {
       if(!p) return;
       if(confirm(`Reset "${p.title}" back to the default practice plan template?`)) {
         p.plan = JSON.parse(JSON.stringify(defaultPracticePlan));
-        markPracticeEdited();
+        p.lastEdited = Date.now();
         saveState();
         renderPracticePlan();
         alert("Practice plan successfully reset to default.");
@@ -2234,7 +2309,7 @@ const firebaseConfig = {
       const p = getCurrentPractice();
       if(!p) return;
       p[field] = value;
-      markPracticeEdited();
+      p.lastEdited = Date.now();
       saveState();
       renderPracticePlan();
     }
@@ -2321,6 +2396,7 @@ const firebaseConfig = {
       document.getElementById('panel-scouting').classList.toggle('hidden', unit !== 'scouting');
       document.getElementById('panel-drills').classList.toggle('hidden', unit !== 'drills');
       document.getElementById('panel-practice').classList.toggle('hidden', unit !== 'practice');
+      document.getElementById('panel-users').classList.toggle('hidden', unit !== 'users');
 
       document.getElementById('tab-btn-defense').classList.toggle('active', unit === 'defense');
       document.getElementById('tab-btn-offense').classList.toggle('active', unit === 'offense');
@@ -2330,11 +2406,12 @@ const firebaseConfig = {
       document.getElementById('tab-btn-scouting').classList.toggle('active', unit === 'scouting');
       document.getElementById('tab-btn-drills').classList.toggle('active', unit === 'drills');
       document.getElementById('tab-btn-practice').classList.toggle('active', unit === 'practice');
+      document.getElementById('tab-btn-users').classList.toggle('active', unit === 'users');
 
       const sidebar = document.getElementById('sidebar-panel');
       const mainWeekBar = document.getElementById('main-week-bar');
       
-      if (unit === 'practice' || unit === 'drills') {
+      if (unit === 'practice' || unit === 'drills' || unit === 'users') {
         if(sidebar) sidebar.classList.add('hidden');
         if(mainWeekBar) mainWeekBar.classList.add('hidden');
       } else if (unit === 'wristband' || unit === 'scouting') {
@@ -2354,6 +2431,8 @@ const firebaseConfig = {
          renderScouting();
       } else if (unit === 'drills') {
          renderDrillsTab();
+      } else if (unit === 'users') {
+         loadUsersTable();
       } else {
          renderActiveBoards();
       }
@@ -2996,12 +3075,10 @@ const firebaseConfig = {
 
     function triggerDebouncedSave() {
       clearTimeout(saveTimeout);
-      // Immediately save to local storage for speed
       localStorage.setItem("footballPracticeData", JSON.stringify(practiceData));
       localStorage.setItem("footballWeeklyData", JSON.stringify(weeklyData));
       localStorage.setItem("footballDynamicDrills", JSON.stringify(dynamicDrills));
       
-      // Debounce the cloud sync so it doesn't interrupt typing
       saveTimeout = setTimeout(() => {
           saveState();
       }, 1500);
@@ -3087,7 +3164,6 @@ const firebaseConfig = {
       document.getElementById("sync-text").textContent = "Local Storage Mode";
     }
 
-    /* PRACTICE PLAN & TABLE RESIZING LOGIC */
     function updatePracticeTextData(idx, field, value) {
       if (userRole !== 'admin') return;
       const current = practiceData.find(p => p.id === currentPracticeId);
@@ -3735,7 +3811,7 @@ const firebaseConfig = {
           st.coaches.push(value);
         }
       }
-      current.lastEdited = Date.now();
+      markPracticeEdited();
       saveState();
       renderPracticePlan();
     }
@@ -3749,7 +3825,6 @@ const firebaseConfig = {
       const st = row.stations[stationIdx];
       if (Array.isArray(st.coaches)) {
         st.coaches = st.coaches.filter(c => c !== coachName);
-        current.lastEdited = Date.now();
         saveState();
         renderPracticePlan();
       }
