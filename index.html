@@ -1058,7 +1058,7 @@
       .formation-container { border: 1px solid #000000; box-shadow: none; padding: 4px; page-break-inside: auto !important; margin-bottom: 4px; }
       .formation-row { min-width: 100% !important; page-break-inside: avoid; }
       .position-card { border: 1px solid #000000 !important; box-shadow: none !important; min-width: 65px; }
-      .position-header { background: #e2e8f0 !important; color: #000000 !important; border-bottom: 1px solid #000000 !important; font-size: 9px; padding: 2px 3px; }
+      .position-header { background: #e2e8f0 !important; color: #000000 !important; border-bottom: 1px solid #000000 !important; font-size: 8px; padding: 2px 3px; }
       .player-item { border: 1px solid #cbd5e1 !important; font-size: 7.5px; padding: 2px 3px; margin-bottom: 2px; }
       h1 { margin-top: 0; font-size: 12px; color: #000000; text-align: center; }
       
@@ -1079,10 +1079,6 @@
         font-weight: bold;
         text-transform: uppercase;
         font-family: "Times New Roman", Times, serif !important;
-      }
-      #panel-wristband input[type="text"] {
-        border: none !important;
-        background: transparent !important;
       }
 
       /* Scouting Print Specifics */
@@ -1137,7 +1133,7 @@
       .prac-textarea { display: none !important; }
       .station-block { border-bottom: 1px solid #ccc; margin-bottom: 2px; padding-bottom: 2px; page-break-inside: avoid; }
       .coach-badge {
-        background: transparent !important; color: #000000 !important; padding: 0 !important; margin: 0 !important; font-size: 10px !important; font-weight: normal !important;
+        background: transparent !important; color: #000000 !important; padding: 0 !important; margin: 0 !important; font-size: 10px !important; font-weight: normal !important; 
       }
       .coach-badge::after { content: ", "; }
       .coach-badge:last-child::after { content: ""; }
@@ -1182,6 +1178,7 @@
       </form>
       
       <span class="auth-switch" id="auth-switch-btn" onclick="toggleAuthMode()">Don't have an account? Sign Up</span>
+      <br>
       <div id="auth-error" style="color:#ef4444; font-size:11px; margin-top:10px; font-weight:bold;"></div>
     </div>
   </div>
@@ -1674,7 +1671,39 @@ const firebaseConfig = {
       return active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.tagName === 'SELECT');
     }
 
-    // Default Drills Object
+    function generateUniqueId(prefix) {
+      return prefix + "_" + Date.now().toString(36) + "_" + Math.random().toString(36).substr(2, 5);
+    }
+
+    const masterRoster = [
+      { num: "2", firstName: "Mohammed", lastName: "Ibrahim" },
+      { num: "4", firstName: "Vincent", lastName: "Cambigianis" },
+      { num: "6", firstName: "Andrew", lastName: "Henderson" },
+      { num: "7", firstName: "Jayden", lastName: "Silva" },
+      { num: "8", firstName: "James", lastName: "Kilkenny" },
+      { num: "10", firstName: "Luke", lastName: "Mancini" },
+      { num: "11", firstName: "Dorian", lastName: "Berish" },
+      { num: "12", firstName: "Richard", lastName: "Barry" },
+      { num: "13", firstName: "Landon", lastName: "Veto" },
+      { num: "15", firstName: "Henry", lastName: "Swansen" },
+      { num: "17", firstName: "David", lastName: "Dicob" },
+      { num: "19", firstName: "Paul", lastName: "Nardella" },
+      { num: "20", firstName: "Jack", lastName: "Furfaro" },
+      { num: "21", firstName: "Nash", lastName: "Ward" },
+      { num: "22", firstName: "Jaxson", lastName: "Pestone" },
+      { num: "27", firstName: "Sean", lastName: "Lacerra" },
+      { num: "33", firstName: "Michael", lastName: "Frascone" },
+      { num: "34", firstName: "Eddie", lastName: "Flemming" },
+      { num: "40", firstName: "Chris", lastName: "Sokol" },
+      { num: "44", firstName: "Caden", lastName: "Jones" },
+      { num: "48", firstName: "Michael", lastName: "Sweeny" },
+      { num: "50", firstName: "Colin", lastName: "Convery" },
+      { num: "52", firstName: "John", lastName: "Piqueras" },
+      { num: "56", firstName: "Ryan", lastName: "Russell" },
+      { num: "66", firstName: "Luca", lastName: "Mucciacciaro" },
+      { num: "99", firstName: "Conrad", lastName: "Crean" }
+    ];
+
     const defaultDynamicDrills = {
       "Indy Offense": [
         { name: "Individual Stance & Alignment", desc: "Setup: Line players up on a single yard line with 2-yard splits.\nInstruction: Skill and line players work on correct 2-point or 3-point stances, splits, and alignment rules.", key: "Proper stance, eyes up" },
@@ -1808,20 +1837,6 @@ const firebaseConfig = {
             { id: "GRP-QB", name: "QB" }, { id: "GRP-FB", name: "FB" }, { id: "GRP-RB", name: "RB" }
           ]}
         ]
-      },
-      {
-        id: "form_grp_def", unit: "groups", name: "Defensive Depth Chart", subtitle: "Standard 4-4 Front", collapsed: false,
-        rows: [
-          { id: "row_grp_d_sec", label: "Secondary Level", rowClass: "secondary-corners", positions: [
-            { id: "GRP-CB1", name: "CB 1" }, { id: "GRP-FS", name: "FS" }, { id: "GRP-CB2", name: "CB 2" }
-          ]},
-          { id: "row_grp_d_lb", label: "Linebacker Level", rowClass: "linebackers-tight", positions: [
-            { id: "GRP-ROVER", name: "ROVER" }, { id: "GRP-WILL", name: "WILL" }, { id: "GRP-MIKE", name: "MIKE" }, { id: "GRP-SAM", name: "SAM" }
-          ]},
-          { id: "row_grp_d_dl", label: "Defensive Line", rowClass: "dl", positions: [
-            { id: "GRP-WDE", name: "WDE" }, { id: "GRP-DT1", name: "DT 1" }, { id: "GRP-DT2", name: "DT 2" }, { id: "GRP-SDE", name: "SDE" }
-          ]}
-        ]
       }
     ];
 
@@ -1832,7 +1847,7 @@ const firebaseConfig = {
         { drill: "QB & Center Exchange", desc: "Setup: 2 footballs per pair. Centers line up on a yard line.\nInstruction: Centers and QBs pair up to practice under-center and shotgun snaps before formal periods begin. Rotate through all QBs and Centers.", key: "100% snap accuracy", customDrill: "", coaches: [] },
         { drill: "Specialists: Kicking & Holding", desc: "Setup: Kicker and Holder working independently on the hash.\nInstruction: Specialists work on snap, hold, and kick mechanics independently. Kickers work on approach drops and leg swing contact.", key: "Timing and rhythm", customDrill: "", coaches: [] }
       ]},
-      { time: 10, category: "Warm-Up & Breaks", drill: "Dynamic Warm-Up", coaches: [], desc: "Setup: Team lines up in 4 even rows on the sideline facing the field.\nInstruction: Line team up on the sideline or hash marks. Coach leads cadence. Perform high knees, karaoke, butt kicks, shuffling, and 10-yard short sprints.", key: "Full speed, proper posture", customDrill: "", periodType: "normal" }
+      { time: 10, category: "Warm-Up & Breaks", drill: "Dynamic Warm-Up", coaches: [], desc: "Setup: Team lines up in 4 even rows on the sideline facing the field.\nInstruction: Line team up on the sideline or hash marks. Coach leads cadence.", key: "Full speed, proper posture", customDrill: "", periodType: "normal" }
     ];
 
     const wbColors = ['blue', 'yellow', 'green', 'red', 'white'];
@@ -1875,14 +1890,8 @@ const firebaseConfig = {
 
     function getWeekFormations(week) {
       if (!weeklyData[week]) weeklyData[week] = { opponent: "" };
-      if (!Array.isArray(weeklyData[week].formations) || weeklyData[week].formations.length === 0) {
+      if (!weeklyData[week].formations) {
         weeklyData[week].formations = JSON.parse(JSON.stringify(defaultFormations));
-      } else {
-        defaultFormations.forEach(df => {
-          if (!weeklyData[week].formations.find(f => f.id === df.id)) {
-            weeklyData[week].formations.push(JSON.parse(JSON.stringify(df)));
-          }
-        });
       }
       return weeklyData[week].formations;
     }
@@ -2619,109 +2628,10 @@ const firebaseConfig = {
       return null;
     }
 
-    function getAllDrillOptions(selectedVal) {
-      let html = `<option value="">-- Select Drill --</option>`;
-      Object.keys(dynamicDrills).forEach(cat => {
-        html += `<optgroup label="${cat}">`;
-        dynamicDrills[cat].forEach(d => {
-          html += `<option value="${d.name}" ${selectedVal === d.name ? 'selected' : ''}>${d.name}</option>`;
-        });
-        html += `</optgroup>`;
-      });
-      html += `<option value="Custom" ${selectedVal === 'Custom' ? 'selected' : ''}>Custom Drill / Write In</option>`;
-      return html;
+    function generateUniqueId(prefix) {
+       return prefix + "_" + Date.now().toString(36) + "_" + Math.random().toString(36).substr(2, 5);
     }
 
-    /* WRISTBAND LOGIC */
-    function renderWristband() {
-      initWristbandData();
-      const wbData = weeklyData[currentWeek].wristbandData;
-      const grid = document.getElementById("wristband-grid");
-      if (!grid) return;
-      
-      let html = `<table class="wb-exact-table"><tbody>`;
-
-      for(let r=0; r < wbData.rows; r++) {
-          html += `<tr>`;
-          wbData.columns.forEach((col, cIdx) => {
-              const cell = col.plays[r] || { text: "", color: "white" };
-              html += `
-                  <td class="wb-sub-idx wb-sub-${cell.color}">
-                    <div style="position:relative; width:100%; height:100%; display:flex; align-items:center; justify-content:center;">
-                      ${r+1}
-                      ${r === 0 ? `<div class="wb-cell-controls admin-only no-print" style="left:2px; top:-20px; bottom:auto; right:auto;"><button class="wb-cell-color-btn" onclick="cycleWbColColor(${cIdx})" title="Change Entire Column Color">🖌️ Col</button></div>` : ''}
-                    </div>
-                  </td>
-                  <td class="wb-play-cell wb-body-${cell.color}">
-                      <input type="text" class="wb-play-input" value="${cell.text}" oninput="updateWbPlayText(${cIdx}, ${r}, this.value)" />
-                      <div class="wb-cell-controls admin-only no-print">
-                         <button class="wb-cell-color-btn" onclick="cycleWbCellColor(${cIdx}, ${r})" title="Change Cell Color">🎨</button>
-                      </div>
-                  </td>
-              `;
-          });
-          html += `</tr>`;
-      }
-      html += `</tbody></table>`;
-      grid.innerHTML = html;
-    }
-
-    function updateWbPlayText(colIdx, rowIdx, val) {
-      if (userRole !== 'admin') return;
-      weeklyData[currentWeek].wristbandData.columns[colIdx].plays[rowIdx].text = val;
-      triggerDebouncedSave();
-    }
-
-    function cycleWbColColor(colIdx) {
-      if (userRole !== 'admin') return;
-      const col = weeklyData[currentWeek].wristbandData.columns[colIdx];
-      const current = col.color || 'white';
-      const currentIdx = wbColors.indexOf(current);
-      const nextIdx = (currentIdx + 1) % wbColors.length;
-      const newColor = wbColors[nextIdx];
-      
-      col.color = newColor;
-      col.plays.forEach(p => p.color = newColor);
-      
-      saveState();
-      renderWristband();
-    }
-
-    function cycleWbCellColor(colIdx, rowIdx) {
-      if (userRole !== 'admin') return;
-      const cell = weeklyData[currentWeek].wristbandData.columns[colIdx].plays[rowIdx];
-      const current = cell.color || 'white';
-      const currentIdx = wbColors.indexOf(current);
-      const nextIdx = (currentIdx + 1) % wbColors.length;
-      cell.color = wbColors[nextIdx];
-      
-      saveState();
-      renderWristband();
-    }
-
-    function addWbRow() {
-      if (userRole !== 'admin') return;
-      initWristbandData();
-      const wbData = weeklyData[currentWeek].wristbandData;
-      wbData.rows += 1;
-      wbData.columns.forEach(c => c.plays.push({ text: "", color: c.color }));
-      saveState();
-      renderWristband();
-    }
-
-    function removeWbRow() {
-      if (userRole !== 'admin') return;
-      initWristbandData();
-      const wbData = weeklyData[currentWeek].wristbandData;
-      if (wbData.rows > 1) {
-         wbData.rows -= 1;
-         wbData.columns.forEach(c => c.plays.pop());
-         saveState();
-         renderWristband();
-      }
-    }
-
-    /* DYNAMIC FORMATIONS & POSITIONS */
     function createFormationPrompt(unit) {
       if (userRole !== 'admin') return;
       const name = prompt(`Enter new ${unit.toUpperCase()} formation name:`, "New Formation");
@@ -2729,21 +2639,28 @@ const firebaseConfig = {
       const subtitle = prompt("Enter subtitle/description:", "Personnel / Alignment details");
       const forms = getWeekFormations(currentWeek);
       
+      const formId = generateUniqueId("form");
+      const rowId = generateUniqueId("row");
+      const posId = generateUniqueId("pos");
+
       const newForm = {
-        id: "form_" + Date.now(),
+        id: formId,
         unit: unit,
         name: name.trim(),
         subtitle: (subtitle || "").trim(),
         collapsed: false,
         rows: [
-          { id: "row_" + Date.now(), label: "Main Level", rowClass: "oline", positions: [
-            { id: "pos_" + Date.now(), name: "POS 1" }
+          { id: rowId, label: "Main Level", rowClass: "oline", positions: [
+            { id: posId, name: "POS 1" }
           ]}
         ]
       };
       
       forms.push(newForm);
-      saveState();
+      if(!depthChart) depthChart = getWeekDepthChart(currentWeek);
+      depthChart[posId] = [];
+      
+      triggerDebouncedSave();
       renderActiveBoards();
     }
 
@@ -2757,7 +2674,7 @@ const firebaseConfig = {
         form.name = newName.trim();
         const newSub = prompt("Edit Subtitle:", form.subtitle || "");
         if(newSub !== null) form.subtitle = newSub.trim();
-        saveState();
+        triggerDebouncedSave();
         renderActiveBoards();
       }
     }
@@ -2767,7 +2684,7 @@ const firebaseConfig = {
       const forms = getWeekFormations(currentWeek);
       if(confirm("Are you sure you want to delete this entire formation?")) {
         weeklyData[currentWeek].formations = forms.filter(f => f.id !== formId);
-        saveState();
+        triggerDebouncedSave();
         renderActiveBoards();
       }
     }
@@ -2783,7 +2700,7 @@ const firebaseConfig = {
       const temp = forms[idx];
       forms[idx] = forms[targetIdx];
       forms[targetIdx] = temp;
-      saveState();
+      triggerDebouncedSave();
       renderActiveBoards();
     }
 
@@ -2794,15 +2711,23 @@ const firebaseConfig = {
       if(!form) return;
       const label = prompt("Enter Row/Level Name (e.g., 'Linebackers', 'Backfield'):", "New Level");
       if(!label || label.trim() === "") return;
+      
+      const rowId = generateUniqueId("row");
+      const posId = generateUniqueId("pos");
+
       form.rows.push({
-        id: "row_" + Date.now(),
+        id: rowId,
         label: label.trim(),
         rowClass: "oline",
         positions: [
-          { id: "pos_" + Date.now(), name: "POS 1" }
+          { id: posId, name: "POS 1" }
         ]
       });
-      saveState();
+      
+      if(!depthChart) depthChart = getWeekDepthChart(currentWeek);
+      depthChart[posId] = [];
+      
+      triggerDebouncedSave();
       renderActiveBoards();
     }
 
@@ -2816,7 +2741,7 @@ const firebaseConfig = {
       const newLabel = prompt("Edit Row/Level Name:", row.label);
       if(newLabel && newLabel.trim() !== "") {
         row.label = newLabel.trim();
-        saveState();
+        triggerDebouncedSave();
         renderActiveBoards();
       }
     }
@@ -2828,7 +2753,7 @@ const firebaseConfig = {
       if(!form) return;
       if(confirm("Delete this row and its positions?")) {
         form.rows = form.rows.filter(r => r.id !== rowId);
-        saveState();
+        triggerDebouncedSave();
         renderActiveBoards();
       }
     }
@@ -2843,14 +2768,17 @@ const firebaseConfig = {
       const posName = prompt("Enter Position Name (e.g. 'LT', 'MIKE', 'SLOT'):", "POS");
       if(!posName || posName.trim() === "") return;
       
-      const newPosId = "pos_" + Date.now();
+      const posId = generateUniqueId("pos");
+      
       row.positions.push({
-        id: newPosId,
+        id: posId,
         name: posName.trim()
       });
       
-      if(!depthChart[newPosId]) depthChart[newPosId] = [];
-      saveState();
+      if(!depthChart) depthChart = getWeekDepthChart(currentWeek);
+      depthChart[posId] = [];
+      
+      triggerDebouncedSave();
       renderActiveBoards();
     }
 
@@ -2867,7 +2795,7 @@ const firebaseConfig = {
       const newName = prompt("Rename Position Tag:", pos.name || pos.id);
       if(newName && newName.trim() !== "") {
         pos.name = newName.trim();
-        saveState();
+        triggerDebouncedSave();
         renderActiveBoards();
       }
     }
@@ -2883,7 +2811,7 @@ const firebaseConfig = {
       if(confirm("Delete this position card?")) {
         row.positions = row.positions.filter(p => p.id !== posId);
         delete depthChart[posId];
-        saveState();
+        triggerDebouncedSave();
         renderActiveBoards();
       }
     }
@@ -2903,7 +2831,7 @@ const firebaseConfig = {
       const temp = row.positions[idx];
       row.positions[idx] = row.positions[targetIdx];
       row.positions[targetIdx] = temp;
-      saveState();
+      triggerDebouncedSave();
       renderActiveBoards();
     }
 
@@ -3071,1026 +2999,6 @@ const firebaseConfig = {
 
         container.appendChild(formDiv);
       });
-    }
-
-    function triggerDebouncedSave() {
-      clearTimeout(saveTimeout);
-      localStorage.setItem("footballPracticeData", JSON.stringify(practiceData));
-      localStorage.setItem("footballWeeklyData", JSON.stringify(weeklyData));
-      localStorage.setItem("footballDynamicDrills", JSON.stringify(dynamicDrills));
-      
-      saveTimeout = setTimeout(() => {
-          saveState();
-      }, 1500);
-    }
-
-    function saveState() {
-      if (userRole !== 'admin') return;
-
-      if (!weeklyData[currentWeek]) weeklyData[currentWeek] = {};
-      weeklyData[currentWeek].opponent = (document.getElementById("opponent-input") ? document.getElementById("opponent-input").value : "") || "";
-      weeklyData[currentWeek].depthChart = depthChart;
-      weeklyData[currentWeek].formations = getWeekFormations(currentWeek);
-
-      localStorage.setItem("footballWeeklyData", JSON.stringify(weeklyData));
-      localStorage.setItem("footballPracticeData", JSON.stringify(practiceData));
-      localStorage.setItem("footballCustomCategories", JSON.stringify(savedCustomCategories));
-      localStorage.setItem("footballPracticeTemplates", JSON.stringify(practiceTemplates));
-      localStorage.setItem("footballDynamicDrills", JSON.stringify(dynamicDrills));
-      
-      if (cloudEnabled && db) {
-        document.getElementById("sync-text").textContent = "Syncing...";
-        db.collection("rosters").doc("main10u_weeks").set({ 
-            weeklyData: weeklyData,
-            practiceData: practiceData,
-            savedCustomCategories: savedCustomCategories,
-            practiceTemplates: practiceTemplates,
-            dynamicDrills: dynamicDrills
-        })
-          .then(() => {
-            document.getElementById("sync-text").textContent = "Live Cloud Sync Active";
-          })
-          .catch((err) => {
-            console.error("Cloud save failed:", err);
-            document.getElementById("sync-text").textContent = "Saved Locally";
-          });
-      }
-    }
-
-    if (cloudEnabled && db) {
-      db.collection("rosters").doc("main10u_weeks").onSnapshot((doc) => {
-        if (doc.exists) {
-          const data = doc.data();
-          if (data.weeklyData) {
-            weeklyData = data.weeklyData;
-            localStorage.setItem("footballWeeklyData", JSON.stringify(weeklyData));
-            depthChart = getWeekDepthChart(currentWeek);
-            const oppInput = document.getElementById("opponent-input");
-            if(oppInput) oppInput.value = weeklyData[currentWeek] ? (weeklyData[currentWeek].opponent || "") : "";
-          }
-          if (data.practiceData) {
-            practiceData = data.practiceData;
-            localStorage.setItem("footballPracticeData", JSON.stringify(practiceData));
-            if (!practiceData.find(p => p.id === currentPracticeId) && practiceData.length > 0) {
-                let sorted = [...practiceData].sort((a,b) => (b.lastEdited || 0) - (a.lastEdited || 0));
-                if(sorted.length > 0) currentPracticeId = sorted[0].id;
-            }
-          }
-          if (data.dynamicDrills) {
-            dynamicDrills = data.dynamicDrills;
-            localStorage.setItem("footballDynamicDrills", JSON.stringify(dynamicDrills));
-          }
-          if (data.savedCustomCategories) {
-            savedCustomCategories = data.savedCustomCategories;
-            localStorage.setItem("footballCustomCategories", JSON.stringify(savedCustomCategories));
-          }
-          if (data.practiceTemplates) {
-            practiceTemplates = data.practiceTemplates;
-            localStorage.setItem("footballPracticeTemplates", JSON.stringify(practiceTemplates));
-          }
-          
-          if (!isUserEditing()) {
-             renderActiveBoards();
-             if (activeUnit === 'wristband') renderWristband();
-             if (activeUnit === 'scouting') renderScouting();
-             if (activeUnit === 'drills') renderDrillsTab();
-             renderMasterRoster();
-             populatePracticeDropdown();
-             renderPracticePlan();
-          }
-        }
-      });
-    } else {
-      document.getElementById("sync-text").textContent = "Local Storage Mode";
-    }
-
-    function updatePracticeTextData(idx, field, value) {
-      if (userRole !== 'admin') return;
-      const current = practiceData.find(p => p.id === currentPracticeId);
-      if (!current || !Array.isArray(current.plan) || !current.plan[idx]) return;
-      current.plan[idx][field] = value;
-      current.lastEdited = Date.now();
-      triggerDebouncedSave();
-      if (field === 'time') renderPracticePlan();
-    }
-    
-    function updateCircuitTextData(rowIdx, stationIdx, field, value) {
-      if (userRole !== 'admin') return;
-      const current = practiceData.find(p => p.id === currentPracticeId);
-      if (!current || !Array.isArray(current.plan) || !current.plan[rowIdx]) return;
-      if (!Array.isArray(current.plan[rowIdx].stations) || !current.plan[rowIdx].stations[stationIdx]) return;
-      current.plan[rowIdx].stations[stationIdx][field] = value;
-      current.lastEdited = Date.now();
-      triggerDebouncedSave();
-    }
-
-    function updatePeriodType(idx, val) {
-      if (userRole !== 'admin') return;
-      const current = practiceData.find(p => p.id === currentPracticeId);
-      if (!current || !Array.isArray(current.plan) || !current.plan[idx]) return;
-      const row = current.plan[idx];
-      row.periodType = val;
-      if ((val === 'circuit' || val === 'groups') && (!Array.isArray(row.stations) || row.stations.length === 0)) {
-        row.stations = [
-          { drill: "", desc: "", key: "", customDrill: "", coaches: [], videoLink: "" },
-          { drill: "", desc: "", key: "", customDrill: "", coaches: [], videoLink: "" }
-        ];
-      }
-      current.lastEdited = Date.now();
-      saveState();
-      renderPracticePlan();
-    }
-
-    function getAllDrillOptions(selectedVal) {
-      let html = `<option value="">-- Select Drill --</option>`;
-      Object.keys(dynamicDrills).forEach(cat => {
-        html += `<optgroup label="${cat}">`;
-        dynamicDrills[cat].forEach(d => {
-          html += `<option value="${d.name}" ${selectedVal === d.name ? 'selected' : ''}>${d.name}</option>`;
-        });
-        html += `</optgroup>`;
-      });
-      html += `<option value="Custom" ${selectedVal === 'Custom' ? 'selected' : ''}>Custom Drill / Write In</option>`;
-      return html;
-    }
-
-    function autoResizeTextarea(el) {
-      el.style.height = 'auto';
-      el.style.height = (el.scrollHeight + 2) + 'px';
-    }
-
-    // Force full expansion of textareas right before print and swap them to clean printable divs
-    window.addEventListener('beforeprint', () => {
-      if (document.activeElement && typeof document.activeElement.blur === 'function') {
-         document.activeElement.blur(); 
-      }
-      
-      document.querySelectorAll('.prac-textarea, .wb-play-input, .scout-textarea').forEach(el => {
-        const div = document.createElement('div');
-        div.className = 'print-text-node';
-        if(el.classList.contains('wb-play-input')) div.classList.add('wb-print-text');
-        
-        if (el.tagName === 'SELECT') {
-           div.textContent = el.options[el.selectedIndex] ? el.options[el.selectedIndex].text : '';
-        } else {
-           div.textContent = el.value || '';
-        }
-        
-        el.parentNode.insertBefore(div, el);
-        el.style.display = 'none';
-      });
-    });
-
-    window.addEventListener('afterprint', () => {
-      document.querySelectorAll('.print-text-node').forEach(div => div.remove());
-      document.querySelectorAll('.prac-textarea, .wb-play-input, .scout-textarea').forEach(el => el.style.display = '');
-    });
-
-    function renderPracticePlan() {
-      const tbody = document.getElementById("practice-rows");
-      if (!tbody) return;
-      
-      try {
-        tbody.innerHTML = "";
-        const current = practiceData.find(p => p.id === currentPracticeId);
-        if (!current || !Array.isArray(current.plan)) return;
-        const plan = current.plan;
-
-        if (plan.length === 0) {
-           tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 20px; color: var(--text-muted); font-style: italic;">This practice plan is blank. Click "+ Add Period" to begin.</td></tr>`;
-           return;
-        }
-
-        // Calculate Times
-        let totalMins = timeToMins(current.endTime) - timeToMins(current.startTime);
-        if (totalMins < 0) totalMins += 1440; // overnight check
-        
-        let preMins = 0;
-        let scheduledMins = 0;
-        current.plan.forEach(r => {
-           if (r.category === 'Pre Practice') preMins += (r.time || 0);
-           else scheduledMins += (r.time || 0);
-        });
-
-        let preClock = timeToMins(current.startTime) - preMins;
-        let mainClock = timeToMins(current.startTime);
-
-        // Render Dashboard Stats
-        const statsDiv = document.getElementById("prac-stats");
-        if (statsDiv) {
-          const remaining = totalMins - scheduledMins;
-          const remainingColor = remaining < 0 ? '#ef4444' : 'var(--text-muted)';
-          
-          let statsHtml = `
-            <span>Total Time: <span style="color:var(--text);">${totalMins} mins</span></span>
-            <span style="color:#cbd5e1;">|</span>
-            <span>Scheduled: <span style="color:var(--text);">${scheduledMins} mins</span></span>
-            <span style="color:#cbd5e1;">|</span>
-            <span style="color:${remainingColor};">Unaccounted Time: ${remaining} mins</span>
-          `;
-          
-          document.getElementById('prac-start').value = current.startTime || "17:00";
-          document.getElementById('prac-end').value = current.endTime || "19:00";
-          statsDiv.innerHTML = statsHtml;
-        }
-
-        current.plan.forEach((row, idx) => {
-          if (!row) return;
-
-          // Calculate period timestamp
-          let rowStartMins, rowEndMins;
-          if (row.category === 'Pre Practice') {
-             rowStartMins = preClock;
-             preClock += (row.time || 0);
-             rowEndMins = preClock;
-          } else {
-             rowStartMins = mainClock;
-             mainClock += (row.time || 0);
-             rowEndMins = mainClock;
-          }
-          let timeLabel = minsToTimeStr(rowStartMins) + ' - ' + minsToTimeStr(rowEndMins);
-
-          let catOptions = `<option value="">-- Select Category --</option>`;
-          Object.keys(dynamicDrills).forEach(cat => {
-               catOptions += `<option value="${cat}" ${row.category === cat ? 'selected' : ''}>${cat}</option>`;
-          });
-          savedCustomCategories.forEach(cat => {
-               if (!dynamicDrills[cat]) {
-                 catOptions += `<option value="${cat}" ${row.category === cat ? 'selected' : ''}>${cat} (Custom)</option>`;
-               }
-          });
-          catOptions += `<option value="Custom" ${row.category === "Custom" ? 'selected' : ''}>+ New Custom Category...</option>`;
-
-          let periodTypeSelect = `
-            <div style="margin-top:6px;" class="no-print admin-only">
-              <select class="prac-select" style="font-size:10px; padding:2px; font-weight:bold;" onchange="updatePeriodType(${idx}, this.value)">
-                <option value="normal" ${row.periodType === 'normal' ? 'selected' : ''}>Whole Group</option>
-                <option value="circuit" ${row.periodType === 'circuit' ? 'selected' : ''}>Circuit (Rotate)</option>
-                <option value="groups" ${row.periodType === 'groups' ? 'selected' : ''}>Split Groups (Static)</option>
-              </select>
-            </div>
-          `;
-
-          let coachBadges = '';
-          const rowCoaches = Array.isArray(row.coaches) ? row.coaches : [];
-          rowCoaches.forEach(c => {
-            coachBadges += `<span class="coach-badge" onclick="removeCoachFromRow(${idx}, '${c}')" title="Click to remove">${c} <span class="no-print admin-only">&times;</span></span>`;
-          });
-          
-          let coachSelectOptions = `<option value="">+ Coach</option><option value="NEW">+ New Coach</option>`;
-          savedCoaches.forEach(c => {
-            coachSelectOptions += `<option value="${c}">${c}</option>`;
-          });
-
-          const isMulti = (row.periodType === 'circuit' || row.periodType === 'groups');
-
-          if (isMulti) {
-             if (!Array.isArray(row.stations) || row.stations.length === 0) {
-               row.stations = [
-                 { drill: "", desc: "", key: "", customDrill: "", coaches: [], videoLink: "" },
-                 { drill: "", desc: "", key: "", customDrill: "", coaches: [], videoLink: "" }
-               ];
-             }
-             const numStations = row.stations.length;
-             const blockLabel = row.periodType === 'groups' ? 'Group' : 'Station';
-
-             let rotationHtml = '';
-             if (row.periodType === 'circuit' && numStations > 0) {
-                let timePer = (row.time / numStations).toFixed(1);
-                timePer = timePer.endsWith('.0') ? timePer.slice(0, -2) : timePer;
-                rotationHtml = `<div class="rotation-timer">${timePer} mins / station</div>`;
-             } else if (row.periodType === 'groups') {
-                rotationHtml = `<div class="rotation-timer">Full ${row.time} mins</div>`;
-             }
-
-             row.stations.forEach((st, i) => {
-                if (!st) st = { drill: "", desc: "", key: "", customDrill: "", coaches: [], videoLink: "" };
-                if (!Array.isArray(st.coaches)) st.coaches = [];
-                if (typeof st.videoLink === 'undefined') st.videoLink = "";
-
-                let stationSelectHtml = `
-                  <div class="station-block">
-                    <div class="station-title">${blockLabel} ${i+1}</div>
-                    <select class="prac-select" onchange="updateCircuitDrill(${idx}, ${i}, this.value)">
-                      ${getAllDrillOptions(st.drill)}
-                    </select>
-                    ${st.drill === 'Custom' || (!st.drill && st.customDrill) ? `<input type="text" class="prac-input" style="margin-top:3px;" placeholder="Custom drill..." value="${st.customDrill || ''}" oninput="updateCircuitTextData(${idx}, ${i}, 'customDrill', this.value)">` : ''}
-                    <div style="margin-top:3px;" class="no-print">
-                      <input type="text" class="prac-input" style="font-size:10px; padding:2px;" placeholder="Optional video link..." value="${st.videoLink}" oninput="updateCircuitTextData(${idx}, ${i}, 'videoLink', this.value)">
-                    </div>
-                    ${st.videoLink ? `<div style="margin-top:2px;"><a href="${st.videoLink}" target="_blank" class="video-link-btn no-print">🔗 View Link</a></div>` : ''}
-                  </div>
-                `;
-
-                let stationDescHtml = `
-                  <div class="station-block">
-                    <textarea class="prac-textarea" oninput="autoResizeTextarea(this); updateCircuitTextData(${idx}, ${i}, 'desc', this.value);" placeholder="${blockLabel} ${i+1} description...">${st.desc || ''}</textarea>
-                  </div>
-                `;
-
-                let stationKeysHtml = `
-                  <div class="station-block">
-                    <input type="text" class="prac-input" value="${st.key || ''}" oninput="updateCircuitTextData(${idx}, ${i}, 'key', this.value);" placeholder="Focus...">
-                  </div>
-                `;
-
-                let stCoachBadges = '';
-                st.coaches.forEach(c => {
-                  stCoachBadges += `<span class="coach-badge" onclick="removeCoachFromStation(${idx}, ${i}, '${c}')" title="Click to remove">${c} <span class="no-print admin-only">&times;</span></span>`;
-                });
-
-                let stationCoachHtml = `
-                  <div class="station-block">
-                    <div>${stCoachBadges}</div>
-                    <select class="prac-select no-print admin-only" style="font-size:10px; padding:2px; margin-top:2px;" onchange="handleStationCoachSelection(${idx}, ${i}, this.value)">
-                      ${coachSelectOptions}
-                    </select>
-                  </div>
-                `;
-
-                const subTr = document.createElement("tr");
-
-                if (i === 0) {
-                  let stationCountSelect = `
-                    <div style="margin-top:4px;" class="no-print admin-only">
-                       <strong>Count:</strong> 
-                       <select class="prac-select" style="width:auto; display:inline-block; font-size:10px; padding:2px;" onchange="updateCircuitStations(${idx}, this.value)">
-                         <option value="2" ${numStations===2?'selected':''}>2</option>
-                         <option value="3" ${numStations===3?'selected':''}>3</option>
-                         <option value="4" ${numStations===4?'selected':''}>4</option>
-                         <option value="5" ${numStations===5?'selected':''}>5</option>
-                         <option value="6" ${numStations===6?'selected':''}>6</option>
-                       </select>
-                    </div>
-                  `;
-
-                  subTr.innerHTML = `
-                    <td rowspan="${numStations}">
-                      <div class="prac-time-input-wrap no-print">
-                        <input type="number" min="0" max="120" class="prac-input" value="${row.time || 0}" oninput="updatePracticeTextData(${idx}, 'time', parseInt(this.value) || 0)" style="width:40px; display:inline-block;"> 
-                        <span style="font-size:10px; color:var(--text-muted);">mins</span>
-                      </div>
-                      <div class="period-schedule-time">
-                        <span class="print-only-inline" style="display:none;"><strong>${row.time} Mins</strong><br></span>
-                        ${timeLabel}
-                      </div>
-                      ${rotationHtml}
-                    </td>
-                    <td rowspan="${numStations}">
-                      <select class="prac-select" onchange="updatePracticeCategory(${idx}, this.value)">
-                        ${catOptions}
-                      </select>
-                      ${periodTypeSelect}
-                      ${stationCountSelect}
-                    </td>
-                    <td>${stationSelectHtml}</td>
-                    <td>${stationDescHtml}</td>
-                    <td>${stationCoachHtml}</td>
-                    <td>${stationKeysHtml}</td>
-                    <td rowspan="${numStations}" class="no-print admin-only" style="text-align:center; vertical-align:middle;">
-                      <div style="display:flex; flex-direction:column; gap:4px; align-items:center;">
-                        <button class="reorder-btn" onclick="movePracticeRow(${idx}, -1)">▲</button>
-                        <button class="reorder-btn" onclick="movePracticeRow(${idx}, 1)">▼</button>
-                        <button class="remove-btn" onclick="removePracticeRow(${idx})">&times;</button>
-                      </div>
-                    </td>
-                  `;
-                } else {
-                  subTr.innerHTML = `
-                    <td>${stationSelectHtml}</td>
-                    <td>${stationDescHtml}</td>
-                    <td>${stationCoachHtml}</td>
-                    <td>${stationKeysHtml}</td>
-                  `;
-                }
-
-                tbody.appendChild(subTr);
-             });
-
-          } else {
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-              <td>
-                <div class="prac-time-input-wrap no-print">
-                  <input type="number" min="0" max="120" class="prac-input" value="${row.time || 0}" oninput="updatePracticeTextData(${idx}, 'time', parseInt(this.value) || 0)" style="width:40px; display:inline-block;"> 
-                  <span style="font-size:10px; color:var(--text-muted);">mins</span>
-                </div>
-                <div class="period-schedule-time">
-                  <span class="print-only-inline" style="display:none;"><strong>${row.time} Mins</strong><br></span>
-                  ${timeLabel}
-                </div>
-              </td>
-              <td>
-                <select class="prac-select" onchange="updatePracticeCategory(${idx}, this.value)">
-                  ${catOptions}
-                </select>
-                ${periodTypeSelect}
-              </td>
-              <td>
-                <select class="prac-select" onchange="updatePracticeDrill(${idx}, this.value)">
-                  ${getAllDrillOptions(row.drill)}
-                </select>
-                ${row.drill === 'Custom' || !row.drill ? `<input type="text" class="prac-input" style="margin-top:4px;" placeholder="Custom drill name..." value="${row.customDrill || ''}" oninput="updatePracticeTextData(${idx}, 'customDrill', this.value)">` : ''}
-                <div style="margin-top:4px;" class="no-print">
-                  <input type="text" class="prac-input" style="font-size:10px; padding:2px;" placeholder="Optional video link..." value="${row.videoLink}" oninput="updatePracticeTextData(${idx}, 'videoLink', this.value)">
-                </div>
-                ${row.videoLink ? `<div style="margin-top:2px;"><a href="${row.videoLink}" target="_blank" class="video-link-btn no-print">🔗 View Link</a></div>` : ''}
-              </td>
-              <td><textarea class="prac-textarea" oninput="autoResizeTextarea(this); updatePracticeTextData(${idx}, 'desc', this.value);" placeholder="Drill description & setup...">${row.desc || ''}</textarea></td>
-              <td>
-                <div style="margin-bottom:4px;">${coachBadges}</div>
-                <select class="prac-select no-print admin-only" onchange="handleCoachSelection(${idx}, this.value)">
-                  ${coachSelectOptions}
-                </select>
-              </td>
-              <td><input type="text" class="prac-input" value="${row.key || ''}" oninput="updatePracticeTextData(${idx}, 'key', this.value);" placeholder="Key coaching focus..."></td>
-              <td class="no-print admin-only" style="text-align:center;">
-                <div style="display:flex; flex-direction:column; gap:4px; align-items:center;">
-                  <button class="reorder-btn" onclick="movePracticeRow(${idx}, -1)">▲</button>
-                  <button class="reorder-btn" onclick="movePracticeRow(${idx}, 1)">▼</button>
-                  <button class="remove-btn" onclick="removePracticeRow(${idx})">&times;</button>
-                </div>
-              </td>
-            `;
-
-            tbody.appendChild(tr);
-          }
-        });
-
-        document.querySelectorAll('.prac-textarea').forEach(ta => autoResizeTextarea(ta));
-        initTableResizing();
-      } catch (err) {
-        console.error("Error rendering practice plan:", err);
-      }
-    }
-
-    function initTableResizing() {
-      if (userRole !== 'admin') return;
-      const table = document.getElementById("main-practice-table");
-      if (!table) return;
-      
-      table.style.tableLayout = "fixed";
-
-      const ths = table.querySelectorAll("thead th");
-      ths.forEach((th, i) => {
-        const resizer = th.querySelector(".col-resizer");
-        if (!resizer) return;
-
-        resizer.addEventListener("mousedown", function(e) {
-          e.preventDefault();
-          e.stopPropagation();
-
-          const startX = e.pageX;
-          const startWidth = th.offsetWidth;
-          
-          const nextTh = ths[i + 1];
-          const nextStartWidth = nextTh ? nextTh.offsetWidth : 0;
-          const tableWidth = table.offsetWidth;
-
-          resizer.classList.add("resizing");
-
-          const onMouseMove = function(e) {
-            const diffX = e.pageX - startX;
-            const newWidth = startWidth + diffX;
-
-            if (newWidth > 30 && nextTh) {
-              const newNextWidth = nextStartWidth - diffX;
-              if (newNextWidth > 30) {
-                th.style.width = ((newWidth / tableWidth) * 100) + "%";
-                nextTh.style.width = ((newNextWidth / tableWidth) * 100) + "%";
-              }
-            }
-          };
-
-          const onMouseUp = function() {
-            document.removeEventListener("mousemove", onMouseMove);
-            document.removeEventListener("mouseup", onMouseUp);
-            resizer.classList.remove("resizing");
-          };
-
-          document.addEventListener("mousemove", onMouseMove);
-          document.addEventListener("mouseup", onMouseUp);
-        });
-      });
-    }
-
-    function addPracticeRow() {
-      if (userRole !== 'admin') return;
-      const current = practiceData.find(p => p.id === currentPracticeId);
-      if (!current) return;
-      if (!Array.isArray(current.plan)) current.plan = [];
-      
-      current.plan.push({ 
-        time: 15, 
-        category: "Warm-Up & Breaks", 
-        drill: "", 
-        desc: "", 
-        key: "", 
-        customDrill: "", 
-        coaches: [], 
-        periodType: 'normal',
-        videoLink: "",
-        stations: [
-          { drill: "", desc: "", key: "", customDrill: "", coaches: [], videoLink: "" },
-          { drill: "", desc: "", key: "", customDrill: "", coaches: [], videoLink: "" }
-        ]
-      });
-      current.lastEdited = Date.now();
-      saveState();
-      renderPracticePlan();
-    }
-
-    function removePracticeRow(idx) {
-      if (userRole !== 'admin') return;
-      const current = practiceData.find(p => p.id === currentPracticeId);
-      if (!current || !Array.isArray(current.plan)) return;
-      current.plan.splice(idx, 1);
-      current.lastEdited = Date.now();
-      saveState();
-      renderPracticePlan();
-    }
-
-    function movePracticeRow(index, direction) {
-      if (userRole !== 'admin') return;
-      const current = practiceData.find(p => p.id === currentPracticeId);
-      if (!current || !Array.isArray(current.plan)) return;
-      const plan = current.plan;
-      const targetIndex = index + direction;
-      if (targetIndex < 0 || targetIndex >= plan.length) return;
-
-      const temp = plan[index];
-      plan[index] = plan[targetIndex];
-      plan[targetIndex] = temp;
-
-      current.lastEdited = Date.now();
-      saveState();
-      renderPracticePlan();
-    }
-
-    function updatePracticeCategory(idx, catValue) {
-      if (userRole !== 'admin') return;
-      const current = practiceData.find(p => p.id === currentPracticeId);
-      if (!current || !Array.isArray(current.plan) || !current.plan[idx]) return;
-      const row = current.plan[idx];
-
-      if (catValue === "Custom") {
-        const newCat = prompt("Enter new custom category name:");
-        if (newCat && newCat.trim() !== "") {
-          const cleanCat = newCat.trim();
-          if (!savedCustomCategories.includes(cleanCat)) {
-            savedCustomCategories.push(cleanCat);
-            localStorage.setItem("footballCustomCategories", JSON.stringify(savedCustomCategories));
-          }
-          row.category = cleanCat;
-        } else {
-          return;
-        }
-      } else {
-        row.category = catValue;
-      }
-
-      row.drill = "";
-      row.desc = "";
-      row.key = "";
-      row.customDrill = "";
-      
-      if (row.category === "Tackle Circuit" || row.category === "Tackling (Whole Team)" || row.category === "Pre Practice") {
-        row.periodType = 'circuit';
-        if (!Array.isArray(row.stations) || row.stations.length === 0) {
-           row.stations = [
-             { drill: "", desc: "", key: "", customDrill: "", coaches: [], videoLink: "" },
-             { drill: "", desc: "", key: "", customDrill: "", coaches: [], videoLink: "" }
-           ];
-        }
-      }
-      
-      current.lastEdited = Date.now();
-      saveState();
-      renderPracticePlan();
-    }
-
-    function updatePracticeDrill(idx, drillValue) {
-      if (userRole !== 'admin') return;
-      const current = practiceData.find(p => p.id === currentPracticeId);
-      if (!current || !Array.isArray(current.plan) || !current.plan[idx]) return;
-      const row = current.plan[idx];
-      row.drill = drillValue;
-      
-      if (drillValue !== "Custom") {
-        row.customDrill = ""; 
-        const drillObj = findDrillByName(drillValue);
-        if (drillObj) {
-          row.desc = drillObj.desc || "";
-          row.key = drillObj.key || "";
-        } else if (drillValue === "") {
-          row.desc = "";
-          row.key = "";
-        }
-      } else {
-        row.desc = "";
-        row.key = "";
-      }
-      
-      current.lastEdited = Date.now();
-      saveState();
-      renderPracticePlan();
-    }
-
-    function updateCircuitStations(rowIdx, newCount) {
-      if (userRole !== 'admin') return;
-      const current = practiceData.find(p => p.id === currentPracticeId);
-      if (!current || !Array.isArray(current.plan) || !current.plan[rowIdx]) return;
-      const target = parseInt(newCount);
-      const row = current.plan[rowIdx];
-      if (!Array.isArray(row.stations)) row.stations = [];
-      while (row.stations.length < target) {
-        row.stations.push({ drill: "", desc: "", key: "", customDrill: "", coaches: [], videoLink: "" });
-      }
-      while (row.stations.length > target) {
-        row.stations.pop();
-      }
-      current.lastEdited = Date.now();
-      saveState();
-      renderPracticePlan();
-    }
-
-    function updateCircuitDrill(rowIdx, stationIdx, drillValue) {
-      if (userRole !== 'admin') return;
-      const current = practiceData.find(p => p.id === currentPracticeId);
-      if (!current || !Array.isArray(current.plan) || !current.plan[rowIdx]) return;
-      const row = current.plan[rowIdx];
-      if (!Array.isArray(row.stations) || !row.stations[stationIdx]) return;
-      const st = row.stations[stationIdx];
-      st.drill = drillValue;
-      if (drillValue !== "Custom") {
-        st.customDrill = "";
-        const drillObj = findDrillByName(drillValue);
-        if (drillObj) {
-          st.desc = drillObj.desc || "";
-          st.key = drillObj.key || "";
-        } else if (drillValue === "") {
-          st.desc = "";
-          st.key = "";
-        }
-      } else {
-        st.desc = "";
-        st.key = "";
-      }
-      current.lastEdited = Date.now();
-      saveState();
-      renderPracticePlan();
-    }
-
-    function handleCoachSelection(rowIdx, value) {
-      if (userRole !== 'admin') return;
-      if (!value) return;
-      const current = practiceData.find(p => p.id === currentPracticeId);
-      if (!current || !Array.isArray(current.plan) || !current.plan[rowIdx]) return;
-      const row = current.plan[rowIdx];
-      if (!Array.isArray(row.coaches)) row.coaches = [];
-
-      if (value === "NEW") {
-        const newCoach = prompt("Enter new coach name:");
-        if (newCoach && newCoach.trim() !== "") {
-          const cleanName = newCoach.trim();
-          if (!savedCoaches.includes(cleanName)) {
-            savedCoaches.push(cleanName);
-            saveCoaches();
-          }
-          if (!row.coaches.includes(cleanName)) {
-            row.coaches.push(cleanName);
-          }
-        }
-      } else {
-        if (!row.coaches.includes(value)) {
-          row.coaches.push(value);
-        }
-      }
-      current.lastEdited = Date.now();
-      saveState();
-      renderPracticePlan();
-    }
-
-    function removeCoachFromRow(rowIdx, coachName) {
-      if (userRole !== 'admin') return;
-      const current = practiceData.find(p => p.id === currentPracticeId);
-      if (!current || !Array.isArray(current.plan) || !current.plan[rowIdx]) return;
-      const row = current.plan[rowIdx];
-      if (Array.isArray(row.coaches)) {
-        row.coaches = row.coaches.filter(c => c !== coachName);
-        current.lastEdited = Date.now();
-        saveState();
-        renderPracticePlan();
-      }
-    }
-
-    function handleStationCoachSelection(rowIdx, stationIdx, value) {
-      if (userRole !== 'admin') return;
-      if (!value) return;
-      const current = practiceData.find(p => p.id === currentPracticeId);
-      if (!current || !Array.isArray(current.plan) || !current.plan[rowIdx]) return;
-      const row = current.plan[rowIdx];
-      if (!Array.isArray(row.stations) || !row.stations[stationIdx]) return;
-      const st = row.stations[stationIdx];
-      if (!Array.isArray(st.coaches)) st.coaches = [];
-
-      if (value === "NEW") {
-        const newCoach = prompt("Enter new coach name:");
-        if (newCoach && newCoach.trim() !== "") {
-          const cleanName = newCoach.trim();
-          if (!savedCoaches.includes(cleanName)) {
-            savedCoaches.push(cleanName);
-            saveCoaches();
-          }
-          if (!st.coaches.includes(cleanName)) {
-            st.coaches.push(cleanName);
-          }
-        }
-      } else {
-        if (!st.coaches.includes(value)) {
-          st.coaches.push(value);
-        }
-      }
-      markPracticeEdited();
-      saveState();
-      renderPracticePlan();
-    }
-
-    function removeCoachFromStation(rowIdx, stationIdx, coachName) {
-      if (userRole !== 'admin') return;
-      const current = practiceData.find(p => p.id === currentPracticeId);
-      if (!current || !Array.isArray(current.plan) || !current.plan[rowIdx]) return;
-      const row = current.plan[rowIdx];
-      if (!Array.isArray(row.stations) || !row.stations[stationIdx]) return;
-      const st = row.stations[stationIdx];
-      if (Array.isArray(st.coaches)) {
-        st.coaches = st.coaches.filter(c => c !== coachName);
-        saveState();
-        renderPracticePlan();
-      }
-    }
-
-    /* PLAYER DRAG & DROP LOGIC */
-    function removePlayer(posId, index, e) {
-      if (userRole !== 'admin') return;
-      if (e) e.stopPropagation();
-      if(depthChart && depthChart[posId]) {
-        depthChart[posId].splice(index, 1);
-        saveState();
-        renderActiveBoards();
-        renderMasterRoster();
-      }
-    }
-
-    function movePlayerOrder(posId, index, direction, e) {
-      if (userRole !== 'admin') return;
-      if (e) e.stopPropagation();
-      if(!depthChart) return;
-      const list = depthChart[posId];
-      if(!list) return;
-      const targetIndex = index + direction;
-      if (targetIndex < 0 || targetIndex >= list.length) return;
-
-      const temp = list[index];
-      list[index] = list[targetIndex];
-      list[targetIndex] = temp;
-
-      saveState();
-      renderActiveBoards();
-    }
-
-    function filterCardDropdown(posId, searchTerm) {
-      if (userRole !== 'admin') return;
-      const dropdown = document.getElementById(`dropdown-${posId}`);
-      if (!dropdown) return;
-
-      const term = (searchTerm || "").toLowerCase().trim();
-      if (!term) {
-        dropdown.classList.remove("active");
-        return;
-      }
-
-      dropdown.innerHTML = "";
-      const matches = masterRoster.filter(p => 
-        (p.firstName && p.firstName.toLowerCase().includes(term)) || 
-        (p.lastName && p.lastName.toLowerCase().includes(term)) || 
-        (p.num && p.num.toLowerCase().includes(term))
-      );
-
-      if (matches.length === 0) {
-        dropdown.innerHTML = `<div class="dropdown-item" style="color:var(--text-muted);">No match</div>`;
-      } else {
-        matches.forEach(player => {
-          const item = document.createElement("div");
-          item.className = "dropdown-item";
-          item.innerHTML = `<span><strong>#${player.num}</strong> ${player.firstName} ${player.lastName}</span><span>+ Add</span>`;
-          item.onclick = (e) => {
-            e.stopPropagation();
-            addPlayerToPosition(posId, player.lastName || player.firstName, player.num);
-            dropdown.classList.remove("active");
-            document.getElementById(`input-${posId}`).value = "";
-          };
-          dropdown.appendChild(item);
-        });
-      }
-
-      dropdown.classList.add("active");
-    }
-
-    function addPlayerToPosition(posId, name, num) {
-      if (userRole !== 'admin') return;
-      if (!depthChart) depthChart = getWeekDepthChart(currentWeek);
-      if (!depthChart[posId]) depthChart[posId] = [];
-      depthChart[posId].push({ name, num });
-      saveState();
-      renderActiveBoards();
-      renderMasterRoster();
-    }
-
-    function closeAllDropdowns() {
-      document.querySelectorAll('.card-search-dropdown').forEach(d => {
-         if (d.id !== 'practice-tree-dropdown') d.classList.remove('active');
-      });
-      const pt = document.getElementById('practice-tree-dropdown');
-      if (pt) pt.style.display = 'none';
-    }
-
-    let draggedData = null;
-
-    function handleRosterDragStart(e) {
-      if (userRole !== 'admin') return;
-      draggedData = { type: "roster", name: e.target.dataset.name, num: e.target.dataset.num };
-      e.dataTransfer.effectAllowed = "copy";
-    }
-
-    function handlePlayerDragStart(e, sourcePos, sourceIndex, name, num) {
-      if (userRole !== 'admin') return;
-      draggedData = { type: "position", name, num, sourcePos, sourceIndex };
-      e.dataTransfer.effectAllowed = "move";
-    }
-
-    function handleCardDrop(e, targetPos) {
-      if (userRole !== 'admin') return;
-      e.preventDefault();
-      document.querySelectorAll(".position-card").forEach(c => c.classList.remove("drag-over"));
-      if (!draggedData) return;
-
-      if (!depthChart) depthChart = getWeekDepthChart(currentWeek);
-
-      if (draggedData.type === "position") {
-        if (draggedData.sourcePos === targetPos) return;
-        if (depthChart[draggedData.sourcePos]) {
-          depthChart[draggedData.sourcePos].splice(draggedData.sourceIndex, 1);
-        }
-        addPlayerToPosition(targetPos, draggedData.name, draggedData.num);
-      } else {
-        addPlayerToPosition(targetPos, draggedData.name, draggedData.num);
-      }
-
-      draggedData = null;
-    }
-
-    function handleTouchSelect(name, num, posKey, index, e) {
-      if (userRole !== 'admin') return;
-      if (e) e.stopPropagation();
-      selectedTouchPlayer = { name, num, posKey, index };
-      renderActiveBoards();
-      renderMasterRoster();
-    }
-
-    function handleCardTap(targetPos) {
-      if (userRole !== 'admin') return;
-      if (!selectedTouchPlayer) return;
-
-      if (!depthChart) depthChart = getWeekDepthChart(currentWeek);
-
-      if (selectedTouchPlayer.posKey) {
-        if (selectedTouchPlayer.posKey !== targetPos) {
-          if(depthChart[selectedTouchPlayer.posKey]) {
-            depthChart[selectedTouchPlayer.posKey].splice(selectedTouchPlayer.index, 1);
-          }
-          addPlayerToPosition(targetPos, selectedTouchPlayer.name, selectedTouchPlayer.num);
-        }
-      } else {
-        addPlayerToPosition(targetPos, selectedTouchPlayer.name, selectedTouchPlayer.num);
-      }
-
-      selectedTouchPlayer = null;
-      renderActiveBoards();
-      renderMasterRoster();
-    }
-
-    function getPlayerPositionsCount(num) {
-      if (!num || !depthChart) return 0;
-      let count = 0;
-      Object.keys(depthChart).forEach(key => {
-        if (Array.isArray(depthChart[key])) {
-          count += depthChart[key].filter(p => p && p.num === num).length;
-        }
-      });
-      return count;
-    }
-
-    function filterRoster() {
-      renderMasterRoster();
-      renderActiveBoards();
-    }
-
-    function renderMasterRoster() {
-      const rosterContainer = document.getElementById("master-roster-list");
-      if (!rosterContainer) return;
-      const searchEl = document.getElementById("search-input");
-      const searchTerm = (searchEl ? searchEl.value : "").toLowerCase().trim();
-      rosterContainer.innerHTML = "";
-
-      masterRoster.forEach(player => {
-        const fName = (player.firstName || "").toLowerCase();
-        const lName = (player.lastName || "").toLowerCase();
-        const pNum = (player.num || "").toString().toLowerCase();
-
-        const matches = !searchTerm || fName.includes(searchTerm) || lName.includes(searchTerm) || pNum.includes(searchTerm);
-        if (!matches) return;
-
-        const spotCount = player.num ? getPlayerPositionsCount(player.num) : 0;
-
-        const li = document.createElement("li");
-        li.className = "full-roster-item";
-        li.dataset.name = player.lastName || player.firstName;
-        li.dataset.num = player.num || "";
-
-        if (selectedTouchPlayer && selectedTouchPlayer.num === player.num && player.num !== "") {
-          li.classList.add("selected-touch");
-        }
-
-        if (userRole === 'admin') {
-          li.draggable = true;
-          li.ondragstart = handleRosterDragStart;
-          li.onclick = (e) => handleTouchSelect(player.lastName || player.firstName, player.num || "", null, null, e);
-        }
-
-        li.innerHTML = `
-          <div>
-            <span class="num-tag" style="min-width:26px; color:var(--primary);">${player.num ? '#' + player.num : ''}</span> 
-            <span>${player.firstName || ''} ${player.lastName || ''}</span>
-          </div>
-          ${spotCount > 0 ? `<span class="multi-badge">${spotCount} Spot${spotCount > 1 ? 's' : ''}</span>` : ''}
-        `;
-        rosterContainer.appendChild(li);
-      });
-    }
-
-    function exportData() {
-      if (userRole !== 'admin') return;
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ weeklyData, practiceData, savedCoaches, savedCustomCategories, practiceTemplates, dynamicDrills }, null, 2));
-      const downloadAnchor = document.createElement('a');
-      downloadAnchor.setAttribute("href", dataStr);
-      downloadAnchor.setAttribute("download", "football_operations_backup.json");
-      document.body.appendChild(downloadAnchor);
-      downloadAnchor.click();
-      downloadAnchor.remove();
-    }
-
-    function importData(event) {
-      if (userRole !== 'admin') return;
-      const file = event.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        try {
-          const imported = JSON.parse(e.target.result);
-          if (imported.weeklyData) weeklyData = imported.weeklyData;
-          if (imported.practiceData) practiceData = imported.practiceData;
-          if (imported.savedCoaches) savedCoaches = imported.savedCoaches;
-          if (imported.savedCustomCategories) savedCustomCategories = imported.savedCustomCategories;
-          if (imported.practiceTemplates) practiceTemplates = imported.practiceTemplates;
-          if (imported.dynamicDrills) dynamicDrills = imported.dynamicDrills;
-          saveState();
-          saveCoaches();
-          initializeApp();
-          alert("All Depth Chart and Practice Plan data successfully loaded!");
-        } catch (err) {
-          alert("Invalid file format.");
-        }
-      };
-      reader.readAsText(file);
-    }
-
-    function resetDefault() {
-      if (userRole !== 'admin') return;
-      if (confirm(`Reset Week ${currentWeek} back to default?`)) {
-        weeklyData[currentWeek] = {
-          opponent: "",
-          depthChart: JSON.parse(JSON.stringify(defaultDepthChartAssignments)),
-          formations: JSON.parse(JSON.stringify(defaultFormations))
-        };
-        depthChart = weeklyData[currentWeek].depthChart;
-        const oppInput = document.getElementById("opponent-input");
-        if(oppInput) oppInput.value = "";
-        saveState();
-        renderActiveBoards();
-        renderMasterRoster();
-      }
     }
 
     // Initialize application on load
