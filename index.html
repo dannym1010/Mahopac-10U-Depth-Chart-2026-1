@@ -5,9 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Football Depth Chart & Practice Manager</title>
   
-  <!-- Firebase SDKs for Real-Time Cloud Storage -->
+  <!-- Firebase SDKs for Real-Time Cloud Storage & Auth -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 
   <style>
     :root {
@@ -48,6 +49,144 @@
       display: none !important;
     }
 
+    /* --- AUTH OVERLAY & MODAL STYLES --- */
+    #auth-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(6px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+    }
+
+    .auth-card {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 28px;
+      width: 100%;
+      max-width: 380px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      text-align: center;
+      border: 1px solid var(--card-border);
+    }
+
+    .auth-card h2 {
+      margin-top: 0;
+      color: var(--primary);
+      font-size: 20px;
+    }
+
+    .auth-card p {
+      color: var(--text-muted);
+      font-size: 12px;
+      margin-bottom: 20px;
+    }
+
+    .auth-input {
+      width: 100%;
+      padding: 10px 12px;
+      margin-bottom: 12px;
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      font-size: 13px;
+      box-sizing: border-box;
+      outline: none;
+    }
+
+    .auth-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 10px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-bottom: 10px;
+      transition: background 0.2s;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent);
+    }
+
+    .btn-google {
+      width: 100%;
+      padding: 10px;
+      background: #ffffff;
+      color: #333333;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+      transition: background 0.2s;
+    }
+
+    .btn-google:hover {
+      background: #f8fafc;
+    }
+
+    .auth-divider {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      margin: 16px 0;
+      color: var(--text-muted);
+      font-size: 11px;
+    }
+
+    .auth-divider::before, .auth-divider::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .auth-divider:not(:empty)::before { margin-right: .5em; }
+    .auth-divider:not(:empty)::after { margin-left: .5em; }
+
+    .auth-switch {
+      font-size: 11px;
+      color: var(--accent);
+      cursor: pointer;
+      font-weight: bold;
+      margin-top: 12px;
+      display: inline-block;
+    }
+
+    .user-profile-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 11px;
+    }
+
+    .role-badge {
+      font-size: 9px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+    .role-admin { background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; }
+    .role-viewer { background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; }
+
     /* --- ROLE-BASED ACCESS CONTROL STYLES --- */
     body.view-only .admin-only {
       display: none !important;
@@ -72,7 +211,6 @@
     body.view-only .player-item {
       cursor: default !important;
     }
-    /* ---------------------------------------- */
 
     /* Action Toolbar */
     .toolbar {
@@ -101,21 +239,7 @@
       border-radius: 50%;
     }
 
-    .auth-btn {
-      padding: 6px 12px;
-      border: 1px solid var(--primary);
-      border-radius: 6px;
-      font-size: 11px;
-      font-weight: bold;
-      background-color: var(--primary);
-      color: #ffffff;
-      cursor: pointer;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-      transition: all 0.2s;
-    }
-    .auth-btn.locked { background-color: #ef4444; border-color: #ef4444; }
-
-    .toolbar button:not(.auth-btn), .copy-week-btn {
+    .toolbar button:not(.btn-primary), .copy-week-btn {
       padding: 6px 12px;
       border: 1px solid var(--card-border);
       border-radius: 6px;
@@ -128,7 +252,7 @@
       transition: all 0.2s;
     }
 
-    .toolbar button:hover:not(.auth-btn), .copy-week-btn:hover {
+    .toolbar button:hover:not(.btn-primary), .copy-week-btn:hover {
       background-color: #eff6ff;
       border-color: var(--accent);
     }
@@ -672,10 +796,10 @@
     .wb-body-yellow { background-color: #ffffff !important; } 
     
     .wb-sub-green { background-color: #92d050 !important; color: #000 !important; }
-    .wb-body-green { background-color: #eaf1dd !important; }
+    .wb-body-green { background-color: #eaf1dd !important; } 
     
     .wb-sub-red { background-color: #ff0000 !important; color: #fff !important; }
-    .wb-body-red { background-color: #f2dcdb !important; }
+    .wb-body-red { background-color: #f2dcdb !important; } 
     
     .wb-sub-white { background-color: #ffffff !important; color: #000 !important; }
     .wb-body-white { background-color: #ffffff !important; }
@@ -700,6 +824,16 @@
     .drill-item-row { display: grid; grid-template-columns: 20% 50% 25% 5%; gap: 8px; align-items: start; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed #e2e8f0; }
     .drill-item-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
 
+    /* Scouting Grid */
+    .scouting-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+    @media (max-width: 768px) {
+      .scouting-grid { grid-template-columns: 1fr; }
+    }
+
     /* Practice Plan Resizable Table & Alternating Shading Styles */
     .practice-dashboard {
       background: #f1f5f9;
@@ -720,7 +854,7 @@
       background: #ffffff;
       font-size: 11px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-      table-layout: fixed; /* Forced Fixed for clean resizing */
+      table-layout: fixed; 
     }
 
     .practice-table th, .practice-table td {
@@ -931,32 +1065,37 @@
       /* Wristband Print Specifics - Tailored for physical insert */
       #panel-wristband .wb-exact-table {
         border: 2px solid #000000; 
-        width: 5.25in !important; /* Ideal wristband physical width */
+        width: 5.25in !important; 
         margin: 0;
         table-layout: fixed !important; 
       }
       #panel-wristband .wb-exact-table td {
-        height: 0.18in !important; /* Perfect physical wristband row height */
+        height: 0.18in !important; 
       }
       #panel-wristband .wb-sub-idx {
-        width: 0.25in !important; /* Narrow number box */
+        width: 0.25in !important; 
       }
       #panel-wristband .wb-play-input { display: none !important; }
       #panel-wristband .wb-cell-controls { display: none !important; }
       #panel-wristband .print-text-node.wb-print-text {
-        font-size: 8.5px !important; /* Kept strictly sized for wristband */
+        font-size: 8.5px !important; 
         padding: 0 2px !important;
         font-weight: bold;
         text-transform: uppercase;
         font-family: "Times New Roman", Times, serif !important;
       }
 
+      /* Scouting Print Specifics */
+      #panel-scouting .scouting-grid { display: block !important; }
+      #panel-scouting .station-block { page-break-inside: avoid; border: 1px solid #000; padding: 8px; margin-bottom: 8px; border-radius: 0; }
+      #panel-scouting .station-title { font-size: 11px; border-bottom: 1px solid #000; padding-bottom: 2px; margin-bottom: 4px; color: #000; }
+
       /* Practice Table Print */
       .practice-table { 
         border: 2px solid #000000; 
         width: 100% !important; 
         table-layout: fixed !important; 
-        font-size: 10px !important; /* INCREASED */
+        font-size: 10px !important; 
         page-break-inside: auto;
       }
       .practice-table tr { page-break-inside: avoid; page-break-after: auto; }
@@ -982,13 +1121,13 @@
         appearance: none; 
         -webkit-appearance: none; 
         color: #000000 !important; 
-        font-size: 10px !important; /* INCREASED */
+        font-size: 10px !important; 
         margin: 0;
       }
 
       .print-text-node {
         display: block !important;
-        font-size: 10px !important; /* INCREASED */
+        font-size: 10px !important; 
         white-space: pre-wrap;
         word-break: break-word;
         color: #000000;
@@ -998,7 +1137,7 @@
       .prac-textarea { display: none !important; }
       .station-block { border-bottom: 1px solid #ccc; margin-bottom: 2px; padding-bottom: 2px; page-break-inside: avoid; }
       .coach-badge {
-        background: transparent !important; color: #000000 !important; padding: 0 !important; margin: 0 !important; font-size: 10px !important; font-weight: normal !important; /* INCREASED */
+        background: transparent !important; color: #000000 !important; padding: 0 !important; margin: 0 !important; font-size: 10px !important; font-weight: normal !important; 
       }
       .coach-badge::after { content: ", "; }
       .coach-badge:last-child::after { content: ""; }
@@ -1018,6 +1157,35 @@
 </head>
 <body class="view-only" onclick="closeAllDropdowns()">
 
+  <!-- Authentication Overlay -->
+  <div id="auth-overlay">
+    <div class="auth-card">
+      <h2>🏈 Coach Portal</h2>
+      <p>Log in to manage depth charts, playbooks, and practice itineraries.</p>
+      
+      <button class="btn-google" onclick="signInWithGoogle()">
+        <svg width="18" height="18" viewBox="0 0 24 24">
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+        </svg>
+        Sign in with Google
+      </button>
+
+      <div class="auth-divider">OR</div>
+
+      <form id="email-auth-form" onsubmit="handleEmailAuth(event)">
+        <input type="email" id="auth-email" class="auth-input" placeholder="Coach Email Address" required autocomplete="username" />
+        <input type="password" id="auth-password" class="auth-input" placeholder="Password" required autocomplete="current-password" />
+        <button type="submit" id="auth-submit-btn" class="btn-primary">Sign In</button>
+      </form>
+      
+      <span class="auth-switch" id="auth-switch-btn" onclick="toggleAuthMode()">Don't have an account? Sign Up</span>
+      <div id="auth-error" style="color:#ef4444; font-size:11px; margin-top:10px; font-weight:bold;"></div>
+    </div>
+  </div>
+
   <h1>🏈 Football Operations Manager</h1>
   <p class="subtitle">Manage Depth Charts, Custom Formations, and Resizable Practice Plans.</p>
 
@@ -1028,7 +1196,11 @@
         <div class="sync-dot"></div>
         <span id="sync-text">Live Cloud Sync Active</span>
       </div>
-      <button class="auth-btn locked no-print" id="auth-btn" onclick="toggleAuth()">🔓 Unlock Edit Mode</button>
+      <div class="user-profile-bar">
+        <span id="user-display-email" style="font-weight:bold; color:var(--primary);"></span>
+        <span id="user-role-badge" class="role-badge role-viewer">VIEWER</span>
+        <button class="toggle-board-btn no-print" onclick="signOutUser()">🚪 Sign Out</button>
+      </div>
     </div>
     
     <div style="display:flex; gap:6px;">
@@ -1069,6 +1241,7 @@
     <button class="nav-tab" id="tab-btn-st" onclick="switchUnitTab('st')">Special Teams</button>
     <button class="nav-tab" id="tab-btn-groups" onclick="switchUnitTab('groups')">Depth Chart</button>
     <button class="nav-tab" id="tab-btn-wristband" onclick="switchUnitTab('wristband')">Wristband</button>
+    <button class="nav-tab" id="tab-btn-scouting" onclick="switchUnitTab('scouting')">Scouting</button>
     <button class="nav-tab" id="tab-btn-drills" onclick="switchUnitTab('drills')">Drills</button>
     <button class="nav-tab" id="tab-btn-practice" onclick="switchUnitTab('practice')">Practice Plan</button>
   </div>
@@ -1120,6 +1293,46 @@
           
           <div id="wristband-grid" style="overflow-x: auto; padding: 4px; display:flex; justify-content:center;">
             <!-- Table Populated by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- SCOUTING REPORT PANEL -->
+      <div class="unit-panel hidden" id="panel-scouting">
+        <div class="print-only-header">
+           <h2 id="print-scout-title">Scouting Report</h2>
+        </div>
+        <div class="formation-container">
+          <div class="board-title no-print">
+            <div style="display:flex; align-items:center; gap:12px;">
+              <span>Scouting Report</span>
+            </div>
+            <div style="display:flex; gap:4px; flex-wrap:wrap;">
+              <button class="toolbar button" onclick="if(document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur(); setTimeout(()=>window.print(), 100);" style="padding:4px 10px; margin-left:6px;">🖨️ Print Report</button>
+            </div>
+          </div>
+          
+          <div class="scouting-grid">
+             <div class="station-block">
+                <div class="station-title">Team Overview & Game Notes</div>
+                <textarea id="scout-teamOverview" class="prac-textarea scout-textarea" oninput="autoResizeTextarea(this); updateScouting('teamOverview', this.value)" placeholder="General notes about the opponent..."></textarea>
+             </div>
+             <div class="station-block">
+                <div class="station-title">Key Players to Watch</div>
+                <textarea id="scout-keyPlayers" class="prac-textarea scout-textarea" oninput="autoResizeTextarea(this); updateScouting('keyPlayers', this.value)" placeholder="#X Name - Notes..."></textarea>
+             </div>
+             <div class="station-block">
+                <div class="station-title">Offensive Tendencies</div>
+                <textarea id="scout-offenseTendencies" class="prac-textarea scout-textarea" oninput="autoResizeTextarea(this); updateScouting('offenseTendencies', this.value)" placeholder="Formations, favorite plays, run/pass ratio..."></textarea>
+             </div>
+             <div class="station-block">
+                <div class="station-title">Defensive Tendencies</div>
+                <textarea id="scout-defenseTendencies" class="prac-textarea scout-textarea" oninput="autoResizeTextarea(this); updateScouting('defenseTendencies', this.value)" placeholder="Base front, coverages, blitz tendencies..."></textarea>
+             </div>
+             <div class="station-block" style="grid-column: 1 / -1;">
+                <div class="station-title">Special Teams & Other Notes</div>
+                <textarea id="scout-specialTeams" class="prac-textarea scout-textarea" oninput="autoResizeTextarea(this); updateScouting('specialTeams', this.value)" placeholder="Kicker strength, returners, fake threats..."></textarea>
+             </div>
           </div>
         </div>
       </div>
@@ -1231,86 +1444,158 @@ const firebaseConfig = {
     };
 
     let db = null;
+    let auth = null;
     let cloudEnabled = false;
 
     try {
       if (firebaseConfig.apiKey !== "YOUR_API_KEY") {
         firebase.initializeApp(firebaseConfig);
         db = firebase.firestore();
+        auth = firebase.auth();
         cloudEnabled = true;
       }
     } catch (err) {
       console.warn("Firebase not configured. Using local storage mode.", err);
     }
 
-    // Role state
-    let userRole = localStorage.getItem('footballUserRole') || 'viewer';
+    // Role & Auth State
+    let currentUser = null;
+    let userRole = 'viewer'; 
+    let isSignUpMode = false;
 
-    function toggleAuth() {
-      if (userRole === 'admin') {
-        userRole = 'viewer';
-        localStorage.setItem('footballUserRole', 'viewer');
-        document.body.classList.add('view-only');
-        document.getElementById('auth-btn').textContent = "🔓 Unlock Edit Mode";
-        document.getElementById('auth-btn').classList.add('locked');
-      } else {
-        const pass = prompt("Enter the password to unlock editing:");
-        if (pass === "Blue44") {
-          userRole = 'admin';
-          localStorage.setItem('footballUserRole', 'admin');
-          document.body.classList.remove('view-only');
-          document.getElementById('auth-btn').textContent = "🔒 Lock (Admin Mode)";
-          document.getElementById('auth-btn').classList.remove('locked');
-        } else if (pass !== null) {
-          alert("Incorrect password. Remaining in View-Only mode.");
+    // Listen to Firebase Auth state
+    if (auth) {
+      auth.onAuthStateChanged((user) => {
+        const overlay = document.getElementById("auth-overlay");
+        if (user) {
+          currentUser = user;
+          overlay.style.display = "none";
+          document.getElementById("user-display-email").textContent = user.email || user.displayName;
+          fetchUserRole(user);
+        } else {
+          currentUser = null;
+          overlay.style.display = "flex";
+          document.body.classList.add("view-only");
+          document.getElementById("user-display-email").textContent = "";
         }
-      }
-      renderActiveBoards();
-      if (activeUnit === 'wristband') renderWristband();
-      if (activeUnit === 'drills') renderDrillsTab();
-      renderPracticePlan();
+      });
+    } else {
+      // Local testing mode if Firebase not initialized
+      document.getElementById("auth-overlay").style.display = "none";
+      userRole = localStorage.getItem('footballUserRole') || 'admin';
+      applyRole(userRole);
     }
 
-    // Apply role on initial load
-    if (userRole === 'admin') {
-      document.body.classList.remove('view-only');
-      document.getElementById('auth-btn').textContent = "🔒 Lock (Admin Mode)";
-      document.getElementById('auth-btn').classList.remove('locked');
+    function toggleAuthMode() {
+      isSignUpMode = !isSignUpMode;
+      document.getElementById("auth-submit-btn").textContent = isSignUpMode ? "Create Account" : "Sign In";
+      document.getElementById("auth-switch-btn").textContent = isSignUpMode 
+        ? "Already have an account? Sign In" 
+        : "Don't have an account? Sign Up";
+      document.getElementById("auth-error").textContent = "";
+    }
+
+    function handleEmailAuth(e) {
+      e.preventDefault();
+      const email = document.getElementById("auth-email").value.trim();
+      const password = document.getElementById("auth-password").value;
+      const errorEl = document.getElementById("auth-error");
+      errorEl.textContent = "";
+
+      if (!auth) {
+        alert("Firebase Auth is not configured with your API credentials yet.");
+        return;
+      }
+
+      if (isSignUpMode) {
+        auth.createUserWithEmailAndPassword(email, password)
+          .catch(err => errorEl.textContent = err.message);
+      } else {
+        auth.signInWithEmailAndPassword(email, password)
+          .catch(err => errorEl.textContent = err.message);
+      }
+    }
+
+    function signInWithGoogle() {
+      const errorEl = document.getElementById("auth-error");
+      errorEl.textContent = "";
+
+      if (!auth) {
+        alert("Firebase Auth is not configured with your API credentials yet.");
+        return;
+      }
+
+      const provider = new firebase.auth.GoogleAuthProvider();
+      auth.signInWithPopup(provider)
+        .catch(err => errorEl.textContent = err.message);
+    }
+
+    function signOutUser() {
+      if (auth) {
+        auth.signOut();
+      } else {
+        location.reload();
+      }
+    }
+
+    function fetchUserRole(user) {
+      if (!db) {
+        applyRole('admin');
+        return;
+      }
+      
+      const userRef = db.collection("users").doc(user.uid);
+      userRef.get().then((doc) => {
+        if (doc.exists) {
+          const role = doc.data().role || 'viewer';
+          applyRole(role);
+        } else {
+          // Check if this is the first user ever; if so, make them admin
+          db.collection("users").get().then((snap) => {
+            const isFirstUser = snap.empty;
+            const newRole = isFirstUser ? 'admin' : 'viewer';
+            userRef.set({
+              email: user.email,
+              displayName: user.displayName || '',
+              role: newRole,
+              createdAt: Date.now()
+            });
+            applyRole(newRole);
+          });
+        }
+      }).catch((err) => {
+        console.warn("Could not fetch user role, defaulting to viewer.", err);
+        applyRole('viewer');
+      });
+    }
+
+    function applyRole(role) {
+      userRole = role;
+      localStorage.setItem('footballUserRole', role);
+      
+      const badge = document.getElementById("user-role-badge");
+      if (badge) {
+        badge.textContent = role.toUpperCase();
+        badge.className = `role-badge ${role === 'admin' ? 'role-admin' : 'role-viewer'}`;
+      }
+
+      if (role === 'admin') {
+        document.body.classList.remove('view-only');
+      } else {
+        document.body.classList.add('view-only');
+      }
+
+      renderActiveBoards();
+      if (activeUnit === 'wristband') renderWristband();
+      if (activeUnit === 'scouting') renderScouting();
+      if (activeUnit === 'drills') renderDrillsTab();
+      renderPracticePlan();
     }
 
     function isUserEditing() {
       const active = document.activeElement;
       return active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.tagName === 'SELECT');
     }
-
-    const masterRoster = [
-      { num: "2", firstName: "Mohammed", lastName: "Ibrahim" },
-      { num: "4", firstName: "Vincent", lastName: "Cambigianis" },
-      { num: "6", firstName: "Andrew", lastName: "Henderson" },
-      { num: "7", firstName: "Jayden", lastName: "Silva" },
-      { num: "8", firstName: "James", lastName: "Kilkenny" },
-      { num: "10", firstName: "Luke", lastName: "Mancini" },
-      { num: "11", firstName: "Dorian", lastName: "Berish" },
-      { num: "12", firstName: "Richard", lastName: "Barry" },
-      { num: "13", firstName: "Landon", lastName: "Veto" },
-      { num: "15", firstName: "Henry", lastName: "Swansen" },
-      { num: "17", firstName: "David", lastName: "Dicob" },
-      { num: "19", firstName: "Paul", lastName: "Nardella" },
-      { num: "20", firstName: "Jack", lastName: "Furfaro" },
-      { num: "21", firstName: "Nash", lastName: "Ward" },
-      { num: "22", firstName: "Jaxson", lastName: "Pestone" },
-      { num: "27", firstName: "Sean", lastName: "Lacerra" },
-      { num: "33", firstName: "Michael", lastName: "Frascone" },
-      { num: "34", firstName: "Eddie", lastName: "Flemming" },
-      { num: "40", firstName: "Chris", lastName: "Sokol" },
-      { num: "44", firstName: "Caden", lastName: "Jones" },
-      { num: "48", firstName: "Michael", lastName: "Sweeny" },
-      { num: "50", firstName: "Colin", lastName: "Convery" },
-      { num: "52", firstName: "John", lastName: "Piqueras" },
-      { num: "56", firstName: "Ryan", lastName: "Russell" },
-      { num: "66", firstName: "Luca", lastName: "Mucciacciaro" },
-      { num: "99", firstName: "Conrad", lastName: "Crean" }
-    ];
 
     const defaultDynamicDrills = {
       "Indy Offense": [
@@ -1445,6 +1730,20 @@ const firebaseConfig = {
             { id: "GRP-QB", name: "QB" }, { id: "GRP-FB", name: "FB" }, { id: "GRP-RB", name: "RB" }
           ]}
         ]
+      },
+      {
+        id: "form_grp_def", unit: "groups", name: "Defensive Depth Chart", subtitle: "Standard 4-4 Front", collapsed: false,
+        rows: [
+          { id: "row_grp_d_sec", label: "Secondary Level", rowClass: "secondary-corners", positions: [
+            { id: "GRP-CB1", name: "CB 1" }, { id: "GRP-FS", name: "FS" }, { id: "GRP-CB2", name: "CB 2" }
+          ]},
+          { id: "row_grp_d_lb", label: "Linebacker Level", rowClass: "linebackers-tight", positions: [
+            { id: "GRP-ROVER", name: "ROVER" }, { id: "GRP-WILL", name: "WILL" }, { id: "GRP-MIKE", name: "MIKE" }, { id: "GRP-SAM", name: "SAM" }
+          ]},
+          { id: "row_grp_d_dl", label: "Defensive Line", rowClass: "dl", positions: [
+            { id: "GRP-WDE", name: "WDE" }, { id: "GRP-DT1", name: "DT 1" }, { id: "GRP-DT2", name: "DT 2" }, { id: "GRP-SDE", name: "SDE" }
+          ]}
+        ]
       }
     ];
 
@@ -1518,6 +1817,19 @@ const firebaseConfig = {
       return weeklyData[week].depthChart;
     }
 
+    function initScoutingData() {
+      if (!weeklyData[currentWeek]) weeklyData[currentWeek] = {};
+      if (!weeklyData[currentWeek].scouting) {
+        weeklyData[currentWeek].scouting = {
+           teamOverview: "",
+           keyPlayers: "",
+           offenseTendencies: "",
+           defenseTendencies: "",
+           specialTeams: ""
+        };
+      }
+    }
+
     function initWristbandData() {
       if (!weeklyData[currentWeek]) weeklyData[currentWeek] = {};
       if (!weeklyData[currentWeek].wristbandData) {
@@ -1528,21 +1840,6 @@ const firebaseConfig = {
               { color: "yellow", plays: Array(16).fill("").map(() => ({ text: "", color: "yellow" })) }
            ]
         };
-      } else if (weeklyData[currentWeek].wristband) {
-         weeklyData[currentWeek].wristbandData = {
-           rows: 16,
-           columns: [
-              { color: "blue", plays: Array(16).fill("").map(() => ({ text: "", color: "blue" })) },
-              { color: "yellow", plays: Array(16).fill("").map(() => ({ text: "", color: "yellow" })) }
-           ]
-         };
-         delete weeklyData[currentWeek].wristband; 
-      } else if (weeklyData[currentWeek].wristbandData.pages) {
-         weeklyData[currentWeek].wristbandData.columns = weeklyData[currentWeek].wristbandData.pages.map(p => {
-             return { color: p.color, plays: p.plays.map(pt => ({ text: pt || "", color: p.color })) };
-         });
-         delete weeklyData[currentWeek].wristbandData.pages;
-         delete weeklyData[currentWeek].wristbandData.startIndex;
       }
       
       weeklyData[currentWeek].wristbandData.columns.forEach(c => {
@@ -1622,6 +1919,7 @@ const firebaseConfig = {
       }
 
       initWristbandData();
+      initScoutingData();
       depthChart = getWeekDepthChart(currentWeek);
       const oppInput = document.getElementById("opponent-input");
       if(oppInput) oppInput.value = weeklyData[currentWeek] ? (weeklyData[currentWeek].opponent || "") : "";
@@ -1777,8 +2075,6 @@ const firebaseConfig = {
       const tIdx = parseInt(tmplChoice) - 1;
       if (tIdx >= 0 && tIdx < practiceTemplates.length) {
           basePlan = JSON.parse(JSON.stringify(practiceTemplates[tIdx].plan));
-      } else if (tmplChoice !== "0") {
-          if(!confirm("Invalid template choice. Start blank?")) return;
       }
 
       const defaultDate = new Date().toISOString().split('T')[0];
@@ -1850,7 +2146,7 @@ const firebaseConfig = {
       p.day = newDay.trim();
       p.title = newTitle.trim();
       p.date = newDate.trim();
-      markPracticeEdited();
+      p.lastEdited = Date.now();
       
       saveState();
       populatePracticeDropdown();
@@ -1875,7 +2171,7 @@ const firebaseConfig = {
       
       if(confirm(`Overwrite current plan "${p.title}" with "${practiceData[targetIdx].title}"?`)) {
          p.plan = JSON.parse(JSON.stringify(practiceData[targetIdx].plan));
-         markPracticeEdited();
+         p.lastEdited = Date.now();
          saveState();
          renderPracticePlan();
       }
@@ -1887,7 +2183,7 @@ const firebaseConfig = {
       if(!p) return;
       if(confirm(`Reset "${p.title}" back to the default practice plan template?`)) {
         p.plan = JSON.parse(JSON.stringify(defaultPracticePlan));
-        markPracticeEdited();
+        p.lastEdited = Date.now();
         saveState();
         renderPracticePlan();
         alert("Practice plan successfully reset to default.");
@@ -1917,7 +2213,7 @@ const firebaseConfig = {
       const p = getCurrentPractice();
       if(!p) return;
       p[field] = value;
-      markPracticeEdited();
+      p.lastEdited = Date.now();
       saveState();
       renderPracticePlan();
     }
@@ -1925,11 +2221,19 @@ const firebaseConfig = {
     function changeWeek(newWeek) {
       currentWeek = newWeek;
       initWristbandData();
+      initScoutingData();
       depthChart = getWeekDepthChart(currentWeek);
       const oppInput = document.getElementById("opponent-input");
       if(oppInput) oppInput.value = weeklyData[currentWeek] ? (weeklyData[currentWeek].opponent || "") : "";
-      renderActiveBoards();
+      
       if (activeUnit === 'wristband') renderWristband();
+      else if (activeUnit === 'scouting') renderScouting();
+      else if (activeUnit === 'drills') renderDrillsTab();
+      else if (activeUnit === 'practice') {
+         populatePracticeDropdown();
+         renderPracticePlan();
+      } else renderActiveBoards();
+      
       renderMasterRoster();
     }
 
@@ -1938,11 +2242,16 @@ const firebaseConfig = {
       if (!weeklyData[currentWeek]) weeklyData[currentWeek] = {};
       weeklyData[currentWeek].opponent = val;
       saveState();
+      
+      const printTitle = document.getElementById('print-scout-title');
+      if (printTitle && activeUnit === 'scouting') {
+         printTitle.textContent = `Scouting Report: ${val || `Week ${currentWeek}`}`;
+      }
     }
 
     function copyWeekToPrompt() {
       if (userRole !== 'admin') return;
-      const targetWeek = prompt(`Copy current Week ${currentWeek} depth chart to which week? (Enter a number 0 to 8):`);
+      const targetWeek = prompt(`Copy current Week ${currentWeek} depth chart, wristband, & scouting to which week? (Enter a number 0 to 8):`);
       if (targetWeek === null) return;
 
       const cleanedTarget = targetWeek.trim();
@@ -1956,12 +2265,15 @@ const firebaseConfig = {
         return;
       }
 
-      if (confirm(`Are you sure you want to overwrite Week ${cleanedTarget} depth chart and formations with Week ${currentWeek}'s data?`)) {
+      if (confirm(`Are you sure you want to overwrite Week ${cleanedTarget} data with Week ${currentWeek}'s data?`)) {
         if (!weeklyData[cleanedTarget]) weeklyData[cleanedTarget] = {};
         weeklyData[cleanedTarget].depthChart = JSON.parse(JSON.stringify(getWeekDepthChart(currentWeek)));
         weeklyData[cleanedTarget].formations = JSON.parse(JSON.stringify(getWeekFormations(currentWeek)));
         if (weeklyData[currentWeek].wristbandData) {
           weeklyData[cleanedTarget].wristbandData = JSON.parse(JSON.stringify(weeklyData[currentWeek].wristbandData));
+        }
+        if (weeklyData[currentWeek].scouting) {
+          weeklyData[cleanedTarget].scouting = JSON.parse(JSON.stringify(weeklyData[currentWeek].scouting));
         }
         saveState();
         alert(`Successfully copied Week ${currentWeek} data to Week ${cleanedTarget}!`);
@@ -1975,6 +2287,7 @@ const firebaseConfig = {
       document.getElementById('panel-st').classList.toggle('hidden', unit !== 'st');
       document.getElementById('panel-groups').classList.toggle('hidden', unit !== 'groups');
       document.getElementById('panel-wristband').classList.toggle('hidden', unit !== 'wristband');
+      document.getElementById('panel-scouting').classList.toggle('hidden', unit !== 'scouting');
       document.getElementById('panel-drills').classList.toggle('hidden', unit !== 'drills');
       document.getElementById('panel-practice').classList.toggle('hidden', unit !== 'practice');
 
@@ -1983,27 +2296,62 @@ const firebaseConfig = {
       document.getElementById('tab-btn-st').classList.toggle('active', unit === 'st');
       document.getElementById('tab-btn-groups').classList.toggle('active', unit === 'groups');
       document.getElementById('tab-btn-wristband').classList.toggle('active', unit === 'wristband');
+      document.getElementById('tab-btn-scouting').classList.toggle('active', unit === 'scouting');
       document.getElementById('tab-btn-drills').classList.toggle('active', unit === 'drills');
       document.getElementById('tab-btn-practice').classList.toggle('active', unit === 'practice');
 
       const sidebar = document.getElementById('sidebar-panel');
       const mainWeekBar = document.getElementById('main-week-bar');
-      if (unit === 'practice' || unit === 'wristband' || unit === 'drills') {
+      
+      if (unit === 'practice' || unit === 'drills') {
         if(sidebar) sidebar.classList.add('hidden');
         if(mainWeekBar) mainWeekBar.classList.add('hidden');
-        if (unit === 'practice') {
-           populatePracticeDropdown();
-           renderPracticePlan();
-        } else if (unit === 'wristband') {
-           renderWristband();
-        } else if (unit === 'drills') {
-           renderDrillsTab();
-        }
+      } else if (unit === 'wristband' || unit === 'scouting') {
+        if(sidebar) sidebar.classList.add('hidden');
+        if(mainWeekBar) mainWeekBar.classList.remove('hidden');
       } else {
         if(sidebar) sidebar.classList.remove('hidden');
         if(mainWeekBar) mainWeekBar.classList.remove('hidden');
-        renderActiveBoards();
       }
+
+      if (unit === 'practice') {
+         populatePracticeDropdown();
+         renderPracticePlan();
+      } else if (unit === 'wristband') {
+         renderWristband();
+      } else if (unit === 'scouting') {
+         renderScouting();
+      } else if (unit === 'drills') {
+         renderDrillsTab();
+      } else {
+         renderActiveBoards();
+      }
+    }
+
+    /* SCOUTING LOGIC */
+    function renderScouting() {
+      initScoutingData();
+      const scout = weeklyData[currentWeek].scouting;
+      
+      const fields = ['teamOverview', 'keyPlayers', 'offenseTendencies', 'defenseTendencies', 'specialTeams'];
+      fields.forEach(f => {
+         const el = document.getElementById('scout-' + f);
+         if (el) {
+             el.value = scout[f] || "";
+             autoResizeTextarea(el);
+         }
+      });
+      
+      const printTitle = document.getElementById('print-scout-title');
+      const opp = weeklyData[currentWeek].opponent || `Week ${currentWeek}`;
+      if (printTitle) printTitle.textContent = `Scouting Report: ${opp}`;
+    }
+
+    function updateScouting(field, value) {
+      if (userRole !== 'admin') return;
+      initScoutingData();
+      weeklyData[currentWeek].scouting[field] = value;
+      triggerDebouncedSave();
     }
 
     /* MASTER DRILLS LOGIC */
@@ -2594,12 +2942,10 @@ const firebaseConfig = {
 
     function triggerDebouncedSave() {
       clearTimeout(saveTimeout);
-      // Immediately save to local storage for speed
       localStorage.setItem("footballPracticeData", JSON.stringify(practiceData));
       localStorage.setItem("footballWeeklyData", JSON.stringify(weeklyData));
       localStorage.setItem("footballDynamicDrills", JSON.stringify(dynamicDrills));
       
-      // Debounce the cloud sync so it doesn't interrupt typing
       saveTimeout = setTimeout(() => {
           saveState();
       }, 1500);
@@ -2673,6 +3019,7 @@ const firebaseConfig = {
           if (!isUserEditing()) {
              renderActiveBoards();
              if (activeUnit === 'wristband') renderWristband();
+             if (activeUnit === 'scouting') renderScouting();
              if (activeUnit === 'drills') renderDrillsTab();
              renderMasterRoster();
              populatePracticeDropdown();
@@ -2684,7 +3031,6 @@ const firebaseConfig = {
       document.getElementById("sync-text").textContent = "Local Storage Mode";
     }
 
-    /* PRACTICE PLAN & TABLE RESIZING LOGIC */
     function updatePracticeTextData(idx, field, value) {
       if (userRole !== 'admin') return;
       const current = practiceData.find(p => p.id === currentPracticeId);
@@ -2740,13 +3086,12 @@ const firebaseConfig = {
       el.style.height = (el.scrollHeight + 2) + 'px';
     }
 
-    // Force full expansion of textareas right before print and swap them to clean printable divs
     window.addEventListener('beforeprint', () => {
       if (document.activeElement && typeof document.activeElement.blur === 'function') {
          document.activeElement.blur(); 
       }
       
-      document.querySelectorAll('.prac-textarea, .wb-play-input').forEach(el => {
+      document.querySelectorAll('.prac-textarea, .wb-play-input, .scout-textarea').forEach(el => {
         const div = document.createElement('div');
         div.className = 'print-text-node';
         if(el.classList.contains('wb-play-input')) div.classList.add('wb-print-text');
@@ -2764,7 +3109,7 @@ const firebaseConfig = {
 
     window.addEventListener('afterprint', () => {
       document.querySelectorAll('.print-text-node').forEach(div => div.remove());
-      document.querySelectorAll('.prac-textarea, .wb-play-input').forEach(el => el.style.display = '');
+      document.querySelectorAll('.prac-textarea, .wb-play-input, .scout-textarea').forEach(el => el.style.display = '');
     });
 
     function renderPracticePlan() {
@@ -2782,9 +3127,8 @@ const firebaseConfig = {
            return;
         }
 
-        // Calculate Times
         let totalMins = timeToMins(current.endTime) - timeToMins(current.startTime);
-        if (totalMins < 0) totalMins += 1440; // overnight check
+        if (totalMins < 0) totalMins += 1440; 
         
         let preMins = 0;
         let scheduledMins = 0;
@@ -2796,7 +3140,6 @@ const firebaseConfig = {
         let preClock = timeToMins(current.startTime) - preMins;
         let mainClock = timeToMins(current.startTime);
 
-        // Render Dashboard Stats
         const statsDiv = document.getElementById("prac-stats");
         if (statsDiv) {
           const remaining = totalMins - scheduledMins;
@@ -2818,7 +3161,6 @@ const firebaseConfig = {
         current.plan.forEach((row, idx) => {
           if (!row) return;
 
-          // Calculate period timestamp
           let rowStartMins, rowEndMins;
           if (row.category === 'Pre Practice') {
              rowStartMins = preClock;
@@ -3050,7 +3392,6 @@ const firebaseConfig = {
       const table = document.getElementById("main-practice-table");
       if (!table) return;
       
-      // Force fixed layout for precise column control
       table.style.tableLayout = "fixed";
 
       const ths = table.querySelectorAll("thead th");
@@ -3078,7 +3419,6 @@ const firebaseConfig = {
             if (newWidth > 30 && nextTh) {
               const newNextWidth = nextStartWidth - diffX;
               if (newNextWidth > 30) {
-                // Convert back to percentages so it stays responsive
                 th.style.width = ((newWidth / tableWidth) * 100) + "%";
                 nextTh.style.width = ((newNextWidth / tableWidth) * 100) + "%";
               }
@@ -3334,7 +3674,7 @@ const firebaseConfig = {
           st.coaches.push(value);
         }
       }
-      current.lastEdited = Date.now();
+      markPracticeEdited();
       saveState();
       renderPracticePlan();
     }
@@ -3348,7 +3688,6 @@ const firebaseConfig = {
       const st = row.stations[stationIdx];
       if (Array.isArray(st.coaches)) {
         st.coaches = st.coaches.filter(c => c !== coachName);
-        current.lastEdited = Date.now();
         saveState();
         renderPracticePlan();
       }
