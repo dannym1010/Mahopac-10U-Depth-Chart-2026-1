@@ -123,7 +123,7 @@
     @media (max-width: 900px) { .app-layout { flex-direction: column; } }
 
     .boards-container { flex: 3; min-width: 0; display: flex; flex-direction: column; gap: 15px; width: 100%; overflow: visible; }
-    .unit-panel { display: flex; flex-direction: column; gap: 20px; width: 100%; }
+    .unit-panel { display: flex; flex-direction: column; gap: 20px; width: 100%; overflow: visible; }
 
     /* Formation Cards */
     .formation-container {
@@ -134,6 +134,7 @@
       position: relative;
       cursor: pointer;
       transition: all 0.2s ease;
+      overflow: visible;
     }
     .formation-container:hover { border-color: var(--primary); }
     .formation-container.counting-active {
@@ -144,7 +145,7 @@
 
     .board-title { font-size: 14px; font-weight: bold; color: var(--primary); margin-bottom: 10px; border-bottom: 2px solid var(--primary); padding-bottom: 4px; display: flex; justify-content: space-between; align-items: center; }
     .board-controls { display: flex; align-items: center; gap: 4px; }
-    .toggle-board-btn, .add-form-btn { background: #f1f5f9; border: 1px solid var(--card-border); color: var(--primary); font-size: 11px; font-weight: bold; padding: 3px 8px; border-radius: 4px; cursor: pointer; }
+    .toggle-board-btn, .add-pos-btn, .add-form-btn { background: #f1f5f9; border: 1px solid var(--card-border); color: var(--primary); font-size: 11px; font-weight: bold; padding: 3px 8px; border-radius: 4px; cursor: pointer; }
     .add-form-btn { background: var(--primary); color: #ffffff; padding: 6px 12px; margin-bottom: 5px; align-self: flex-start; }
 
     .formation-body.collapsed { display: none !important; }
@@ -159,13 +160,15 @@
     .position-header { background: #f1f5f9; padding: 3px 6px; font-weight: bold; font-size: 11px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border); color: var(--primary); }
 
     .player-list { list-style: none; padding: 4px; margin: 0; min-height: 45px; }
-    .player-item { background: #f8fafc; border: 1px solid var(--card-border); padding: 4px 6px; margin-bottom: 4px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; cursor: grab; font-size: 11px; user-select: none; }
+    .player-item { background: #f8fafc; border: 1px solid var(--card-border); padding: 4px 6px; margin-bottom: 4px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; cursor: grab; font-size: 11px; user-select: none; z-index:100; position:relative; }
     .player-info { display: flex; gap: 4px; align-items: center; pointer-events: none; }
     .num-tag { font-weight: bold; }
     
     .rank-badge { font-size: 8px; font-weight: bold; padding: 2px 4px; border-radius: 3px; text-transform: uppercase; }
     .rank-starter { background: #000000; color: #ffffff; }
     .rank-sub-gold { background: #eab308; color: #000000; }
+    .rank-sub-blue { background: #1d4ed8; color: #ffffff; }
+    .rank-sub-gray { background: #64748b; color: #ffffff; }
 
     .remove-btn { background: none; border: none; color: #ef4444; font-weight: bold; cursor: pointer; font-size: 13px; }
 
@@ -175,7 +178,7 @@
     .wb-sub-idx { width: 28px; text-align: center; font-size: 10px; font-weight: bold; border-right: 1px solid #000 !important; }
     .wb-play-cell { padding-left: 4px; font-family: "Times New Roman", Times, serif; font-size: 14px; text-transform: uppercase; position: relative; }
     .wb-play-cell.drag-over { background-color: #c8e6c9 !important; border: 2px dashed #2e7d32 !important; }
-    .wb-play-input { width: calc(100% - 20px); height: 100%; border: none; background: transparent; font-family: inherit; font-size: inherit; outline: none; font-weight: bold; }
+    .wb-play-input { width: calc(100% - 20px); height: 100%; border: none; background: transparent; font-family: inherit; font-size: inherit; outline: none; font-weight: bold; color: #000; }
     
     .wb-sub-blue { background-color: #00b0f0 !important; color: #000 !important; }
     .wb-body-blue { background-color: #cce5ff !important; } 
@@ -186,6 +189,7 @@
     .tree-root { list-style: none; margin: 0; padding: 0; }
     .tree-root ul { list-style: none; margin: 0; padding-left: 12px; }
     .tree-caret { cursor: pointer; font-size: 11.5px; font-weight: bold; color: var(--primary); display: block; padding: 4px 0; }
+    .tree-caret:hover { color: var(--accent); }
     .tree-leaf { cursor: pointer; font-size: 11px; padding: 4px 0 4px 18px; color: var(--text); border-radius: 3px; }
     .tree-leaf:hover { background-color: #eff6ff; color: var(--accent); font-weight: bold; }
     .tree-leaf.selected { background-color: #dbeafe; font-weight: bold; border-left: 2px solid var(--accent); }
@@ -207,6 +211,51 @@
     .full-roster-list { list-style: none; padding: 0; margin: 0; overflow-y: auto; flex-grow: 1; min-height: 200px; }
     .full-roster-item { padding: 6px 8px; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; justify-content: space-between; font-size: 11px; cursor: grab; background: #f8fafc; margin-bottom: 4px; border-radius: 4px; border: 1px solid var(--card-border); user-select: none; }
     .multi-badge { font-size: 9px; background: #e2e8f0; color: #475569; padding: 1px 5px; border-radius: 10px; font-weight: bold; }
+
+    /* PRINT STYLES */
+    @media print {
+      @page { size: letter portrait; margin: 0.25in; }
+      body { background-color: #ffffff; padding: 0; margin: 0; font-size: 10px; }
+      .toolbar, #sidebar-container, .remove-btn, .action-group, p.subtitle, .search-box, .card-search-container, .tab-navigation, .toggle-board-btn, .week-bar, .board-controls, .add-row-btn, .add-form-btn, .row-actions, .col-resizer, .practice-dashboard { display: none !important; }
+      .app-layout, .boards-container, .unit-panel:not(.hidden) { display: block !important; }
+      .formation-body.collapsed { display: block !important; }
+      .formation-container { border: 1px solid #000000 !important; box-shadow: none !important; padding: 4px; page-break-inside: auto !important; margin-bottom: 4px; background: #ffffff !important; }
+      .formation-row { min-width: 100% !important; page-break-inside: avoid; }
+      .position-card { border: 1px solid #000000 !important; box-shadow: none !important; min-width: 65px; background: #ffffff !important; }
+      .position-header { background: #e2e8f0 !important; color: #000000 !important; border-bottom: 1px solid #000000 !important; font-size: 8px; padding: 2px 3px; }
+      .player-item { border: 1px solid #cbd5e1 !important; font-size: 7.5px; padding: 2px 3px; margin-bottom: 2px; }
+      h1 { margin-top: 0; font-size: 12px; color: #000000; text-align: center; }
+      #panel-wristband .wb-exact-table { border: 2px solid #000000; width: 5.25in !important; margin: 0; table-layout: fixed !important; }
+      #panel-wristband .wb-exact-table td { height: 0.18in !important; }
+      #panel-wristband .wb-sub-idx { width: 0.25in !important; }
+      #panel-wristband .wb-play-input { display: none !important; }
+      #panel-wristband .wb-cell-controls { display: none !important; }
+      #panel-wristband .print-text-node.wb-print-text { font-size: 8.5px !important; padding: 0 2px !important; font-weight: bold; text-transform: uppercase; font-family: "Times New Roman", Times, serif !important; }
+      #panel-wristband input[type="text"] { border: none !important; background: transparent !important; }
+      #panel-scouting .scouting-grid { display: block !important; }
+      #panel-scouting .station-block { page-break-inside: avoid; border: 1px solid #000; padding: 8px; margin-bottom: 8px; border-radius: 0; }
+      #panel-scouting .station-title { font-size: 11px; border-bottom: 1px solid #000; padding-bottom: 2px; margin-bottom: 4px; color: #000; }
+      .practice-table { border: 2px solid #000000; width: 100% !important; table-layout: fixed !important; font-size: 10px !important; page-break-inside: auto; }
+      .practice-table tr { page-break-inside: avoid; page-break-after: auto; }
+      .practice-table th, .practice-table td { border: 1px solid #000000 !important; padding: 3px 4px !important; overflow: hidden !important; word-wrap: break-word; }
+      .practice-table tbody tr:nth-child(odd) { background-color: #ffffff !important; }
+      .practice-table tbody tr:nth-child(even) { background-color: #f4f6f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .prac-time-input-wrap { display: none !important; }
+      .period-schedule-time { color: #000000 !important; font-size: 11px !important; margin-top: 2px; }
+      .rotation-timer { color: #000000 !important; font-size: 10px !important; }
+      .print-only-inline { display: inline !important; }
+      .prac-input, .prac-select { border: none !important; background: transparent !important; padding: 0 !important; color: #000000 !important; font-size: 10px !important; margin: 0; }
+      .print-text-node { display: block !important; font-size: 10px !important; white-space: pre-wrap; word-break: break-word; color: #000000; padding: 2px 0; }
+      .prac-textarea { display: none !important; }
+      .station-block { border-bottom: 1px solid #ccc; margin-bottom: 2px; padding-bottom: 2px; page-break-inside: avoid; }
+      .coach-badge { background: transparent !important; color: #000000 !important; padding: 0 !important; margin: 0 !important; font-size: 10px !important; font-weight: normal !important; }
+      .coach-badge::after { content: ", "; }
+      .coach-badge:last-child::after { content: ""; }
+      .no-print { display: none !important; }
+      .print-only-header { display: block !important; text-align: center; margin-bottom: 4px; }
+      .print-only-header h2 { margin: 0 0 2px 0; font-size: 14px; }
+      .print-only-header p { margin: 0; font-size: 11px; color: #333; }
+    }
   </style>
 </head>
 <body class="view-only" onclick="closeAllDropdowns(event)">
@@ -218,9 +267,8 @@
         <button id="tab-login" class="auth-tab-btn active" onclick="switchAuthTab('login')">Sign In</button>
         <button id="tab-register" class="auth-tab-btn" onclick="switchAuthTab('register')">Create Account</button>
       </div>
-
-      <h2>🏈 Coach Portal</h2>
-      <p>Log in to manage depth charts, playbooks, and practice itineraries.</p>
+      <h2 id="auth-main-title">🏈 Coach Portal</h2>
+      <p id="auth-main-subtitle">Log in to manage depth charts, playbooks, and practice itineraries.</p>
       
       <button class="btn-google" type="button" onclick="signInWithGoogle()">
         <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
@@ -328,6 +376,7 @@
              <div><strong>Key Players</strong><textarea id="scout-keyPlayers" class="prac-textarea" oninput="updateScouting('keyPlayers', this.value)"></textarea></div>
              <div><strong>Offensive Tendencies</strong><textarea id="scout-offenseTendencies" class="prac-textarea" oninput="updateScouting('offenseTendencies', this.value)"></textarea></div>
              <div><strong>Defensive Tendencies</strong><textarea id="scout-defenseTendencies" class="prac-textarea" oninput="updateScouting('defenseTendencies', this.value)"></textarea></div>
+             <div style="grid-column: 1 / -1;"><strong>Special Teams & Other Notes</strong><textarea id="scout-specialTeams" class="prac-textarea" oninput="updateScouting('specialTeams', this.value)"></textarea></div>
           </div>
         </div>
       </div>
@@ -352,13 +401,29 @@
                 <div id="practice-tree-dropdown" class="card-search-dropdown" onclick="event.stopPropagation()" style="display:none; width: 350px; max-height: 400px; padding:8px; top: 100%; left: 0; z-index: 99999;"></div>
               </div>
               <button class="toggle-board-btn admin-only" onclick="createNewPractice()">+ New</button>
-              <button class="toggle-board-btn admin-only" onclick="deletePractice()" style="color:#ef4444;">🗑️</button>
+              <button class="toggle-board-btn admin-only" onclick="editPracticeDetails()">✏️ Edit Details</button>
+              <button class="toggle-board-btn admin-only" onclick="saveAsTemplate()">💾 Save Template</button>
+              <button class="toggle-board-btn admin-only" onclick="deletePractice()" style="color:#ef4444;">🗑️ Delete</button>
             </div>
             <div>
               <button class="toggle-board-btn admin-only" onclick="addPracticeRow()">+ Add Period</button>
               <button class="toggle-board-btn" onclick="window.print()">🖨️ Print</button>
             </div>
           </div>
+          
+          <div class="practice-dashboard no-print">
+            <div style="display:flex; gap:10px; align-items:center;">
+              <label style="font-size:11px; font-weight:bold; color:var(--primary);">Start Time: 
+                <input type="time" id="prac-start" class="prac-input" style="width:auto; display:inline-block; font-weight:bold;" onchange="updatePracticeTimes('startTime', this.value)">
+              </label>
+              <label style="font-size:11px; font-weight:bold; color:var(--primary);">End Time: 
+                <input type="time" id="prac-end" class="prac-input" style="width:auto; display:inline-block; font-weight:bold;" onchange="updatePracticeTimes('endTime', this.value)">
+              </label>
+            </div>
+            <div style="flex:1;"></div>
+            <div id="prac-stats" style="font-size:11px; font-weight:bold; display:flex; gap:15px; align-items:center;"></div>
+          </div>
+
           <table class="practice-table">
             <thead>
               <tr>
@@ -408,10 +473,10 @@
 
   <script>
     // ----------------------------------------------------------------------------------
-    // APPLICATION CORE SCRIPT
+    // APPLICATION LOGIC
     // ----------------------------------------------------------------------------------
     
-    // Paste your Firebase Config below
+    // 🔥 PASTE YOUR FIREBASE CONFIG HERE 🔥
 const firebaseConfig = {
        apiKey: "AIzaSyBxAet3UzgBNuMUyUgj2MDWgrK5X63IPvg",
        authDomain: "u-depth-chart.firebaseapp.com",
@@ -434,10 +499,10 @@ const firebaseConfig = {
           db = firebase.firestore();
           auth = firebase.auth();
           cloudEnabled = true;
-          console.log("Firebase initialized successfully.");
+          console.log("Firebase connected.");
         }
       } catch (err) {
-        console.warn("Firebase initialization skipped or failed. Running in Local Storage Mode.", err);
+        console.warn("Firebase not connected. Running local mode.", err);
       }
     }
     initFirebase();
@@ -491,31 +556,53 @@ const firebaseConfig = {
     const defaultFormations = [
       {
         id: "form_11", unit: "offense", name: "11 Offense", subtitle: "1 RB - 1 TE - 3 WR", collapsed: false,
-        rows: [{ id: "r1", label: "Offensive Line", rowClass: "oline", positions: [{ id: "11-LT", name: "LT" }, { id: "11-LG", name: "LG" }, { id: "11-C", name: "C" }, { id: "11-RG", name: "RG" }, { id: "11-RT", name: "RT" }] }]
+        rows: [
+          { id: "r1", label: "Offensive Line", rowClass: "oline", positions: [{ id: "11-LT", name: "LT" }, { id: "11-LG", name: "LG" }, { id: "11-C", name: "C" }, { id: "11-RG", name: "RG" }, { id: "11-RT", name: "RT" }] },
+          { id: "r2", label: "Receivers", rowClass: "receivers", positions: [{ id: "11-X", name: "X" }, { id: "11-W", name: "W" }, { id: "11-Z", name: "Z" }] },
+          { id: "r3", label: "Backfield", rowClass: "backfield", positions: [{ id: "11-QB", name: "QB" }, { id: "11-RB", name: "RB" }] }
+        ]
       },
       {
         id: "form_44", unit: "defense", name: "44 Defense", subtitle: "4-4 Stack", collapsed: false,
-        rows: [{ id: "r2", label: "Defensive Front", rowClass: "dl", positions: [{ id: "44-WDE", name: "WDE" }, { id: "44-DT1", name: "DT1" }, { id: "44-DT2", name: "DT2" }, { id: "44-SDE", name: "SDE" }] }]
+        rows: [
+          { id: "r4", label: "Secondary", rowClass: "secondary-safety", positions: [{ id: "44-FS", name: "FS" }, { id: "44-CB1", name: "CB1" }, { id: "44-CB2", name: "CB2" }] },
+          { id: "r5", label: "Linebackers", rowClass: "linebackers-tight", positions: [{ id: "44-WILL", name: "WILL" }, { id: "44-MIKE", name: "MIKE" }, { id: "44-SAM", name: "SAM" }, { id: "44-ROVER", name: "ROVER" }] },
+          { id: "r6", label: "Defensive Front", rowClass: "dl", positions: [{ id: "44-WDE", name: "WDE" }, { id: "44-DT1", name: "DT1" }, { id: "44-DT2", name: "DT2" }, { id: "44-SDE", name: "SDE" }] }
+        ]
       },
       {
         id: "form_ko", unit: "st", name: "Kickoff", subtitle: "Coverage", collapsed: false,
-        rows: [{ id: "r3", label: "Coverage Line", rowClass: "oline", positions: [{ id: "KO-L1", name: "L1" }, { id: "KO-R1", name: "R1" }] }]
+        rows: [
+          { id: "r7", label: "Coverage Line", rowClass: "oline", positions: [{ id: "KO-L1", name: "L1" }, { id: "KO-L2", name: "L2" }, { id: "KO-R2", name: "R2" }, { id: "KO-R1", name: "R1" }] },
+          { id: "r8", label: "Kicker Level", rowClass: "oline", positions: [{ id: "KO-KICK", name: "Kicker" }] }
+        ]
       },
       {
-        id: "form_grp", unit: "groups", name: "Depth Chart", subtitle: "Overview", collapsed: false,
-        rows: [{ id: "r4", label: "Starters", rowClass: "oline", positions: [{ id: "DC-QB", name: "QB" }, { id: "DC-RB", name: "RB" }] }]
+        id: "form_grp", unit: "groups", name: "Depth Chart", subtitle: "Full Roster", collapsed: false,
+        rows: [
+          { id: "r9", label: "Offensive Starters", rowClass: "oline", positions: [{ id: "DC-QB", name: "QB" }, { id: "DC-RB", name: "RB" }, { id: "DC-WR", name: "WR" }] },
+          { id: "r10", label: "Defensive Starters", rowClass: "oline", positions: [{ id: "DC-DL", name: "DL" }, { id: "DC-LB", name: "LB" }, { id: "DC-DB", name: "DB" }] }
+        ]
       }
     ];
 
     let weeklyData = safeJSONParse("footballWeeklyData", {});
     let practiceData = safeJSONParse("footballPracticeData", []);
     let masterPlayLibrary = safeJSONParse("footballMasterPlays", ["24 Dive", "25 Trap", "Sweep Right", "Bootleg Pass"]);
-    let dynamicDrills = safeJSONParse("footballDynamicDrills", { "Indy Offense": [{ name: "Stance & Alignment", desc: "Form basics.", key: "Eyes up" }] });
+    let dynamicDrills = safeJSONParse("footballDynamicDrills", {
+      "Indy Offense": [{ name: "Stance & Alignment", desc: "Line up with 2-yard splits. Work on proper stance.", key: "Eyes up" }],
+      "Indy Defense": [{ name: "Tackling Circuit", desc: "Wrap and roll drill using mats.", key: "Head up" }]
+    });
+    let practiceTemplates = safeJSONParse("footballPracticeTemplates", []);
+    let savedCoaches = safeJSONParse("footballSavedCoaches", []);
+    let savedCustomCategories = safeJSONParse("footballCustomCategories", []);
     let depthChart = null;
     let currentPracticeId = null;
 
     function getWeekFormations(week) {
-      if (!weeklyData[week]) weeklyData[week] = { opponent: "", formations: JSON.parse(JSON.stringify(defaultFormations)), depthChart: {} };
+      if (!weeklyData[week]) {
+        weeklyData[week] = { opponent: "", formations: JSON.parse(JSON.stringify(defaultFormations)), depthChart: {} };
+      }
       if (!Array.isArray(weeklyData[week].formations) || weeklyData[week].formations.length === 0) {
         weeklyData[week].formations = JSON.parse(JSON.stringify(defaultFormations));
       }
@@ -536,9 +623,23 @@ const firebaseConfig = {
           year: "2026",
           week: "Week 1",
           day: "Monday",
-          plan: [{ time: 15, category: "Warm-Up", drill: "Dynamic Warm-Up", desc: "Full team stretch and agility.", key: "Hustle" }]
+          startTime: "17:00",
+          endTime: "19:00",
+          plan: [
+            { time: 15, category: "Warm-Up", periodType: "normal", drill: "Dynamic Warm-Up", desc: "Full team stretch and agility.", key: "Hustle", coaches: [] },
+            { time: 20, category: "Indy Offense", periodType: "circuit", stations: [{ drill: "Stance & Alignment", desc: "Skill and Line splits.", key: "Low stance", coaches: [] }, { drill: "Mesh Drill", desc: "QB/RB exchange.", key: "Secure ball", coaches: [] }] }
+          ]
         }];
       }
+      practiceData.forEach((p, idx) => {
+        if (!p.id) p.id = "p_" + Date.now() + "_" + idx;
+        if (!p.year) p.year = "2026";
+        if (!p.week) p.week = "Week 1";
+        if (!p.day) p.day = "Monday";
+        if (!p.startTime) p.startTime = "17:00";
+        if (!p.endTime) p.endTime = "19:00";
+        if (!Array.isArray(p.plan)) p.plan = [];
+      });
       if (!currentPracticeId || !practiceData.find(p => p.id === currentPracticeId)) {
         currentPracticeId = practiceData[0].id;
       }
@@ -546,7 +647,8 @@ const firebaseConfig = {
 
     function initWristbandData() {
       if (!weeklyData[currentWeek]) weeklyData[currentWeek] = {};
-      if (!weeklyData[currentWeek].wristbandData || !Array.isArray(weeklyData[currentWeek].wristbandData.columns)) {
+      let wb = weeklyData[currentWeek].wristbandData;
+      if (!wb || !Array.isArray(wb.columns)) {
         weeklyData[currentWeek].wristbandData = {
           rows: 8,
           columns: [
@@ -557,34 +659,49 @@ const firebaseConfig = {
       }
     }
 
-    function initializeApp() {
-      sanitizePracticeData();
-      initWristbandData();
-      depthChart = getWeekDepthChart(currentWeek);
-      
-      const oppInput = document.getElementById("opponent-input");
-      if (oppInput) oppInput.value = weeklyData[currentWeek] ? (weeklyData[currentWeek].opponent || "") : "";
+    function initScoutingData() {
+      if (!weeklyData[currentWeek]) weeklyData[currentWeek] = {};
+      if (!weeklyData[currentWeek].scouting) {
+        weeklyData[currentWeek].scouting = { year: "2026", week: "Week " + currentWeek, opponent: "", teamOverview: "", keyPlayers: "", offenseTendencies: "", defenseTendencies: "" };
+      }
+    }
 
-      renderActiveBoards();
-      populatePracticeDropdown();
-      renderPracticePlan();
-      renderMasterRoster();
+    function initializeApp() {
+      try {
+        sanitizePracticeData();
+        initWristbandData();
+        initScoutingData();
+        depthChart = getWeekDepthChart(currentWeek);
+        
+        const oppInput = document.getElementById("opponent-input");
+        if (oppInput) oppInput.value = weeklyData[currentWeek] ? (weeklyData[currentWeek].opponent || "") : "";
+
+        renderActiveBoards();
+        populatePracticeDropdown();
+        renderPracticePlan();
+        renderMasterRoster();
+      } catch (e) {
+        console.error("Fatal initialization error:", e);
+      }
     }
 
     // --- Drag & Drop ---
     function handleRosterDragStart(e, name, num) {
+      if (userRole !== 'admin') { e.preventDefault(); return; }
       draggedData = { type: "roster", name, num };
       e.dataTransfer.setData("text/plain", name);
       e.dataTransfer.effectAllowed = "copy";
     }
 
     function handlePlayerDragStart(e, posId, idx, name, num) {
+      if (userRole !== 'admin') { e.preventDefault(); return; }
       draggedData = { type: "position", sourcePos: posId, sourceIndex: idx, name, num };
       e.dataTransfer.setData("text/plain", name);
       e.dataTransfer.effectAllowed = "move";
     }
 
     function handleCardDrop(e, targetPos) {
+      if (userRole !== 'admin') return;
       e.preventDefault();
       document.querySelectorAll(".position-card").forEach(c => c.classList.remove("drag-over"));
       if (!draggedData) return;
@@ -605,6 +722,7 @@ const firebaseConfig = {
     }
 
     function removePlayer(posId, idx, e) {
+      if (userRole !== 'admin') return;
       if (e) e.stopPropagation();
       if (depthChart[posId]) {
         depthChart[posId].splice(idx, 1);
@@ -616,112 +734,128 @@ const firebaseConfig = {
 
     // --- Boards Rendering ---
     function renderActiveBoards() {
-      const container = document.getElementById("boards-" + activeUnit);
-      if (!container) return;
+      try {
+        const container = document.getElementById("boards-" + activeUnit);
+        if (!container) return;
 
-      const forms = getWeekFormations(currentWeek).filter(f => f.unit === activeUnit);
-      container.innerHTML = "";
+        const forms = getWeekFormations(currentWeek).filter(f => f && f.unit === activeUnit);
+        container.innerHTML = "";
 
-      forms.forEach(form => {
-        const formDiv = document.createElement("div");
-        formDiv.className = "formation-container" + (activeCountFormationId === form.id ? " counting-active" : "");
-        formDiv.onclick = (e) => {
-          if (e.target.closest('button') || e.target.closest('input')) return;
-          activeCountFormationId = (activeCountFormationId === form.id) ? null : form.id;
-          renderActiveBoards();
-          renderMasterRoster();
-        };
+        if (forms.length === 0) {
+            container.innerHTML = `<div style="text-align:center; padding:20px; color:var(--text-muted);">No boards found.</div>`;
+            return;
+        }
 
-        formDiv.innerHTML = `
-          <div class="board-title">
-            <span>${form.name} <small style="font-size:11px; color:var(--text-muted); font-weight:normal;">${form.subtitle || ''}</small></span>
-            <div class="board-controls">
-              <button class="toggle-board-btn admin-only" onclick="deleteFormation('${form.id}')" style="color:#ef4444;">🗑️</button>
+        forms.forEach(form => {
+          const formDiv = document.createElement("div");
+          formDiv.className = "formation-container" + (activeCountFormationId === form.id ? " counting-active" : "");
+          formDiv.onclick = (e) => {
+            if (e.target.closest('button') || e.target.closest('input')) return;
+            activeCountFormationId = (activeCountFormationId === form.id) ? null : form.id;
+            renderActiveBoards();
+            renderMasterRoster();
+          };
+
+          formDiv.innerHTML = `
+            <div class="board-title">
+              <span>${form.name} <small style="font-size:11px; color:var(--text-muted); font-weight:normal;">${form.subtitle || ''}</small></span>
+              <div class="board-controls">
+                <button class="toggle-board-btn admin-only" onclick="deleteFormation('${form.id}')" style="color:#ef4444;">🗑️</button>
+              </div>
             </div>
-          </div>
-          <div class="formation-body"></div>
-        `;
+            <div class="formation-body"></div>
+          `;
 
-        const body = formDiv.querySelector(".formation-body");
+          const body = formDiv.querySelector(".formation-body");
 
-        (form.rows || []).forEach(row => {
-          const rowDiv = document.createElement("div");
-          rowDiv.className = "formation-row";
+          (form.rows || []).forEach(row => {
+            if (!row) return;
+            const rowDiv = document.createElement("div");
+            rowDiv.className = "formation-row";
 
-          (row.positions || []).forEach(pos => {
-            const card = document.createElement("div");
-            card.className = "position-card";
-            card.ondragover = (e) => { e.preventDefault(); card.classList.add("drag-over"); };
-            card.ondragleave = () => card.classList.remove("drag-over");
-            card.ondrop = (e) => handleCardDrop(e, pos.id);
+            (row.positions || []).forEach(pos => {
+              if (!pos) return;
+              const card = document.createElement("div");
+              card.className = "position-card";
+              card.ondragover = (e) => { e.preventDefault(); card.classList.add("drag-over"); };
+              card.ondragleave = () => card.classList.remove("drag-over");
+              card.ondrop = (e) => handleCardDrop(e, pos.id);
 
-            const players = depthChart[pos.id] || [];
+              const players = Array.isArray(depthChart[pos.id]) ? depthChart[pos.id].filter(p => p) : [];
 
-            let playersHtml = players.map((p, idx) => `
-              <li class="player-item" draggable="true" ondragstart="handlePlayerDragStart(event, '${pos.id}', ${idx}, '${p.name}', '${p.num}')">
-                <div class="player-info">
-                  <span class="rank-badge ${idx === 0 ? 'rank-starter' : 'rank-sub-gold'}">${idx === 0 ? 'ST' : 'D2'}</span>
-                  <span class="num-tag">#${p.num}</span>
-                  <span>${p.name}</span>
-                </div>
-                <button class="remove-btn admin-only" onclick="removePlayer('${pos.id}', ${idx}, event)">&times;</button>
-              </li>
-            `).join("");
+              let playersHtml = players.map((p, idx) => `
+                <li class="player-item" draggable="${userRole==='admin'?'true':'false'}" ondragstart="handlePlayerDragStart(event, '${pos.id}', ${idx}, '${p.name}', '${p.num}')">
+                  <div class="player-info">
+                    <span class="rank-badge ${idx === 0 ? 'rank-starter' : (idx === 1 ? 'rank-sub-gold' : (idx === 2 ? 'rank-sub-blue' : 'rank-sub-gray'))}">${idx === 0 ? 'ST' : 'D' + (idx + 1)}</span>
+                    <span class="num-tag">#${p.num}</span>
+                    <span>${p.name}</span>
+                  </div>
+                  <button class="remove-btn admin-only" onclick="removePlayer('${pos.id}', ${idx}, event)">&times;</button>
+                </li>
+              `).join("");
 
-            card.innerHTML = `
-              <div class="position-header"><span>${pos.name}</span><span>${players.length}</span></div>
-              <ul class="player-list">${playersHtml || '<div style="color:var(--text-muted); font-size:10px; padding:6px; text-align:center;">Drop Player</div>'}</ul>
-            `;
-            rowDiv.appendChild(card);
+              card.innerHTML = `
+                <div class="position-header"><span>${pos.name}</span><span>${players.length}</span></div>
+                <ul class="player-list">${playersHtml || '<div style="color:var(--text-muted); font-size:10px; padding:6px; text-align:center;">Drop Player</div>'}</ul>
+              `;
+              rowDiv.appendChild(card);
+            });
+            body.appendChild(rowDiv);
           });
-          body.appendChild(rowDiv);
+          container.appendChild(formDiv);
         });
-        container.appendChild(formDiv);
-      });
+      } catch (err) {
+        console.error("Error rendering boards:", err);
+      }
     }
 
     // --- Roster Logic ---
     function renderMasterRoster() {
-      const list = document.getElementById("master-roster-list");
-      if (!list) return;
+      try {
+        const list = document.getElementById("master-roster-list");
+        if (!list) return;
 
-      const label = document.getElementById("roster-count-label");
-      if (activeCountFormationId) {
-        const f = getWeekFormations(currentWeek).find(form => form.id === activeCountFormationId);
-        label.textContent = `Counting: ${f ? f.name : 'Selected Formation'}`;
-      } else {
-        label.textContent = `Counting: All ${activeUnit.toUpperCase()}`;
-      }
+        const label = document.getElementById("roster-count-label");
+        if (activeCountFormationId) {
+          const f = getWeekFormations(currentWeek).find(form => form && form.id === activeCountFormationId);
+          label.textContent = `Counting: ${f ? f.name : 'Selected Formation'}`;
+        } else {
+          label.textContent = `Counting: All ${activeUnit.toUpperCase()}`;
+        }
 
-      const term = (document.getElementById("search-input").value || "").toLowerCase();
-      list.innerHTML = "";
+        const term = (document.getElementById("search-input").value || "").toLowerCase();
+        list.innerHTML = "";
 
-      masterRoster.forEach(player => {
-        if (term && !player.firstName.toLowerCase().includes(term) && !player.lastName.toLowerCase().includes(term) && !player.num.includes(term)) return;
+        masterRoster.forEach(player => {
+          if (term && !player.firstName.toLowerCase().includes(term) && !player.lastName.toLowerCase().includes(term) && !player.num.includes(term)) return;
 
-        let count = 0;
-        const forms = getWeekFormations(currentWeek).filter(f => f.unit === activeUnit && (!activeCountFormationId || f.id === activeCountFormationId));
-        forms.forEach(f => {
-          (f.rows || []).forEach(r => {
-            (r.positions || []).forEach(pos => {
-              if (depthChart[pos.id]) {
-                count += depthChart[pos.id].filter(p => String(p.num) === String(player.num)).length;
-              }
+          let count = 0;
+          const forms = getWeekFormations(currentWeek).filter(f => f && f.unit === activeUnit && (!activeCountFormationId || f.id === activeCountFormationId));
+          forms.forEach(f => {
+            (f.rows || []).forEach(r => {
+              if (!r) return;
+              (r.positions || []).forEach(pos => {
+                if (pos && depthChart[pos.id]) {
+                  count += depthChart[pos.id].filter(p => p && String(p.num) === String(player.num)).length;
+                }
+              });
             });
           });
+
+          const li = document.createElement("li");
+          li.className = "full-roster-item";
+          li.draggable = (userRole === 'admin');
+          li.ondragstart = (e) => handleRosterDragStart(e, player.lastName, player.num);
+
+          li.innerHTML = `
+            <div><span class="num-tag" style="color:var(--primary);">#${player.num}</span> ${player.firstName} ${player.lastName}</div>
+            ${count > 0 ? `<span class="multi-badge">${count} Spot${count > 1 ? 's' : ''}</span>` : ''}
+          `;
+          list.appendChild(li);
         });
-
-        const li = document.createElement("li");
-        li.className = "full-roster-item";
-        li.draggable = true;
-        li.ondragstart = (e) => handleRosterDragStart(e, player.lastName, player.num);
-
-        li.innerHTML = `
-          <div><span class="num-tag" style="color:var(--primary);">#${player.num}</span> ${player.firstName} ${player.lastName}</div>
-          ${count > 0 ? `<span class="multi-badge">${count} Spot${count > 1 ? 's' : ''}</span>` : ''}
-        `;
-        list.appendChild(li);
-      });
+      } catch (err) {
+        console.error("Error rendering roster:", err);
+      }
     }
 
     function filterRoster() { renderMasterRoster(); }
@@ -758,14 +892,15 @@ const firebaseConfig = {
       masterPlayLibrary.forEach((play, idx) => {
         const li = document.createElement("li");
         li.className = "full-roster-item";
-        li.draggable = true;
-        li.ondragstart = (e) => { e.dataTransfer.setData("text/plain", play); };
+        li.draggable = (userRole === 'admin');
+        li.ondragstart = (e) => { e.dataTransfer.setData("text/plain", play); e.dataTransfer.effectAllowed = "copy"; };
         li.innerHTML = `<span>📋 ${play}</span><button class="remove-btn admin-only" onclick="masterPlayLibrary.splice(${idx}, 1); savePlayLibrary(); renderPlayLibrary();">&times;</button>`;
         list.appendChild(li);
       });
     }
 
     function addPlayToLibrary() {
+      if (userRole !== 'admin') return;
       const input = document.getElementById("new-play-input");
       if (input.value.trim()) {
         masterPlayLibrary.push(input.value.trim());
@@ -782,6 +917,7 @@ const firebaseConfig = {
     function dropPlayToWristband(e, colIdx, rowIdx) {
       e.preventDefault();
       e.currentTarget.classList.remove('drag-over');
+      if (userRole !== 'admin') return;
       const text = e.dataTransfer.getData("text/plain");
       if (text) {
         weeklyData[currentWeek].wristbandData.columns[colIdx].plays[rowIdx].text = text;
@@ -791,6 +927,7 @@ const firebaseConfig = {
     }
 
     function addWbRow() {
+      if (userRole !== 'admin') return;
       weeklyData[currentWeek].wristbandData.rows++;
       weeklyData[currentWeek].wristbandData.columns.forEach(c => c.plays.push({ text: "", color: c.color }));
       saveState();
@@ -798,6 +935,7 @@ const firebaseConfig = {
     }
 
     function removeWbRow() {
+      if (userRole !== 'admin') return;
       if (weeklyData[currentWeek].wristbandData.rows > 1) {
         weeklyData[currentWeek].wristbandData.rows--;
         weeklyData[currentWeek].wristbandData.columns.forEach(c => c.plays.pop());
@@ -806,11 +944,21 @@ const firebaseConfig = {
       }
     }
 
-    // --- Practice Plan Folder Dropdown ---
+    // --- Practice Plan Folder Dropdown Tree ---
     function togglePracticeTree(e) {
       if (e) e.stopPropagation();
       const el = document.getElementById('practice-tree-dropdown');
       el.style.display = (el.style.display === 'none' || el.style.display === '') ? 'block' : 'none';
+    }
+
+    function toggleTreeNode(el, e) {
+      if (e) e.stopPropagation();
+      const ul = el.nextElementSibling;
+      if (ul) {
+        const isHidden = (ul.style.display === 'none');
+        ul.style.display = isHidden ? 'block' : 'none';
+        el.innerHTML = isHidden ? el.innerHTML.replace('📁', '📂') : el.innerHTML.replace('📂', '📁');
+      }
     }
 
     function populatePracticeDropdown() {
@@ -821,9 +969,27 @@ const firebaseConfig = {
       const cur = practiceData.find(p => p.id === currentPracticeId) || practiceData[0];
       display.textContent = cur ? `${cur.year} > ${cur.week} > ${cur.day}: ${cur.title}` : "Select Practice...";
 
-      let html = `<ul class="tree-root">`;
+      const tree = {};
       practiceData.forEach(p => {
-        html += `<li class="tree-leaf ${p.id === currentPracticeId ? 'selected' : ''}" onclick="currentPracticeId='${p.id}'; populatePracticeDropdown(); renderPracticePlan(); closeAllDropdowns();">📄 ${p.week} - ${p.day} (${p.title})</li>`;
+        const y = p.year || "2026";
+        const w = p.week || "Week 1";
+        if (!tree[y]) tree[y] = {};
+        if (!tree[y][w]) tree[y][w] = [];
+        tree[y][w].push(p);
+      });
+
+      let html = `<ul class="tree-root">`;
+      Object.keys(tree).sort().reverse().forEach(y => {
+        html += `<li><span class="tree-caret" onclick="toggleTreeNode(this, event)">📂 ${y}</span><ul class="nested" style="display:block;">`;
+        Object.keys(tree[y]).sort().forEach(w => {
+          html += `<li><span class="tree-caret" onclick="toggleTreeNode(this, event)">📂 ${w}</span><ul class="nested" style="display:block;">`;
+          tree[y][w].forEach(p => {
+            const isSel = (p.id === currentPracticeId);
+            html += `<li class="tree-leaf ${isSel ? 'selected' : ''}" onclick="currentPracticeId='${p.id}'; populatePracticeDropdown(); renderPracticePlan(); closeAllDropdowns();">📄 ${p.day} - ${p.title}</li>`;
+          });
+          html += `</ul></li>`;
+        });
+        html += `</ul></li>`;
       });
       html += `</ul>`;
       container.innerHTML = html;
@@ -835,50 +1001,119 @@ const firebaseConfig = {
       tbody.innerHTML = "";
 
       const cur = practiceData.find(p => p.id === currentPracticeId);
-      if (!cur || !cur.plan) return;
+      if (!cur) return;
 
-      cur.plan.forEach((row, idx) => {
+      let totalMins = timeToMins(cur.endTime) - timeToMins(cur.startTime);
+      if (totalMins < 0) totalMins += 1440;
+
+      let scheduledMins = 0;
+      (cur.plan || []).forEach(r => scheduledMins += parseInt(r.time || 0));
+
+      const statsDiv = document.getElementById("prac-stats");
+      if (statsDiv) {
+        statsDiv.innerHTML = `<span>Total: <b>${totalMins}m</b></span> | <span>Scheduled: <b>${scheduledMins}m</b></span> | <span style="color:${(totalMins - scheduledMins < 0) ? '#ef4444' : '#16a34a'};">Remaining: <b>${totalMins - scheduledMins}m</b></span>`;
+        document.getElementById('prac-start').value = cur.startTime || "17:00";
+        document.getElementById('prac-end').value = cur.endTime || "19:00";
+      }
+
+      let clock = timeToMins(cur.startTime);
+
+      (cur.plan || []).forEach((row, idx) => {
+        const rowStart = clock;
+        clock += parseInt(row.time || 0);
+        const rowEnd = clock;
+        const timeLabel = `${minsToTimeStr(rowStart)} - ${minsToTimeStr(rowEnd)}`;
+
         const tr = document.createElement("tr");
         tr.innerHTML = `
-          <td><input type="number" class="prac-input" style="width:50px;" value="${row.time}" oninput="cur.plan[${idx}].time=this.value; triggerDebouncedSave();"> mins</td>
-          <td><input type="text" class="prac-input" value="${row.category}" oninput="cur.plan[${idx}].category=this.value; triggerDebouncedSave();"></td>
-          <td><input type="text" class="prac-input" value="${row.drill}" oninput="cur.plan[${idx}].drill=this.value; triggerDebouncedSave();"></td>
-          <td><textarea class="prac-textarea" oninput="cur.plan[${idx}].desc=this.value; triggerDebouncedSave();">${row.desc || ''}</textarea></td>
-          <td style="text-align:center;"><button class="remove-btn admin-only" onclick="cur.plan.splice(${idx}, 1); saveState(); renderPracticePlan();">&times;</button></td>
+          <td>
+            <input type="number" class="prac-input" style="width:45px;" value="${row.time || 0}" oninput="cur.plan[${idx}].time=this.value; renderPracticePlan(); triggerDebouncedSave();"> mins
+            <div class="period-schedule-time">${timeLabel}</div>
+          </td>
+          <td>
+            <input type="text" class="prac-input" value="${row.category || ''}" oninput="cur.plan[${idx}].category=this.value; triggerDebouncedSave();">
+          </td>
+          <td>
+            <input type="text" class="prac-input" value="${row.drill || ''}" oninput="cur.plan[${idx}].drill=this.value; triggerDebouncedSave();">
+          </td>
+          <td>
+            <textarea class="prac-textarea" oninput="cur.plan[${idx}].desc=this.value; triggerDebouncedSave();">${row.desc || ''}</textarea>
+          </td>
+          <td>
+            <input type="text" class="prac-input" value="${row.key || ''}" placeholder="Focus key..." oninput="cur.plan[${idx}].key=this.value; triggerDebouncedSave();">
+          </td>
+          <td style="text-align:center;"><button class="remove-btn admin-only" onclick="cur.plan.splice(${idx}, 1); renderPracticePlan(); saveState();">&times;</button></td>
         `;
         tbody.appendChild(tr);
       });
     }
 
     function addPracticeRow() {
+      if (userRole !== 'admin') return;
       const cur = practiceData.find(p => p.id === currentPracticeId);
       if (cur) {
         if (!cur.plan) cur.plan = [];
-        cur.plan.push({ time: 10, category: "Period", drill: "Drill Name", desc: "Notes" });
-        saveState();
+        cur.plan.push({ time: 10, category: "Period", drill: "Drill Name", desc: "Notes...", key: "Focus" });
         renderPracticePlan();
+        saveState();
+      }
+    }
+
+    function updatePracticeTimes(field, val) {
+      if (userRole !== 'admin') return;
+      const cur = practiceData.find(p => p.id === currentPracticeId);
+      if (cur) {
+        cur[field] = val;
+        renderPracticePlan();
+        saveState();
       }
     }
 
     function createNewPractice() {
+      if (userRole !== 'admin') return;
       const title = prompt("Enter Practice Title:", "New Script");
       if (title) {
-        const newP = { id: "p_" + Date.now(), title, year: "2026", week: "Week 1", day: "Monday", plan: [] };
+        const newP = { id: "p_" + Date.now(), title, year: "2026", week: "Week 1", day: "Monday", startTime: "17:00", endTime: "19:00", plan: [] };
         practiceData.push(newP);
         currentPracticeId = newP.id;
-        saveState();
         populatePracticeDropdown();
         renderPracticePlan();
+        saveState();
       }
     }
 
+    function editPracticeDetails() {
+      if (userRole !== 'admin') return;
+      const cur = practiceData.find(p => p.id === currentPracticeId);
+      if (!cur) return;
+      const y = prompt("Year:", cur.year);
+      const w = prompt("Week:", cur.week);
+      const d = prompt("Day:", cur.day);
+      const t = prompt("Title:", cur.title);
+      if (y && w && d && t) {
+        cur.year = y; cur.week = w; cur.day = d; cur.title = t;
+        populatePracticeDropdown();
+        saveState();
+      }
+    }
+
+    function saveAsTemplate() {
+      if (userRole !== 'admin') return;
+      const cur = practiceData.find(p => p.id === currentPracticeId);
+      if (!cur) return;
+      practiceTemplates.push({ name: cur.title + " Template", plan: JSON.parse(JSON.stringify(cur.plan)) });
+      alert("Template saved!");
+      saveState();
+    }
+
     function deletePractice() {
-      if (practiceData.length > 1 && confirm("Delete current practice plan?")) {
+      if (userRole !== 'admin') return;
+      if (practiceData.length > 1 && confirm("Delete this practice plan?")) {
         practiceData = practiceData.filter(p => p.id !== currentPracticeId);
         currentPracticeId = practiceData[0].id;
-        saveState();
         populatePracticeDropdown();
         renderPracticePlan();
+        saveState();
       }
     }
 
@@ -928,12 +1163,14 @@ const firebaseConfig = {
     }
 
     function updateOpponentLabel(val) {
+      if (userRole !== 'admin') return;
       if (!weeklyData[currentWeek]) weeklyData[currentWeek] = {};
       weeklyData[currentWeek].opponent = val;
       triggerDebouncedSave();
     }
 
     function createFormationPrompt(unit) {
+      if (userRole !== 'admin') return;
       const name = prompt(`Enter ${unit.toUpperCase()} Formation Name:`, "New Formation");
       if (name) {
         const forms = getWeekFormations(currentWeek);
@@ -951,6 +1188,7 @@ const firebaseConfig = {
     }
 
     function deleteFormation(formId) {
+      if (userRole !== 'admin') return;
       if (confirm("Delete this formation?")) {
         weeklyData[currentWeek].formations = getWeekFormations(currentWeek).filter(f => f.id !== formId);
         saveState();
@@ -960,6 +1198,7 @@ const firebaseConfig = {
     }
 
     function saveState() {
+      if (userRole !== 'admin') return;
       localStorage.setItem("footballWeeklyData", JSON.stringify(weeklyData));
       localStorage.setItem("footballPracticeData", JSON.stringify(practiceData));
       if (cloudEnabled && db) {
@@ -983,6 +1222,7 @@ const firebaseConfig = {
     }
 
     function importData(event) {
+      if (userRole !== 'admin') return;
       const file = event.target.files[0];
       if (!file) return;
       const reader = new FileReader();
@@ -1001,6 +1241,7 @@ const firebaseConfig = {
     }
 
     function resetDefault() {
+      if (userRole !== 'admin') return;
       if (confirm("Reset current week to default?")) {
         weeklyData[currentWeek] = { opponent: "", depthChart: {}, formations: JSON.parse(JSON.stringify(defaultFormations)) };
         saveState();
@@ -1014,12 +1255,10 @@ const firebaseConfig = {
       document.getElementById("tab-login").classList.toggle('active', !isSignUpMode);
       document.getElementById("tab-register").classList.toggle('active', isSignUpMode);
       document.getElementById("auth-submit-btn").textContent = isSignUpMode ? "Create Account" : "Sign In";
-      document.getElementById("auth-error").style.display = "none";
     }
 
     function bypassLogin() {
-      const overlay = document.getElementById("auth-overlay");
-      if (overlay) overlay.style.display = "none";
+      document.getElementById("auth-overlay").style.display = "none";
       applyRole('admin');
       document.getElementById("user-display-email").textContent = "Offline Coach";
     }
@@ -1041,7 +1280,7 @@ const firebaseConfig = {
       if (errDiv) errDiv.style.display = "none";
 
       if (!auth) {
-        displayAuthError("Firebase not configured. Use 'Continue without login' below.");
+        displayAuthError("Firebase not connected. Use 'Continue without login' below.");
         return false;
       }
       const email = document.getElementById("auth-email").value.trim();
@@ -1053,16 +1292,10 @@ const firebaseConfig = {
         } else {
           await auth.signInWithEmailAndPassword(email, pass);
         }
-        // Direct modal dismissal
-        const overlay = document.getElementById("auth-overlay");
-        if (overlay) overlay.style.display = "none";
+        document.getElementById("auth-overlay").style.display = "none";
       } catch (err) {
         console.error("Auth Error:", err);
-        let msg = err.message;
-        if (err.code === 'auth/operation-not-allowed') {
-          msg = "Email/Password login is not enabled in your Firebase Console under Authentication -> Sign-in method.";
-        }
-        displayAuthError(msg);
+        displayAuthError(err.message);
       }
       return false;
     }
@@ -1072,20 +1305,19 @@ const firebaseConfig = {
       if (errDiv) errDiv.style.display = "none";
 
       if (!auth) {
-        displayAuthError("Firebase not configured. Use 'Continue without login' below.");
+        displayAuthError("Firebase not connected. Use 'Continue without login' below.");
         return;
       }
       try {
         const provider = new firebase.auth.GoogleAuthProvider();
         provider.setCustomParameters({ prompt: 'select_account' });
         await auth.signInWithPopup(provider);
-        const overlay = document.getElementById("auth-overlay");
-        if (overlay) overlay.style.display = "none";
+        document.getElementById("auth-overlay").style.display = "none";
       } catch (err) {
         console.error("Google Auth Error:", err);
         let msg = err.message;
         if (window.location.protocol === 'file:') {
-          msg = "Google popup login requires http://localhost or GitHub Pages (browsers block OAuth on file:/// URLs). Use Email Login or Offline Mode.";
+          msg = "Google popup login requires http://localhost or GitHub Pages (not file:///). Use Email Login or Offline Mode.";
         }
         displayAuthError(msg);
       }
@@ -1102,23 +1334,16 @@ const firebaseConfig = {
     function applyRole(role) {
       userRole = role;
       localStorage.setItem('footballUserRole', role);
-      
       const badge = document.getElementById("user-role-badge");
       if (badge) {
         badge.textContent = role === 'admin' ? 'HEAD COACH' : 'COACH';
         badge.className = `role-badge ${role === 'admin' ? 'role-admin' : 'role-viewer'}`;
       }
-
-      if (role === 'admin') {
-        document.body.classList.remove('view-only');
-      } else {
-        document.body.classList.add('view-only');
-      }
+      if (role === 'admin') document.body.classList.remove('view-only');
+      else document.body.classList.add('view-only');
 
       renderActiveBoards();
       if (activeUnit === 'wristband') { renderWristband(); renderPlayLibrary(); }
-      if (activeUnit === 'scouting') renderScouting();
-      if (activeUnit === 'drills') renderDrillsTab();
       renderPracticePlan();
       renderMasterRoster();
     }
@@ -1138,13 +1363,6 @@ const firebaseConfig = {
           if (overlay) overlay.style.display = "flex";
         }
       });
-    }
-
-    function closeAllDropdowns(e) {
-      if (e && e.target && e.target.closest('#practice-tree-dropdown')) return;
-      if (e && e.target && e.target.closest('#selected-practice-display')) return;
-      const pt = document.getElementById('practice-tree-dropdown');
-      if (pt) pt.style.display = 'none';
     }
 
     // Run
