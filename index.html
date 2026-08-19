@@ -222,7 +222,7 @@
       <h2>🏈 Coach Portal</h2>
       <p>Log in to manage depth charts, playbooks, and practice itineraries.</p>
       
-      <button class="btn-google" onclick="signInWithGoogle()">
+      <button class="btn-google" type="button" onclick="signInWithGoogle()">
         <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
         Continue with Google
       </button>
@@ -234,7 +234,7 @@
         <input type="password" id="auth-password" class="auth-input" placeholder="Password" required autocomplete="current-password" />
         <button type="submit" id="auth-submit-btn" class="btn-primary">Sign In</button>
       </form>
-      <div id="auth-error" style="color:#ef4444; font-size:12px; margin-top:10px; font-weight:bold; display:none;"></div>
+      <div id="auth-error" style="color:#ef4444; font-size:12px; margin-top:10px; font-weight:bold; display:none; background:#fee2e2; padding:8px; border-radius:4px;"></div>
       <div style="margin-top:15px;"><span style="color:#64748b; font-size:11px; cursor:pointer; text-decoration:underline;" onclick="bypassLogin()">Continue without login (Offline Mode)</span></div>
     </div>
   </div>
@@ -322,7 +322,7 @@
              <div style="grid-column: 1 / -1; display: flex; gap: 15px; background: #f8fafc; padding: 10px; border-radius: 6px;">
                 <label>Year: <input type="text" id="scout-year" class="prac-input" style="width: 80px;" oninput="updateScouting('year', this.value)"></label>
                 <label>Week: <input type="text" id="scout-week" class="prac-input" style="width: 100px;" oninput="updateScouting('week', this.value)"></label>
-                <label>Opponent: <input type="text" id="scout-opponent" class="prac-input" style="width: 200px;" oninput="updateScouting('opponent', this.value)"> </label>
+                <label>Opponent: <input type="text" id="scout-opponent" class="prac-input" style="width: 200px;" oninput="updateScouting('opponent', this.value)"></label>
              </div>
              <div><strong>Team Overview</strong><textarea id="scout-teamOverview" class="prac-textarea" oninput="updateScouting('teamOverview', this.value)"></textarea></div>
              <div><strong>Key Players</strong><textarea id="scout-keyPlayers" class="prac-textarea" oninput="updateScouting('keyPlayers', this.value)"></textarea></div>
@@ -427,16 +427,20 @@ const firebaseConfig = {
     let auth = null;
     let cloudEnabled = false;
 
-    try {
-      if (firebaseConfig.apiKey && firebaseConfig.apiKey !== "YOUR_API_KEY") {
-        firebase.initializeApp(firebaseConfig);
-        db = firebase.firestore();
-        auth = firebase.auth();
-        cloudEnabled = true;
+    function initFirebase() {
+      try {
+        if (firebaseConfig.apiKey && firebaseConfig.apiKey !== "YOUR_API_KEY") {
+          firebase.initializeApp(firebaseConfig);
+          db = firebase.firestore();
+          auth = firebase.auth();
+          cloudEnabled = true;
+          console.log("Firebase initialized successfully.");
+        }
+      } catch (err) {
+        console.warn("Firebase initialization skipped or failed. Running in Local Storage Mode.", err);
       }
-    } catch (err) {
-      console.warn("Firebase not configured. Running in Local Storage Mode.", err);
     }
+    initFirebase();
 
     function safeJSONParse(key, fallback) {
       try {
@@ -453,7 +457,6 @@ const firebaseConfig = {
     let currentUser = null;
     let userRole = 'admin';
     let isSignUpMode = false;
-    let userRoleUnsubscribe = null;
     let saveTimeout = null;
 
     const masterRoster = [
@@ -805,7 +808,7 @@ const firebaseConfig = {
 
     // --- Practice Plan Folder Dropdown ---
     function togglePracticeTree(e) {
-      e.stopPropagation();
+      if (e) e.stopPropagation();
       const el = document.getElementById('practice-tree-dropdown');
       el.style.display = (el.style.display === 'none' || el.style.display === '') ? 'block' : 'none';
     }
@@ -1005,17 +1008,20 @@ const firebaseConfig = {
       }
     }
 
-    // Auth Helpers
+    // --- Authentication & User Lifecycle ---
     function switchAuthTab(mode) {
       isSignUpMode = (mode === 'register');
       document.getElementById("tab-login").classList.toggle('active', !isSignUpMode);
       document.getElementById("tab-register").classList.toggle('active', isSignUpMode);
       document.getElementById("auth-submit-btn").textContent = isSignUpMode ? "Create Account" : "Sign In";
+      document.getElementById("auth-error").style.display = "none";
     }
 
     function bypassLogin() {
-      document.getElementById("auth-overlay").style.display = "none";
+      const overlay = document.getElementById("auth-overlay");
+      if (overlay) overlay.style.display = "none";
       applyRole('admin');
+      document.getElementById("user-display-email").textContent = "Offline Coach";
     }
 
     function displayAuthError(msg) {
@@ -1026,41 +1032,112 @@ const firebaseConfig = {
       }
     }
 
-    function handleEmailAuth(e) {
-      e.preventDefault();
+    async function handleEmailAuth(e) {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
       const errDiv = document.getElementById("auth-error");
       if (errDiv) errDiv.style.display = "none";
 
       if (!auth) {
-        displayAuthError("Firebase not connected. Use Offline Mode below.");
-        return;
+        displayAuthError("Firebase not configured. Use 'Continue without login' below.");
+        return false;
       }
-      const email = document.getElementById("auth-email").value;
+      const email = document.getElementById("auth-email").value.trim();
       const pass = document.getElementById("auth-password").value;
-      if (isSignUpMode) {
-        auth.createUserWithEmailAndPassword(email, pass).catch(err => displayAuthError(err.message));
-      } else {
-        auth.signInWithEmailAndPassword(email, pass).catch(err => displayAuthError(err.message));
+
+      try {
+        if (isSignUpMode) {
+          await auth.createUserWithEmailAndPassword(email, pass);
+        } else {
+          await auth.signInWithEmailAndPassword(email, pass);
+        }
+        // Direct modal dismissal
+        const overlay = document.getElementById("auth-overlay");
+        if (overlay) overlay.style.display = "none";
+      } catch (err) {
+        console.error("Auth Error:", err);
+        let msg = err.message;
+        if (err.code === 'auth/operation-not-allowed') {
+          msg = "Email/Password login is not enabled in your Firebase Console under Authentication -> Sign-in method.";
+        }
+        displayAuthError(msg);
       }
+      return false;
     }
 
-    function signInWithGoogle() {
+    async function signInWithGoogle() {
       const errDiv = document.getElementById("auth-error");
       if (errDiv) errDiv.style.display = "none";
 
       if (!auth) {
-        displayAuthError("Firebase not connected. Use Offline Mode below.");
+        displayAuthError("Firebase not configured. Use 'Continue without login' below.");
         return;
       }
-      auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(err => {
+      try {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        provider.setCustomParameters({ prompt: 'select_account' });
+        await auth.signInWithPopup(provider);
+        const overlay = document.getElementById("auth-overlay");
+        if (overlay) overlay.style.display = "none";
+      } catch (err) {
         console.error("Google Auth Error:", err);
-        displayAuthError(err.message + (window.location.protocol === 'file:' ? ' (Note: Google popup login requires running on http://localhost or GitHub Pages, not file:///)' : ''));
-      });
+        let msg = err.message;
+        if (window.location.protocol === 'file:') {
+          msg = "Google popup login requires http://localhost or GitHub Pages (browsers block OAuth on file:/// URLs). Use Email Login or Offline Mode.";
+        }
+        displayAuthError(msg);
+      }
     }
 
     function signOutUser() {
-      if (auth) auth.signOut();
-      else location.reload();
+      if (auth) {
+        auth.signOut().then(() => location.reload());
+      } else {
+        location.reload();
+      }
+    }
+
+    function applyRole(role) {
+      userRole = role;
+      localStorage.setItem('footballUserRole', role);
+      
+      const badge = document.getElementById("user-role-badge");
+      if (badge) {
+        badge.textContent = role === 'admin' ? 'HEAD COACH' : 'COACH';
+        badge.className = `role-badge ${role === 'admin' ? 'role-admin' : 'role-viewer'}`;
+      }
+
+      if (role === 'admin') {
+        document.body.classList.remove('view-only');
+      } else {
+        document.body.classList.add('view-only');
+      }
+
+      renderActiveBoards();
+      if (activeUnit === 'wristband') { renderWristband(); renderPlayLibrary(); }
+      if (activeUnit === 'scouting') renderScouting();
+      if (activeUnit === 'drills') renderDrillsTab();
+      renderPracticePlan();
+      renderMasterRoster();
+    }
+
+    // Attach immediate auth observer
+    if (auth) {
+      auth.onAuthStateChanged((user) => {
+        const overlay = document.getElementById("auth-overlay");
+        if (user) {
+          currentUser = user;
+          if (overlay) overlay.style.display = "none";
+          document.getElementById("user-display-email").textContent = user.email || user.displayName || "Coach";
+          document.getElementById("sync-text").textContent = "Live Cloud Sync Active";
+          applyRole('admin');
+        } else {
+          currentUser = null;
+          if (overlay) overlay.style.display = "flex";
+        }
+      });
     }
 
     function closeAllDropdowns(e) {
@@ -1070,7 +1147,7 @@ const firebaseConfig = {
       if (pt) pt.style.display = 'none';
     }
 
-    // Initialize application on load
+    // Run
     initializeApp();
   </script>
 </body>
