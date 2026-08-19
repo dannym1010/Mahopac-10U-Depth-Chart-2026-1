@@ -204,7 +204,7 @@
 
     .player-list { list-style: none; padding: 4px; margin: 0; min-height: 45px; }
     .player-item { background: #f8fafc; border: 1px solid var(--card-border); padding: 4px 6px; margin-bottom: 4px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; cursor: grab; font-size: 11px; touch-action: manipulation; }
-    .player-item.selected-touch { border-color: #2563eb !important; background-color: #dbeafe !important; }
+    .player-item.selected-touch { border-color: #2563eb !important; background: #dbeafe !important; }
     .player-item.search-match { background-color: #fef08a !important; border-color: #ca8a04 !important; }
     .player-info { display: flex; gap: 4px; align-items: center; pointer-events: none; }
     .num-tag { font-weight: bold; }
@@ -358,7 +358,7 @@
     }
   </style>
 </head>
-<body class="view-only" onclick="closeAllDropdowns()">
+<body class="view-only" onclick="closeAllDropdowns(event)">
 
   <!-- Authentication Overlay -->
   <div id="auth-overlay">
@@ -495,6 +495,7 @@
               <button class="toolbar button" onclick="if(document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur(); setTimeout(()=>window.print(), 100);" style="padding:4px 10px; margin-left:6px;">🖨️ Print Wristband</button>
             </div>
           </div>
+          
           <div id="wristband-grid" style="overflow-x: auto; padding: 4px; display:flex; justify-content:center; width:100%;">
             <!-- Table Populated by JS -->
           </div>
@@ -712,7 +713,10 @@ const firebaseConfig = {
       console.warn("Firebase not configured. Using local storage mode.", err);
     }
 
-    function closeAllDropdowns() {
+    function closeAllDropdowns(e) {
+      if (e && e.target && e.target.closest('#practice-tree-dropdown')) return;
+      if (e && e.target && e.target.closest('#selected-practice-display')) return;
+      
       document.querySelectorAll('.card-search-dropdown').forEach(d => {
          if (d.id !== 'practice-tree-dropdown') d.classList.remove('active');
       });
@@ -945,9 +949,10 @@ const firebaseConfig = {
           delete wbData.pages;
           delete wbData.startIndex;
       }
-      if (typeof wbData.rows !== 'number' || isNaN(wbData.rows)) {
-          wbData.rows = 16;
-      }
+      
+      wbData.rows = parseInt(wbData.rows);
+      if (isNaN(wbData.rows) || wbData.rows <= 0) wbData.rows = 16;
+      
       if (!Array.isArray(wbData.columns) || wbData.columns.length === 0) {
           wbData.columns = [
               { color: "blue", plays: [] },
@@ -1140,13 +1145,13 @@ const firebaseConfig = {
               applyRole('admin');
               document.getElementById("auth-overlay").style.display = "none";
            }).catch(err => {
-              console.error("Firestore write blocked. Defaulting to admin locally.", err);
+              console.error("Firestore write blocked. Bypassing locally.", err);
               applyRole('admin');
               document.getElementById("auth-overlay").style.display = "none";
            });
         }
       }).catch(err => {
-         console.error("Firestore read blocked. Defaulting to admin locally.", err);
+         console.error("Firestore read blocked. Bypassing locally.", err);
          applyRole('admin');
          document.getElementById("auth-overlay").style.display = "none";
       });
@@ -1228,35 +1233,6 @@ const firebaseConfig = {
       const active = document.activeElement;
       return active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.tagName === 'SELECT');
     }
-
-    const masterRoster = [
-      { num: "2", firstName: "Mohammed", lastName: "Ibrahim" },
-      { num: "4", firstName: "Vincent", lastName: "Cambigianis" },
-      { num: "6", firstName: "Andrew", lastName: "Henderson" },
-      { num: "7", firstName: "Jayden", lastName: "Silva" },
-      { num: "8", firstName: "James", lastName: "Kilkenny" },
-      { num: "10", firstName: "Luke", lastName: "Mancini" },
-      { num: "11", firstName: "Dorian", lastName: "Berish" },
-      { num: "12", firstName: "Richard", lastName: "Barry" },
-      { num: "13", firstName: "Landon", lastName: "Veto" },
-      { num: "15", firstName: "Henry", lastName: "Swansen" },
-      { num: "17", firstName: "David", lastName: "Dicob" },
-      { num: "19", firstName: "Paul", lastName: "Nardella" },
-      { num: "20", firstName: "Jack", lastName: "Furfaro" },
-      { num: "21", firstName: "Nash", lastName: "Ward" },
-      { num: "22", firstName: "Jaxson", lastName: "Pestone" },
-      { num: "27", firstName: "Sean", lastName: "Lacerra" },
-      { num: "33", firstName: "Michael", lastName: "Frascone" },
-      { num: "34", firstName: "Eddie", lastName: "Flemming" },
-      { num: "40", firstName: "Chris", lastName: "Sokol" },
-      { num: "44", firstName: "Caden", lastName: "Jones" },
-      { num: "48", firstName: "Michael", lastName: "Sweeny" },
-      { num: "50", firstName: "Colin", lastName: "Convery" },
-      { num: "52", firstName: "John", lastName: "Piqueras" },
-      { num: "56", firstName: "Ryan", lastName: "Russell" },
-      { num: "66", firstName: "Luca", lastName: "Mucciacciaro" },
-      { num: "99", firstName: "Conrad", lastName: "Crean" }
-    ];
 
     function markPracticeEdited() {
       if (userRole !== 'admin') return;
@@ -1340,15 +1316,14 @@ const firebaseConfig = {
       let html = '<ul class="tree-root">';
       Object.keys(tree).sort((a,b) => b.localeCompare(a)).forEach(y => {
          const isCurYear = cur && (cur.year === y || (!cur.year && y === new Date().getFullYear().toString()));
-         const displayYear = isCurYear ? 'block' : 'none';
-         const caretIconY = isCurYear ? '📂' : '📁';
+         const displayYear = 'block'; // ALWAYS expanded for easier clicking
+         const caretIconY = '📂';
 
          html += `<li><span class="tree-caret" onclick="toggleTreeNode(this, event)">${caretIconY} ${y}</span><ul class="nested" style="display:${displayYear};">`;
          
          Object.keys(tree[y]).sort().forEach(w => {
-             const isCurWeek = isCurYear && cur && cur.week === w;
-             const displayWeek = isCurWeek ? 'block' : 'none';
-             const caretIconW = isCurWeek ? '📂' : '📁';
+             const displayWeek = 'block'; // ALWAYS expanded
+             const caretIconW = '📂';
 
              html += `<li>
                 <span class="tree-caret week-drop-target" data-year="${y}" data-week="${w}" 
@@ -1570,7 +1545,7 @@ const firebaseConfig = {
          const scout = weeklyData[currentWeek].scouting;
          const yr = scout.year ? `${scout.year} ` : "";
          const wk = scout.week ? `${scout.week} - ` : "";
-         printTitle.textContent = `Scouting Report: ${yr}${wk}${val || 'Week ' + currentWeek}`;
+         printTitle.textContent = `Scouting Report: ${yr}${wk}${opp}`;
       }
     }
 
@@ -1931,7 +1906,7 @@ const firebaseConfig = {
 
     function handleFormationClick(formId) {
         if (activeCountFormationId === formId) {
-            activeCountFormationId = null; 
+            activeCountFormationId = null; // Toggle off if clicked again
         } else {
             activeCountFormationId = formId;
         }
@@ -2947,14 +2922,8 @@ const firebaseConfig = {
 
         if (userRole === 'admin') {
           li.draggable = true;
-          li.ondragstart = (e) => {
-              e.stopPropagation();
-              handleRosterDragStart(e);
-          };
-          li.onclick = (e) => {
-              e.stopPropagation();
-              handleTouchSelect(player.lastName || player.firstName, player.num || "", null, null, e);
-          };
+          li.ondragstart = handleRosterDragStart;
+          li.onclick = (e) => handleTouchSelect(player.lastName || player.firstName, player.num || "", null, null, e);
         }
 
         li.innerHTML = `
