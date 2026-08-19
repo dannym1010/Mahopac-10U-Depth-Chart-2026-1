@@ -482,10 +482,10 @@
       </div>
     </div>
     <div style="display:flex; gap:6px;">
-      <button class="admin-only" onclick="exportData()">Backup</button>
+      <button class="admin-only" onclick="if(typeof exportData === 'function') exportData();">Backup</button>
       <button class="admin-only" onclick="document.getElementById('import-file').click()">Import</button>
-      <button class="admin-only" onclick="resetDefault()" style="color:#ef4444;">Reset</button>
-      <input type="file" id="import-file" style="display:none;" onchange="importData(event)" accept=".json" />
+      <button class="admin-only" onclick="if(typeof resetDefault === 'function') resetDefault();" style="color:#ef4444;">Reset</button>
+      <input type="file" id="import-file" style="display:none;" onchange="if(typeof importData === 'function') importData(event);" accept=".json" />
     </div>
   </div>
 
@@ -493,14 +493,14 @@
   <div class="week-bar" id="main-week-bar">
     <div class="week-controls">
       <span class="week-label">Game Week:</span>
-      <select id="week-select" class="week-select" onchange="changeWeek(this.value)">
+      <select id="week-select" class="week-select" onchange="if(typeof changeWeek === 'function') changeWeek(this.value);">
         <option value="0">Week 0</option><option value="1">Week 1</option>
         <option value="2">Week 2</option><option value="3">Week 3</option>
         <option value="4">Week 4</option><option value="5">Week 5</option>
         <option value="6">Week 6</option><option value="7">Week 7</option>
         <option value="8">Week 8</option>
       </select>
-      <button class="copy-week-btn admin-only" onclick="copyWeekToPrompt()">📋 Copy Lineup To...</button>
+      <button class="copy-week-btn admin-only" onclick="if(typeof copyWeekToPrompt === 'function') copyWeekToPrompt();">📋 Copy Lineup To...</button>
     </div>
     <div class="week-controls">
       <span class="week-label">Opponent / Label:</span>
@@ -601,23 +601,23 @@
              </div>
              <div class="station-block">
                 <div class="station-title">Team Overview & Game Notes</div>
-                <textarea id="scout-teamOverview" class="prac-textarea scout-textarea" oninput="autoResizeTextarea(this); updateScouting('teamOverview', this.value)" placeholder="General notes about the opponent..."></textarea>
+                <textarea id="scout-teamOverview" class="prac-textarea scout-textarea" oninput="if(typeof autoResizeTextarea === 'function') autoResizeTextarea(this); updateScouting('teamOverview', this.value)" placeholder="General notes about the opponent..."></textarea>
              </div>
              <div class="station-block">
                 <div class="station-title">Key Players to Watch</div>
-                <textarea id="scout-keyPlayers" class="prac-textarea scout-textarea" oninput="autoResizeTextarea(this); updateScouting('keyPlayers', this.value)" placeholder="#X Name - Notes..."></textarea>
+                <textarea id="scout-keyPlayers" class="prac-textarea scout-textarea" oninput="if(typeof autoResizeTextarea === 'function') autoResizeTextarea(this); updateScouting('keyPlayers', this.value)" placeholder="#X Name - Notes..."></textarea>
              </div>
              <div class="station-block">
                 <div class="station-title">Offensive Tendencies</div>
-                <textarea id="scout-offenseTendencies" class="prac-textarea scout-textarea" oninput="autoResizeTextarea(this); updateScouting('offenseTendencies', this.value)" placeholder="Formations, favorite plays, run/pass ratio..."></textarea>
+                <textarea id="scout-offenseTendencies" class="prac-textarea scout-textarea" oninput="if(typeof autoResizeTextarea === 'function') autoResizeTextarea(this); updateScouting('offenseTendencies', this.value)" placeholder="Formations, favorite plays, run/pass ratio..."></textarea>
              </div>
              <div class="station-block">
                 <div class="station-title">Defensive Tendencies</div>
-                <textarea id="scout-defenseTendencies" class="prac-textarea scout-textarea" oninput="autoResizeTextarea(this); updateScouting('defenseTendencies', this.value)" placeholder="Base front, coverages, blitz tendencies..."></textarea>
+                <textarea id="scout-defenseTendencies" class="prac-textarea scout-textarea" oninput="if(typeof autoResizeTextarea === 'function') autoResizeTextarea(this); updateScouting('defenseTendencies', this.value)" placeholder="Base front, coverages, blitz tendencies..."></textarea>
              </div>
              <div class="station-block" style="grid-column: 1 / -1;">
                 <div class="station-title">Special Teams & Other Notes</div>
-                <textarea id="scout-specialTeams" class="prac-textarea scout-textarea" oninput="autoResizeTextarea(this); updateScouting('specialTeams', this.value)" placeholder="Kicker strength, returners, fake threats..."></textarea>
+                <textarea id="scout-specialTeams" class="prac-textarea scout-textarea" oninput="if(typeof autoResizeTextarea === 'function') autoResizeTextarea(this); updateScouting('specialTeams', this.value)" placeholder="Kicker strength, returners, fake threats..."></textarea>
              </div>
           </div>
         </div>
@@ -655,19 +655,19 @@
               
               <!-- Custom Folder Tree Dropdown -->
               <div style="position:relative; width: 250px; z-index: 9999;">
-                <div id="selected-practice-display" class="practice-tree-btn" style="pointer-events: auto !important;" onclick="togglePracticeTree(event)">Select Practice...</div>
+                <div id="selected-practice-display" class="practice-tree-btn" style="pointer-events: auto !important;" onclick="if(typeof togglePracticeTree === 'function') togglePracticeTree(event);">Select Practice...</div>
                 <div id="practice-tree-dropdown" class="card-search-dropdown" onclick="event.stopPropagation()" style="display:none; width: 350px; max-height: 400px; text-align:left; padding:8px; border:2px solid var(--primary); pointer-events: auto !important; top: 100%; left: 0;">
                    <!-- Populated by JS -->
                 </div>
               </div>
 
-              <button class="toggle-board-btn admin-only" onclick="createNewPractice()">+ New</button>
-              <button class="toggle-board-btn admin-only" onclick="editPracticeDetails()">✏️ Edit Details</button>
-              <button class="toggle-board-btn admin-only" onclick="saveAsTemplate()">💾 Save Template</button>
-              <button class="toggle-board-btn admin-only" onclick="deletePractice()" style="color:#ef4444;">🗑️ Delete</button>
+              <button class="toggle-board-btn admin-only" onclick="if(typeof createNewPractice === 'function') createNewPractice();">+ New</button>
+              <button class="toggle-board-btn admin-only" onclick="if(typeof editPracticeDetails === 'function') editPracticeDetails();">✏️ Edit Details</button>
+              <button class="toggle-board-btn admin-only" onclick="if(typeof saveAsTemplate === 'function') saveAsTemplate();">💾 Save Template</button>
+              <button class="toggle-board-btn admin-only" onclick="if(typeof deletePractice === 'function') deletePractice();" style="color:#ef4444;">🗑️ Delete</button>
             </div>
             <div>
-              <button class="add-row-btn admin-only" onclick="addPracticeRow()">+ Add Period</button>
+              <button class="add-row-btn admin-only" onclick="if(typeof addPracticeRow === 'function') addPracticeRow();">+ Add Period</button>
               <button class="toolbar button" onclick="if(document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur(); setTimeout(()=>window.print(), 100);" style="padding:4px 10px; margin-left:6px;">🖨️ Print Plan</button>
             </div>
           </div>
@@ -676,10 +676,10 @@
           <div class="practice-dashboard no-print">
             <div style="display:flex; gap:10px; align-items:center;">
               <label style="font-size:11px; font-weight:bold; color:var(--primary);">Start Time: 
-                <input type="time" id="prac-start" class="prac-input" style="width:auto; display:inline-block; font-weight:bold;" onchange="updatePracticeTimes('startTime', this.value)">
+                <input type="time" id="prac-start" class="prac-input" style="width:auto; display:inline-block; font-weight:bold;" onchange="if(typeof updatePracticeTimes === 'function') updatePracticeTimes('startTime', this.value);">
               </label>
               <label style="font-size:11px; font-weight:bold; color:var(--primary);">End Time: 
-                <input type="time" id="prac-end" class="prac-input" style="width:auto; display:inline-block; font-weight:bold;" onchange="updatePracticeTimes('endTime', this.value)">
+                <input type="time" id="prac-end" class="prac-input" style="width:auto; display:inline-block; font-weight:bold;" onchange="if(typeof updatePracticeTimes === 'function') updatePracticeTimes('endTime', this.value);">
               </label>
             </div>
             <div style="flex:1;"></div>
@@ -759,7 +759,7 @@
     // ----------------------------------------------------------------------------------
     
     // 🔥 PASTE YOUR FIREBASE CONFIG HERE 🔥
-const firebaseConfig = {
+    const firebaseConfig = {
        apiKey: "AIzaSyBxAet3UzgBNuMUyUgj2MDWgrK5X63IPvg",
        authDomain: "u-depth-chart.firebaseapp.com",
        projectId: "u-depth-chart",
@@ -767,7 +767,6 @@ const firebaseConfig = {
        messagingSenderId: "303577845736",
        appId: "1:303577845736:web:34588bbe5e07f1322e1e5d",
        measurementId: "G-K15ZKX0S45" 
-
     };
 
     let db = null;
@@ -874,6 +873,52 @@ const firebaseConfig = {
     let depthChart = null;
     let currentPracticeId = null;
 
+    // --- TAB SWITCHING LOGIC ADDED HERE ---
+    function switchUnitTab(unit) {
+      activeUnit = unit;
+      
+      // 1. Update the styling on the Tab Buttons
+      document.querySelectorAll('.nav-tab').forEach(btn => btn.classList.remove('active'));
+      const activeBtn = document.getElementById('tab-btn-' + unit);
+      if (activeBtn) activeBtn.classList.add('active');
+      
+      // 2. Hide all panels, then show the active one
+      document.querySelectorAll('.unit-panel').forEach(panel => panel.classList.add('hidden'));
+      const activePanel = document.getElementById('panel-' + unit);
+      if (activePanel) activePanel.classList.remove('hidden');
+
+      // 3. Switch the Sidebar (Wristband needs the Play Library, others need the Roster)
+      const rosterSidebar = document.getElementById('sidebar-panel');
+      const playsSidebar = document.getElementById('plays-sidebar-panel');
+      
+      if (unit === 'wristband') {
+        if(rosterSidebar) rosterSidebar.classList.add('hidden');
+        if(playsSidebar) playsSidebar.classList.remove('hidden');
+        renderPlayLibrary();
+      } else {
+        if(rosterSidebar) rosterSidebar.classList.remove('hidden');
+        if(playsSidebar) playsSidebar.classList.add('hidden');
+      }
+
+      // 4. Render the correct data based on which tab was clicked
+      if (unit === 'wristband') {
+        renderWristband();
+      } else if (unit === 'scouting') {
+        renderScouting();
+      } else if (unit === 'drills') {
+        renderDrillsTab();
+      } else if (unit === 'practice') {
+        if (typeof renderPracticePlan === "function") renderPracticePlan();
+      } else if (unit === 'users') {
+        // user permissions logic placeholder
+      } else {
+        // For Offense, Defense, Special Teams, and Depth Chart
+        renderActiveBoards();
+        renderMasterRoster();
+      }
+    }
+    // --------------------------------------
+
     function getWeekFormations(week) {
       if (!weeklyData[week]) weeklyData[week] = { opponent: "" };
       if (!weeklyData[week].formations || !Array.isArray(weeklyData[week].formations)) {
@@ -966,7 +1011,6 @@ const firebaseConfig = {
         sanitizePracticeData();
         initWristbandData();
         
-        // This handles cases where these functions might not be fully stubbed if part of a bigger project
         if(typeof initScoutingData === "function") initScoutingData();
         
         depthChart = getWeekDepthChart(currentWeek);
@@ -1115,16 +1159,34 @@ const firebaseConfig = {
 
               const players = Array.isArray(depthChart[pos.id]) ? depthChart[pos.id].filter(p => p) : [];
 
-              let playersHtml = players.map((player, idx) => `
+              // --- COLOR LOGIC ADDED HERE ---
+              let playersHtml = players.map((player, idx) => {
+                let rankClass = 'rank-sub-gray';
+                let rankLabel = 'D' + (idx + 1);
+
+                if (idx === 0) {
+                    rankClass = 'rank-starter';
+                    rankLabel = 'ST';
+                } else if (idx === 1) {
+                    rankClass = 'rank-sub-gold';
+                    rankLabel = 'D2';
+                } else if (idx === 2) {
+                    rankClass = 'rank-sub-blue';
+                    rankLabel = 'D3';
+                }
+                
+                return `
                 <li class="player-item" draggable="${userRole==='admin'?'true':'false'}" ondragstart="handlePlayerDragStart(event, '${pos.id}', ${idx}, '${player.name}', '${player.num}')">
                   <div class="player-info">
-                    <span class="rank-badge ${idx === 0 ? 'rank-starter' : 'rank-sub-gold'}">${idx === 0 ? 'ST' : 'D2'}</span>
+                    <span class="rank-badge ${rankClass}">${rankLabel}</span>
                     <span class="num-tag">#${player.num}</span>
                     <span>${player.name}</span>
                   </div>
                   <button class="remove-btn admin-only" onclick="removePlayer('${pos.id}', ${idx}, event)">&times;</button>
                 </li>
-              `).join("");
+                `;
+              }).join("");
+              // --------------------------------
 
               card.innerHTML = `
                 <div class="position-header">
@@ -1257,7 +1319,6 @@ const firebaseConfig = {
         const list = document.getElementById("play-library-list");
         if (!list) return;
         
-        // PARENTHESIS FIX APPLIED HERE
         const term = (document.getElementById("play-search-input") ? document.getElementById("play-search-input").value : "").toLowerCase().trim();
         list.innerHTML = "";
 
