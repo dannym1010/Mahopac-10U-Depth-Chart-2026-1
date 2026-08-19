@@ -122,7 +122,7 @@
     .app-layout { display: flex; gap: 12px; max-width: 1400px; margin: 0 auto; flex-direction: row; align-items: flex-start; }
     @media (max-width: 900px) { .app-layout { flex-direction: column; } }
 
-    .boards-container { flex: 3; min-width: 0; display: flex; flex-direction: column; gap: 15px; width: 100%; }
+    .boards-container { flex: 3; min-width: 0; display: flex; flex-direction: column; gap: 15px; width: 100%; overflow: visible; }
     .unit-panel { display: flex; flex-direction: column; gap: 20px; width: 100%; }
 
     /* Formation Cards */
@@ -322,7 +322,7 @@
              <div style="grid-column: 1 / -1; display: flex; gap: 15px; background: #f8fafc; padding: 10px; border-radius: 6px;">
                 <label>Year: <input type="text" id="scout-year" class="prac-input" style="width: 80px;" oninput="updateScouting('year', this.value)"></label>
                 <label>Week: <input type="text" id="scout-week" class="prac-input" style="width: 100px;" oninput="updateScouting('week', this.value)"></label>
-                <label>Opponent: <input type="text" id="scout-opponent" class="prac-input" style="width: 200px;" oninput="updateScouting('opponent', this.value)"></label>
+                <label>Opponent: <input type="text" id="scout-opponent" class="prac-input" style="width: 200px;" oninput="updateScouting('opponent', this.value)"> </label>
              </div>
              <div><strong>Team Overview</strong><textarea id="scout-teamOverview" class="prac-textarea" oninput="updateScouting('teamOverview', this.value)"></textarea></div>
              <div><strong>Key Players</strong><textarea id="scout-keyPlayers" class="prac-textarea" oninput="updateScouting('keyPlayers', this.value)"></textarea></div>
@@ -410,6 +410,8 @@
     // ----------------------------------------------------------------------------------
     // APPLICATION CORE SCRIPT
     // ----------------------------------------------------------------------------------
+    
+    // Paste your Firebase Config below
 const firebaseConfig = {
        apiKey: "AIzaSyBxAet3UzgBNuMUyUgj2MDWgrK5X63IPvg",
        authDomain: "u-depth-chart.firebaseapp.com",
@@ -426,7 +428,7 @@ const firebaseConfig = {
     let cloudEnabled = false;
 
     try {
-      if (firebaseConfig.apiKey !== "YOUR_API_KEY") {
+      if (firebaseConfig.apiKey && firebaseConfig.apiKey !== "YOUR_API_KEY") {
         firebase.initializeApp(firebaseConfig);
         db = firebase.firestore();
         auth = firebase.auth();
@@ -1016,34 +1018,43 @@ const firebaseConfig = {
       applyRole('admin');
     }
 
+    function displayAuthError(msg) {
+      const errorEl = document.getElementById("auth-error");
+      if (errorEl) {
+        errorEl.textContent = msg;
+        errorEl.style.display = "block";
+      }
+    }
+
     function handleEmailAuth(e) {
       e.preventDefault();
       const errDiv = document.getElementById("auth-error");
+      if (errDiv) errDiv.style.display = "none";
+
       if (!auth) {
-        if (errDiv) { errDiv.textContent = "Firebase Auth not active. Use Offline Mode below."; errDiv.style.display = "block"; }
+        displayAuthError("Firebase not connected. Use Offline Mode below.");
         return;
       }
       const email = document.getElementById("auth-email").value;
       const pass = document.getElementById("auth-password").value;
       if (isSignUpMode) {
-        auth.createUserWithEmailAndPassword(email, pass).catch(err => {
-          if (errDiv) { errDiv.textContent = err.message; errDiv.style.display = "block"; }
-        });
+        auth.createUserWithEmailAndPassword(email, pass).catch(err => displayAuthError(err.message));
       } else {
-        auth.signInWithEmailAndPassword(email, pass).catch(err => {
-          if (errDiv) { errDiv.textContent = err.message; errDiv.style.display = "block"; }
-        });
+        auth.signInWithEmailAndPassword(email, pass).catch(err => displayAuthError(err.message));
       }
     }
 
     function signInWithGoogle() {
       const errDiv = document.getElementById("auth-error");
+      if (errDiv) errDiv.style.display = "none";
+
       if (!auth) {
-        if (errDiv) { errDiv.textContent = "Firebase Auth not active. Use Offline Mode below."; errDiv.style.display = "block"; }
+        displayAuthError("Firebase not connected. Use Offline Mode below.");
         return;
       }
       auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(err => {
-        if (errDiv) { errDiv.textContent = err.message; errDiv.style.display = "block"; }
+        console.error("Google Auth Error:", err);
+        displayAuthError(err.message + (window.location.protocol === 'file:' ? ' (Note: Google popup login requires running on http://localhost or GitHub Pages, not file:///)' : ''));
       });
     }
 
@@ -1052,7 +1063,14 @@ const firebaseConfig = {
       else location.reload();
     }
 
-    // Run
+    function closeAllDropdowns(e) {
+      if (e && e.target && e.target.closest('#practice-tree-dropdown')) return;
+      if (e && e.target && e.target.closest('#selected-practice-display')) return;
+      const pt = document.getElementById('practice-tree-dropdown');
+      if (pt) pt.style.display = 'none';
+    }
+
+    // Initialize application on load
     initializeApp();
   </script>
 </body>
