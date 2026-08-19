@@ -364,14 +364,14 @@
       box-shadow: 0 2px 4px rgba(30, 58, 138, 0.2);
     }
 
-    /* Main Layout - Modified for Sticky Sidebar */
+    /* Main Layout - Top Aligned for Sticky */
     .app-layout {
       display: flex;
       gap: 12px;
       max-width: 1400px;
       margin: 0 auto;
       flex-direction: row;
-      align-items: flex-start; /* CRITICAL: Allows children to not stretch, enabling sticky */
+      align-items: flex-start; /* CRITICAL: Allows sidebar natural positioning */
     }
 
     @media (max-width: 900px) {
@@ -404,7 +404,7 @@
       position: relative;
       box-shadow: 0 1px 3px rgba(0,0,0,0.05);
       overflow-x: auto;
-      cursor: pointer; /* Indicates it can be clicked to count */
+      cursor: pointer;
       transition: all 0.2s ease;
     }
 
@@ -430,15 +430,12 @@
       align-items: center;
       flex-wrap: wrap;
       gap: 6px;
-      pointer-events: none; /* Let the container catch the click */
     }
-    
-    /* Make controls clickable again */
+
     .board-controls {
       display: flex;
       align-items: center;
       gap: 4px;
-      pointer-events: auto;
     }
 
     .toggle-board-btn, .add-pos-btn, .add-form-btn {
@@ -476,7 +473,6 @@
     /* Level / Row Headers */
     .row-container {
       margin-bottom: 12px;
-      pointer-events: none;
     }
 
     .level-header-bar {
@@ -486,7 +482,6 @@
       margin-bottom: 6px;
       border-bottom: 1px solid #e2e8f0;
       padding-bottom: 2px;
-      pointer-events: auto;
     }
 
     .level-label {
@@ -529,7 +524,6 @@
       gap: 6px;
       flex-wrap: wrap;
       min-width: 100%;
-      pointer-events: auto;
     }
 
     .formation-row.oline { justify-content: center; gap: 8px; }
@@ -1044,7 +1038,7 @@
       color: white;
     }
 
-    /* Sidebar Roster Panel (Now Sticky Centered!) */
+    /* Sidebar Roster Panel (Top Aligned & Sticky) */
     .sidebar {
       flex: 1;
       min-width: 220px;
@@ -1057,18 +1051,17 @@
       flex-direction: column;
       box-shadow: 0 1px 3px rgba(0,0,0,0.05);
       
-      /* New Sticky Properties */
+      /* Smooth Sticky Setup */
       position: -webkit-sticky;
       position: sticky;
-      top: 50vh;
-      transform: translateY(-50%);
-      max-height: 85vh; 
+      top: 15px; /* Sticks 15px from top while scrolling */
+      align-self: flex-start; /* Aligns with top of its container */
+      max-height: calc(100vh - 30px); /* Never goes offscreen bottom */
     }
 
     @media (max-width: 900px) {
       .sidebar {
          position: static;
-         transform: none;
          max-width: 100%;
          max-height: 600px;
       }
@@ -1363,6 +1356,7 @@
               <button class="toolbar button" onclick="if(document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur(); setTimeout(()=>window.print(), 100);" style="padding:4px 10px; margin-left:6px;">🖨️ Print Wristband</button>
             </div>
           </div>
+          
           <div id="wristband-grid" style="overflow-x: auto; padding: 4px; display:flex; justify-content:center;">
             <!-- Table Populated by JS -->
           </div>
@@ -1536,7 +1530,7 @@
 
   <script>
     // ----------------------------------------------------------------------------------
-    // SECURE FIREBASE CONNECTION
+    // ONLY ONE SET OF CONSTANTS DEFINED HERE AT THE TOP TO PREVENT FATAL JS CRASHES!
     // ----------------------------------------------------------------------------------
     
 const firebaseConfig = {
@@ -1785,6 +1779,7 @@ const firebaseConfig = {
         const overlay = document.getElementById("auth-overlay");
         if (user) {
           currentUser = user;
+          overlay.style.display = "none";
           document.getElementById("user-display-email").textContent = user.email || user.displayName;
           listenToUserRole(user);
         } else {
@@ -1815,11 +1810,6 @@ const firebaseConfig = {
       const errorEl = document.getElementById("auth-error");
       errorEl.textContent = msg;
       errorEl.style.display = "block";
-    }
-
-    function bypassAuth() {
-      document.getElementById("auth-overlay").style.display = "none";
-      applyRole('admin');
     }
 
     function handleEmailAuth(e) {
@@ -1873,6 +1863,7 @@ const firebaseConfig = {
       
       const userRef = db.collection("users").doc(user.uid);
       
+      // If we get blocked by Firestore rules, fallback to local admin so we don't lock the UI
       userRef.get().then((doc) => {
         if (doc.exists) {
            applyRole(doc.data().role || 'viewer');
@@ -2579,110 +2570,25 @@ const firebaseConfig = {
       return null;
     }
 
-    /* WRISTBAND LOGIC */
-    function renderWristband() {
-      initWristbandData();
-      const wbData = weeklyData[currentWeek].wristbandData;
-      const grid = document.getElementById("wristband-grid");
-      if (!grid) return;
-      
-      let html = `<table class="wb-exact-table"><tbody>`;
-
-      for(let r=0; r < wbData.rows; r++) {
-          html += `<tr>`;
-          wbData.columns.forEach((col, cIdx) => {
-              const cell = col.plays[r] || { text: "", color: "white" };
-              html += `
-                  <td class="wb-sub-idx wb-sub-${cell.color}">
-                    <div style="position:relative; width:100%; height:100%; display:flex; align-items:center; justify-content:center;">
-                      ${r+1}
-                      ${r === 0 ? `<div class="wb-cell-controls admin-only no-print" style="left:2px; top:-20px; bottom:auto; right:auto;"><button class="wb-cell-color-btn" onclick="cycleWbColColor(${cIdx})" title="Change Entire Column Color">🖌️ Col</button></div>` : ''}
-                    </div>
-                  </td>
-                  <td class="wb-play-cell wb-body-${cell.color}">
-                      <input type="text" class="wb-play-input" value="${cell.text}" oninput="updateWbPlayText(${cIdx}, ${r}, this.value)" />
-                      <div class="wb-cell-controls admin-only no-print">
-                         <button class="wb-cell-color-btn" onclick="cycleWbCellColor(${cIdx}, ${r})" title="Change Cell Color">🎨</button>
-                      </div>
-                  </td>
-              `;
-          });
-          html += `</tr>`;
-      }
-      html += `</tbody></table>`;
-      grid.innerHTML = html;
-    }
-
-    function updateWbPlayText(colIdx, rowIdx, val) {
-      if (userRole !== 'admin') return;
-      weeklyData[currentWeek].wristbandData.columns[colIdx].plays[rowIdx].text = val;
-      triggerDebouncedSave();
-    }
-
-    function cycleWbColColor(colIdx) {
-      if (userRole !== 'admin') return;
-      const col = weeklyData[currentWeek].wristbandData.columns[colIdx];
-      const current = col.color || 'white';
-      const currentIdx = wbColors.indexOf(current);
-      const nextIdx = (currentIdx + 1) % wbColors.length;
-      const newColor = wbColors[nextIdx];
-      
-      col.color = newColor;
-      col.plays.forEach(p => p.color = newColor);
-      
-      saveState();
-      renderWristband();
-    }
-
-    function cycleWbCellColor(colIdx, rowIdx) {
-      if (userRole !== 'admin') return;
-      const cell = weeklyData[currentWeek].wristbandData.columns[colIdx].plays[rowIdx];
-      const current = cell.color || 'white';
-      const currentIdx = wbColors.indexOf(current);
-      const nextIdx = (currentIdx + 1) % wbColors.length;
-      cell.color = wbColors[nextIdx];
-      
-      saveState();
-      renderWristband();
-    }
-
-    function addWbRow() {
-      if (userRole !== 'admin') return;
-      initWristbandData();
-      const wbData = weeklyData[currentWeek].wristbandData;
-      wbData.rows += 1;
-      wbData.columns.forEach(c => c.plays.push({ text: "", color: c.color }));
-      saveState();
-      renderWristband();
-    }
-
-    function removeWbRow() {
-      if (userRole !== 'admin') return;
-      initWristbandData();
-      const wbData = weeklyData[currentWeek].wristbandData;
-      if (wbData.rows > 1) {
-         wbData.rows -= 1;
-         wbData.columns.forEach(c => c.plays.pop());
-         saveState();
-         renderWristband();
-      }
-    }
-
-    /* DYNAMIC FORMATIONS & POSITIONS */
     function handleFormationClick(formId) {
-        if (activeCountFormationId === formId) return; // Prevent loop if already clicked
-        activeCountFormationId = formId;
+        if (activeCountFormationId === formId) {
+            activeCountFormationId = null; 
+        } else {
+            activeCountFormationId = formId;
+        }
 
         document.querySelectorAll('.formation-container').forEach(el => {
             el.classList.remove('counting-active');
         });
         
-        const activeEl = document.getElementById('board_' + formId);
-        if (activeEl) {
-            activeEl.classList.add('counting-active');
+        if (activeCountFormationId) {
+            const activeEl = document.getElementById('board_' + activeCountFormationId);
+            if (activeEl) {
+                activeEl.classList.add('counting-active');
+            }
         }
 
-        renderMasterRoster(); // Immediately update the counts based on the new selection
+        renderMasterRoster(); 
     }
 
     function createFormationPrompt(unit) {
@@ -2738,7 +2644,7 @@ const firebaseConfig = {
       const forms = getWeekFormations(currentWeek);
       if(confirm("Are you sure you want to delete this entire formation?")) {
         weeklyData[currentWeek].formations = forms.filter(f => f.id !== formId);
-        if (activeCountFormationId === formId) activeCountFormationId = null; // reset if deleting the active one
+        if (activeCountFormationId === formId) activeCountFormationId = null;
         triggerDebouncedSave();
         renderActiveBoards();
         renderMasterRoster(); 
@@ -2934,9 +2840,8 @@ const firebaseConfig = {
         formDiv.className = "formation-container" + (activeCountFormationId === form.id ? " counting-active" : "");
         formDiv.id = "board_" + form.id;
         
-        // This makes clicking the formation count its specific spots in the roster sidebar
         formDiv.onclick = (e) => {
-            if (e.target.closest('button') || e.target.closest('input') || e.target.closest('.player-item')) return;
+            if (e.target.closest('button') || e.target.closest('input') || e.target.closest('.player-item') || e.target.closest('.card-search-container')) return;
             handleFormationClick(form.id);
         };
 
@@ -3540,6 +3445,7 @@ const firebaseConfig = {
       const table = document.getElementById("main-practice-table");
       if (!table) return;
       
+      // Force fixed layout for precise column control
       table.style.tableLayout = "fixed";
 
       const ths = table.querySelectorAll("thead th");
@@ -3567,6 +3473,7 @@ const firebaseConfig = {
             if (newWidth > 30 && nextTh) {
               const newNextWidth = nextStartWidth - diffX;
               if (newNextWidth > 30) {
+                // Convert back to percentages so it stays responsive
                 th.style.width = ((newWidth / tableWidth) * 100) + "%";
                 nextTh.style.width = ((newNextWidth / tableWidth) * 100) + "%";
               }
