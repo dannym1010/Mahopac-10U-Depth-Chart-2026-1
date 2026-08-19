@@ -367,8 +367,10 @@
         <button id="tab-login" class="auth-tab-btn active" onclick="switchAuthTab('login')">Sign In</button>
         <button id="tab-register" class="auth-tab-btn" onclick="switchAuthTab('register')">Create Account</button>
       </div>
+
       <h2 id="auth-main-title">🏈 Coach Portal</h2>
       <p id="auth-main-subtitle">Log in to manage depth charts, playbooks, and practice itineraries.</p>
+      
       <button class="btn-google" onclick="signInWithGoogle()">
         <svg width="18" height="18" viewBox="0 0 24 24">
           <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -378,12 +380,15 @@
         </svg>
         Continue with Google
       </button>
+
       <div class="auth-divider">OR EMAIL</div>
+
       <form id="email-auth-form" onsubmit="handleEmailAuth(event)">
         <input type="email" id="auth-email" class="auth-input" placeholder="Coach Email Address" required autocomplete="username" />
         <input type="password" id="auth-password" class="auth-input" placeholder="Password" required autocomplete="current-password" />
         <button type="submit" id="auth-submit-btn" class="btn-primary">Sign In</button>
       </form>
+      
       <span class="auth-switch" id="auth-switch-btn" onclick="toggleAuthMode()">Don't have an account? Sign Up</span>
       <div id="auth-error" style="color:#ef4444; font-size:12px; margin-top:10px; font-weight:bold; background:#fee2e2; padding:8px; border-radius:4px; display:none; border:1px solid #fca5a5;"></div>
     </div>
@@ -405,6 +410,7 @@
         <button class="toggle-board-btn no-print" onclick="signOutUser()">🚪 Sign Out</button>
       </div>
     </div>
+    
     <div style="display:flex; gap:6px;">
       <button class="admin-only" onclick="exportData()">Backup</button>
       <button class="admin-only" onclick="document.getElementById('import-file').click()">Import</button>
@@ -489,7 +495,7 @@
               <button class="toolbar button" onclick="if(document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur(); setTimeout(()=>window.print(), 100);" style="padding:4px 10px; margin-left:6px;">🖨️ Print Wristband</button>
             </div>
           </div>
-          <div id="wristband-grid" style="overflow-x: auto; padding: 4px; display:flex; justify-content:center;">
+          <div id="wristband-grid" style="overflow-x: auto; padding: 4px; display:flex; justify-content:center; width:100%;">
             <!-- Table Populated by JS -->
           </div>
         </div>
@@ -682,7 +688,7 @@
     // ----------------------------------------------------------------------------------
     
     // 🔥 PASTE YOUR FIREBASE KEYS HERE 🔥
- const firebaseConfig = {
+const firebaseConfig = {
        apiKey: "AIzaSyBxAet3UzgBNuMUyUgj2MDWgrK5X63IPvg",
        authDomain: "u-depth-chart.firebaseapp.com",
        projectId: "u-depth-chart",
@@ -706,12 +712,21 @@
       console.warn("Firebase not configured. Using local storage mode.", err);
     }
 
+    function closeAllDropdowns() {
+      document.querySelectorAll('.card-search-dropdown').forEach(d => {
+         if (d.id !== 'practice-tree-dropdown') d.classList.remove('active');
+      });
+      const pt = document.getElementById('practice-tree-dropdown');
+      if (pt) pt.style.display = 'none';
+    }
+
     const defaultDynamicDrills = {
       "Indy Offense": [
         { name: "Individual Stance & Alignment", desc: "Setup: Line players up on a single yard line with 2-yard splits.\nInstruction: Skill and line players work on correct 2-point or 3-point stances, splits, and alignment rules.", key: "Proper stance, eyes up" }
       ]
     };
 
+    // Complete rich default formation library
     const defaultFormations = [
       {
         id: "form_11", unit: "offense", name: "11 Offense", subtitle: "1 RB - 1 TE (Y1) - 3 WRs (X, W, Z)", collapsed: false,
@@ -1018,14 +1033,6 @@
       renderMasterRoster();
     }
 
-    function closeAllDropdowns() {
-      document.querySelectorAll('.card-search-dropdown').forEach(d => {
-         if (d.id !== 'practice-tree-dropdown') d.classList.remove('active');
-      });
-      const pt = document.getElementById('practice-tree-dropdown');
-      if (pt) pt.style.display = 'none';
-    }
-
     // Auth Listeners
     if (auth) {
       auth.onAuthStateChanged((user) => {
@@ -1133,13 +1140,13 @@
               applyRole('admin');
               document.getElementById("auth-overlay").style.display = "none";
            }).catch(err => {
-              console.error("Firestore write blocked. Bypassing locally.", err);
+              console.error("Firestore write blocked. Defaulting to admin locally.", err);
               applyRole('admin');
               document.getElementById("auth-overlay").style.display = "none";
            });
         }
       }).catch(err => {
-         console.error("Firestore read blocked. Bypassing locally.", err);
+         console.error("Firestore read blocked. Defaulting to admin locally.", err);
          applyRole('admin');
          document.getElementById("auth-overlay").style.display = "none";
       });
@@ -1663,7 +1670,7 @@
          renderActiveBoards();
       }
       
-      renderMasterRoster(); 
+      renderMasterRoster(); // Reset roster UI appropriately 
     }
 
     /* PLAY LIBRARY LOGIC FOR WRISTBAND TAB */
@@ -1924,7 +1931,7 @@
 
     function handleFormationClick(formId) {
         if (activeCountFormationId === formId) {
-            activeCountFormationId = null; // Toggle off if clicked again
+            activeCountFormationId = null; 
         } else {
             activeCountFormationId = formId;
         }
@@ -2255,7 +2262,7 @@
               card.ondragover = (e) => { e.preventDefault(); card.classList.add("drag-over"); };
               card.ondragleave = () => card.classList.remove("drag-over");
               card.ondrop = (e) => handleCardDrop(e, pos.id);
-              card.onclick = () => handleCardTap(pos.id);
+              card.onclick = (e) => { e.stopPropagation(); handleCardTap(pos.id); };
             }
 
             const players = Array.isArray(depthChart[pos.id]) ? depthChart[pos.id] : [];
@@ -2316,8 +2323,11 @@
                 li.className = itemClass;
                 if (userRole === 'admin') {
                   li.draggable = true;
-                  li.ondragstart = (e) => handlePlayerDragStart(e, pos.id, idx, player.name, player.num);
-                  li.onclick = (e) => handleTouchSelect(player.name, player.num, pos.id, idx, e);
+                  li.ondragstart = (e) => {
+                      e.stopPropagation();
+                      handlePlayerDragStart(e, pos.id, idx, player.name, player.num);
+                  };
+                  li.onclick = (e) => { e.stopPropagation(); handleTouchSelect(player.name, player.num, pos.id, idx, e); };
                 }
 
                 li.innerHTML = `
@@ -2860,262 +2870,6 @@
       });
     }
 
-    function addPracticeRow() {
-      if (userRole !== 'admin') return;
-      const current = practiceData.find(p => p.id === currentPracticeId);
-      if (!current) return;
-      if (!Array.isArray(current.plan)) current.plan = [];
-      
-      current.plan.push({ 
-        time: 15, 
-        category: "Warm-Up & Breaks", 
-        drill: "", 
-        desc: "", 
-        key: "", 
-        customDrill: "", 
-        coaches: [], 
-        periodType: 'normal',
-        videoLink: "",
-        stations: [
-          { drill: "", desc: "", key: "", customDrill: "", coaches: [], videoLink: "" },
-          { drill: "", desc: "", key: "", customDrill: "", coaches: [], videoLink: "" }
-        ]
-      });
-      current.lastEdited = Date.now();
-      saveState();
-      renderPracticePlan();
-    }
-
-    function removePracticeRow(idx) {
-      if (userRole !== 'admin') return;
-      const current = practiceData.find(p => p.id === currentPracticeId);
-      if (!current || !Array.isArray(current.plan)) return;
-      current.plan.splice(idx, 1);
-      current.lastEdited = Date.now();
-      saveState();
-      renderPracticePlan();
-    }
-
-    function movePracticeRow(index, direction) {
-      if (userRole !== 'admin') return;
-      const current = practiceData.find(p => p.id === currentPracticeId);
-      if (!current || !Array.isArray(current.plan)) return;
-      const plan = current.plan;
-      const targetIndex = index + direction;
-      if (targetIndex < 0 || targetIndex >= plan.length) return;
-
-      const temp = plan[index];
-      plan[index] = plan[targetIndex];
-      plan[targetIndex] = temp;
-
-      current.lastEdited = Date.now();
-      saveState();
-      renderPracticePlan();
-    }
-
-    function updatePracticeCategory(idx, catValue) {
-      if (userRole !== 'admin') return;
-      const current = practiceData.find(p => p.id === currentPracticeId);
-      if (!current || !Array.isArray(current.plan) || !current.plan[idx]) return;
-      const row = current.plan[idx];
-
-      if (catValue === "Custom") {
-        const newCat = prompt("Enter new custom category name:");
-        if (newCat && newCat.trim() !== "") {
-          const cleanCat = newCat.trim();
-          if (!savedCustomCategories.includes(cleanCat)) {
-            savedCustomCategories.push(cleanCat);
-            localStorage.setItem("footballCustomCategories", JSON.stringify(savedCustomCategories));
-          }
-          row.category = cleanCat;
-        } else {
-          return;
-        }
-      } else {
-        row.category = catValue;
-      }
-
-      row.drill = "";
-      row.desc = "";
-      row.key = "";
-      row.customDrill = "";
-      
-      if (row.category === "Tackle Circuit" || row.category === "Tackling (Whole Team)" || row.category === "Pre Practice") {
-        row.periodType = 'circuit';
-        if (!Array.isArray(row.stations) || row.stations.length === 0) {
-           row.stations = [
-             { drill: "", desc: "", key: "", customDrill: "", coaches: [], videoLink: "" },
-             { drill: "", desc: "", key: "", customDrill: "", coaches: [], videoLink: "" }
-           ];
-        }
-      }
-      
-      current.lastEdited = Date.now();
-      saveState();
-      renderPracticePlan();
-    }
-
-    function updatePracticeDrill(idx, drillValue) {
-      if (userRole !== 'admin') return;
-      const current = practiceData.find(p => p.id === currentPracticeId);
-      if (!current || !Array.isArray(current.plan) || !current.plan[idx]) return;
-      const row = current.plan[idx];
-      row.drill = drillValue;
-      
-      if (drillValue !== "Custom") {
-        row.customDrill = ""; 
-        const drillObj = findDrillByName(drillValue);
-        if (drillObj) {
-          row.desc = drillObj.desc || "";
-          row.key = drillObj.key || "";
-        } else if (drillValue === "") {
-          row.desc = "";
-          row.key = "";
-        }
-      } else {
-        row.desc = "";
-        row.key = "";
-      }
-      
-      current.lastEdited = Date.now();
-      saveState();
-      renderPracticePlan();
-    }
-
-    function updateCircuitStations(rowIdx, newCount) {
-      if (userRole !== 'admin') return;
-      const current = practiceData.find(p => p.id === currentPracticeId);
-      if (!current || !Array.isArray(current.plan) || !current.plan[rowIdx]) return;
-      const target = parseInt(newCount);
-      const row = current.plan[rowIdx];
-      if (!Array.isArray(row.stations)) row.stations = [];
-      while (row.stations.length < target) {
-        row.stations.push({ drill: "", desc: "", key: "", customDrill: "", coaches: [], videoLink: "" });
-      }
-      while (row.stations.length > target) {
-        row.stations.pop();
-      }
-      current.lastEdited = Date.now();
-      saveState();
-      renderPracticePlan();
-    }
-
-    function updateCircuitDrill(rowIdx, stationIdx, drillValue) {
-      if (userRole !== 'admin') return;
-      const current = practiceData.find(p => p.id === currentPracticeId);
-      if (!current || !Array.isArray(current.plan) || !current.plan[rowIdx]) return;
-      const row = current.plan[rowIdx];
-      if (!Array.isArray(row.stations) || !row.stations[stationIdx]) return;
-      const st = row.stations[stationIdx];
-      st.drill = drillValue;
-      if (drillValue !== "Custom") {
-        st.customDrill = "";
-        const drillObj = findDrillByName(drillValue);
-        if (drillObj) {
-          st.desc = drillObj.desc || "";
-          st.key = drillObj.key || "";
-        } else if (drillValue === "") {
-          st.desc = "";
-          st.key = "";
-        }
-      } else {
-        st.desc = "";
-        st.key = "";
-      }
-      current.lastEdited = Date.now();
-      saveState();
-      renderPracticePlan();
-    }
-
-    function handleCoachSelection(rowIdx, value) {
-      if (userRole !== 'admin') return;
-      if (!value) return;
-      const current = practiceData.find(p => p.id === currentPracticeId);
-      if (!current || !Array.isArray(current.plan) || !current.plan[rowIdx]) return;
-      const row = current.plan[rowIdx];
-      if (!Array.isArray(row.coaches)) row.coaches = [];
-
-      if (value === "NEW") {
-        const newCoach = prompt("Enter new coach name:");
-        if (newCoach && newCoach.trim() !== "") {
-          const cleanName = newCoach.trim();
-          if (!savedCoaches.includes(cleanName)) {
-            savedCoaches.push(cleanName);
-            saveCoaches();
-          }
-          if (!row.coaches.includes(cleanName)) {
-            row.coaches.push(cleanName);
-          }
-        }
-      } else {
-        if (!row.coaches.includes(value)) {
-          row.coaches.push(value);
-        }
-      }
-      current.lastEdited = Date.now();
-      saveState();
-      renderPracticePlan();
-    }
-
-    function removeCoachFromRow(rowIdx, coachName) {
-      if (userRole !== 'admin') return;
-      const current = practiceData.find(p => p.id === currentPracticeId);
-      if (!current || !Array.isArray(current.plan) || !current.plan[rowIdx]) return;
-      const row = current.plan[rowIdx];
-      if (Array.isArray(row.coaches)) {
-        row.coaches = row.coaches.filter(c => c !== coachName);
-        current.lastEdited = Date.now();
-        saveState();
-        renderPracticePlan();
-      }
-    }
-
-    function handleStationCoachSelection(rowIdx, stationIdx, value) {
-      if (userRole !== 'admin') return;
-      if (!value) return;
-      const current = practiceData.find(p => p.id === currentPracticeId);
-      if (!current || !Array.isArray(current.plan) || !current.plan[rowIdx]) return;
-      const row = current.plan[rowIdx];
-      if (!Array.isArray(row.stations) || !row.stations[stationIdx]) return;
-      const st = row.stations[stationIdx];
-      if (!Array.isArray(st.coaches)) st.coaches = [];
-
-      if (value === "NEW") {
-        const newCoach = prompt("Enter new coach name:");
-        if (newCoach && newCoach.trim() !== "") {
-          const cleanName = newCoach.trim();
-          if (!savedCoaches.includes(cleanName)) {
-            savedCoaches.push(cleanName);
-            saveCoaches();
-          }
-          if (!st.coaches.includes(cleanName)) {
-            st.coaches.push(cleanName);
-          }
-        }
-      } else {
-        if (!st.coaches.includes(value)) {
-          st.coaches.push(value);
-        }
-      }
-      markPracticeEdited();
-      saveState();
-      renderPracticePlan();
-    }
-
-    function removeCoachFromStation(rowIdx, stationIdx, coachName) {
-      if (userRole !== 'admin') return;
-      const current = practiceData.find(p => p.id === currentPracticeId);
-      if (!current || !Array.isArray(current.plan) || !current.plan[rowIdx]) return;
-      const row = current.plan[rowIdx];
-      if (!Array.isArray(row.stations) || !row.stations[stationIdx]) return;
-      const st = row.stations[stationIdx];
-      if (Array.isArray(st.coaches)) {
-        st.coaches = st.coaches.filter(c => c !== coachName);
-        saveState();
-        renderPracticePlan();
-      }
-    }
-
     function getActivePlayerPositionsCount(num) {
       if (!num || !depthChart) return 0;
       
@@ -3193,8 +2947,14 @@
 
         if (userRole === 'admin') {
           li.draggable = true;
-          li.ondragstart = handleRosterDragStart;
-          li.onclick = (e) => handleTouchSelect(player.lastName || player.firstName, player.num || "", null, null, e);
+          li.ondragstart = (e) => {
+              e.stopPropagation();
+              handleRosterDragStart(e);
+          };
+          li.onclick = (e) => {
+              e.stopPropagation();
+              handleTouchSelect(player.lastName || player.firstName, player.num || "", null, null, e);
+          };
         }
 
         li.innerHTML = `
@@ -3206,6 +2966,60 @@
         `;
         rosterContainer.appendChild(li);
       });
+    }
+
+    function exportData() {
+      if (userRole !== 'admin') return;
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ weeklyData, practiceData, savedCoaches, savedCustomCategories, practiceTemplates, dynamicDrills }, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", "football_operations_backup.json");
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    function importData(event) {
+      if (userRole !== 'admin') return;
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const imported = JSON.parse(e.target.result);
+          if (imported.weeklyData) weeklyData = imported.weeklyData;
+          if (imported.practiceData) practiceData = imported.practiceData;
+          if (imported.savedCoaches) savedCoaches = imported.savedCoaches;
+          if (imported.savedCustomCategories) savedCustomCategories = imported.savedCustomCategories;
+          if (imported.practiceTemplates) practiceTemplates = imported.practiceTemplates;
+          if (imported.dynamicDrills) dynamicDrills = imported.dynamicDrills;
+          saveState();
+          saveCoaches();
+          initializeApp();
+          alert("All Depth Chart and Practice Plan data successfully loaded!");
+        } catch (err) {
+          alert("Invalid file format.");
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function resetDefault() {
+      if (userRole !== 'admin') return;
+      if (confirm(`Reset Week ${currentWeek} back to default?`)) {
+        weeklyData[currentWeek] = {
+          opponent: "",
+          depthChart: JSON.parse(JSON.stringify(defaultDepthChartAssignments)),
+          formations: JSON.parse(JSON.stringify(defaultFormations))
+        };
+        depthChart = weeklyData[currentWeek].depthChart;
+        const oppInput = document.getElementById("opponent-input");
+        if(oppInput) oppInput.value = "";
+        saveState();
+        renderActiveBoards();
+        renderMasterRoster();
+      }
     }
 
     // Initialize application on load
