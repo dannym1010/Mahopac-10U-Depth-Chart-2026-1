@@ -99,7 +99,6 @@
     body.view-only .prac-textarea,
     body.view-only .opponent-input,
     body.view-only .wb-play-input { pointer-events: none; background: transparent !important; border-color: transparent !important; color: var(--text) !important; resize: none; }
-    body.view-only .coach-badge { pointer-events: none; }
     body.view-only .player-item { cursor: default !important; }
 
     /* Toolbar & Bars */
@@ -899,13 +898,16 @@ const firebaseConfig = {
 
       practiceData.forEach((p, pIdx) => {
         if (!p) return;
-        if (!p.id) p.id = "p_" + Date.now() + "_" + pIdx;
+        if (!p.id) p.id = (Date.now() + pIdx).toString();
         if (!p.title) p.title = "Practice " + (pIdx + 1);
-        if (!p.year) p.year = "2026";
-        if (!p.week) p.week = "Week 1";
-        if (!p.day) p.day = "Monday";
+        if (!p.year) p.year = (p.date ? p.date.substring(0,4) : new Date().getFullYear().toString());
+        if (!p.week) p.week = p.folder || "Week 1";
+        if (!p.day) p.day = p.date || "Monday";
+        delete p.folder; 
+        if (!p.date) p.date = new Date().toISOString().split('T')[0];
         if (!p.startTime) p.startTime = "17:00";
         if (!p.endTime) p.endTime = "19:00";
+        if (!p.lastEdited) p.lastEdited = Date.now();
         if (!Array.isArray(p.plan)) p.plan = [];
       });
 
@@ -948,18 +950,22 @@ const firebaseConfig = {
     }
 
     function initializeApp() {
-      sanitizePracticeData();
-      initWristbandData();
-      initScoutingData();
-      depthChart = getWeekDepthChart(currentWeek);
-      
-      const oppInput = document.getElementById("opponent-input");
-      if(oppInput) oppInput.value = weeklyData[currentWeek] ? (weeklyData[currentWeek].opponent || "") : "";
+      try {
+        sanitizePracticeData();
+        initWristbandData();
+        initScoutingData();
+        depthChart = getWeekDepthChart(currentWeek);
+        
+        const oppInput = document.getElementById("opponent-input");
+        if(oppInput) oppInput.value = weeklyData[currentWeek] ? (weeklyData[currentWeek].opponent || "") : "";
 
-      renderActiveBoards();
-      populatePracticeDropdown();
-      renderPracticePlan();
-      renderMasterRoster();
+        renderActiveBoards();
+        populatePracticeDropdown();
+        renderPracticePlan();
+        renderMasterRoster();
+      } catch (e) {
+        console.error("Fatal initialization error:", e);
+      }
     }
 
     // --- Drag & Drop Mechanics ---
@@ -1366,314 +1372,128 @@ const firebaseConfig = {
       }
     }
 
-    /* PRACTICE PLAN FOLDERS & EDITING */
-    function togglePracticeTree(e) {
+    /* MASTER DRILLS LOGIC */
+    function toggleDrillCat(cat, e) {
         if(e) e.stopPropagation();
-        const el = document.getElementById('practice-tree-dropdown');
-        if (el.style.display === 'none' || el.style.display === '') {
-            closeAllDropdowns();
-            el.style.display = 'block';
-        } else {
-            el.style.display = 'none';
-        }
+        collapsedDrillCats[cat] = !collapsedDrillCats[cat];
+        localStorage.setItem('footballCollapsedDrills', JSON.stringify(collapsedDrillCats));
+        renderDrillsTab();
     }
 
-    function populatePracticeDropdown() {
-      const display = document.getElementById("selected-practice-display");
-      const treeContainer = document.getElementById("practice-tree-dropdown");
-      if(!display || !treeContainer) return;
+    function renderDrillsTab() {
+       const wrapper = document.getElementById("drills-wrapper");
+       if (!wrapper) return;
+       let html = `<div class="drill-tree">`;
+       
+       Object.keys(dynamicDrills).forEach(cat => {
+           const isCollapsed = collapsedDrillCats[cat];
+           const icon = isCollapsed ? '📁' : '📂';
+           const displayStyle = isCollapsed ? 'none' : 'block';
 
-      const cur = practiceData.find(p => p.id === currentPracticeId);
-      display.textContent = cur ? `${cur.year || ''} > ${cur.week || ''} > ${cur.day || ''}: ${cur.title}` : 'Select Practice...';
-
-      const printTitle = document.getElementById('print-practice-title');
-      const printDate = document.getElementById('print-practice-date');
-      if(printTitle) printTitle.textContent = cur ? cur.title : '';
-      if(printDate) printDate.textContent = cur ? `Year: ${cur.year || ''} | Week: ${cur.week || ''} | Day: ${cur.day || ''} | Date: ${cur.date || ''}` : '';
-
-      const tree = {};
-      practiceData.forEach(p => {
-         const y = p.year || new Date().getFullYear().toString();
-         const w = p.week || "Week 1";
-         if(!tree[y]) tree[y] = {};
-         if(!tree[y][w]) tree[y][w] = [];
-         tree[y][w].push(p);
-      });
-
-      let html = '<ul class="tree-root">';
-      Object.keys(tree).sort((a,b) => b.localeCompare(a)).forEach(y => {
-         html += `<li><span class="tree-caret" onclick="toggleTreeNode(this, event)">📂 ${y}</span><ul class="nested" style="display:block;">`;
-         Object.keys(tree[y]).sort().forEach(w => {
-             html += `<li><span class="tree-caret" onclick="toggleTreeNode(this, event)">📂 ${w}</span><ul class="nested" style="display:block;">`;
-             tree[y][w].sort((a,b) => new Date(a.date||0) - new Date(b.date||0)).forEach(p => {
-                 let isSel = cur && p.id === currentPracticeId;
-                 html += `<li class="tree-leaf ${isSel ? 'selected' : ''}" onclick="selectPracticeFromTree('${p.id}', event)">📄 ${p.day || ''} - ${p.title}</li>`;
-             });
-             html += `</ul></li>`;
-         });
-         html += `</ul></li>`;
-      });
-      html += '</ul>';
-      treeContainer.innerHTML = html;
+           html += `
+             <div class="drill-cat-node">
+                 <div class="drill-cat-header" onclick="toggleDrillCat('${cat}', event)">
+                     <span style="user-select:none;">${icon} ${cat}</span>
+                     <div class="admin-only" style="display:flex; gap:4px;">
+                        <button onclick="addDrillToCategory('${cat}', event)" class="toggle-board-btn">+ Add Drill</button>
+                        <button onclick="renameDrillCategory('${cat}', event)" class="toggle-board-btn">✏️ Rename</button>
+                        <button onclick="deleteDrillCategory('${cat}', event)" class="toggle-board-btn" style="color:red;">🗑️</button>
+                     </div>
+                 </div>
+                 <div class="drill-cat-body" style="display:${displayStyle};">
+           `;
+           
+           if(dynamicDrills[cat].length === 0) {
+               html += `<div style="text-align:center; color:var(--text-muted); font-style:italic; padding: 10px;">No drills in this category.</div>`;
+           } else {
+               html += `
+                 <div style="display: grid; grid-template-columns: 20% 50% 25% 5%; gap: 8px; font-weight: bold; font-size: 10px; color: var(--primary); margin-bottom: 6px; border-bottom: 1px solid #ccc; padding-bottom: 4px;">
+                    <div>Drill Name</div>
+                    <div>Setup & Instructions</div>
+                    <div>Coaching Focus / Key</div>
+                    <div class="admin-only" style="text-align:center;">Del</div>
+                 </div>
+               `;
+               dynamicDrills[cat].forEach((d, i) => {
+                  html += `
+                     <div class="drill-item-row">
+                        <div><input type="text" class="prac-input" value="${d.name}" oninput="updateDrillField('${cat}', ${i}, 'name', this.value)" placeholder="Drill Name"></div>
+                        <div><textarea class="prac-textarea" style="min-height:30px;" oninput="autoResizeTextarea(this); updateDrillField('${cat}', ${i}, 'desc', this.value);" placeholder="Setup: ...\nInstruction: ...">${d.desc}</textarea></div>
+                        <div><input type="text" class="prac-input" value="${d.key}" oninput="updateDrillField('${cat}', ${i}, 'key', this.value)" placeholder="Focus..."></div>
+                        <div class="admin-only" style="text-align:center; padding-top:4px;"><button class="remove-btn" onclick="deleteDrillFromCategory('${cat}', ${i}, event)">&times;</button></div>
+                     </div>
+                  `;
+               });
+           }
+           
+           html += `</div></div>`;
+       });
+       
+       html += `</div>`;
+       wrapper.innerHTML = html;
+       document.querySelectorAll('#panel-drills .prac-textarea').forEach(ta => autoResizeTextarea(ta));
     }
 
-    function renderPracticePlan() {
-      const tbody = document.getElementById("practice-rows");
-      if (!tbody) return;
-      
-      try {
-        tbody.innerHTML = "";
-        const current = practiceData.find(p => p.id === currentPracticeId);
-        if (!current || !Array.isArray(current.plan)) return;
-        const plan = current.plan;
-
-        if (plan.length === 0) {
-           tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 40px; color: var(--text-muted); border-radius:10px; background:#f8fafc;">
-             <div style="font-size:24px; margin-bottom:10px;">⏱️</div>
-             <strong style="color:var(--primary); font-size:14px;">This Practice Plan is currently blank.</strong><br><br>
-             <span class="admin-only">Click <b>+ Add Period</b> above to start building, or pick a template.</span>
-           </td></tr>`;
-           return;
-        }
-
-        let totalMins = timeToMins(current.endTime) - timeToMins(current.startTime);
-        if (totalMins < 0) totalMins += 1440; 
-        
-        let preMins = 0;
-        let scheduledMins = 0;
-        current.plan.forEach(r => {
-           if (r.category === 'Pre Practice') preMins += (r.time || 0);
-           else scheduledMins += (r.time || 0);
-        });
-
-        let preClock = timeToMins(current.startTime) - preMins;
-        let mainClock = timeToMins(current.startTime);
-
-        const statsDiv = document.getElementById("prac-stats");
-        if (statsDiv) {
-          const remaining = totalMins - scheduledMins;
-          const remainingColor = remaining < 0 ? '#ef4444' : 'var(--text-muted)';
-          
-          statsDiv.innerHTML = `
-            <span>Total Time: <span style="color:var(--text);">${totalMins} mins</span></span>
-            <span style="color:#cbd5e1;">|</span>
-            <span>Scheduled: <span style="color:var(--text);">${scheduledMins} mins</span></span>
-            <span style="color:#cbd5e1;">|</span>
-            <span style="color:${remainingColor};">Unaccounted Time: ${remaining} mins</span>
-          `;
-          
-          document.getElementById('prac-start').value = current.startTime || "17:00";
-          document.getElementById('prac-end').value = current.endTime || "19:00";
-        }
-
-        current.plan.forEach((row, idx) => {
-          if (!row) return;
-
-          let rowStartMins, rowEndMins;
-          if (row.category === 'Pre Practice') {
-             rowStartMins = preClock;
-             preClock += (row.time || 0);
-             rowEndMins = preClock;
-          } else {
-             rowStartMins = mainClock;
-             mainClock += (row.time || 0);
-             rowEndMins = mainClock;
-          }
-          let timeLabel = minsToTimeStr(rowStartMins) + ' - ' + minsToTimeStr(rowEndMins);
-
-          let catOptions = `<option value="">-- Select Category --</option>`;
-          Object.keys(dynamicDrills).forEach(cat => {
-               catOptions += `<option value="${cat}" ${row.category === cat ? 'selected' : ''}>${cat}</option>`;
-          });
-          savedCustomCategories.forEach(cat => {
-               if (!dynamicDrills[cat]) {
-                 catOptions += `<option value="${cat}" ${row.category === cat ? 'selected' : ''}>${cat} (Custom)</option>`;
-               }
-          });
-          catOptions += `<option value="Custom" ${row.category === "Custom" ? 'selected' : ''}>+ New Custom Category...</option>`;
-
-          let periodTypeSelect = `
-            <div style="margin-top:6px;" class="no-print admin-only">
-              <select class="prac-select" style="font-size:10px; padding:2px; font-weight:bold;" onchange="updatePeriodType(${idx}, this.value)">
-                <option value="normal" ${row.periodType === 'normal' ? 'selected' : ''}>Whole Group</option>
-                <option value="circuit" ${row.periodType === 'circuit' ? 'selected' : ''}>Circuit (Rotate)</option>
-                <option value="groups" ${row.periodType === 'groups' ? 'selected' : ''}>Split Groups (Static)</option>
-              </select>
-            </div>
-          `;
-
-          let coachBadges = '';
-          const rowCoaches = Array.isArray(row.coaches) ? row.coaches : [];
-          rowCoaches.forEach(c => {
-            coachBadges += `<span class="coach-badge" onclick="removeCoachFromRow(${idx}, '${c}')" title="Click to remove">${c} <span class="no-print admin-only">&times;</span></span>`;
-          });
-          
-          let coachSelectOptions = `<option value="">+ Coach</option><option value="NEW">+ New Coach</option>`;
-          savedCoaches.forEach(c => {
-            coachSelectOptions += `<option value="${c}">${c}</option>`;
-          });
-
-          const isMulti = (row.periodType === 'circuit' || row.periodType === 'groups');
-
-          if (isMulti) {
-             if (!Array.isArray(row.stations) || row.stations.length === 0) {
-               row.stations = [
-                 { drill: "", desc: "", key: "", customDrill: "", coaches: [], videoLink: "" },
-                 { drill: "", desc: "", key: "", customDrill: "", coaches: [], videoLink: "" }
-               ];
-             }
-             const numStations = row.stations.length;
-             const blockLabel = row.periodType === 'groups' ? 'Group' : 'Station';
-
-             let rotationHtml = '';
-             if (row.periodType === 'circuit' && numStations > 0) {
-                let timePer = (row.time / numStations).toFixed(1);
-                timePer = timePer.endsWith('.0') ? timePer.slice(0, -2) : timePer;
-                rotationHtml = `<div class="rotation-timer">${timePer} mins / station</div>`;
-             } else if (row.periodType === 'groups') {
-                rotationHtml = `<div class="rotation-timer">Full ${row.time} mins</div>`;
-             }
-
-             row.stations.forEach((st, i) => {
-                if (!st) st = { drill: "", desc: "", key: "", customDrill: "", coaches: [], videoLink: "" };
-                if (!Array.isArray(st.coaches)) st.coaches = [];
-                if (typeof st.videoLink === 'undefined') st.videoLink = "";
-
-                let stationSelectHtml = `
-                  <div class="station-block">
-                    <div class="station-title">${blockLabel} ${i+1}</div>
-                    <select class="prac-select" onchange="updateCircuitDrill(${idx}, ${i}, this.value)">
-                      ${getAllDrillOptions(st.drill)}
-                    </select>
-                    ${st.drill === 'Custom' || (!st.drill && st.customDrill) ? `<input type="text" class="prac-input" style="margin-top:3px;" placeholder="Custom drill..." value="${st.customDrill || ''}" oninput="updateCircuitTextData(${idx}, ${i}, 'customDrill', this.value)">` : ''}
-                  </div>
-                `;
-
-                let stationDescHtml = `
-                  <div class="station-block">
-                    <textarea class="prac-textarea" oninput="autoResizeTextarea(this); updateCircuitTextData(${idx}, ${i}, 'desc', this.value);" placeholder="${blockLabel} ${i+1} description...">${st.desc || ''}</textarea>
-                  </div>
-                `;
-
-                let stationKeysHtml = `
-                  <div class="station-block">
-                    <input type="text" class="prac-input" value="${st.key || ''}" oninput="updateCircuitTextData(${idx}, ${i}, 'key', this.value);" placeholder="Focus...">
-                  </div>
-                `;
-
-                const subTr = document.createElement("tr");
-
-                if (i === 0) {
-                  subTr.innerHTML = `
-                    <td rowspan="${numStations}">
-                      <div class="prac-time-input-wrap no-print">
-                        <input type="number" min="0" max="120" class="prac-input" value="${row.time || 0}" oninput="updatePracticeTextData(${idx}, 'time', parseInt(this.value) || 0)" style="width:40px; display:inline-block;"> 
-                        <span style="font-size:10px; color:var(--text-muted);">mins</span>
-                      </div>
-                      <div class="period-schedule-time">
-                        <span class="print-only-inline" style="display:none;"><strong>${row.time} Mins</strong><br></span>
-                        ${timeLabel}
-                      </div>
-                      ${rotationHtml}
-                    </td>
-                    <td rowspan="${numStations}">
-                      <select class="prac-select" onchange="updatePracticeCategory(${idx}, this.value)">
-                        ${catOptions}
-                      </select>
-                      ${periodTypeSelect}
-                    </td>
-                    <td>${stationSelectHtml}</td>
-                    <td>${stationDescHtml}</td>
-                    <td></td>
-                    <td>${stationKeysHtml}</td>
-                    <td rowspan="${numStations}" class="no-print admin-only" style="text-align:center; vertical-align:middle;">
-                      <button class="remove-btn" onclick="removePracticeRow(${idx})">&times;</button>
-                    </td>
-                  `;
-                } else {
-                  subTr.innerHTML = `
-                    <td>${stationSelectHtml}</td>
-                    <td>${stationDescHtml}</td>
-                    <td></td>
-                    <td>${stationKeysHtml}</td>
-                  `;
-                }
-
-                tbody.appendChild(subTr);
-             });
-
-          } else {
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-              <td>
-                <div class="prac-time-input-wrap no-print">
-                  <input type="number" min="0" max="120" class="prac-input" value="${row.time || 0}" oninput="updatePracticeTextData(${idx}, 'time', parseInt(this.value) || 0)" style="width:40px; display:inline-block;"> 
-                  <span style="font-size:10px; color:var(--text-muted);">mins</span>
-                </div>
-                <div class="period-schedule-time">
-                  <span class="print-only-inline" style="display:none;"><strong>${row.time} Mins</strong><br></span>
-                  ${timeLabel}
-                </div>
-              </td>
-              <td>
-                <select class="prac-select" onchange="updatePracticeCategory(${idx}, this.value)">
-                  ${catOptions}
-                </select>
-                ${periodTypeSelect}
-              </td>
-              <td>
-                <select class="prac-select" onchange="updatePracticeDrill(${idx}, this.value)">
-                  ${getAllDrillOptions(row.drill)}
-                </select>
-                ${row.drill === 'Custom' || !row.drill ? `<input type="text" class="prac-input" style="margin-top:4px;" placeholder="Custom drill name..." value="${row.customDrill || ''}" oninput="updatePracticeTextData(${idx}, 'customDrill', this.value)">` : ''}
-              </td>
-              <td><textarea class="prac-textarea" oninput="autoResizeTextarea(this); updatePracticeTextData(${idx}, 'desc', this.value);" placeholder="Drill description & setup...">${row.desc || ''}</textarea></td>
-              <td></td>
-              <td><input type="text" class="prac-input" value="${row.key || ''}" oninput="updatePracticeTextData(${idx}, 'key', this.value);" placeholder="Key coaching focus..."></td>
-              <td class="no-print admin-only" style="text-align:center;">
-                <button class="remove-btn" onclick="removePracticeRow(${idx})">&times;</button>
-              </td>
-            `;
-
-            tbody.appendChild(tr);
-          }
-        });
-
-        document.querySelectorAll('.prac-textarea').forEach(ta => autoResizeTextarea(ta));
-      } catch (err) {
-        console.error("Error rendering practice plan:", err);
+    function addDrillCategory() {
+      if (userRole !== 'admin') return;
+      const cat = prompt("Enter new Drill Category Name:");
+      if (cat && cat.trim() !== "" && !dynamicDrills[cat]) {
+          dynamicDrills[cat.trim()] = [];
+          triggerDebouncedSave();
+          renderDrillsTab();
       }
     }
 
-    function addPracticeRow() {
+    function renameDrillCategory(oldCat, e) {
+      if (e) e.stopPropagation();
       if (userRole !== 'admin') return;
-      const current = practiceData.find(p => p.id === currentPracticeId);
-      if (!current) return;
-      if (!Array.isArray(current.plan)) current.plan = [];
-      
-      current.plan.push({ 
-        time: 15, 
-        category: "Warm-Up & Breaks", 
-        drill: "", 
-        desc: "", 
-        key: "", 
-        customDrill: "", 
-        coaches: [], 
-        periodType: 'normal'
-      });
-      current.lastEdited = Date.now();
-      saveState();
-      renderPracticePlan();
+      const newCat = prompt("Rename Category:", oldCat);
+      if (newCat && newCat.trim() !== "" && newCat !== oldCat && !dynamicDrills[newCat]) {
+          dynamicDrills[newCat.trim()] = dynamicDrills[oldCat];
+          delete dynamicDrills[oldCat];
+          if (collapsedDrillCats[oldCat] !== undefined) {
+             collapsedDrillCats[newCat.trim()] = collapsedDrillCats[oldCat];
+             delete collapsedDrillCats[oldCat];
+          }
+          triggerDebouncedSave();
+          renderDrillsTab();
+      }
     }
 
-    function removePracticeRow(idx) {
+    function deleteDrillCategory(cat, e) {
+      if (e) e.stopPropagation();
       if (userRole !== 'admin') return;
-      const current = practiceData.find(p => p.id === currentPracticeId);
-      if (!current || !Array.isArray(current.plan)) return;
-      current.plan.splice(idx, 1);
-      current.lastEdited = Date.now();
-      saveState();
-      renderPracticePlan();
+      if (confirm(`Are you sure you want to delete the category "${cat}" and all its drills?`)) {
+          delete dynamicDrills[cat];
+          delete collapsedDrillCats[cat];
+          triggerDebouncedSave();
+          renderDrillsTab();
+      }
+    }
+
+    function addDrillToCategory(cat, e) {
+      if (e) e.stopPropagation();
+      if (userRole !== 'admin') return;
+      collapsedDrillCats[cat] = false; 
+      dynamicDrills[cat].unshift({ name: "New Drill", desc: "", key: "" });
+      triggerDebouncedSave();
+      renderDrillsTab();
+    }
+
+    function updateDrillField(cat, index, field, val) {
+      if (userRole !== 'admin') return;
+      dynamicDrills[cat][index][field] = val;
+      triggerDebouncedSave();
+    }
+
+    function deleteDrillFromCategory(cat, index, e) {
+      if (e) e.stopPropagation();
+      if (userRole !== 'admin') return;
+      if(confirm("Delete this drill?")) {
+         dynamicDrills[cat].splice(index, 1);
+         triggerDebouncedSave();
+         renderDrillsTab();
+      }
     }
 
     function findDrillByName(drillName) {
@@ -1682,6 +1502,249 @@ const firebaseConfig = {
         if (found) return found;
       }
       return null;
+    }
+
+    function handleFormationClick(formId) {
+        if (activeCountFormationId === formId) {
+            activeCountFormationId = null; // Toggle off if clicked again
+        } else {
+            activeCountFormationId = formId;
+        }
+
+        document.querySelectorAll('.formation-container').forEach(el => {
+            el.classList.remove('counting-active');
+        });
+        
+        if (activeCountFormationId) {
+            const activeEl = document.getElementById('board_' + activeCountFormationId);
+            if (activeEl) {
+                activeEl.classList.add('counting-active');
+            }
+        }
+
+        renderMasterRoster(); 
+    }
+
+    function createFormationPrompt(unit) {
+      if (userRole !== 'admin') return;
+      const name = prompt(`Enter new ${unit.toUpperCase()} formation name:`, "New Formation");
+      if(!name || name.trim() === "") return;
+      const subtitle = prompt("Enter subtitle/description:", "Personnel / Alignment details");
+      const forms = getWeekFormations(currentWeek);
+      
+      const formId = generateUniqueId("form");
+      const rowId = generateUniqueId("row");
+      const posId = generateUniqueId("pos");
+
+      const newForm = {
+        id: formId,
+        unit: unit,
+        name: name.trim(),
+        subtitle: (subtitle || "").trim(),
+        collapsed: false,
+        rows: [
+          { id: rowId, label: "Main Level", rowClass: "oline", positions: [
+            { id: posId, name: "POS 1" }
+          ]}
+        ]
+      };
+      
+      forms.push(newForm);
+      if(!depthChart) depthChart = getWeekDepthChart(currentWeek);
+      depthChart[posId] = [];
+      
+      triggerDebouncedSave();
+      renderActiveBoards();
+      renderMasterRoster(); 
+    }
+
+    function renameFormation(formId) {
+      if (userRole !== 'admin') return;
+      const forms = getWeekFormations(currentWeek);
+      const form = forms.find(f => f.id === formId);
+      if(!form) return;
+      const newName = prompt("Edit Formation Name:", form.name);
+      if(newName && newName.trim() !== "") {
+        form.name = newName.trim();
+        const newSub = prompt("Edit Subtitle:", form.subtitle || "");
+        if(newSub !== null) form.subtitle = newSub.trim();
+        triggerDebouncedSave();
+        renderActiveBoards();
+      }
+    }
+
+    function deleteFormation(formId) {
+      if (userRole !== 'admin') return;
+      const forms = getWeekFormations(currentWeek);
+      if(confirm("Are you sure you want to delete this entire formation?")) {
+        weeklyData[currentWeek].formations = forms.filter(f => f.id !== formId);
+        if (activeCountFormationId === formId) activeCountFormationId = null;
+        triggerDebouncedSave();
+        renderActiveBoards();
+        renderMasterRoster(); 
+      }
+    }
+
+    function moveFormationItem(formId, direction) {
+      if (userRole !== 'admin') return;
+      const forms = getWeekFormations(currentWeek);
+      const idx = forms.findIndex(f => f.id === formId);
+      if(idx < 0) return;
+      const targetIdx = idx + direction;
+      if(targetIdx < 0 || targetIdx >= forms.length) return;
+      
+      const temp = forms[idx];
+      forms[idx] = forms[targetIdx];
+      forms[targetIdx] = temp;
+      triggerDebouncedSave();
+      renderActiveBoards();
+    }
+
+    function addRowToFormation(formId) {
+      if (userRole !== 'admin') return;
+      const forms = getWeekFormations(currentWeek);
+      const form = forms.find(f => f.id === formId);
+      if(!form) return;
+      const label = prompt("Enter Row/Level Name (e.g., 'Linebackers', 'Backfield'):", "New Level");
+      if(!label || label.trim() === "") return;
+      
+      const rowId = generateUniqueId("row");
+      const posId = generateUniqueId("pos");
+
+      form.rows.push({
+        id: rowId,
+        label: label.trim(),
+        rowClass: "oline",
+        positions: [
+          { id: posId, name: "POS 1" }
+        ]
+      });
+      
+      if(!depthChart) depthChart = getWeekDepthChart(currentWeek);
+      depthChart[posId] = [];
+      
+      triggerDebouncedSave();
+      renderActiveBoards();
+      renderMasterRoster();
+    }
+
+    function renameRow(formId, rowId) {
+      if (userRole !== 'admin') return;
+      const forms = getWeekFormations(currentWeek);
+      const form = forms.find(f => f.id === formId);
+      if(!form) return;
+      const row = form.rows.find(r => r.id === rowId);
+      if(!row) return;
+      const newLabel = prompt("Edit Row/Level Name:", row.label);
+      if(newLabel && newLabel.trim() !== "") {
+        row.label = newLabel.trim();
+        triggerDebouncedSave();
+        renderActiveBoards();
+      }
+    }
+
+    function deleteRow(formId, rowId) {
+      if (userRole !== 'admin') return;
+      const forms = getWeekFormations(currentWeek);
+      const form = forms.find(f => f.id === formId);
+      if(!form) return;
+      if(confirm("Delete this row and its positions?")) {
+        form.rows = form.rows.filter(r => r.id !== rowId);
+        triggerDebouncedSave();
+        renderActiveBoards();
+        renderMasterRoster();
+      }
+    }
+
+    function addPositionToRow(formId, rowId) {
+      if (userRole !== 'admin') return;
+      const forms = getWeekFormations(currentWeek);
+      const form = forms.find(f => f.id === formId);
+      if(!form) return;
+      const row = form.rows.find(r => r.id === rowId);
+      if(!row) return;
+      const posName = prompt("Enter Position Name (e.g. 'LT', 'MIKE', 'SLOT'):", "POS");
+      if(!posName || posName.trim() === "") return;
+      
+      const posId = generateUniqueId("pos");
+      
+      row.positions.push({
+        id: posId,
+        name: posName.trim()
+      });
+      
+      if(!depthChart[posId]) depthChart[posId] = [];
+      
+      triggerDebouncedSave();
+      renderActiveBoards();
+      renderMasterRoster();
+    }
+
+    function renamePosition(formId, rowId, posId) {
+      if (userRole !== 'admin') return;
+      const forms = getWeekFormations(currentWeek);
+      const form = forms.find(f => f.id === formId);
+      if(!form) return;
+      const row = form.rows.find(r => r.id === rowId);
+      if(!row) return;
+      const pos = row.positions.find(p => p.id === posId);
+      if(!pos) return;
+
+      const newName = prompt("Rename Position Tag:", pos.name || pos.id);
+      if(newName && newName.trim() !== "") {
+        pos.name = newName.trim();
+        triggerDebouncedSave();
+        renderActiveBoards();
+      }
+    }
+
+    function deletePosition(formId, rowId, posId) {
+      if (userRole !== 'admin') return;
+      const forms = getWeekFormations(currentWeek);
+      const form = forms.find(f => f.id === formId);
+      if(!form) return;
+      const row = form.rows.find(r => r.id === rowId);
+      if(!row) return;
+
+      if(confirm("Delete this position card?")) {
+        row.positions = row.positions.filter(p => p.id !== posId);
+        delete depthChart[posId];
+        triggerDebouncedSave();
+        renderActiveBoards();
+        renderMasterRoster();
+      }
+    }
+
+    function movePosition(formId, rowId, posId, direction) {
+      if (userRole !== 'admin') return;
+      const forms = getWeekFormations(currentWeek);
+      const form = forms.find(f => f.id === formId);
+      if(!form) return;
+      const row = form.rows.find(r => r.id === rowId);
+      if(!row) return;
+      const idx = row.positions.findIndex(p => p.id === posId);
+      if(idx < 0) return;
+      const targetIdx = idx + direction;
+      if(targetIdx < 0 || targetIdx >= row.positions.length) return;
+      
+      const temp = row.positions[idx];
+      row.positions[idx] = row.positions[targetIdx];
+      row.positions[targetIdx] = temp;
+      triggerDebouncedSave();
+      renderActiveBoards();
+    }
+
+    function toggleFormationCollapse(formId) {
+      const forms = getWeekFormations(currentWeek);
+      const form = forms.find(f => f.id === formId);
+      if(form) {
+        form.collapsed = !form.collapsed;
+        localStorage.setItem("footballWeeklyData", JSON.stringify(weeklyData));
+        if (userRole === 'admin') {
+          triggerDebouncedSave();
+        }
+        renderActiveBoards();
+      }
     }
 
     // --- Authentication & User Lifecycle ---
@@ -1694,7 +1757,8 @@ const firebaseConfig = {
     }
 
     function bypassLogin() {
-      document.getElementById("auth-overlay").style.display = "none";
+      const overlay = document.getElementById("auth-overlay");
+      if (overlay) overlay.style.display = "none";
       applyRole('admin');
       document.getElementById("user-display-email").textContent = "Offline Coach";
     }
@@ -1716,7 +1780,7 @@ const firebaseConfig = {
       if (errDiv) errDiv.style.display = "none";
 
       if (!auth) {
-        displayAuthError("Firebase not configured. Use 'Continue without login' below.");
+        bypassLogin();
         return false;
       }
       const email = document.getElementById("auth-email").value.trim();
@@ -1728,7 +1792,8 @@ const firebaseConfig = {
         } else {
           await auth.signInWithEmailAndPassword(email, pass);
         }
-        document.getElementById("auth-overlay").style.display = "none";
+        const overlay = document.getElementById("auth-overlay");
+        if (overlay) overlay.style.display = "none";
       } catch (err) {
         console.error("Auth Error:", err);
         displayAuthError(err.message);
@@ -1741,17 +1806,22 @@ const firebaseConfig = {
       if (errDiv) errDiv.style.display = "none";
 
       if (!auth) {
-        displayAuthError("Firebase not configured. Use 'Continue without login' below.");
+        bypassLogin();
         return;
       }
       try {
         const provider = new firebase.auth.GoogleAuthProvider();
         provider.setCustomParameters({ prompt: 'select_account' });
         await auth.signInWithPopup(provider);
-        document.getElementById("auth-overlay").style.display = "none";
+        const overlay = document.getElementById("auth-overlay");
+        if (overlay) overlay.style.display = "none";
       } catch (err) {
         console.error("Google Auth Error:", err);
-        displayAuthError(err.message + (window.location.protocol === 'file:' ? ' (Browsers block OAuth on file:/// URLs)' : ''));
+        let msg = err.message;
+        if (window.location.protocol === 'file:') {
+          msg = "Google popup login requires http://localhost or GitHub Pages. Use Offline Mode or Email login.";
+        }
+        displayAuthError(msg);
       }
     }
 
@@ -1763,9 +1833,11 @@ const firebaseConfig = {
       }
     }
 
-    // Attach immediate auth observer
+    // Attach immediate auth observer with timeout fallback to prevent permanent locking
     if (auth) {
+      let authResolved = false;
       auth.onAuthStateChanged((user) => {
+        authResolved = true;
         const overlay = document.getElementById("auth-overlay");
         if (user) {
           currentUser = user;
@@ -1778,13 +1850,15 @@ const firebaseConfig = {
           if (overlay) overlay.style.display = "flex";
         }
       });
-    }
-
-    function closeAllDropdowns(e) {
-      if (e && e.target && e.target.closest('#practice-tree-dropdown')) return;
-      if (e && e.target && e.target.closest('#selected-practice-display')) return;
-      const pt = document.getElementById('practice-tree-dropdown');
-      if (pt) pt.style.display = 'none';
+      setTimeout(() => {
+        if (!authResolved) {
+          console.warn("Auth state change timed out. Unlocking interface.");
+          const overlay = document.getElementById("auth-overlay");
+          if (overlay && overlay.style.display !== "none") {
+            bypassLogin();
+          }
+        }
+      }, 1500);
     }
 
     // Run
