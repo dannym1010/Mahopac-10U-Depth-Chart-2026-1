@@ -149,7 +149,7 @@
       position: relative;
       box-shadow: 0 1px 3px rgba(0,0,0,0.05);
       cursor: pointer;
-      transition: border-color 0.2s, background-color 0.2s, box-shadow 0.2s;
+      transition: all 0.2s ease;
       overflow: visible;
     }
     .formation-container:hover { border-color: var(--primary); }
@@ -203,7 +203,7 @@
     .dropdown-item:hover { background-color: #eff6ff; color: var(--accent); font-weight: bold; }
 
     .player-list { list-style: none; padding: 4px; margin: 0; min-height: 45px; }
-    .player-item { background: #f8fafc; border: 1px solid var(--card-border); padding: 4px 6px; margin-bottom: 4px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; cursor: grab; font-size: 11px; touch-action: manipulation; z-index: 10; }
+    .player-item { background: #f8fafc; border: 1px solid var(--card-border); padding: 4px 6px; margin-bottom: 4px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; cursor: grab; font-size: 11px; touch-action: manipulation; }
     .player-item.selected-touch { border-color: #2563eb !important; background-color: #dbeafe !important; }
     .player-item.search-match { background-color: #fef08a !important; border-color: #ca8a04 !important; }
     .player-info { display: flex; gap: 4px; align-items: center; pointer-events: none; }
@@ -303,6 +303,9 @@
     .search-box { width: 100%; padding: 8px 10px; border: 1px solid var(--card-border); border-radius: 6px; font-size: 12px; margin-bottom: 10px; box-sizing: border-box; outline: none; }
     .search-box:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2); }
     .full-roster-list { list-style: none; padding: 0; margin: 0; overflow-y: auto; flex-grow: 1; min-height: 200px; }
+    .full-roster-item { padding: 6px 8px; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; justify-content: space-between; font-size: 11px; cursor: grab; background: #f8fafc; margin-bottom: 4px; border-radius: 4px; border: 1px solid var(--card-border); touch-action: manipulation; }
+    .full-roster-item:hover { border-color: var(--accent); background: #eff6ff; }
+    .multi-badge { font-size: 9px; background: #e2e8f0; color: #475569; padding: 1px 5px; border-radius: 10px; font-weight: bold; }
 
     /* PRINT STYLES - SINGLE PAGE OPTIMIZATION & FULL TEXT VISIBILITY */
     @media print {
@@ -730,6 +733,7 @@ const firebaseConfig = {
       ]
     };
 
+    // Complete rich default formation library
     const defaultFormations = [
       {
         id: "form_11", unit: "offense", name: "11 Offense", subtitle: "1 RB - 1 TE (Y1) - 3 WRs (X, W, Z)", collapsed: false,
@@ -742,6 +746,20 @@ const firebaseConfig = {
           ]},
           { id: "row_11_bk", label: "Backfield (1 - 4)", rowClass: "backfield", positions: [
             { id: "11-1", name: "1 (QB)" }, { id: "11-4", name: "4 (RB)" }
+          ]}
+        ]
+      },
+      {
+        id: "form_21", unit: "offense", name: "21 Heavy", subtitle: "2 RBs - 1 TE - 2 WRs", collapsed: false,
+        rows: [
+          { id: "row_21_ol", label: "Offensive Line & TE", rowClass: "oline", positions: [
+            { id: "21-LT", name: "LT" }, { id: "21-LG", name: "LG" }, { id: "21-C", name: "C" }, { id: "21-RG", name: "RG" }, { id: "21-RT", name: "RT" }, { id: "21-Y", name: "TE" }
+          ]},
+          { id: "row_21_wr", label: "Wide Receivers", rowClass: "receivers", positions: [
+            { id: "21-X", name: "X" }, { id: "21-Z", name: "Z" }
+          ]},
+          { id: "row_21_bk", label: "Backfield Stack", rowClass: "backfield", positions: [
+            { id: "21-QB", name: "QB" }, { id: "21-FB", name: "FB" }, { id: "21-RB", name: "RB" }
           ]}
         ]
       },
@@ -759,6 +777,23 @@ const firebaseConfig = {
           ]},
           { id: "row_44_dl", label: "Defensive Line (WDE - DT1 - DT2 - SDE)", rowClass: "dl", positions: [
             { id: "44-WDE", name: "WDE" }, { id: "44-DT1", name: "DT 1" }, { id: "44-DT2", name: "DT 2" }, { id: "44-SDE", name: "SDE" }
+          ]}
+        ]
+      },
+      {
+        id: "form_53", unit: "defense", name: "53 Defense", subtitle: "5-3 Bear Front", collapsed: false,
+        rows: [
+          { id: "row_53_fs", label: "Free Safety", rowClass: "secondary-safety", positions: [
+            { id: "53-FS", name: "FS" }
+          ]},
+          { id: "row_53_cb", label: "Cornerbacks", rowClass: "secondary-corners", positions: [
+            { id: "53-CB1", name: "CB 1" }, { id: "53-CB2", name: "CB 2" }
+          ]},
+          { id: "row_53_lb", label: "Linebackers", rowClass: "linebackers-tight", positions: [
+            { id: "53-WLB", name: "WLB" }, { id: "53-MLB", name: "MLB" }, { id: "53-SLB", name: "SLB" }
+          ]},
+          { id: "row_53_dl", label: "Defensive Line", rowClass: "dl", positions: [
+            { id: "53-WDE", name: "WDE" }, { id: "53-WT", name: "WT" }, { id: "53-NT", name: "NT" }, { id: "53-ST", name: "ST" }, { id: "53-SDE", name: "SDE" }
           ]}
         ]
       },
@@ -785,6 +820,20 @@ const firebaseConfig = {
           ]},
           { id: "row_grp_bk", label: "Backfield Stack", rowClass: "backfield", positions: [
             { id: "GRP-QB", name: "QB" }, { id: "GRP-FB", name: "FB" }, { id: "GRP-RB", name: "RB" }
+          ]}
+        ]
+      },
+      {
+        id: "form_grp_def", unit: "groups", name: "Defensive Depth Chart", subtitle: "Standard 4-4 Front", collapsed: false,
+        rows: [
+          { id: "row_grp_d_sec", label: "Secondary Level", rowClass: "secondary-corners", positions: [
+            { id: "GRP-CB1", name: "CB 1" }, { id: "GRP-FS", name: "FS" }, { id: "GRP-CB2", name: "CB 2" }
+          ]},
+          { id: "row_grp_d_lb", label: "Linebacker Level", rowClass: "linebackers-tight", positions: [
+            { id: "GRP-ROVER", name: "ROVER" }, { id: "GRP-WILL", name: "WILL" }, { id: "GRP-MIKE", name: "MIKE" }, { id: "GRP-SAM", name: "SAM" }
+          ]},
+          { id: "row_grp_d_dl", label: "Defensive Line", rowClass: "dl", positions: [
+            { id: "GRP-WDE", name: "WDE" }, { id: "GRP-DT1", name: "DT 1" }, { id: "GRP-DT2", name: "DT 2" }, { id: "GRP-SDE", name: "SDE" }
           ]}
         ]
       }
@@ -906,9 +955,10 @@ const firebaseConfig = {
           delete wbData.pages;
           delete wbData.startIndex;
       }
-      if (typeof wbData.rows !== 'number' || isNaN(wbData.rows)) {
-          wbData.rows = 16;
-      }
+      
+      wbData.rows = parseInt(wbData.rows);
+      if (isNaN(wbData.rows) || wbData.rows <= 0) wbData.rows = 16;
+      
       if (!Array.isArray(wbData.columns) || wbData.columns.length === 0) {
           wbData.columns = [
               { color: "blue", plays: [] },
@@ -1097,13 +1147,13 @@ const firebaseConfig = {
               applyRole('admin');
               document.getElementById("auth-overlay").style.display = "none";
            }).catch(err => {
-              console.error("Firestore write blocked. Defaulting to admin locally.", err);
+              console.error("Firestore write blocked. Bypassing locally.", err);
               applyRole('admin');
               document.getElementById("auth-overlay").style.display = "none";
            });
         }
       }).catch(err => {
-         console.error("Firestore read blocked. Defaulting to admin locally.", err);
+         console.error("Firestore read blocked. Bypassing locally.", err);
          applyRole('admin');
          document.getElementById("auth-overlay").style.display = "none";
       });
@@ -1526,8 +1576,7 @@ const firebaseConfig = {
          const scout = weeklyData[currentWeek].scouting;
          const yr = scout.year ? `${scout.year} ` : "";
          const wk = scout.week ? `${scout.week} - ` : "";
-         const opp = scout.opponent || weeklyData[currentWeek].opponent || `Week ${currentWeek}`;
-         printTitle.textContent = `Scouting Report: ${yr}${wk}${opp}`;
+         printTitle.textContent = `Scouting Report: ${yr}${wk}${val || 'Week ' + currentWeek}`;
       }
     }
 
@@ -2377,11 +2426,10 @@ const firebaseConfig = {
           if (data.practiceData) {
             practiceData = data.practiceData;
             localStorage.setItem("footballPracticeData", JSON.stringify(practiceData));
-            if (!practiceData.find(p => p.id === currentPracticeId) && practiceData.length > 0) {
-                let sorted = [...practiceData].sort((a,b) => (b.lastEdited || 0) - (a.lastEdited || 0));
-                if(sorted.length > 0) currentPracticeId = sorted[0].id;
-            }
           }
+          
+          sanitizePracticeData(); // Validate loaded practice data before rendering
+          
           if (data.dynamicDrills) {
             dynamicDrills = data.dynamicDrills;
             localStorage.setItem("footballDynamicDrills", JSON.stringify(dynamicDrills));
@@ -2827,6 +2875,262 @@ const firebaseConfig = {
       });
     }
 
+    function addPracticeRow() {
+      if (userRole !== 'admin') return;
+      const current = practiceData.find(p => p.id === currentPracticeId);
+      if (!current) return;
+      if (!Array.isArray(current.plan)) current.plan = [];
+      
+      current.plan.push({ 
+        time: 15, 
+        category: "Warm-Up & Breaks", 
+        drill: "", 
+        desc: "", 
+        key: "", 
+        customDrill: "", 
+        coaches: [], 
+        periodType: 'normal',
+        videoLink: "",
+        stations: [
+          { drill: "", desc: "", key: "", customDrill: "", coaches: [], videoLink: "" },
+          { drill: "", desc: "", key: "", customDrill: "", coaches: [], videoLink: "" }
+        ]
+      });
+      current.lastEdited = Date.now();
+      saveState();
+      renderPracticePlan();
+    }
+
+    function removePracticeRow(idx) {
+      if (userRole !== 'admin') return;
+      const current = practiceData.find(p => p.id === currentPracticeId);
+      if (!current || !Array.isArray(current.plan)) return;
+      current.plan.splice(idx, 1);
+      current.lastEdited = Date.now();
+      saveState();
+      renderPracticePlan();
+    }
+
+    function movePracticeRow(index, direction) {
+      if (userRole !== 'admin') return;
+      const current = practiceData.find(p => p.id === currentPracticeId);
+      if (!current || !Array.isArray(current.plan)) return;
+      const plan = current.plan;
+      const targetIndex = index + direction;
+      if (targetIndex < 0 || targetIndex >= plan.length) return;
+
+      const temp = plan[index];
+      plan[index] = plan[targetIndex];
+      plan[targetIndex] = temp;
+
+      current.lastEdited = Date.now();
+      saveState();
+      renderPracticePlan();
+    }
+
+    function updatePracticeCategory(idx, catValue) {
+      if (userRole !== 'admin') return;
+      const current = practiceData.find(p => p.id === currentPracticeId);
+      if (!current || !Array.isArray(current.plan) || !current.plan[idx]) return;
+      const row = current.plan[idx];
+
+      if (catValue === "Custom") {
+        const newCat = prompt("Enter new custom category name:");
+        if (newCat && newCat.trim() !== "") {
+          const cleanCat = newCat.trim();
+          if (!savedCustomCategories.includes(cleanCat)) {
+            savedCustomCategories.push(cleanCat);
+            localStorage.setItem("footballCustomCategories", JSON.stringify(savedCustomCategories));
+          }
+          row.category = cleanCat;
+        } else {
+          return;
+        }
+      } else {
+        row.category = catValue;
+      }
+
+      row.drill = "";
+      row.desc = "";
+      row.key = "";
+      row.customDrill = "";
+      
+      if (row.category === "Tackle Circuit" || row.category === "Tackling (Whole Team)" || row.category === "Pre Practice") {
+        row.periodType = 'circuit';
+        if (!Array.isArray(row.stations) || row.stations.length === 0) {
+           row.stations = [
+             { drill: "", desc: "", key: "", customDrill: "", coaches: [], videoLink: "" },
+             { drill: "", desc: "", key: "", customDrill: "", coaches: [], videoLink: "" }
+           ];
+        }
+      }
+      
+      current.lastEdited = Date.now();
+      saveState();
+      renderPracticePlan();
+    }
+
+    function updatePracticeDrill(idx, drillValue) {
+      if (userRole !== 'admin') return;
+      const current = practiceData.find(p => p.id === currentPracticeId);
+      if (!current || !Array.isArray(current.plan) || !current.plan[idx]) return;
+      const row = current.plan[idx];
+      row.drill = drillValue;
+      
+      if (drillValue !== "Custom") {
+        row.customDrill = ""; 
+        const drillObj = findDrillByName(drillValue);
+        if (drillObj) {
+          row.desc = drillObj.desc || "";
+          row.key = drillObj.key || "";
+        } else if (drillValue === "") {
+          row.desc = "";
+          row.key = "";
+        }
+      } else {
+        row.desc = "";
+        row.key = "";
+      }
+      
+      current.lastEdited = Date.now();
+      saveState();
+      renderPracticePlan();
+    }
+
+    function updateCircuitStations(rowIdx, newCount) {
+      if (userRole !== 'admin') return;
+      const current = practiceData.find(p => p.id === currentPracticeId);
+      if (!current || !Array.isArray(current.plan) || !current.plan[rowIdx]) return;
+      const target = parseInt(newCount);
+      const row = current.plan[rowIdx];
+      if (!Array.isArray(row.stations)) row.stations = [];
+      while (row.stations.length < target) {
+        row.stations.push({ drill: "", desc: "", key: "", customDrill: "", coaches: [], videoLink: "" });
+      }
+      while (row.stations.length > target) {
+        row.stations.pop();
+      }
+      current.lastEdited = Date.now();
+      saveState();
+      renderPracticePlan();
+    }
+
+    function updateCircuitDrill(rowIdx, stationIdx, drillValue) {
+      if (userRole !== 'admin') return;
+      const current = practiceData.find(p => p.id === currentPracticeId);
+      if (!current || !Array.isArray(current.plan) || !current.plan[rowIdx]) return;
+      const row = current.plan[rowIdx];
+      if (!Array.isArray(row.stations) || !row.stations[stationIdx]) return;
+      const st = row.stations[stationIdx];
+      st.drill = drillValue;
+      if (drillValue !== "Custom") {
+        st.customDrill = "";
+        const drillObj = findDrillByName(drillValue);
+        if (drillObj) {
+          st.desc = drillObj.desc || "";
+          st.key = drillObj.key || "";
+        } else if (drillValue === "") {
+          st.desc = "";
+          st.key = "";
+        }
+      } else {
+        st.desc = "";
+        st.key = "";
+      }
+      current.lastEdited = Date.now();
+      saveState();
+      renderPracticePlan();
+    }
+
+    function handleCoachSelection(rowIdx, value) {
+      if (userRole !== 'admin') return;
+      if (!value) return;
+      const current = practiceData.find(p => p.id === currentPracticeId);
+      if (!current || !Array.isArray(current.plan) || !current.plan[rowIdx]) return;
+      const row = current.plan[rowIdx];
+      if (!Array.isArray(row.coaches)) row.coaches = [];
+
+      if (value === "NEW") {
+        const newCoach = prompt("Enter new coach name:");
+        if (newCoach && newCoach.trim() !== "") {
+          const cleanName = newCoach.trim();
+          if (!savedCoaches.includes(cleanName)) {
+            savedCoaches.push(cleanName);
+            saveCoaches();
+          }
+          if (!row.coaches.includes(cleanName)) {
+            row.coaches.push(cleanName);
+          }
+        }
+      } else {
+        if (!row.coaches.includes(value)) {
+          row.coaches.push(value);
+        }
+      }
+      current.lastEdited = Date.now();
+      saveState();
+      renderPracticePlan();
+    }
+
+    function removeCoachFromRow(rowIdx, coachName) {
+      if (userRole !== 'admin') return;
+      const current = practiceData.find(p => p.id === currentPracticeId);
+      if (!current || !Array.isArray(current.plan) || !current.plan[rowIdx]) return;
+      const row = current.plan[rowIdx];
+      if (Array.isArray(row.coaches)) {
+        row.coaches = row.coaches.filter(c => c !== coachName);
+        current.lastEdited = Date.now();
+        saveState();
+        renderPracticePlan();
+      }
+    }
+
+    function handleStationCoachSelection(rowIdx, stationIdx, value) {
+      if (userRole !== 'admin') return;
+      if (!value) return;
+      const current = practiceData.find(p => p.id === currentPracticeId);
+      if (!current || !Array.isArray(current.plan) || !current.plan[rowIdx]) return;
+      const row = current.plan[rowIdx];
+      if (!Array.isArray(row.stations) || !row.stations[stationIdx]) return;
+      const st = row.stations[stationIdx];
+      if (!Array.isArray(st.coaches)) st.coaches = [];
+
+      if (value === "NEW") {
+        const newCoach = prompt("Enter new coach name:");
+        if (newCoach && newCoach.trim() !== "") {
+          const cleanName = newCoach.trim();
+          if (!savedCoaches.includes(cleanName)) {
+            savedCoaches.push(cleanName);
+            saveCoaches();
+          }
+          if (!st.coaches.includes(cleanName)) {
+            st.coaches.push(cleanName);
+          }
+        }
+      } else {
+        if (!st.coaches.includes(value)) {
+          st.coaches.push(value);
+        }
+      }
+      markPracticeEdited();
+      saveState();
+      renderPracticePlan();
+    }
+
+    function removeCoachFromStation(rowIdx, stationIdx, coachName) {
+      if (userRole !== 'admin') return;
+      const current = practiceData.find(p => p.id === currentPracticeId);
+      if (!current || !Array.isArray(current.plan) || !current.plan[rowIdx]) return;
+      const row = current.plan[rowIdx];
+      if (!Array.isArray(row.stations) || !row.stations[stationIdx]) return;
+      const st = row.stations[stationIdx];
+      if (Array.isArray(st.coaches)) {
+        st.coaches = st.coaches.filter(c => c !== coachName);
+        saveState();
+        renderPracticePlan();
+      }
+    }
+
     function getActivePlayerPositionsCount(num) {
       if (!num || !depthChart) return 0;
       
@@ -2904,14 +3208,8 @@ const firebaseConfig = {
 
         if (userRole === 'admin') {
           li.draggable = true;
-          li.ondragstart = (e) => {
-              e.stopPropagation();
-              handleRosterDragStart(e);
-          };
-          li.onclick = (e) => {
-              e.stopPropagation();
-              handleTouchSelect(player.lastName || player.firstName, player.num || "", null, null, e);
-          };
+          li.ondragstart = handleRosterDragStart;
+          li.onclick = (e) => handleTouchSelect(player.lastName || player.firstName, player.num || "", null, null, e);
         }
 
         li.innerHTML = `
