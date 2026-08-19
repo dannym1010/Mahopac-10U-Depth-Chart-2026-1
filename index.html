@@ -184,13 +184,19 @@
     .wb-body-blue { background-color: #cce5ff !important; } 
     .wb-sub-yellow { background-color: #ffff00 !important; color: #000 !important; }
     .wb-body-yellow { background-color: #ffffff !important; } 
+    .wb-sub-green { background-color: #92d050 !important; color: #000 !important; }
+    .wb-body-green { background-color: #eaf1dd !important; } 
+    .wb-sub-red { background-color: #ff0000 !important; color: #fff !important; }
+    .wb-body-red { background-color: #f2dcdb !important; } 
+    .wb-sub-white { background-color: #ffffff !important; color: #000 !important; }
+    .wb-body-white { background-color: #ffffff !important; }
 
     /* Practice Dropdown */
     .tree-root { list-style: none; margin: 0; padding: 0; }
     .tree-root ul { list-style: none; margin: 0; padding-left: 12px; }
     .tree-caret { cursor: pointer; font-size: 11.5px; font-weight: bold; color: var(--primary); display: block; padding: 4px 0; }
     .tree-caret:hover { color: var(--accent); }
-    .tree-leaf { cursor: pointer; font-size: 11px; padding: 4px 0 4px 18px; color: var(--text); border-radius: 3px; }
+    .tree-leaf { cursor: pointer; font-size: 11px; padding: 4px 0 4px 18px; color: var(--text); border-radius: 3px; margin-bottom: 2px; }
     .tree-leaf:hover { background-color: #eff6ff; color: var(--accent); font-weight: bold; }
     .tree-leaf.selected { background-color: #dbeafe; font-weight: bold; border-left: 2px solid var(--accent); }
     .practice-tree-btn { padding: 4px 8px; border: 1px solid var(--card-border); border-radius: 4px; font-weight: bold; cursor: pointer; background: #fff; height: 28px; line-height: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -205,18 +211,21 @@
 
     /* Sticky Sidebar */
     #sidebar-container { flex: 1; min-width: 220px; max-width: 280px; position: sticky; top: 15px; max-height: calc(100vh - 30px); display: flex; flex-direction: column; }
-    .sidebar { background: var(--card-bg); border-radius: 8px; padding: 12px; border: 1px solid var(--card-border); display: flex; flex-direction: column; box-shadow: 0 1px 3px rgba(0,0,0,0.05); flex-grow: 1; }
+    .sidebar { background: var(--card-bg); border-radius: 8px; padding: 12px; border: 1px solid var(--card-border); display: flex; flex-direction: column; box-shadow: 0 1px 3px rgba(0,0,0,0.05); flex-grow: 1; max-height: 100%; }
+    @media (max-width: 900px) { #sidebar-container { position: static; max-width: 100%; max-height: 600px; } }
     .sidebar h2 { font-size: 14px; margin: 0 0 8px 0; color: var(--primary); border-bottom: 1px solid var(--card-border); padding-bottom: 6px; }
-    .search-box { width: 100%; padding: 8px 10px; border: 1px solid var(--card-border); border-radius: 6px; font-size: 12px; margin-bottom: 10px; box-sizing: border-box; }
+    .search-box { width: 100%; padding: 8px 10px; border: 1px solid var(--card-border); border-radius: 6px; font-size: 12px; margin-bottom: 10px; box-sizing: border-box; outline: none; }
+    .search-box:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2); }
     .full-roster-list { list-style: none; padding: 0; margin: 0; overflow-y: auto; flex-grow: 1; min-height: 200px; }
-    .full-roster-item { padding: 6px 8px; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; justify-content: space-between; font-size: 11px; cursor: grab; background: #f8fafc; margin-bottom: 4px; border-radius: 4px; border: 1px solid var(--card-border); user-select: none; }
+    .full-roster-item { padding: 6px 8px; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; justify-content: space-between; font-size: 11px; cursor: grab; background: #f8fafc; margin-bottom: 4px; border-radius: 4px; border: 1px solid var(--card-border); touch-action: manipulation; }
+    .full-roster-item:hover { border-color: var(--accent); background: #eff6ff; }
     .multi-badge { font-size: 9px; background: #e2e8f0; color: #475569; padding: 1px 5px; border-radius: 10px; font-weight: bold; }
 
     /* PRINT STYLES */
     @media print {
       @page { size: letter portrait; margin: 0.25in; }
       body { background-color: #ffffff; padding: 0; margin: 0; font-size: 10px; }
-      .toolbar, #sidebar-container, .remove-btn, .action-group, p.subtitle, .search-box, .card-search-container, .tab-navigation, .toggle-board-btn, .week-bar, .board-controls, .add-row-btn, .add-form-btn, .row-actions, .col-resizer, .practice-dashboard { display: none !important; }
+      .toolbar, #sidebar-container, .remove-btn, .action-group, p.subtitle, .search-box, .card-search-container, .tab-navigation, .toggle-board-btn, .week-bar, .board-controls, .add-row-btn, .add-form-btn, .row-actions, .pos-header-actions, .col-resizer, .practice-dashboard { display: none !important; }
       .app-layout, .boards-container, .unit-panel:not(.hidden) { display: block !important; }
       .formation-body.collapsed { display: block !important; }
       .formation-container { border: 1px solid #000000 !important; box-shadow: none !important; padding: 4px; page-break-inside: auto !important; margin-bottom: 4px; background: #ffffff !important; }
@@ -244,7 +253,7 @@
       .period-schedule-time { color: #000000 !important; font-size: 11px !important; margin-top: 2px; }
       .rotation-timer { color: #000000 !important; font-size: 10px !important; }
       .print-only-inline { display: inline !important; }
-      .prac-input, .prac-select { border: none !important; background: transparent !important; padding: 0 !important; color: #000000 !important; font-size: 10px !important; margin: 0; }
+      .prac-input, .prac-select { border: none !important; background: transparent !important; padding: 0 !important; appearance: none; -webkit-appearance: none; color: #000000 !important; font-size: 10px !important; margin: 0; }
       .print-text-node { display: block !important; font-size: 10px !important; white-space: pre-wrap; word-break: break-word; color: #000000; padding: 2px 0; }
       .prac-textarea { display: none !important; }
       .station-block { border-bottom: 1px solid #ccc; margin-bottom: 2px; padding-bottom: 2px; page-break-inside: avoid; }
@@ -267,6 +276,7 @@
         <button id="tab-login" class="auth-tab-btn active" onclick="switchAuthTab('login')">Sign In</button>
         <button id="tab-register" class="auth-tab-btn" onclick="switchAuthTab('register')">Create Account</button>
       </div>
+
       <h2 id="auth-main-title">🏈 Coach Portal</h2>
       <p id="auth-main-subtitle">Log in to manage depth charts, playbooks, and practice itineraries.</p>
       
@@ -349,8 +359,11 @@
 
       <!-- WRISTBAND PANEL -->
       <div class="unit-panel hidden" id="panel-wristband">
+        <div class="print-only-header">
+           <h2 id="print-wb-title">Weekly Play Wristband</h2>
+        </div>
         <div class="formation-container" style="cursor:default;">
-          <div class="board-title">
+          <div class="board-title no-print">
             <span>Wristband Builder</span>
             <div style="display:flex; gap:4px;">
               <button class="toggle-board-btn admin-only" onclick="addWbRow()">+ Row</button>
@@ -364,26 +377,35 @@
 
       <!-- SCOUTING REPORT PANEL -->
       <div class="unit-panel hidden" id="panel-scouting">
+        <div class="print-only-header">
+           <h2 id="print-scout-title">Scouting Report</h2>
+        </div>
         <div class="formation-container" style="cursor:default;">
-          <div class="board-title"><span>Scouting Report</span><button class="toggle-board-btn" onclick="window.print()">🖨️ Print</button></div>
+          <div class="board-title no-print"><span>Scouting Report</span><button class="toggle-board-btn" onclick="window.print()">🖨️ Print</button></div>
           <div class="scouting-grid">
-             <div style="grid-column: 1 / -1; display: flex; gap: 15px; background: #f8fafc; padding: 10px; border-radius: 6px;">
-                <label>Year: <input type="text" id="scout-year" class="prac-input" style="width: 80px;" oninput="updateScouting('year', this.value)"></label>
-                <label>Week: <input type="text" id="scout-week" class="prac-input" style="width: 100px;" oninput="updateScouting('week', this.value)"></label>
-                <label>Opponent: <input type="text" id="scout-opponent" class="prac-input" style="width: 200px;" oninput="updateScouting('opponent', this.value)"></label>
+             <div class="station-block no-print" style="grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 15px; background: #f8fafc; padding: 12px; border-radius: 6px; border: 1px solid var(--card-border);">
+                <label style="font-size: 12px; font-weight: bold; color: var(--primary); display: flex; align-items: center; gap: 6px;">
+                   Year: <input type="text" id="scout-year" class="prac-input" style="width: 80px;" oninput="updateScouting('year', this.value)">
+                </label>
+                <label style="font-size: 12px; font-weight: bold; color: var(--primary); display: flex; align-items: center; gap: 6px;">
+                   Week: <input type="text" id="scout-week" class="prac-input" style="width: 100px;" oninput="updateScouting('week', this.value)">
+                </label>
+                <label style="font-size: 12px; font-weight: bold; color: var(--primary); display: flex; align-items: center; gap: 6px;">
+                   Opponent: <input type="text" id="scout-opponent" class="prac-input" style="width: 200px;" oninput="updateScouting('opponent', this.value)"></label>
              </div>
-             <div><strong>Team Overview</strong><textarea id="scout-teamOverview" class="prac-textarea" oninput="updateScouting('teamOverview', this.value)"></textarea></div>
-             <div><strong>Key Players</strong><textarea id="scout-keyPlayers" class="prac-textarea" oninput="updateScouting('keyPlayers', this.value)"></textarea></div>
-             <div><strong>Offensive Tendencies</strong><textarea id="scout-offenseTendencies" class="prac-textarea" oninput="updateScouting('offenseTendencies', this.value)"></textarea></div>
-             <div><strong>Defensive Tendencies</strong><textarea id="scout-defenseTendencies" class="prac-textarea" oninput="updateScouting('defenseTendencies', this.value)"></textarea></div>
-             <div style="grid-column: 1 / -1;"><strong>Special Teams & Other Notes</strong><textarea id="scout-specialTeams" class="prac-textarea" oninput="updateScouting('specialTeams', this.value)"></textarea></div>
+             <div class="station-block"><strong>Team Overview</strong><textarea id="scout-teamOverview" class="prac-textarea scout-textarea" oninput="autoResizeTextarea(this); updateScouting('teamOverview', this.value)"></textarea></div>
+             <div class="station-block"><strong>Key Players</strong><textarea id="scout-keyPlayers" class="prac-textarea scout-textarea" oninput="autoResizeTextarea(this); updateScouting('keyPlayers', this.value)"></textarea></div>
+             <div class="station-block"><strong>Offensive Tendencies</strong><textarea id="scout-offenseTendencies" class="prac-textarea scout-textarea" oninput="autoResizeTextarea(this); updateScouting('offenseTendencies', this.value)"></textarea></div>
+             <div class="station-block"><strong>Defensive Tendencies</strong><textarea id="scout-defenseTendencies" class="prac-textarea scout-textarea" oninput="autoResizeTextarea(this); updateScouting('defenseTendencies', this.value)"></textarea></div>
+             <div class="station-block" style="grid-column: 1 / -1;"><strong>Special Teams & Other Notes</strong><textarea id="scout-specialTeams" class="prac-textarea scout-textarea" oninput="autoResizeTextarea(this); updateScouting('specialTeams', this.value)"></textarea></div>
           </div>
         </div>
       </div>
 
       <!-- MASTER DRILLS PANEL -->
       <div class="unit-panel hidden" id="panel-drills">
-        <div class="board-title" style="background:#fff; padding:10px; border-radius:8px;">
+        <div class="print-only-header"><h2>Master Drill Library</h2></div>
+        <div class="board-title no-print" style="background:#fff; padding:10px; border-radius:8px; border:1px solid var(--card-border);">
           <span>Master Drill Library</span>
           <button class="toggle-board-btn admin-only" onclick="addDrillCategory()">+ Add Category</button>
         </div>
@@ -392,13 +414,17 @@
 
       <!-- PRACTICE PLAN PANEL -->
       <div class="unit-panel hidden" id="panel-practice">
+        <div class="print-only-header">
+           <h2 id="print-practice-title">Practice Plan</h2>
+           <p id="print-practice-date"></p>
+        </div>
         <div class="formation-container" style="cursor:default; overflow: visible;">
-          <div class="board-title" style="position: relative; overflow: visible;">
+          <div class="board-title no-print" style="position: relative; overflow: visible;">
             <div style="display:flex; align-items:center; gap:8px; overflow: visible;">
               <span>Practice:</span>
-              <div style="position:relative; width: 250px; z-index: 99999;">
+              <div style="position:relative; width: 250px; z-index: 9999;">
                 <div id="selected-practice-display" class="practice-tree-btn" onclick="togglePracticeTree(event)">Select Practice...</div>
-                <div id="practice-tree-dropdown" class="card-search-dropdown" onclick="event.stopPropagation()" style="display:none; width: 350px; max-height: 400px; padding:8px; top: 100%; left: 0; z-index: 99999;"></div>
+                <div id="practice-tree-dropdown" class="card-search-dropdown" onclick="event.stopPropagation()" style="display:none; width: 350px; max-height: 400px; padding:8px; top: 100%; left: 0; z-index: 9999;"></div>
               </div>
               <button class="toggle-board-btn admin-only" onclick="createNewPractice()">+ New</button>
               <button class="toggle-board-btn admin-only" onclick="editPracticeDetails()">✏️ Edit Details</button>
@@ -424,14 +450,16 @@
             <div id="prac-stats" style="font-size:11px; font-weight:bold; display:flex; gap:15px; align-items:center;"></div>
           </div>
 
-          <table class="practice-table">
+          <table class="practice-table" id="main-practice-table">
             <thead>
-              <tr>
-                <th style="width: 15%;">Time / Period</th>
-                <th style="width: 20%;">Category</th>
-                <th style="width: 30%;">Drill</th>
-                <th style="width: 30%;">Details & Focus</th>
-                <th style="width: 5%; text-align:center;" class="admin-only">❌</th>
+              <tr id="practice-header-row">
+                <th style="width: 10%;">Time / Period</th>
+                <th style="width: 14%;">Category</th>
+                <th style="width: 25%;">Select Drill(s)</th>
+                <th style="width: 25%;">Details & Instructions</th>
+                <th style="width: 10%;">Coach(es)</th>
+                <th style="width: 12%;">Coaching Focus</th>
+                <th style="width: 4%; text-align:center;" class="admin-only">❌</th>
               </tr>
             </thead>
             <tbody id="practice-rows"></tbody>
@@ -443,6 +471,7 @@
       <div class="unit-panel hidden" id="panel-users">
         <div class="formation-container" style="cursor:default;">
           <div class="board-title"><span>👥 Staff Permissions</span></div>
+          <p style="font-size:12px; color:var(--text-muted); margin-bottom:15px;">Manage coaching staff access levels. <strong>Head Coaches</strong> have full editing rights across all playbooks and plans. <strong>Coaches</strong> have read-only access to view and print.</p>
           <div id="users-table-container"></div>
         </div>
       </div>
@@ -454,6 +483,7 @@
         <h2>Master Roster</h2>
         <div style="margin-bottom: 8px;">
           <label style="font-size: 11px; font-weight: bold; color: var(--text-muted);" id="roster-count-label">Counting: All in Tab</label>
+          <div style="font-size: 9px; color: var(--accent); margin-top: 2px;">Click any formation box to filter</div>
         </div>
         <input type="text" id="search-input" class="search-box" placeholder="Search roster..." oninput="filterRoster()" />
         <ul class="full-roster-list" id="master-roster-list"></ul>
@@ -586,13 +616,86 @@ const firebaseConfig = {
       }
     ];
 
+    const defaultDynamicDrills = {
+      "Indy Offense": [
+        { name: "Individual Stance & Alignment", desc: "Setup: Line players up on a single yard line with 2-yard splits.\nInstruction: Skill and line players work on correct 2-point or 3-point stances, splits, and alignment rules.", key: "Proper stance, eyes up" },
+        { name: "Individual Ball Handling & Mesh", desc: "Setup: QBs and RBs pair up with one football per pair.\nInstruction: Quarterbacks, running backs, and receivers practice clean handoffs, pitches, and catch-tuck transitions in slow motion.", key: "Secure the ball" },
+        { name: "Individual Release & Stem", desc: "Setup: Place a trash can or dummy at the line of scrimmage to simulate a press corner.\nInstruction: Receivers and tight ends work on getting off the line of scrimmage past dummy defenders and selling the route stem.", key: "No false steps" },
+        { name: "Individual O-Line Fit & Drive", desc: "Setup: Use a blocking sled, hand shields, or a chute. Pair up OL if using shields.\nInstruction: Offensive linemen practice individual board or chute footwork and hand placement fit against a partner or shield.", key: "Thumbs up, low center of gravity" },
+        { name: "Under Center Snap & Drop", desc: "Setup: Pair QBs and Centers. Use the painted yard line as the line of scrimmage.\nInstruction: Center snaps to QB. QB executes 3-step or 5-step drop on air. Coach watches feet to ensure no false steps or heel clicking.", key: "Clean exchange, fast drop" },
+        { name: "Shotgun Snap & Quick Game", desc: "Setup: Center/QB pairs. Have a coach or standing dummy 5 yards out as a target.\nInstruction: QB takes shotgun snap. Instantly sets feet and throws a quick slant or hitch to a target. Focus on catching and throwing in one rhythm.", key: "Secure snap, quick release" },
+        { name: "Inside Zone / Dive Mesh Mechanics", desc: "Setup: Center, QB, and RB group. Coach stands as the defensive end read.\nInstruction: QB takes snap, opens hips, and rides the running back into the line. Practice leaving the ball in the belly as long as possible before pulling or handing off.", key: "Long ride, read the end" },
+        { name: "Play-Action Rollout", desc: "Setup: Center, QB, RB. Cones marking the edge.\nInstruction: QB executes a hard run fake to the back, drops the ball to the hip, snaps head around, and sprints to the edge to deliver a pass.", key: "Sell fake, sprint to edge" },
+        { name: "Target Accuracy Net Drill", desc: "Setup: Passing net or 3 garbage cans placed at 5, 10, and 15 yards.\nInstruction: Set up a net or targets at 5, 10, and 15 yards. QBs drop back and throw 5 passes to each target aiming for the center pocket.", key: "Consistent release point" },
+        { name: "Handoff Ball Security", desc: "Setup: 2 lines of RBs facing a coach who holds the ball.\nInstruction: RBs practice receiving handoffs. Inside elbow must be up to form a pocket. Secure the ball immediately into the ribcage with 5 points of pressure.", key: "Squeeze tight, form pocket" },
+        { name: "Downhill A/B Gap Run", desc: "Setup: 4 stand-up dummies simulating the defensive line. 2 hash marks acting as the boundary.\nInstruction: RB takes the handoff and attacks the A or B gap immediately. Place bags simulating linemen. RB must hit the hole without dancing.", key: "No dancing, square shoulders" },
+        { name: "Outside Zone / Sweep Track", desc: "Setup: 4 cones placed in an arc to the sideline simulating the block track.\nInstruction: Set cones marking a wide track. RB takes a toss or wide handoff, runs flat down the line, and cuts upfield outside the last cone.", key: "Read the edge block, cut vertical" },
+        { name: "Lead Block Mechanics (H-Back / FB)", desc: "Setup: Coach or LB with a hit shield 3 yards deep in the hole.\nInstruction: FB or H-Back steps up into the hole to deliver an inside-out block on a padded defender (LB). Run through the block.", key: "Low pad level, strike with hips" },
+        { name: "Pass Protection Pickup", desc: "Setup: RB stands in the pocket. Coach with a bag rushes from varying angles.\nInstruction: RB steps into the gap to absorb a blitzing linebacker (coach with a bag). Practice a wide base and delivering a punch to stop momentum.", key: "Wide base, punch to breastplate" },
+        { name: "Stance & Release", desc: "Setup: Receivers line up on a yard line. Coach stands 5 yards away with a whistle.\nInstruction: Receivers line up in proper 2-point stance (inside foot up). Explode off the line for 5 yards without any false steps or rocking.", key: "Explode off front foot, no false steps" },
+        { name: "Stalk Blocking", desc: "Setup: WRs facing DBs holding hand shields, 5 yards apart.\nInstruction: WR sprints 5 yards at a defender, breaks down, buzzes feet, and engages the chest plate to block for a run play.", key: "Keep feet moving, inside hands" },
+        { name: "Route Tree Basics", desc: "Setup: 3 cones placed at 5, 10, and 15 yards to mark break depths.\nInstruction: Run through the basic route tree (Slant, Out, Hitch, Go). Focus on sharp cuts at the correct yardage depth.", key: "Plant outside foot hard, sharp cuts" },
+        { name: "Catch & Tuck (Gauntlet)", desc: "Setup: Two coaches standing 3 yards apart holding hit shields. QB 10 yards away.\nInstruction: WR catches a pass over the middle and instantly tucks the ball away while running through two coaches holding pads.", key: "Look ball in, tuck instantly" },
+        { name: "3-Point Stance & Get-Off", desc: "Setup: All linemen on a single yard line. Coach uses a ball on a stick for snap count.\nInstruction: Linemen line up in proper stances. On the snap count, explode out 5 yards. Watch for leaning, false steps, or high pad levels.", key: "Flat back, zero false steps" },
+        { name: "Base Drive Block", desc: "Setup: Pair linemen up. One holds a hit shield.\nInstruction: OL fires out, takes a 6-inch power step, strikes the breastplate of a blocking shield, and drives hips forward for 5 yards.", key: "Thumbs up, elbows tight" },
+        { name: "Shock & Shed (Block Defeat)", desc: "Setup: Defender paired with an offensive blocker holding a shield.\nInstruction: Lineman strikes a blocker with violent hands, extends arms to gain leverage, locates ball carrier, and rips off the block to make the tackle.", key: "Extend arms, rip off the block" },
+        { name: "Pull & Kickout", desc: "Setup: Center snapping, Guard pulling. Stand-up dummy placed at the edge for the kickout.\nInstruction: Guard opens playside hip, pulls flat down the line behind the center, and delivers a trap/kickout block on a standing bag.", key: "Tight pulling path, strike hard" }
+      ],
+      "Indy Defense": [
+        { name: "Individual Defensive Stance & Keys", desc: "Setup: Linebackers 4 yards off the line. Coach acts as the Guard.\nInstruction: Linebackers and defensive linemen practice low athletic stances and reading offensive guard keys on air.", key: "Flat back, eyes on key" },
+        { name: "Individual Shed & Strike", desc: "Setup: Defenders facing offensive players with shields.\nInstruction: Defending players practice delivering a heavy hand strike to a shield and instantly ripping or swimming off the block.", key: "Violent hands, clear hips" },
+        { name: "Individual Backpedal & Weave", desc: "Setup: DBs in 2 lines. Coach stands in front directing with hand signals.\nInstruction: Defensive backs and linebackers practice smooth backpedals, side-shuffles, and directional transition breaks.", key: "Low hips, stay square" },
+        { name: "Individual Pursuit & Angle", desc: "Setup: Ball carrier on the sideline. Defender starting inside the hash.\nInstruction: Individual defenders work on proper running angles to the sideline to cut off ball carriers.", key: "Angle to inside hip" },
+        { name: "Get-Off & Shoot Gap", desc: "Setup: Football attached to a stick/towel. DL aligned on a yard line.\nInstruction: Line up DL on a football attached to a stick. When coach moves the ball, DL fires out instantly into their assigned gap.", key: "Eyes on ball, first step quickness" },
+        { name: "Rip Move & Attack Gap", desc: "Setup: DL paired with OL holding shields.\nInstruction: DL fires off, engages blocker, drops the inside shoulder, and violently rips the arm upward to clear the block and penetrate the gap.", key: "Drop shoulder, violent rip up" },
+        { name: "Swim (Arm-Over) Block Defeat", desc: "Setup: DL paired with OL holding shields.\nInstruction: DL strikes the blocker's breastplate, clubs with the outside hand, and swims the opposite arm over the blocker's shoulder to clear.", key: "Club hard, quick arm over" },
+        { name: "Bull Rush & Shed", desc: "Setup: DL paired with heavier OL holding shields.\nInstruction: DL fires out low, shoots hands into the blocker's chest, drives legs to push the blocker back into the pocket, then sheds to the ball carrier.", key: "Low pad level, heavy hands" },
+        { name: "Read, React & Attack Gap", desc: "Setup: DL facing an offensive lineman. Coach stands behind DL signaling the OL to pass set or run block.\nInstruction: DL reads the O-line step. If run block, drop anchor and shed. If pass set, transition instantly to Rip/Swim/Bull to attack the gap.", key: "Read the hat, react instantly" },
+        { name: "Key Read & Attack", desc: "Setup: LB aligned 4 yards deep. 2 Guards in front.\nInstruction: LB reads guard pull or down block, reacts instantly, scrapes tight to the line, and attacks the assigned gap downhill.", key: "Read the guard, attack downhill" },
+        { name: "Shock, Shed & Fill", desc: "Setup: LB facing a lead blocker holding a shield. Ball carrier stands behind the shield.\nInstruction: LB steps downhill to meet lead blocker, delivers a heavy two-hand strike to the chest, sheds using a rip move, and fills the gap.", key: "Violent strike, shed and tackle" },
+        { name: "Downhill Rip & Gap Fill", desc: "Setup: 4 cones mapping out the A and B gaps. Blocker in the gap.\nInstruction: LB reads run, attacks the A/B gap, uses a violent rip move to clear the climbing offensive lineman, and makes the tackle.", key: "Rip under the block, clear hips" },
+        { name: "Angle Tackling", desc: "Setup: 10x10 grid. Runner starts on one corner, tackler on the opposite diagonal.\nInstruction: LB takes an inside-out pursuit angle toward a runner down the sideline, breaks down, and form tackles a bag.", key: "Track inside hip, wrap and squeeze" },
+        { name: "Defeat Stalk Block & Force", desc: "Setup: DB facing WR with a shield 5 yards apart. RB running an outside sweep.\nInstruction: DB reads run, attacks the WR's stalk block. Deliver a firm punch to the WR's chest, rip outside arm free, and force the runner inside to help.", key: "Punch, shed, force inside" },
+        { name: "Rip Off WR Block", desc: "Setup: DB engaged with a WR. Ball carrier heading up the alley.\nInstruction: DB engages WR blocking on the perimeter, dips the inside shoulder, and rips through the block violently to make an alley tackle.", key: "Dip shoulder, rip through" },
+        { name: "Backpedal & Break", desc: "Setup: DBs on the numbers. Coach with a ball in the middle of the field.\nInstruction: DB backpedals 10 yards. On coach's signal, plant the back foot, drive forward at a 45-degree angle, and catch a ball.", key: "Low hips, zero false steps" },
+        { name: "Deep 1/3 Drop (Safety)", desc: "Setup: Safety starting 10 yards deep. Coach as QB.\nInstruction: Safety aligns 12 yards deep. Backpedals straight back reading the QB. Break to the deep sideline on a thrown ball.", key: "Deepest of the deepest" }
+      ],
+      "Team Offense": [
+        { name: "Offensive Play Install (Walkthrough)", desc: "Setup: 11 offensive players huddle on the +20 yard line. Place trash cans as defensive linemen.\nInstruction: Huddle the full 11-man offensive unit. Walk through new plays vs. garbage cans or scout defense. No pads/helmets.", key: "Alignment, assignment, snap count" },
+        { name: "11-on-11 Run Game Scrimmage", desc: "Setup: Full 11 on 11 formatted on the hash marks. Referees/coaches spotting the ball.\nInstruction: Live blocking and tackling. Offense runs strictly inside/outside run plays vs the starting defense.", key: "Physicality, execution at speed" },
+        { name: "Team Chalk Talk - Offense", desc: "Setup: Bring the whiteboard onto the field or hash.\nInstruction: Gather the offensive unit in front of the whiteboard to install new plays, formations, and signals.", key: "Full attention, mental reps" }
+      ],
+      "Team Defense": [
+        { name: "Defensive Front Install (Walkthrough)", desc: "Setup: Full defensive unit vs a scout offense (can be coaches or subs) holding shields.\nInstruction: Walk through defensive alignments, blitz calls, and gap responsibilities against a scout offense. Half-speed.", key: "Communication, gap integrity" },
+        { name: "Form Fit & Drive (Thud)", desc: "Setup: Pair players of similar size 2 yards apart on a yard line.\nInstruction: Players start 2 yards apart. On whistle, step into the ball carrier, fit the shoulder to the numbers, wrap, and drive for 3 steps.", key: "Shoot hips, wrap cloth" },
+        { name: "Angle / Alley Tackle", desc: "Setup: Set up a cone alley 10 yards wide. Ball carrier and tackler 15 yards apart.\nInstruction: Defender takes an inside-out angle to intersect a runner aiming for the pylon. Break down and drive through the near hip.", key: "Near foot to near shoulder" },
+        { name: "Hawk (Rugby) Roll Tackle", desc: "Setup: 2 mats or soft landing zones. Tackler and dummy 3 yards apart.\nInstruction: Defender targets the thighs of the runner, wraps legs tight, and rolls to the side using momentum to bring the runner down safely.", key: "Eyes on thighs, wrap and roll" },
+        { name: "Open Field Shimmy (Space)", desc: "Setup: 10x10 yard grid marked by cones. 1 tackler, 1 runner.\nInstruction: 10x10 yard grid. Defender tracks an elusive runner, breaks down 2 yards away, and executes a safe open-field wrap.", key: "Keep feet alive, track the hip" },
+        { name: "Tackling Circuit (4 Groups)", desc: "Setup: Split the field into 4 quadrants. 1 coach per station.\nInstruction: Divide team into 4 groups. Rotate every 3-5 mins on whistle. Station 1: Form fit. Station 2: Angle tackle. Station 3: Open field wrap. Station 4: Hawk Roll Tackle.", key: "Head up, wrap and squeeze" },
+        { name: "Turnover Circuit (4 Groups)", desc: "Setup: Split the field into 4 quadrants. Ensure footballs are at every station.\nInstruction: Divide into 4 groups. Rotate every 3-5 mins. Station 1: Strip drill. Station 2: Fumble recovery (fall on it). Station 3: Tip drill (INTs). Station 4: Punch-out from behind.", key: "Secure the ball instantly" }
+      ],
+      "Special Teams & General": [
+        { name: "Kickoff Lane Spacing", desc: "Setup: Full kickoff unit aligned on the 40 yard line.\nInstruction: Line up kickoff team. Sprint 40 yards downfield ensuring every player maintains exactly 10 yards of spacing.", key: "Maintain lane integrity" },
+        { name: "Punt Shield Protection", desc: "Setup: 3 players form a shield 5 yards behind the line of scrimmage. 3 rushers on the line.\nInstruction: 3 players form a shield 5 yards behind line. Step inside to seal gaps, absorb rushers, and hold for 2 seconds.", key: "Head up, secure the inside gap" },
+        { name: "Kick Return Wedge", desc: "Setup: Front blockers aligned on the 30 yard line. Returner deep.\nInstruction: Front blockers sprint back 15 yards, turn, and form a tight wall shoulder-to-shoulder to block for returner.", key: "Move together, drive block" },
+        { name: "QB & Center Exchange", desc: "Setup: 2 footballs per pair. Centers line up on a yard line.\nInstruction: Centers and QBs pair up to practice under-center and shotgun snaps before formal periods begin. Rotate through all QBs and Centers.", key: "100% snap accuracy" },
+        { name: "Specialists: Kicking & Holding", desc: "Setup: Kicker and Holder working independently on the hash.\nInstruction: Specialists work on snap, hold, and kick mechanics independently. Kickers work on approach drops and leg swing contact.", key: "Timing and rhythm" },
+        { name: "WR Routes with QB Throws", desc: "Setup: QBs on hash mark, WRs split out 10 yards. Cones marking route breaks optional.\nInstruction: QBs throw the basic route tree on air to WRs. Focus on timing, route depths, and getting arms warm.", key: "Crisp routes, accurate passes" },
+        { name: "Offensive Line Steps", desc: "Setup: All linemen on a yard line, 2-yard splits.\nInstruction: O-Line works through their first 2 steps (drive, reach, down, pull) on air or lightly against standing bags.", key: "First step quickness, pad level" },
+        { name: "Mandatory Water Break", desc: "Setup: Water stations set up behind the bench area.\nInstruction: Blow whistle twice. Players remove helmets and jog to water stations. Emphasize fast hydration and hustling back to position groups.", key: "Hydrate and hustle" },
+        { name: "Dynamic Warm-Up", desc: "Setup: Team lines up in 4 even rows on the sideline facing the field.\nInstruction: Line team up on the sideline or hash marks. Coach leads cadence. Perform high knees, karaoke, butt kicks, shuffling, and 10-yard short sprints.", key: "Full speed, proper posture" },
+        { name: "Agility Ladder", desc: "Setup: Set up 2-3 agility ladders 5 yards apart.\nInstruction: Set up 2-3 agility ladders. Players run through doing icky shuffle, two-in, and lateral quick steps. Keep the line moving fast.", key: "Eyes up, quick feet" },
+        { name: "Form Tackling (No Pads)", desc: "Setup: Pair players up. Walk through the fit position, proper head placement, and wrap mechanics on air without taking players to the ground.\nInstruction: Pair players up. Walk through the fit position, proper head placement, and wrap mechanics on air without taking players to the ground.", key: "Head across bow, sink hips" },
+        { name: "Team Stretch", desc: "Setup: Players spread out in a circle or rows. Team captains in the center.\nInstruction: Players spread out in a circle or rows. Team captains lead stretches. Focus on hamstrings, quads, groins, and shoulders.", key: "Stretch tight muscles" },
+        { name: "Blocking Circuit (4 Groups)", desc: "Setup: 4 stations. Require 4 coaches and multiple hit shields.\nInstruction: Rotate every 3-5 mins. Station 1: 3-point stance get-off. Station 2: Drive block shield. Station 3: Down block angle. Station 4: Reach block step.", key: "Low pads, violent hands" },
+        { name: "Agility & Footwork Circuit", desc: "Setup: 4 stations. Cones and ladders required.\nInstruction: Rotate every 3 mins. Station 1: Ladder drills. Station 2: Cone weave. Station 3: 5-10-5 shuttle. Station 4: Short hurdle jumps.", key: "Fast feet, stay balanced" }
+      ]
+    };
+
     let weeklyData = safeJSONParse("footballWeeklyData", {});
     let practiceData = safeJSONParse("footballPracticeData", []);
-    let masterPlayLibrary = safeJSONParse("footballMasterPlays", ["24 Dive", "25 Trap", "Sweep Right", "Bootleg Pass"]);
-    let dynamicDrills = safeJSONParse("footballDynamicDrills", {
-      "Indy Offense": [{ name: "Stance & Alignment", desc: "Line up with 2-yard splits. Work on proper stance.", key: "Eyes up" }],
-      "Indy Defense": [{ name: "Tackling Circuit", desc: "Wrap and roll drill using mats.", key: "Head up" }]
-    });
+    let masterPlayLibrary = safeJSONParse("footballMasterPlays", ["24 Dive", "25 Trap", "Sweep Right", "Bootleg Pass", "Screen Pass"]);
+    let dynamicDrills = safeJSONParse("footballDynamicDrills", defaultDynamicDrills);
     let practiceTemplates = safeJSONParse("footballPracticeTemplates", []);
     let savedCoaches = safeJSONParse("footballSavedCoaches", []);
     let savedCustomCategories = safeJSONParse("footballCustomCategories", []);
@@ -600,10 +703,8 @@ const firebaseConfig = {
     let currentPracticeId = null;
 
     function getWeekFormations(week) {
-      if (!weeklyData[week]) {
-        weeklyData[week] = { opponent: "", formations: JSON.parse(JSON.stringify(defaultFormations)), depthChart: {} };
-      }
-      if (!Array.isArray(weeklyData[week].formations) || weeklyData[week].formations.length === 0) {
+      if (!weeklyData[week]) weeklyData[week] = { opponent: "", formations: JSON.parse(JSON.stringify(defaultFormations)), depthChart: {} };
+      if (!weeklyData[week].formations || !Array.isArray(weeklyData[week].formations)) {
         weeklyData[week].formations = JSON.parse(JSON.stringify(defaultFormations));
       }
       return weeklyData[week].formations;
@@ -742,11 +843,12 @@ const firebaseConfig = {
         container.innerHTML = "";
 
         if (forms.length === 0) {
-            container.innerHTML = `<div style="text-align:center; padding:20px; color:var(--text-muted);">No boards found.</div>`;
+            container.innerHTML = `<div style="text-align:center; padding:40px; color:var(--text-muted); border:2px dashed #ccc; border-radius:10px;">No boards found. Click + Add Formation above.</div>`;
             return;
         }
 
         forms.forEach(form => {
+          if (!form) return;
           const formDiv = document.createElement("div");
           formDiv.className = "formation-container" + (activeCountFormationId === form.id ? " counting-active" : "");
           formDiv.onclick = (e) => {
@@ -760,6 +862,8 @@ const firebaseConfig = {
             <div class="board-title">
               <span>${form.name} <small style="font-size:11px; color:var(--text-muted); font-weight:normal;">${form.subtitle || ''}</small></span>
               <div class="board-controls">
+                <button class="toggle-board-btn admin-only" onclick="renameFormation('${form.id}')">✏️ Rename</button>
+                <button class="toggle-board-btn admin-only" onclick="addRowToFormation('${form.id}')">+ Add Row</button>
                 <button class="toggle-board-btn admin-only" onclick="deleteFormation('${form.id}')" style="color:#ef4444;">🗑️</button>
               </div>
             </div>
@@ -770,8 +874,20 @@ const firebaseConfig = {
 
           (form.rows || []).forEach(row => {
             if (!row) return;
-            const rowDiv = document.createElement("div");
-            rowDiv.className = "formation-row";
+            const rowWrap = document.createElement("div");
+            rowWrap.className = "row-container";
+            rowWrap.innerHTML = `
+              <div class="level-header-bar">
+                <span class="level-label">${row.label}</span>
+                <div class="row-actions admin-only">
+                  <button class="row-action-btn" onclick="addPositionToRow('${form.id}', '${row.id}')">+ Pos</button>
+                  <button class="row-action-btn" style="color:#ef4444;" onclick="deleteRow('${form.id}', '${row.id}')">✕</button>
+                </div>
+              </div>
+              <div class="formation-row ${row.rowClass}"></div>
+            `;
+
+            const rowDiv = rowWrap.querySelector(".formation-row");
 
             (row.positions || []).forEach(pos => {
               if (!pos) return;
@@ -795,12 +911,18 @@ const firebaseConfig = {
               `).join("");
 
               card.innerHTML = `
-                <div class="position-header"><span>${pos.name}</span><span>${players.length}</span></div>
+                <div class="position-header">
+                  <span>${pos.name}</span>
+                  <div style="display:flex; gap:2px; align-items:center;">
+                    <span class="pos-count">${players.length}</span>
+                    <button class="pos-hdr-btn del-pos admin-only" onclick="deletePosition('${form.id}', '${row.id}', '${pos.id}')">&times;</button>
+                  </div>
+                </div>
                 <ul class="player-list">${playersHtml || '<div style="color:var(--text-muted); font-size:10px; padding:6px; text-align:center;">Drop Player</div>'}</ul>
               `;
               rowDiv.appendChild(card);
             });
-            body.appendChild(rowDiv);
+            body.appendChild(rowWrap);
           });
           container.appendChild(formDiv);
         });
@@ -875,7 +997,7 @@ const firebaseConfig = {
           html += `
             <td class="wb-sub-idx wb-sub-${play.color}">${r + 1}</td>
             <td class="wb-play-cell wb-body-${play.color}" ondragover="event.preventDefault(); this.classList.add('drag-over');" ondragleave="this.classList.remove('drag-over');" ondrop="dropPlayToWristband(event, ${cIdx}, ${r})">
-              <input type="text" class="wb-play-input" value="${play.text}" oninput="weeklyData[currentWeek].wristbandData.columns[${cIdx}].plays[${r}].text = this.value; triggerDebouncedSave();" />
+              <input type="text" class="wb-play-input" value="${play.text}" ondrop="dropPlayToWristband(event, ${cIdx}, ${r})" oninput="weeklyData[currentWeek].wristbandData.columns[${cIdx}].plays[${r}].text = this.value; triggerDebouncedSave();" />
             </td>
           `;
         });
@@ -893,7 +1015,7 @@ const firebaseConfig = {
         const li = document.createElement("li");
         li.className = "full-roster-item";
         li.draggable = (userRole === 'admin');
-        li.ondragstart = (e) => { e.dataTransfer.setData("text/plain", play); e.dataTransfer.effectAllowed = "copy"; };
+        li.ondragstart = (e) => { e.dataTransfer.setData("text/plain", play); };
         li.innerHTML = `<span>📋 ${play}</span><button class="remove-btn admin-only" onclick="masterPlayLibrary.splice(${idx}, 1); savePlayLibrary(); renderPlayLibrary();">&times;</button>`;
         list.appendChild(li);
       });
@@ -912,12 +1034,16 @@ const firebaseConfig = {
 
     function savePlayLibrary() {
       localStorage.setItem("footballMasterPlays", JSON.stringify(masterPlayLibrary));
+      triggerDebouncedSave();
     }
 
     function dropPlayToWristband(e, colIdx, rowIdx) {
       e.preventDefault();
-      e.currentTarget.classList.remove('drag-over');
+      e.stopPropagation();
+      const td = e.currentTarget.closest('td');
+      if (td) td.classList.remove('drag-over');
       if (userRole !== 'admin') return;
+      
       const text = e.dataTransfer.getData("text/plain");
       if (text) {
         weeklyData[currentWeek].wristbandData.columns[colIdx].plays[rowIdx].text = text;
@@ -996,56 +1122,91 @@ const firebaseConfig = {
     }
 
     function renderPracticePlan() {
-      const tbody = document.getElementById("practice-rows");
-      if (!tbody) return;
-      tbody.innerHTML = "";
+      try {
+        const tbody = document.getElementById("practice-rows");
+        if (!tbody) return;
+        tbody.innerHTML = "";
 
-      const cur = practiceData.find(p => p.id === currentPracticeId);
-      if (!cur) return;
+        const cur = practiceData.find(p => p.id === currentPracticeId);
+        if (!cur) return;
 
-      let totalMins = timeToMins(cur.endTime) - timeToMins(cur.startTime);
-      if (totalMins < 0) totalMins += 1440;
+        let totalMins = timeToMins(cur.endTime) - timeToMins(current.startTime);
+        if (totalMins < 0) totalMins += 1440;
 
-      let scheduledMins = 0;
-      (cur.plan || []).forEach(r => scheduledMins += parseInt(r.time || 0));
+        let scheduledMins = 0;
+        (cur.plan || []).forEach(r => scheduledMins += parseInt(r.time || 0));
 
-      const statsDiv = document.getElementById("prac-stats");
-      if (statsDiv) {
-        statsDiv.innerHTML = `<span>Total: <b>${totalMins}m</b></span> | <span>Scheduled: <b>${scheduledMins}m</b></span> | <span style="color:${(totalMins - scheduledMins < 0) ? '#ef4444' : '#16a34a'};">Remaining: <b>${totalMins - scheduledMins}m</b></span>`;
-        document.getElementById('prac-start').value = cur.startTime || "17:00";
-        document.getElementById('prac-end').value = cur.endTime || "19:00";
-      }
+        const statsDiv = document.getElementById("prac-stats");
+        if (statsDiv) {
+          statsDiv.innerHTML = `<span>Total: <b>${totalMins}m</b></span> | <span>Scheduled: <b>${scheduledMins}m</b></span> | <span style="color:${(totalMins - scheduledMins < 0) ? '#ef4444' : '#16a34a'};">Remaining: <b>${totalMins - scheduledMins}m</b></span>`;
+          document.getElementById('prac-start').value = cur.startTime || "17:00";
+          document.getElementById('prac-end').value = cur.endTime || "19:00";
+        }
 
-      let clock = timeToMins(cur.startTime);
+        let clock = timeToMins(cur.startTime);
 
-      (cur.plan || []).forEach((row, idx) => {
-        const rowStart = clock;
-        clock += parseInt(row.time || 0);
-        const rowEnd = clock;
-        const timeLabel = `${minsToTimeStr(rowStart)} - ${minsToTimeStr(rowEnd)}`;
+        (cur.plan || []).forEach((row, idx) => {
+          const rowStart = clock;
+          clock += parseInt(row.time || 0);
+          const rowEnd = clock;
+          const timeLabel = `${minsToTimeStr(rowStart)} - ${minsToTimeStr(rowEnd)}`;
 
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>
-            <input type="number" class="prac-input" style="width:45px;" value="${row.time || 0}" oninput="cur.plan[${idx}].time=this.value; renderPracticePlan(); triggerDebouncedSave();"> mins
-            <div class="period-schedule-time">${timeLabel}</div>
-          </td>
-          <td>
-            <input type="text" class="prac-input" value="${row.category || ''}" oninput="cur.plan[${idx}].category=this.value; triggerDebouncedSave();">
-          </td>
-          <td>
-            <input type="text" class="prac-input" value="${row.drill || ''}" oninput="cur.plan[${idx}].drill=this.value; triggerDebouncedSave();">
-          </td>
-          <td>
-            <textarea class="prac-textarea" oninput="cur.plan[${idx}].desc=this.value; triggerDebouncedSave();">${row.desc || ''}</textarea>
-          </td>
-          <td>
-            <input type="text" class="prac-input" value="${row.key || ''}" placeholder="Focus key..." oninput="cur.plan[${idx}].key=this.value; triggerDebouncedSave();">
-          </td>
-          <td style="text-align:center;"><button class="remove-btn admin-only" onclick="cur.plan.splice(${idx}, 1); renderPracticePlan(); saveState();">&times;</button></td>
-        `;
-        tbody.appendChild(tr);
-      });
+          let catOptions = `<option value="">-- Select Category --</option>`;
+          Object.keys(dynamicDrills).forEach(cat => { catOptions += `<option value="${cat}" ${row.category === cat ? 'selected' : ''}>${cat}</option>`; });
+          catOptions += `<option value="Custom" ${row.category === "Custom" ? 'selected' : ''}>+ Custom Category...</option>`;
+
+          let periodTypeSelect = `<div style="margin-top:6px;" class="no-print admin-only"><select class="prac-select" onchange="updatePeriodType(${idx}, this.value)"><option value="normal" ${row.periodType === 'normal' ? 'selected' : ''}>Whole Group</option><option value="circuit" ${row.periodType === 'circuit' ? 'selected' : ''}>Circuit</option><option value="groups" ${row.periodType === 'groups' ? 'selected' : ''}>Groups</option></select></div>`;
+
+          const isMulti = (row.periodType === 'circuit' || row.periodType === 'groups');
+
+          if (isMulti) {
+            if (!Array.isArray(row.stations) || row.stations.length === 0) row.stations = [{}, {}];
+            const numStations = row.stations.length;
+            const blockLabel = row.periodType === 'groups' ? 'Group' : 'Station';
+            let rotationHtml = row.periodType === 'circuit' ? `<div class="rotation-timer">${(row.time / numStations).toFixed(1)} mins / station</div>` : `<div class="rotation-timer">Full ${row.time} mins</div>`;
+
+            row.stations.forEach((st, i) => {
+              if (!st) st = {};
+              
+              let stationSelectHtml = `<div class="station-block"><div class="station-title">${blockLabel} ${i+1}</div><select class="prac-select" onchange="updateCircuitDrill(${idx}, ${i}, this.value)">${getAllDrillOptions(st.drill)}</select></div>`;
+              let stationDescHtml = `<div class="station-block"><textarea class="prac-textarea" oninput="updateCircuitTextData(${idx}, ${i}, 'desc', this.value);" placeholder="Description...">${st.desc || ''}</textarea></div>`;
+              let stationKeysHtml = `<div class="station-block"><input type="text" class="prac-input" value="${st.key || ''}" oninput="updateCircuitTextData(${idx}, ${i}, 'key', this.value);" placeholder="Focus..."></div>`;
+
+              const subTr = document.createElement("tr");
+              if (i === 0) {
+                subTr.innerHTML = `
+                  <td rowspan="${numStations}">
+                    <div class="prac-time-input-wrap no-print"><input type="number" class="prac-input" value="${row.time || 0}" oninput="updatePracticeTextData(${idx}, 'time', parseInt(this.value) || 0)" style="width:40px; display:inline-block;"> mins</div>
+                    <div class="period-schedule-time">${timeLabel}</div>${rotationHtml}
+                  </td>
+                  <td rowspan="${numStations}"><select class="prac-select" onchange="updatePracticeCategory(${idx}, this.value)">${catOptions}</select>${periodTypeSelect}</td>
+                  <td>${stationSelectHtml}</td><td>${stationDescHtml}</td><td></td><td>${stationKeysHtml}</td>
+                  <td rowspan="${numStations}" class="no-print admin-only" style="text-align:center;"><button class="remove-btn" onclick="cur.plan.splice(${idx}, 1); renderPracticePlan(); saveState();">&times;</button></td>
+                `;
+              } else {
+                subTr.innerHTML = `<td>${stationSelectHtml}</td><td>${stationDescHtml}</td><td></td><td>${stationKeysHtml}</td>`;
+              }
+              tbody.appendChild(subTr);
+            });
+
+          } else {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>
+                <div class="prac-time-input-wrap no-print"><input type="number" class="prac-input" style="width:45px;" value="${row.time || 0}" oninput="updatePracticeTextData(${idx}, 'time', parseInt(this.value) || 0)"> mins</div>
+                <div class="period-schedule-time">${timeLabel}</div>
+              </td>
+              <td><select class="prac-select" onchange="updatePracticeCategory(${idx}, this.value)">${catOptions}</select>${periodTypeSelect}</td>
+              <td><select class="prac-select" onchange="updatePracticeDrill(${idx}, this.value)">${getAllDrillOptions(row.drill)}</select></td>
+              <td><textarea class="prac-textarea" oninput="updatePracticeTextData(${idx}, 'desc', this.value);">${row.desc || ''}</textarea></td>
+              <td></td>
+              <td><input type="text" class="prac-input" value="${row.key || ''}" placeholder="Focus key..." oninput="updatePracticeTextData(${idx}, 'key', this.value);"></td>
+              <td style="text-align:center;" class="admin-only"><button class="remove-btn" onclick="cur.plan.splice(${idx}, 1); renderPracticePlan(); saveState();">&times;</button></td>
+            `;
+            tbody.appendChild(tr);
+          }
+        });
+      } catch (err) { console.error("Error rendering practice plan:", err); }
     }
 
     function addPracticeRow() {
@@ -1053,9 +1214,28 @@ const firebaseConfig = {
       const cur = practiceData.find(p => p.id === currentPracticeId);
       if (cur) {
         if (!cur.plan) cur.plan = [];
-        cur.plan.push({ time: 10, category: "Period", drill: "Drill Name", desc: "Notes...", key: "Focus" });
+        cur.plan.push({ time: 10, category: "Pre Practice", drill: "", desc: "", key: "", periodType: "normal" });
         renderPracticePlan();
         saveState();
+      }
+    }
+
+    function updatePracticeTextData(idx, field, val) {
+      if (userRole !== 'admin') return;
+      const cur = practiceData.find(p => p.id === currentPracticeId);
+      if (cur && cur.plan[idx]) {
+        cur.plan[idx][field] = val;
+        if (field === 'time') renderPracticePlan();
+        triggerDebouncedSave();
+      }
+    }
+
+    function updateCircuitTextData(rowIdx, stIdx, field, val) {
+      if (userRole !== 'admin') return;
+      const cur = practiceData.find(p => p.id === currentPracticeId);
+      if (cur && cur.plan[rowIdx] && cur.plan[rowIdx].stations[stIdx]) {
+        cur.plan[rowIdx].stations[stIdx][field] = val;
+        triggerDebouncedSave();
       }
     }
 
@@ -1064,6 +1244,52 @@ const firebaseConfig = {
       const cur = practiceData.find(p => p.id === currentPracticeId);
       if (cur) {
         cur[field] = val;
+        renderPracticePlan();
+        saveState();
+      }
+    }
+
+    function updatePeriodType(idx, val) {
+      if (userRole !== 'admin') return;
+      const cur = practiceData.find(p => p.id === currentPracticeId);
+      if (cur && cur.plan[idx]) {
+        cur.plan[idx].periodType = val;
+        if (val === 'circuit' || val === 'groups') cur.plan[idx].stations = [{}, {}];
+        renderPracticePlan();
+        saveState();
+      }
+    }
+
+    function updatePracticeCategory(idx, val) {
+      if (userRole !== 'admin') return;
+      const cur = practiceData.find(p => p.id === currentPracticeId);
+      if (cur && cur.plan[idx]) {
+        cur.plan[idx].category = val;
+        if (val === "Tackle Circuit") { cur.plan[idx].periodType = 'circuit'; cur.plan[idx].stations = [{}, {}]; }
+        renderPracticePlan();
+        saveState();
+      }
+    }
+
+    function updatePracticeDrill(idx, val) {
+      if (userRole !== 'admin') return;
+      const cur = practiceData.find(p => p.id === currentPracticeId);
+      if (cur && cur.plan[idx]) {
+        cur.plan[idx].drill = val;
+        const drillObj = findDrillByName(val);
+        if (drillObj) { cur.plan[idx].desc = drillObj.desc; cur.plan[idx].key = drillObj.key; }
+        renderPracticePlan();
+        saveState();
+      }
+    }
+
+    function updateCircuitDrill(rIdx, sIdx, val) {
+      if (userRole !== 'admin') return;
+      const cur = practiceData.find(p => p.id === currentPracticeId);
+      if (cur && cur.plan[rIdx] && cur.plan[rIdx].stations[sIdx]) {
+        cur.plan[rIdx].stations[sIdx].drill = val;
+        const drillObj = findDrillByName(val);
+        if (drillObj) { cur.plan[rIdx].stations[sIdx].desc = drillObj.desc; cur.plan[rIdx].stations[sIdx].key = drillObj.key; }
         renderPracticePlan();
         saveState();
       }
@@ -1187,13 +1413,82 @@ const firebaseConfig = {
       }
     }
 
+    function renameFormation(formId) {
+      if (userRole !== 'admin') return;
+      const forms = getWeekFormations(currentWeek);
+      const form = forms.find(f => f.id === formId);
+      if(!form) return;
+      const newName = prompt("Edit Formation Name:", form.name);
+      if(newName && newName.trim() !== "") {
+        form.name = newName.trim();
+        triggerDebouncedSave();
+        renderActiveBoards();
+      }
+    }
+
     function deleteFormation(formId) {
       if (userRole !== 'admin') return;
       if (confirm("Delete this formation?")) {
         weeklyData[currentWeek].formations = getWeekFormations(currentWeek).filter(f => f.id !== formId);
+        if (activeCountFormationId === formId) activeCountFormationId = null;
         saveState();
         renderActiveBoards();
         renderMasterRoster();
+      }
+    }
+
+    function addRowToFormation(formId) {
+      if (userRole !== 'admin') return;
+      const forms = getWeekFormations(currentWeek);
+      const form = forms.find(f => f.id === formId);
+      if(!form) return;
+      const label = prompt("Enter Row Name:", "New Level");
+      if(label) {
+        form.rows.push({ id: generateUniqueId("r"), label: label.trim(), rowClass: "oline", positions: [{ id: generateUniqueId("p"), name: "POS 1" }] });
+        saveState();
+        renderActiveBoards();
+      }
+    }
+
+    function addPositionToRow(formId, rowId) {
+      if (userRole !== 'admin') return;
+      const forms = getWeekFormations(currentWeek);
+      const form = forms.find(f => f.id === formId);
+      if(!form) return;
+      const row = form.rows.find(r => r.id === rowId);
+      if(!row) return;
+      const posName = prompt("Position Name:", "POS");
+      if(posName) {
+        const posId = generateUniqueId("p");
+        row.positions.push({ id: posId, name: posName.trim() });
+        depthChart[posId] = [];
+        saveState();
+        renderActiveBoards();
+      }
+    }
+
+    function deleteRow(formId, rowId) {
+      if (userRole !== 'admin') return;
+      const forms = getWeekFormations(currentWeek);
+      const form = forms.find(f => f.id === formId);
+      if(form && confirm("Delete this row?")) {
+        form.rows = form.rows.filter(r => r.id !== rowId);
+        saveState();
+        renderActiveBoards();
+      }
+    }
+
+    function deletePosition(formId, rowId, posId) {
+      if (userRole !== 'admin') return;
+      const forms = getWeekFormations(currentWeek);
+      const form = forms.find(f => f.id === formId);
+      if(!form) return;
+      const row = form.rows.find(r => r.id === rowId);
+      if(row && confirm("Delete this position?")) {
+        row.positions = row.positions.filter(p => p.id !== posId);
+        delete depthChart[posId];
+        saveState();
+        renderActiveBoards();
       }
     }
 
@@ -1203,7 +1498,7 @@ const firebaseConfig = {
       localStorage.setItem("footballPracticeData", JSON.stringify(practiceData));
       if (cloudEnabled && db) {
         db.collection("rosters").doc("main10u_weeks").set({
-          weeklyData, practiceData, masterPlayLibrary
+          weeklyData, practiceData, masterPlayLibrary, dynamicDrills
         }).catch(e => console.error("Cloud sync failed:", e));
       }
     }
@@ -1222,7 +1517,6 @@ const firebaseConfig = {
     }
 
     function importData(event) {
-      if (userRole !== 'admin') return;
       const file = event.target.files[0];
       if (!file) return;
       const reader = new FileReader();
@@ -1241,7 +1535,6 @@ const firebaseConfig = {
     }
 
     function resetDefault() {
-      if (userRole !== 'admin') return;
       if (confirm("Reset current week to default?")) {
         weeklyData[currentWeek] = { opponent: "", depthChart: {}, formations: JSON.parse(JSON.stringify(defaultFormations)) };
         saveState();
@@ -1249,123 +1542,7 @@ const firebaseConfig = {
       }
     }
 
-    // --- Authentication & User Lifecycle ---
-    function switchAuthTab(mode) {
-      isSignUpMode = (mode === 'register');
-      document.getElementById("tab-login").classList.toggle('active', !isSignUpMode);
-      document.getElementById("tab-register").classList.toggle('active', isSignUpMode);
-      document.getElementById("auth-submit-btn").textContent = isSignUpMode ? "Create Account" : "Sign In";
-    }
-
-    function bypassLogin() {
-      document.getElementById("auth-overlay").style.display = "none";
-      applyRole('admin');
-      document.getElementById("user-display-email").textContent = "Offline Coach";
-    }
-
-    function displayAuthError(msg) {
-      const errorEl = document.getElementById("auth-error");
-      if (errorEl) {
-        errorEl.textContent = msg;
-        errorEl.style.display = "block";
-      }
-    }
-
-    async function handleEmailAuth(e) {
-      if (e) {
-        e.preventDefault();
-        e.stopPropagation();
-      }
-      const errDiv = document.getElementById("auth-error");
-      if (errDiv) errDiv.style.display = "none";
-
-      if (!auth) {
-        displayAuthError("Firebase not connected. Use 'Continue without login' below.");
-        return false;
-      }
-      const email = document.getElementById("auth-email").value.trim();
-      const pass = document.getElementById("auth-password").value;
-
-      try {
-        if (isSignUpMode) {
-          await auth.createUserWithEmailAndPassword(email, pass);
-        } else {
-          await auth.signInWithEmailAndPassword(email, pass);
-        }
-        document.getElementById("auth-overlay").style.display = "none";
-      } catch (err) {
-        console.error("Auth Error:", err);
-        displayAuthError(err.message);
-      }
-      return false;
-    }
-
-    async function signInWithGoogle() {
-      const errDiv = document.getElementById("auth-error");
-      if (errDiv) errDiv.style.display = "none";
-
-      if (!auth) {
-        displayAuthError("Firebase not connected. Use 'Continue without login' below.");
-        return;
-      }
-      try {
-        const provider = new firebase.auth.GoogleAuthProvider();
-        provider.setCustomParameters({ prompt: 'select_account' });
-        await auth.signInWithPopup(provider);
-        document.getElementById("auth-overlay").style.display = "none";
-      } catch (err) {
-        console.error("Google Auth Error:", err);
-        let msg = err.message;
-        if (window.location.protocol === 'file:') {
-          msg = "Google popup login requires http://localhost or GitHub Pages (not file:///). Use Email Login or Offline Mode.";
-        }
-        displayAuthError(msg);
-      }
-    }
-
-    function signOutUser() {
-      if (auth) {
-        auth.signOut().then(() => location.reload());
-      } else {
-        location.reload();
-      }
-    }
-
-    function applyRole(role) {
-      userRole = role;
-      localStorage.setItem('footballUserRole', role);
-      const badge = document.getElementById("user-role-badge");
-      if (badge) {
-        badge.textContent = role === 'admin' ? 'HEAD COACH' : 'COACH';
-        badge.className = `role-badge ${role === 'admin' ? 'role-admin' : 'role-viewer'}`;
-      }
-      if (role === 'admin') document.body.classList.remove('view-only');
-      else document.body.classList.add('view-only');
-
-      renderActiveBoards();
-      if (activeUnit === 'wristband') { renderWristband(); renderPlayLibrary(); }
-      renderPracticePlan();
-      renderMasterRoster();
-    }
-
-    // Attach immediate auth observer
-    if (auth) {
-      auth.onAuthStateChanged((user) => {
-        const overlay = document.getElementById("auth-overlay");
-        if (user) {
-          currentUser = user;
-          if (overlay) overlay.style.display = "none";
-          document.getElementById("user-display-email").textContent = user.email || user.displayName || "Coach";
-          document.getElementById("sync-text").textContent = "Live Cloud Sync Active";
-          applyRole('admin');
-        } else {
-          currentUser = null;
-          if (overlay) overlay.style.display = "flex";
-        }
-      });
-    }
-
-    // Run
+    // Initialize application on load
     initializeApp();
   </script>
 </body>
