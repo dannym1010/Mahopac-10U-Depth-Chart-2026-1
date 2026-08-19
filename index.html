@@ -858,13 +858,20 @@
       }
     ];
 
+    const defaultDynamicDrills = {
+      "Warm-Up": [
+        { name: "Dynamic Stretch", desc: "Full team lines, high knees, butt kicks, lunges.", key: "Hustle and form" }
+      ],
+      "Indy Offense": [
+        { name: "Mesh Drill", desc: "QB/RB exchange. Focus on read and ride.", key: "Secure the ball" }
+      ]
+    };
+
     let weeklyData = safeJSONParse("footballWeeklyData", {});
     let practiceData = safeJSONParse("footballPracticeData", []);
     let masterPlayLibrary = safeJSONParse("footballMasterPlays", ["24 Dive", "25 Trap", "Sweep Right", "Bootleg Pass", "Screen Pass"]);
     
-    const defaultDynamicDrills = {}; 
     let collapsedDrillCats = {};
-    
     let dynamicDrills = safeJSONParse("footballDynamicDrills", defaultDynamicDrills);
     let practiceTemplates = safeJSONParse("footballPracticeTemplates", []);
     let savedCoaches = safeJSONParse("footballSavedCoaches", []);
@@ -929,6 +936,7 @@
         localStorage.setItem("footballPracticeData", JSON.stringify(practiceData));
         localStorage.setItem("footballMasterPlays", JSON.stringify(masterPlayLibrary));
         localStorage.setItem("footballDynamicDrills", JSON.stringify(dynamicDrills));
+        localStorage.setItem("footballSavedCoaches", JSON.stringify(savedCoaches));
         console.log("State Saved Locally");
     }
 
@@ -949,7 +957,7 @@
 
     // --- IMPORT / EXPORT DATA ---
     function exportData() {
-        const data = { weeklyData, practiceData, masterPlayLibrary, dynamicDrills };
+        const data = { weeklyData, practiceData, masterPlayLibrary, dynamicDrills, savedCoaches };
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
@@ -969,6 +977,7 @@
                 if(parsed.practiceData) practiceData = parsed.practiceData;
                 if(parsed.masterPlayLibrary) masterPlayLibrary = parsed.masterPlayLibrary;
                 if(parsed.dynamicDrills) dynamicDrills = parsed.dynamicDrills;
+                if(parsed.savedCoaches) savedCoaches = parsed.savedCoaches;
                 saveState();
                 location.reload();
             } catch(err) {
@@ -1014,7 +1023,7 @@
           endTime: "17:00",
           lastEdited: Date.now(),
           plan: [
-            { time: 15, category: "Warm-Up", periodType: "normal", drill: "Dynamic Warm-Up", desc: "Full team stretch and agility.", key: "Hustle", coaches: [] },
+            { time: 15, category: "Warm-Up", periodType: "normal", drill: "Dynamic Stretch", desc: "Full team stretch and agility.", key: "Hustle", coaches: [] },
             { time: 20, category: "Indy Offense", periodType: "circuit", drill: "Mesh Drill", desc: "QB/RB exchange.", key: "Secure ball", coaches: [] }
           ]
         }];
@@ -1920,17 +1929,55 @@
           let endPeriodMins = currentMins + parseInt(row.time || 0);
           let stTimeStr = formatTime(currentMins);
           let endTimeStr = formatTime(endPeriodMins);
-
+          
+          // Generate Categories Options
+          let categoryOptions = `<option value="">-- Category --</option>`;
+          Object.keys(dynamicDrills).forEach(c => {
+             categoryOptions += `<option value="${c}" ${row.category === c ? 'selected' : ''}>${c}</option>`;
+          });
+          
+          // Generate Drills Options based on Selected Category
+          let drillOptions = `<option value="">-- Drill --</option>`;
+          if(row.category && dynamicDrills[row.category]) {
+             dynamicDrills[row.category].forEach(d => {
+                drillOptions += `<option value="${d.name}" ${row.drill === d.name ? 'selected' : ''}>${d.name}</option>`;
+             });
+          }
+          
+          // Generate Saved Coaches Dropdown
+          let coachOptions = `<option value="">+ Add Coach</option>`;
+          savedCoaches.forEach(c => {
+             coachOptions += `<option value="${c}">${c}</option>`;
+          });
+          coachOptions += `<option value="NEW_COACH" style="font-weight:bold; color:var(--primary);">-- Create New Coach --</option>`;
+          
           const tr = document.createElement("tr");
           tr.innerHTML = `
             <td>
                 <input type="number" class="prac-input" value="${row.time || 5}" oninput="updatePracticeRow(${idx}, 'time', this.value)" style="width:50px; display:inline;"> mins
                 <div class="period-schedule-time">${stTimeStr} - ${endTimeStr}</div>
             </td>
-            <td><input type="text" class="prac-input" value="${row.category || ''}" oninput="updatePracticeRow(${idx}, 'category', this.value)"></td>
-            <td><input type="text" class="prac-input" value="${row.drill || ''}" oninput="updatePracticeRow(${idx}, 'drill', this.value)"></td>
+            <td>
+                <select class="prac-select" onchange="updatePracticeCategory(${idx}, this.value)">
+                   ${categoryOptions}
+                </select>
+                ${row.category && !dynamicDrills[row.category] ? `<div style="font-size:9px; color:var(--text-muted); margin-top:2px;">Custom: ${row.category}</div>` : ''}
+            </td>
+            <td>
+                <select class="prac-select" onchange="updatePracticeDrill(${idx}, this.value)">
+                   ${drillOptions}
+                </select>
+                ${row.drill && (!row.category || !dynamicDrills[row.category] || !dynamicDrills[row.category].find(d=>d.name===row.drill)) ? `<div style="font-size:9px; color:var(--text-muted); margin-top:2px;">Custom: ${row.drill}</div>` : ''}
+            </td>
             <td><textarea class="prac-textarea" oninput="autoResizeTextarea(this); updatePracticeRow(${idx}, 'desc', this.value)">${row.desc || ''}</textarea></td>
-            <td><input type="text" class="prac-input" value="${(row.coaches || []).join(', ')}" oninput="updatePracticeRow(${idx}, 'coaches', this.value.split(','))"></td>
+            <td>
+                <div style="display:flex; flex-wrap:wrap; gap:2px; margin-bottom:4px;">
+                    ${(row.coaches || []).map((c, cIdx) => `<span class="coach-badge" onclick="removeCoachFromRow(${idx}, ${cIdx})" title="Click to remove">${c} &times;</span>`).join('')}
+                </div>
+                <select class="prac-select admin-only" onchange="addCoachToRow(${idx}, this.value); this.value='';">
+                   ${coachOptions}
+                </select>
+            </td>
             <td><input type="text" class="prac-input" value="${row.key || ''}" oninput="updatePracticeRow(${idx}, 'key', this.value)"></td>
             <td class="no-print admin-only" style="text-align:center;">
                 <button class="remove-btn" onclick="deletePracticeRow(${idx})">&times;</button>
@@ -1942,6 +1989,7 @@
       document.querySelectorAll('#panel-practice .prac-textarea').forEach(ta => autoResizeTextarea(ta));
     }
 
+    // --- Practice Plan Specific Handlers ---
     function updatePracticeRow(idx, field, val) {
         if(userRole !== 'admin') return;
         const prac = practiceData.find(p => p.id === currentPracticeId);
@@ -1951,6 +1999,71 @@
                renderPracticePlan(); 
             }
             triggerDebouncedSave();
+        }
+    }
+
+    function updatePracticeCategory(idx, val) {
+        if(userRole !== 'admin') return;
+        const prac = practiceData.find(p => p.id === currentPracticeId);
+        if(prac && prac.plan[idx]) {
+            prac.plan[idx].category = val;
+            prac.plan[idx].drill = ""; // Reset drill when changing category
+            triggerDebouncedSave();
+            renderPracticePlan();
+        }
+    }
+
+    function updatePracticeDrill(idx, val) {
+        if(userRole !== 'admin') return;
+        const prac = practiceData.find(p => p.id === currentPracticeId);
+        if(prac && prac.plan[idx]) {
+            prac.plan[idx].drill = val;
+            // Auto Populate logic
+            const cat = prac.plan[idx].category;
+            if(cat && dynamicDrills[cat]) {
+                const drillObj = dynamicDrills[cat].find(d => d.name === val);
+                if(drillObj) {
+                    prac.plan[idx].desc = drillObj.desc || "";
+                    prac.plan[idx].key = drillObj.key || "";
+                }
+            }
+            triggerDebouncedSave();
+            renderPracticePlan();
+        }
+    }
+
+    function addCoachToRow(idx, val) {
+        if(userRole !== 'admin' || !val) return;
+        
+        let coachName = val;
+        if(val === "NEW_COACH") {
+            coachName = prompt("Enter new coach name:");
+            if(!coachName || coachName.trim() === "") return;
+            coachName = coachName.trim();
+            if(!savedCoaches.includes(coachName)) {
+                savedCoaches.push(coachName);
+                localStorage.setItem("footballSavedCoaches", JSON.stringify(savedCoaches));
+            }
+        }
+
+        const prac = practiceData.find(p => p.id === currentPracticeId);
+        if(prac && prac.plan[idx]) {
+            if(!prac.plan[idx].coaches) prac.plan[idx].coaches = [];
+            if(!prac.plan[idx].coaches.includes(coachName)) {
+                prac.plan[idx].coaches.push(coachName);
+                triggerDebouncedSave();
+                renderPracticePlan();
+            }
+        }
+    }
+
+    function removeCoachFromRow(rowIdx, coachIdx) {
+        if(userRole !== 'admin') return;
+        const prac = practiceData.find(p => p.id === currentPracticeId);
+        if(prac && prac.plan[rowIdx] && prac.plan[rowIdx].coaches) {
+            prac.plan[rowIdx].coaches.splice(coachIdx, 1);
+            triggerDebouncedSave();
+            renderPracticePlan();
         }
     }
 
@@ -1969,7 +2082,7 @@
         const prac = practiceData.find(p => p.id === currentPracticeId);
         if(prac) {
             if(!prac.plan) prac.plan = [];
-            prac.plan.push({ time: 5, category: "New Period", periodType: "normal", drill: "", desc: "", key: "", coaches: [] });
+            prac.plan.push({ time: 5, category: "", periodType: "normal", drill: "", desc: "", key: "", coaches: [] });
             triggerDebouncedSave();
             renderPracticePlan();
         }
@@ -1999,7 +2112,7 @@
             endTime: "17:00",
             lastEdited: Date.now(),
             plan: [
-                { time: 10, category: "Warm-Up", drill: "Dynamic Stretch", desc: "", key: "", coaches: [] }
+                { time: 10, category: "", drill: "", desc: "", key: "", coaches: [] }
             ]
         };
         practiceData.push(newPrac);
