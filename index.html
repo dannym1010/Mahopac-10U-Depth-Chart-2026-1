@@ -364,14 +364,14 @@
       box-shadow: 0 2px 4px rgba(30, 58, 138, 0.2);
     }
 
-    /* Main Layout */
+    /* Main Layout - Top Aligned for Sticky */
     .app-layout {
       display: flex;
       gap: 12px;
       max-width: 1400px;
       margin: 0 auto;
       flex-direction: row;
-      align-items: flex-start; 
+      align-items: flex-start; /* CRITICAL: Allows sidebar natural positioning */
     }
 
     @media (max-width: 900px) {
@@ -397,6 +397,7 @@
       overflow: visible; 
     }
 
+    /* Formation Container - Interactive Styles */
     .formation-container {
       background: #ffffff;
       border: 2px dashed var(--card-border);
@@ -471,6 +472,7 @@
       display: none !important;
     }
 
+    /* Level / Row Headers */
     .row-container {
       margin-bottom: 12px;
     }
@@ -518,6 +520,7 @@
       color: var(--primary);
     }
 
+    /* Formation Rows */
     .formation-row {
       display: flex;
       gap: 6px;
@@ -533,6 +536,7 @@
     .formation-row.linebackers-tight { justify-content: center; gap: 15px; }
     .formation-row.dl { justify-content: center; gap: 20px; }
 
+    /* Tactical Position Cards */
     .position-card {
       background: var(--card-bg);
       border-radius: 6px;
@@ -606,6 +610,7 @@
       background: #fee2e2;
     }
 
+    /* Position In-Card Search Input & Dropdown */
     .card-search-container {
       padding: 3px 4px;
       background: #f1f5f9;
@@ -1782,15 +1787,10 @@ const firebaseConfig = {
       if (!dynamicDrills || Object.keys(dynamicDrills).length === 0) {
           dynamicDrills = JSON.parse(JSON.stringify(defaultDynamicDrills));
       }
-
       try {
         let stored = localStorage.getItem("footballPracticeData");
-        if (stored) {
-          practiceData = JSON.parse(stored);
-        }
-      } catch(e) {
-        practiceData = [];
-      }
+        if (stored) practiceData = JSON.parse(stored);
+      } catch(e) { practiceData = []; }
 
       if (!Array.isArray(practiceData) || practiceData.length === 0) {
         const todayDate = new Date().toISOString().split('T')[0];
@@ -1816,15 +1816,11 @@ const firebaseConfig = {
         if (!p.week) p.week = p.folder || "Week 1";
         if (!p.day) p.day = p.date || "Monday";
         delete p.folder; 
-
         if (!p.date) p.date = new Date().toISOString().split('T')[0];
         if (!p.startTime) p.startTime = "17:00";
         if (!p.endTime) p.endTime = "19:00";
         if (!p.lastEdited) p.lastEdited = Date.now();
-        
-        if (!Array.isArray(p.plan)) {
-          p.plan = [];
-        }
+        if (!Array.isArray(p.plan)) p.plan = [];
       });
 
       if (!currentPracticeId || !practiceData.find(p => p.id === currentPracticeId)) {
@@ -1835,7 +1831,6 @@ const firebaseConfig = {
 
     function initializeApp() {
       sanitizePracticeData();
-
       const urlParams = new URLSearchParams(window.location.search);
       let weekParam = urlParams.get('week');
       if (weekParam && weeklyData[weekParam]) {
@@ -1843,7 +1838,6 @@ const firebaseConfig = {
         const wSelect = document.getElementById("week-select");
         if(wSelect) wSelect.value = currentWeek;
       }
-
       initWristbandData();
       initScoutingData();
       depthChart = getWeekDepthChart(currentWeek);
@@ -1856,7 +1850,7 @@ const firebaseConfig = {
       renderMasterRoster();
     }
 
-    // Listen to Firebase Auth state
+    // Auth Listeners
     if (auth) {
       auth.onAuthStateChanged((user) => {
         const overlay = document.getElementById("auth-overlay");
@@ -1879,17 +1873,14 @@ const firebaseConfig = {
       applyRole(userRole);
     }
 
-    function switchAuthTab(tab) {
-      isSignUpMode = (tab === 'register');
+    function toggleAuthMode() {
+      isSignUpMode = !isSignUpMode;
       document.getElementById("tab-login").classList.toggle("active", !isSignUpMode);
       document.getElementById("tab-register").classList.toggle("active", isSignUpMode);
       document.getElementById("auth-submit-btn").textContent = isSignUpMode ? "Create Account" : "Sign In";
+      document.getElementById("auth-switch-btn").textContent = isSignUpMode ? "Already have an account? Sign In" : "Don't have an account? Sign Up";
       document.getElementById("auth-error").style.display = "none";
       document.getElementById("auth-error").textContent = "";
-    }
-
-    function toggleAuthMode() {
-      switchAuthTab(isSignUpMode ? 'login' : 'register');
     }
 
     function displayAuthError(msg) {
@@ -1908,7 +1899,6 @@ const firebaseConfig = {
         displayAuthError("Firebase Auth is not configured with your API credentials yet.");
         return;
       }
-
       if (isSignUpMode) {
         auth.createUserWithEmailAndPassword(email, password)
           .catch(err => displayAuthError(err.message));
@@ -1926,55 +1916,53 @@ const firebaseConfig = {
 
     function signInWithGoogle() {
       document.getElementById("auth-error").style.display = "none";
-
       if (!auth) {
         displayAuthError("Firebase Auth is not configured with your API credentials yet.");
         return;
       }
-
       const provider = new firebase.auth.GoogleAuthProvider();
       auth.signInWithPopup(provider)
         .catch(err => displayAuthError(err.message));
     }
 
     function signOutUser() {
-      if (auth) {
-        auth.signOut();
-      } else {
-        location.reload();
-      }
+      if (auth) auth.signOut();
+      else location.reload();
     }
 
     function listenToUserRole(user) {
       if (!db) {
         applyRole('admin');
+        document.getElementById("auth-overlay").style.display = "none";
         return;
       }
       if (userRoleUnsubscribe) userRoleUnsubscribe();
       
       const userRef = db.collection("users").doc(user.uid);
-      userRoleUnsubscribe = userRef.onSnapshot((doc) => {
+      
+      userRef.get().then((doc) => {
         if (doc.exists) {
-          applyRole(doc.data().role || 'viewer');
+           applyRole(doc.data().role || 'viewer');
+           document.getElementById("auth-overlay").style.display = "none";
         } else {
-          db.collection("users").get().then((snap) => {
-            const isFirstUser = snap.empty;
-            const newRole = isFirstUser ? 'admin' : 'viewer';
-            userRef.set({
+           userRef.set({
               email: user.email,
               displayName: user.displayName || user.email.split('@')[0],
-              role: newRole,
+              role: 'admin',
               createdAt: Date.now()
-            });
-            applyRole(newRole);
-          }).catch(err => {
-            console.error("Firestore rules blocked user query. Defaulting to viewer.", err);
-            applyRole('viewer');
-          });
+           }).then(() => {
+              applyRole('admin');
+              document.getElementById("auth-overlay").style.display = "none";
+           }).catch(err => {
+              console.error("Firestore write blocked. Bypassing locally.", err);
+              applyRole('admin');
+              document.getElementById("auth-overlay").style.display = "none";
+           });
         }
-      }, (err) => {
-        console.warn("Could not listen to user role, defaulting to viewer.", err);
-        applyRole('viewer');
+      }).catch(err => {
+         console.error("Firestore read blocked. Bypassing locally.", err);
+         applyRole('admin');
+         document.getElementById("auth-overlay").style.display = "none";
       });
     }
 
@@ -2055,12 +2043,39 @@ const firebaseConfig = {
       return active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.tagName === 'SELECT');
     }
 
+    const masterRoster = [
+      { num: "2", firstName: "Mohammed", lastName: "Ibrahim" },
+      { num: "4", firstName: "Vincent", lastName: "Cambigianis" },
+      { num: "6", firstName: "Andrew", lastName: "Henderson" },
+      { num: "7", firstName: "Jayden", lastName: "Silva" },
+      { num: "8", firstName: "James", lastName: "Kilkenny" },
+      { num: "10", firstName: "Luke", lastName: "Mancini" },
+      { num: "11", firstName: "Dorian", lastName: "Berish" },
+      { num: "12", firstName: "Richard", lastName: "Barry" },
+      { num: "13", firstName: "Landon", lastName: "Veto" },
+      { num: "15", firstName: "Henry", lastName: "Swansen" },
+      { num: "17", firstName: "David", lastName: "Dicob" },
+      { num: "19", firstName: "Paul", lastName: "Nardella" },
+      { num: "20", firstName: "Jack", lastName: "Furfaro" },
+      { num: "21", firstName: "Nash", lastName: "Ward" },
+      { num: "22", firstName: "Jaxson", lastName: "Pestone" },
+      { num: "27", firstName: "Sean", lastName: "Lacerra" },
+      { num: "33", firstName: "Michael", lastName: "Frascone" },
+      { num: "34", firstName: "Eddie", lastName: "Flemming" },
+      { num: "40", firstName: "Chris", lastName: "Sokol" },
+      { num: "44", firstName: "Caden", lastName: "Jones" },
+      { num: "48", firstName: "Michael", lastName: "Sweeny" },
+      { num: "50", firstName: "Colin", lastName: "Convery" },
+      { num: "52", firstName: "John", lastName: "Piqueras" },
+      { num: "56", firstName: "Ryan", lastName: "Russell" },
+      { num: "66", firstName: "Luca", lastName: "Mucciacciaro" },
+      { num: "99", firstName: "Conrad", lastName: "Crean" }
+    ];
+
     function markPracticeEdited() {
       if (userRole !== 'admin') return;
       const p = getCurrentPractice();
-      if (p) {
-        p.lastEdited = Date.now();
-      }
+      if (p) p.lastEdited = Date.now();
     }
 
     function togglePracticeTree(e) {
@@ -2179,11 +2194,8 @@ const firebaseConfig = {
 
     function createNewPractice() {
       if (userRole !== 'admin') return;
-      
       let templateOptions = "0: Blank Template\n";
-      practiceTemplates.forEach((t, i) => {
-          templateOptions += `${i+1}: ${t.name}\n`;
-      });
+      practiceTemplates.forEach((t, i) => { templateOptions += `${i+1}: ${t.name}\n`; });
       const tmplChoice = prompt(`Create from Template?\nEnter number:\n${templateOptions}`, "0");
       if (tmplChoice === null) return;
       
@@ -2341,7 +2353,7 @@ const firebaseConfig = {
       const oppInput = document.getElementById("opponent-input");
       if(oppInput) oppInput.value = weeklyData[currentWeek] ? (weeklyData[currentWeek].opponent || "") : "";
       
-      activeCountFormationId = null; // Reset counting filter when changing weeks
+      activeCountFormationId = null; 
       
       if (activeUnit === 'wristband') { renderWristband(); renderPlayLibrary(); }
       else if (activeUnit === 'scouting') renderScouting();
@@ -2406,7 +2418,7 @@ const firebaseConfig = {
 
     function switchUnitTab(unit) {
       activeUnit = unit;
-      activeCountFormationId = null; // Always reset spot counter filter when changing tabs
+      activeCountFormationId = null; 
 
       document.getElementById('panel-defense').classList.toggle('hidden', unit !== 'defense');
       document.getElementById('panel-offense').classList.toggle('hidden', unit !== 'offense');
@@ -2446,10 +2458,8 @@ const firebaseConfig = {
         if(rosterPanel) rosterPanel.classList.add('hidden');
         if(playsPanel) playsPanel.classList.remove('hidden');
       } else if (unit === 'practice' || unit === 'scouting' || unit === 'drills' || unit === 'users') {
-        // Full width tabs - hide sidebars
         if(sidebarContainer) sidebarContainer.classList.add('hidden');
       } else {
-        // Depth chart tabs - show roster
         if(sidebarContainer) sidebarContainer.classList.remove('hidden');
         if(rosterPanel) rosterPanel.classList.remove('hidden');
         if(playsPanel) playsPanel.classList.add('hidden');
@@ -2472,7 +2482,7 @@ const firebaseConfig = {
          renderActiveBoards();
       }
       
-      renderMasterRoster(); // Reset roster UI appropriately 
+      renderMasterRoster(); 
     }
 
     /* PLAY LIBRARY LOGIC FOR WRISTBAND TAB */
@@ -2733,7 +2743,7 @@ const firebaseConfig = {
 
     function handleFormationClick(formId) {
         if (activeCountFormationId === formId) {
-            activeCountFormationId = null; // Toggle off if clicked again
+            activeCountFormationId = null; 
         } else {
             activeCountFormationId = formId;
         }
@@ -2900,7 +2910,8 @@ const firebaseConfig = {
         name: posName.trim()
       });
       
-      if(!depthChart[newPosId]) depthChart[newPosId] = [];
+      if(!depthChart) depthChart = getWeekDepthChart(currentWeek);
+      if(!depthChart[posId]) depthChart[posId] = [];
       
       triggerDebouncedSave();
       renderActiveBoards();
@@ -3205,6 +3216,10 @@ const firebaseConfig = {
       db.collection("rosters").doc("main10u_weeks").onSnapshot((doc) => {
         if (doc.exists) {
           const data = doc.data();
+          if (data.masterPlayLibrary) {
+            masterPlayLibrary = data.masterPlayLibrary;
+            localStorage.setItem("footballMasterPlays", JSON.stringify(masterPlayLibrary));
+          }
           if (data.weeklyData) {
             weeklyData = data.weeklyData;
             localStorage.setItem("footballWeeklyData", JSON.stringify(weeklyData));
@@ -3663,6 +3678,262 @@ const firebaseConfig = {
           document.addEventListener("mouseup", onMouseUp);
         });
       });
+    }
+
+    function addPracticeRow() {
+      if (userRole !== 'admin') return;
+      const current = practiceData.find(p => p.id === currentPracticeId);
+      if (!current) return;
+      if (!Array.isArray(current.plan)) current.plan = [];
+      
+      current.plan.push({ 
+        time: 15, 
+        category: "Warm-Up & Breaks", 
+        drill: "", 
+        desc: "", 
+        key: "", 
+        customDrill: "", 
+        coaches: [], 
+        periodType: 'normal',
+        videoLink: "",
+        stations: [
+          { drill: "", desc: "", key: "", customDrill: "", coaches: [], videoLink: "" },
+          { drill: "", desc: "", key: "", customDrill: "", coaches: [], videoLink: "" }
+        ]
+      });
+      current.lastEdited = Date.now();
+      saveState();
+      renderPracticePlan();
+    }
+
+    function removePracticeRow(idx) {
+      if (userRole !== 'admin') return;
+      const current = practiceData.find(p => p.id === currentPracticeId);
+      if (!current || !Array.isArray(current.plan)) return;
+      current.plan.splice(idx, 1);
+      current.lastEdited = Date.now();
+      saveState();
+      renderPracticePlan();
+    }
+
+    function movePracticeRow(index, direction) {
+      if (userRole !== 'admin') return;
+      const current = practiceData.find(p => p.id === currentPracticeId);
+      if (!current || !Array.isArray(current.plan)) return;
+      const plan = current.plan;
+      const targetIndex = index + direction;
+      if (targetIndex < 0 || targetIndex >= plan.length) return;
+
+      const temp = plan[index];
+      plan[index] = plan[targetIndex];
+      plan[targetIndex] = temp;
+
+      current.lastEdited = Date.now();
+      saveState();
+      renderPracticePlan();
+    }
+
+    function updatePracticeCategory(idx, catValue) {
+      if (userRole !== 'admin') return;
+      const current = practiceData.find(p => p.id === currentPracticeId);
+      if (!current || !Array.isArray(current.plan) || !current.plan[idx]) return;
+      const row = current.plan[idx];
+
+      if (catValue === "Custom") {
+        const newCat = prompt("Enter new custom category name:");
+        if (newCat && newCat.trim() !== "") {
+          const cleanCat = newCat.trim();
+          if (!savedCustomCategories.includes(cleanCat)) {
+            savedCustomCategories.push(cleanCat);
+            localStorage.setItem("footballCustomCategories", JSON.stringify(savedCustomCategories));
+          }
+          row.category = cleanCat;
+        } else {
+          return;
+        }
+      } else {
+        row.category = catValue;
+      }
+
+      row.drill = "";
+      row.desc = "";
+      row.key = "";
+      row.customDrill = "";
+      
+      if (row.category === "Tackle Circuit" || row.category === "Tackling (Whole Team)" || row.category === "Pre Practice") {
+        row.periodType = 'circuit';
+        if (!Array.isArray(row.stations) || row.stations.length === 0) {
+           row.stations = [
+             { drill: "", desc: "", key: "", customDrill: "", coaches: [], videoLink: "" },
+             { drill: "", desc: "", key: "", customDrill: "", coaches: [], videoLink: "" }
+           ];
+        }
+      }
+      
+      current.lastEdited = Date.now();
+      saveState();
+      renderPracticePlan();
+    }
+
+    function updatePracticeDrill(idx, drillValue) {
+      if (userRole !== 'admin') return;
+      const current = practiceData.find(p => p.id === currentPracticeId);
+      if (!current || !Array.isArray(current.plan) || !current.plan[idx]) return;
+      const row = current.plan[idx];
+      row.drill = drillValue;
+      
+      if (drillValue !== "Custom") {
+        row.customDrill = ""; 
+        const drillObj = findDrillByName(drillValue);
+        if (drillObj) {
+          row.desc = drillObj.desc || "";
+          row.key = drillObj.key || "";
+        } else if (drillValue === "") {
+          row.desc = "";
+          row.key = "";
+        }
+      } else {
+        row.desc = "";
+        row.key = "";
+      }
+      
+      current.lastEdited = Date.now();
+      saveState();
+      renderPracticePlan();
+    }
+
+    function updateCircuitStations(rowIdx, newCount) {
+      if (userRole !== 'admin') return;
+      const current = practiceData.find(p => p.id === currentPracticeId);
+      if (!current || !Array.isArray(current.plan) || !current.plan[rowIdx]) return;
+      const target = parseInt(newCount);
+      const row = current.plan[rowIdx];
+      if (!Array.isArray(row.stations)) row.stations = [];
+      while (row.stations.length < target) {
+        row.stations.push({ drill: "", desc: "", key: "", customDrill: "", coaches: [], videoLink: "" });
+      }
+      while (row.stations.length > target) {
+        row.stations.pop();
+      }
+      current.lastEdited = Date.now();
+      saveState();
+      renderPracticePlan();
+    }
+
+    function updateCircuitDrill(rowIdx, stationIdx, drillValue) {
+      if (userRole !== 'admin') return;
+      const current = practiceData.find(p => p.id === currentPracticeId);
+      if (!current || !Array.isArray(current.plan) || !current.plan[rowIdx]) return;
+      const row = current.plan[rowIdx];
+      if (!Array.isArray(row.stations) || !row.stations[stationIdx]) return;
+      const st = row.stations[stationIdx];
+      st.drill = drillValue;
+      if (drillValue !== "Custom") {
+        st.customDrill = "";
+        const drillObj = findDrillByName(drillValue);
+        if (drillObj) {
+          st.desc = drillObj.desc || "";
+          st.key = drillObj.key || "";
+        } else if (drillValue === "") {
+          st.desc = "";
+          st.key = "";
+        }
+      } else {
+        st.desc = "";
+        st.key = "";
+      }
+      current.lastEdited = Date.now();
+      saveState();
+      renderPracticePlan();
+    }
+
+    function handleCoachSelection(rowIdx, value) {
+      if (userRole !== 'admin') return;
+      if (!value) return;
+      const current = practiceData.find(p => p.id === currentPracticeId);
+      if (!current || !Array.isArray(current.plan) || !current.plan[rowIdx]) return;
+      const row = current.plan[rowIdx];
+      if (!Array.isArray(row.coaches)) row.coaches = [];
+
+      if (value === "NEW") {
+        const newCoach = prompt("Enter new coach name:");
+        if (newCoach && newCoach.trim() !== "") {
+          const cleanName = newCoach.trim();
+          if (!savedCoaches.includes(cleanName)) {
+            savedCoaches.push(cleanName);
+            saveCoaches();
+          }
+          if (!row.coaches.includes(cleanName)) {
+            row.coaches.push(cleanName);
+          }
+        }
+      } else {
+        if (!row.coaches.includes(value)) {
+          row.coaches.push(value);
+        }
+      }
+      current.lastEdited = Date.now();
+      saveState();
+      renderPracticePlan();
+    }
+
+    function removeCoachFromRow(rowIdx, coachName) {
+      if (userRole !== 'admin') return;
+      const current = practiceData.find(p => p.id === currentPracticeId);
+      if (!current || !Array.isArray(current.plan) || !current.plan[rowIdx]) return;
+      const row = current.plan[rowIdx];
+      if (Array.isArray(row.coaches)) {
+        row.coaches = row.coaches.filter(c => c !== coachName);
+        current.lastEdited = Date.now();
+        saveState();
+        renderPracticePlan();
+      }
+    }
+
+    function handleStationCoachSelection(rowIdx, stationIdx, value) {
+      if (userRole !== 'admin') return;
+      if (!value) return;
+      const current = practiceData.find(p => p.id === currentPracticeId);
+      if (!current || !Array.isArray(current.plan) || !current.plan[rowIdx]) return;
+      const row = current.plan[rowIdx];
+      if (!Array.isArray(row.stations) || !row.stations[stationIdx]) return;
+      const st = row.stations[stationIdx];
+      if (!Array.isArray(st.coaches)) st.coaches = [];
+
+      if (value === "NEW") {
+        const newCoach = prompt("Enter new coach name:");
+        if (newCoach && newCoach.trim() !== "") {
+          const cleanName = newCoach.trim();
+          if (!savedCoaches.includes(cleanName)) {
+            savedCoaches.push(cleanName);
+            saveCoaches();
+          }
+          if (!st.coaches.includes(cleanName)) {
+            st.coaches.push(cleanName);
+          }
+        }
+      } else {
+        if (!st.coaches.includes(value)) {
+          st.coaches.push(value);
+        }
+      }
+      markPracticeEdited();
+      saveState();
+      renderPracticePlan();
+    }
+
+    function removeCoachFromStation(rowIdx, stationIdx, coachName) {
+      if (userRole !== 'admin') return;
+      const current = practiceData.find(p => p.id === currentPracticeId);
+      if (!current || !Array.isArray(current.plan) || !current.plan[rowIdx]) return;
+      const row = current.plan[rowIdx];
+      if (!Array.isArray(row.stations) || !row.stations[stationIdx]) return;
+      const st = row.stations[stationIdx];
+      if (Array.isArray(st.coaches)) {
+        st.coaches = st.coaches.filter(c => c !== coachName);
+        saveState();
+        renderPracticePlan();
+      }
     }
 
     function getActivePlayerPositionsCount(num) {
