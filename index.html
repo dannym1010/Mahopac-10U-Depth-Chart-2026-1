@@ -158,9 +158,6 @@
       border-bottom: 1px solid #e2e8f0;
     }
 
-    .auth-divider:not(:empty)::before { margin-right: .5em; }
-    .auth-divider:not(:empty)::after { margin-left: .5em; }
-
     .auth-switch {
       font-size: 11px;
       color: var(--accent);
@@ -1465,6 +1462,10 @@
   </div>
 
   <script>
+    // ----------------------------------------------------------------------------------
+    // ONLY ONE SET OF CONSTANTS DEFINED HERE AT THE TOP TO PREVENT FATAL JS CRASHES!
+    // ----------------------------------------------------------------------------------
+    
 const firebaseConfig = {
        apiKey: "AIzaSyBxAet3UzgBNuMUyUgj2MDWgrK5X63IPvg",
        authDomain: "u-depth-chart.firebaseapp.com",
@@ -1491,11 +1492,372 @@ const firebaseConfig = {
       console.warn("Firebase not configured. Using local storage mode.", err);
     }
 
+    const defaultDynamicDrills = {
+      "Indy Offense": [
+        { name: "Individual Stance & Alignment", desc: "Setup: Line players up on a single yard line with 2-yard splits.\nInstruction: Skill and line players work on correct 2-point or 3-point stances, splits, and alignment rules.", key: "Proper stance, eyes up" },
+        { name: "Individual Ball Handling & Mesh", desc: "Setup: QBs and RBs pair up with one football per pair.\nInstruction: Quarterbacks, running backs, and receivers practice clean handoffs, pitches, and catch-tuck transitions in slow motion.", key: "Secure the ball" },
+        { name: "Individual Release & Stem", desc: "Setup: Place a trash can or dummy at the line of scrimmage to simulate a press corner.\nInstruction: Receivers and tight ends work on getting off the line of scrimmage past dummy defenders and selling the route stem.", key: "No false steps" },
+        { name: "Individual O-Line Fit & Drive", desc: "Setup: Use a blocking sled, hand shields, or a chute. Pair up OL if using shields.\nInstruction: Offensive linemen practice individual board or chute footwork and hand placement fit against a partner or shield.", key: "Thumbs up, low center of gravity" },
+        { name: "Under Center Snap & Drop", desc: "Setup: Pair QBs and Centers. Use the painted yard line as the line of scrimmage.\nInstruction: Center snaps to QB. QB executes 3-step or 5-step drop on air. Coach watches feet to ensure no false steps or heel clicking.", key: "Clean exchange, fast drop" },
+        { name: "Shotgun Snap & Quick Game", desc: "Setup: Center/QB pairs. Have a coach or standing dummy 5 yards out as a target.\nInstruction: QB takes shotgun snap. Instantly sets feet and throws a quick slant or hitch to a target. Focus on catching and throwing in one rhythm.", key: "Secure snap, quick release" },
+        { name: "Inside Zone / Dive Mesh Mechanics", desc: "Setup: Center, QB, and RB group. Coach stands as the defensive end read.\nInstruction: QB takes snap, opens hips, and rides the running back into the line. Practice leaving the ball in the belly as long as possible before pulling or handing off.", key: "Long ride, read the end" },
+        { name: "Play-Action Rollout", desc: "Setup: Center, QB, RB. Cones marking the edge.\nInstruction: QB executes a hard run fake to the back, drops the ball to the hip, snaps head around, and sprints to the edge to deliver a pass.", key: "Sell fake, sprint to edge" },
+        { name: "Target Accuracy Net Drill", desc: "Setup: Passing net or 3 garbage cans placed at 5, 10, and 15 yards.\nInstruction: Set up a net or targets at 5, 10, and 15 yards. QBs drop back and throw 5 passes to each target aiming for the center pocket.", key: "Consistent release point" },
+        { name: "Handoff Ball Security", desc: "Setup: 2 lines of RBs facing a coach who holds the ball.\nInstruction: RBs practice receiving handoffs. Inside elbow must be up to form a pocket. Secure the ball immediately into the ribcage with 5 points of pressure.", key: "Squeeze tight, form pocket" },
+        { name: "Downhill A/B Gap Run", desc: "Setup: 4 stand-up dummies simulating the defensive line. 2 hash marks acting as the boundary.\nInstruction: RB takes the handoff and attacks the A or B gap immediately. Place bags simulating linemen. RB must hit the hole without dancing.", key: "No dancing, square shoulders" },
+        { name: "Outside Zone / Sweep Track", desc: "Setup: 4 cones placed in an arc to the sideline simulating the block track.\nInstruction: Set cones marking a wide track. RB takes a toss or wide handoff, runs flat down the line, and cuts upfield outside the last cone.", key: "Read the edge block, cut vertical" },
+        { name: "Lead Block Mechanics (H-Back / FB)", desc: "Setup: Coach or LB with a hit shield 3 yards deep in the hole.\nInstruction: FB or H-Back steps up into the hole to deliver an inside-out block on a padded defender (LB). Run through the block.", key: "Low pad level, strike with hips" },
+        { name: "Pass Protection Pickup", desc: "Setup: RB stands in the pocket. Coach with a bag rushes from varying angles.\nInstruction: RB steps into the gap to absorb a blitzing linebacker (coach with a bag). Practice a wide base and delivering a punch to stop momentum.", key: "Wide base, punch to breastplate" },
+        { name: "Stance & Release", desc: "Setup: Receivers line up on a yard line. Coach stands 5 yards away with a whistle.\nInstruction: Receivers line up in proper 2-point stance (inside foot up). Explode off the line for 5 yards without any false steps or rocking.", key: "Explode off front foot, no false steps" },
+        { name: "Stalk Blocking", desc: "Setup: WRs facing DBs holding hand shields, 5 yards apart.\nInstruction: WR sprints 5 yards at a defender, breaks down, buzzes feet, and engages the chest plate to block for a run play.", key: "Keep feet moving, inside hands" },
+        { name: "Route Tree Basics", desc: "Setup: 3 cones placed at 5, 10, and 15 yards to mark break depths.\nInstruction: Run through the basic route tree (Slant, Out, Hitch, Go). Focus on sharp cuts at the correct yardage depth.", key: "Plant outside foot hard, sharp cuts" },
+        { name: "Catch & Tuck (Gauntlet)", desc: "Setup: Two coaches standing 3 yards apart holding hit shields. QB 10 yards away.\nInstruction: WR catches a pass over the middle and instantly tucks the ball away while running through two coaches holding pads.", key: "Look ball in, tuck instantly" },
+        { name: "3-Point Stance & Get-Off", desc: "Setup: All linemen on a single yard line. Coach uses a ball on a stick for snap count.\nInstruction: Linemen line up in proper stances. On the snap count, explode out 5 yards. Watch for leaning, false steps, or high pad levels.", key: "Flat back, zero false steps" },
+        { name: "Base Drive Block", desc: "Setup: Pair linemen up. One holds a hit shield.\nInstruction: OL fires out, takes a 6-inch power step, strikes the breastplate of a blocking shield, and drives hips forward for 5 yards.", key: "Thumbs up, elbows tight" },
+        { name: "Shock & Shed (Block Defeat)", desc: "Setup: Defender paired with an offensive blocker holding a shield.\nInstruction: Lineman strikes a blocker with violent hands, extends arms to gain leverage, locates ball carrier, and rips off the block to make the tackle.", key: "Extend arms, rip off the block" },
+        { name: "Pull & Kickout", desc: "Setup: Center snapping, Guard pulling. Stand-up dummy placed at the edge for the kickout.\nInstruction: Guard opens playside hip, pulls flat down the line behind the center, and delivers a trap/kickout block on a standing bag.", key: "Tight pulling path, strike hard" }
+      ],
+      "Indy Defense": [
+        { name: "Individual Defensive Stance & Keys", desc: "Setup: Linebackers 4 yards off the line. Coach acts as the Guard.\nInstruction: Linebackers and defensive linemen practice low athletic stances and reading offensive guard keys on air.", key: "Flat back, eyes on key" },
+        { name: "Individual Shed & Strike", desc: "Setup: Defenders facing offensive players with shields.\nInstruction: Defending players practice delivering a heavy hand strike to a shield and instantly ripping or swimming off the block.", key: "Violent hands, clear hips" },
+        { name: "Individual Backpedal & Weave", desc: "Setup: DBs in 2 lines. Coach stands in front directing with hand signals.\nInstruction: Defensive backs and linebackers practice smooth backpedals, side-shuffles, and directional transition breaks.", key: "Low hips, stay square" },
+        { name: "Individual Pursuit & Angle", desc: "Setup: Ball carrier on the sideline. Defender starting inside the hash.\nInstruction: Individual defenders work on proper running angles to the sideline to cut off ball carriers.", key: "Angle to inside hip" },
+        { name: "Get-Off & Shoot Gap", desc: "Setup: Football attached to a stick/towel. DL aligned on a yard line.\nInstruction: Line up DL on a football attached to a stick. When coach moves the ball, DL fires out instantly into their assigned gap.", key: "Eyes on ball, first step quickness" },
+        { name: "Rip Move & Attack Gap", desc: "Setup: DL paired with OL holding shields.\nInstruction: DL fires off, engages blocker, drops the inside shoulder, and violently rips the arm upward to clear the block and penetrate the gap.", key: "Drop shoulder, violent rip up" },
+        { name: "Swim (Arm-Over) Block Defeat", desc: "Setup: DL paired with OL holding shields.\nInstruction: DL strikes the blocker's breastplate, clubs with the outside hand, and swims the opposite arm over the blocker's shoulder to clear.", key: "Club hard, quick arm over" },
+        { name: "Bull Rush & Shed", desc: "Setup: DL paired with heavier OL holding shields.\nInstruction: DL fires out low, shoots hands into the blocker's chest, drives legs to push the blocker back into the pocket, then sheds to the ball carrier.", key: "Low pad level, heavy hands" },
+        { name: "Read, React & Attack Gap", desc: "Setup: DL facing an offensive lineman. Coach stands behind DL signaling the OL to pass set or run block.\nInstruction: DL reads the O-line step. If run block, drop anchor and shed. If pass set, transition instantly to Rip/Swim/Bull to attack the gap.", key: "Read the hat, react instantly" },
+        { name: "Key Read & Attack", desc: "Setup: LB aligned 4 yards deep. 2 Guards in front.\nInstruction: LB reads guard pull or down block, reacts instantly, scrapes tight to the line, and attacks the assigned gap downhill.", key: "Read the guard, attack downhill" },
+        { name: "Shock, Shed & Fill", desc: "Setup: LB facing a lead blocker holding a shield. Ball carrier stands behind the shield.\nInstruction: LB steps downhill to meet lead blocker, delivers a heavy two-hand strike to the chest, sheds using a rip move, and fills the gap.", key: "Violent strike, shed and tackle" },
+        { name: "Downhill Rip & Gap Fill", desc: "Setup: 4 cones mapping out the A and B gaps. Blocker in the gap.\nInstruction: LB reads run, attacks the A/B gap, uses a violent rip move to clear the climbing offensive lineman, and makes the tackle.", key: "Rip under the block, clear hips" },
+        { name: "Angle Tackling", desc: "Setup: 10x10 grid. Runner starts on one corner, tackler on the opposite diagonal.\nInstruction: LB takes an inside-out pursuit angle toward a runner down the sideline, breaks down, and form tackles a bag.", key: "Track inside hip, wrap and squeeze" },
+        { name: "Defeat Stalk Block & Force", desc: "Setup: DB facing WR with a shield 5 yards apart. RB running an outside sweep.\nInstruction: DB reads run, attacks the WR's stalk block. Deliver a firm punch to the WR's chest, rip outside arm free, and force the runner inside to help.", key: "Punch, shed, force inside" },
+        { name: "Rip Off WR Block", desc: "Setup: DB engaged with a WR. Ball carrier heading up the alley.\nInstruction: DB engages WR blocking on the perimeter, dips the inside shoulder, and rips through the block violently to make an alley tackle.", key: "Dip shoulder, rip through" },
+        { name: "Backpedal & Break", desc: "Setup: DBs on the numbers. Coach with a ball in the middle of the field.\nInstruction: DB backpedals 10 yards. On coach's signal, plant the back foot, drive forward at a 45-degree angle, and catch a ball.", key: "Low hips, zero false steps" },
+        { name: "Deep 1/3 Drop (Safety)", desc: "Setup: Safety starting 10 yards deep. Coach as QB.\nInstruction: Safety aligns 12 yards deep. Backpedals straight back reading the QB. Break to the deep sideline on a thrown ball.", key: "Deepest of the deepest" }
+      ],
+      "Team Offense": [
+        { name: "Offensive Play Install (Walkthrough)", desc: "Setup: 11 offensive players huddle on the +20 yard line. Place trash cans as defensive linemen.\nInstruction: Huddle the full 11-man offensive unit. Walk through new plays vs. garbage cans or scout defense. No pads/helmets.", key: "Alignment, assignment, snap count" },
+        { name: "11-on-11 Run Game Scrimmage", desc: "Setup: Full 11 on 11 formatted on the hash marks. Referees/coaches spotting the ball.\nInstruction: Live blocking and tackling. Offense runs strictly inside/outside run plays vs the starting defense.", key: "Physicality, execution at speed" },
+        { name: "Team Chalk Talk - Offense", desc: "Setup: Bring the whiteboard onto the field or hash.\nInstruction: Gather the offensive unit in front of the whiteboard to install new plays, formations, and signals.", key: "Full attention, mental reps" }
+      ],
+      "Team Defense": [
+        { name: "Defensive Front Install (Walkthrough)", desc: "Setup: Full defensive unit vs a scout offense (can be coaches or subs) holding shields.\nInstruction: Walk through defensive alignments, blitz calls, and gap responsibilities against a scout offense. Half-speed.", key: "Communication, gap integrity" },
+        { name: "Form Fit & Drive (Thud)", desc: "Setup: Pair players of similar size 2 yards apart on a yard line.\nInstruction: Players start 2 yards apart. On whistle, step into the ball carrier, fit the shoulder to the numbers, wrap, and drive for 3 steps.", key: "Shoot hips, wrap cloth" },
+        { name: "Angle / Alley Tackle", desc: "Setup: Set up a cone alley 10 yards wide. Ball carrier and tackler 15 yards apart.\nInstruction: Defender takes an inside-out angle to intersect a runner aiming for the pylon. Break down and drive through the near hip.", key: "Near foot to near shoulder" },
+        { name: "Hawk (Rugby) Roll Tackle", desc: "Setup: 2 mats or soft landing zones. Tackler and dummy 3 yards apart.\nInstruction: Defender targets the thighs of the runner, wraps legs tight, and rolls to the side using momentum to bring the runner down safely.", key: "Eyes on thighs, wrap and roll" },
+        { name: "Open Field Shimmy (Space)", desc: "Setup: 10x10 yard grid marked by cones. 1 tackler, 1 runner.\nInstruction: 10x10 yard grid. Defender tracks an elusive runner, breaks down 2 yards away, and executes a safe open-field wrap.", key: "Keep feet alive, track the hip" },
+        { name: "Tackling Circuit (4 Groups)", desc: "Setup: Split the field into 4 quadrants. 1 coach per station.\nInstruction: Divide team into 4 groups. Rotate every 3-5 mins on whistle. Station 1: Form fit. Station 2: Angle tackle. Station 3: Open field wrap. Station 4: Hawk Roll Tackle.", key: "Head up, wrap and squeeze" },
+        { name: "Turnover Circuit (4 Groups)", desc: "Setup: Split the field into 4 quadrants. Ensure footballs are at every station.\nInstruction: Divide into 4 groups. Rotate every 3-5 mins. Station 1: Strip drill. Station 2: Fumble recovery (fall on it). Station 3: Tip drill (INTs). Station 4: Punch-out from behind.", key: "Secure the ball instantly" }
+      ],
+      "Special Teams & General": [
+        { name: "Kickoff Lane Spacing", desc: "Setup: Full kickoff unit aligned on the 40 yard line.\nInstruction: Line up kickoff team. Sprint 40 yards downfield ensuring every player maintains exactly 10 yards of spacing.", key: "Maintain lane integrity" },
+        { name: "Punt Shield Protection", desc: "Setup: 3 players form a shield 5 yards behind the line of scrimmage. 3 rushers on the line.\nInstruction: 3 players form a shield 5 yards behind line. Step inside to seal gaps, absorb rushers, and hold for 2 seconds.", key: "Head up, secure the inside gap" },
+        { name: "Kick Return Wedge", desc: "Setup: Front blockers aligned on the 30 yard line. Returner deep.\nInstruction: Front blockers sprint back 15 yards, turn, and form a tight wall shoulder-to-shoulder to block for returner.", key: "Move together, drive block" },
+        { name: "QB & Center Exchange", desc: "Setup: 2 footballs per pair. Centers line up on a yard line.\nInstruction: Centers and QBs pair up to practice under-center and shotgun snaps before formal periods begin. Rotate through all QBs and Centers.", key: "100% snap accuracy" },
+        { name: "Specialists: Kicking & Holding", desc: "Setup: Kicker and Holder working independently on the hash.\nInstruction: Specialists work on snap, hold, and kick mechanics independently. Kickers work on approach drops and leg swing contact.", key: "Timing and rhythm" },
+        { name: "WR Routes with QB Throws", desc: "Setup: QBs on hash mark, WRs split out 10 yards. Cones marking route breaks optional.\nInstruction: QBs throw the basic route tree on air to WRs. Focus on timing, route depths, and getting arms warm.", key: "Crisp routes, accurate passes" },
+        { name: "Offensive Line Steps", desc: "Setup: All linemen on a yard line, 2-yard splits.\nInstruction: O-Line works through their first 2 steps (drive, reach, down, pull) on air or lightly against standing bags.", key: "First step quickness, pad level" },
+        { name: "Mandatory Water Break", desc: "Setup: Water stations set up behind the bench area.\nInstruction: Blow whistle twice. Players remove helmets and jog to water stations. Emphasize fast hydration and hustling back to position groups.", key: "Hydrate and hustle" },
+        { name: "Dynamic Warm-Up", desc: "Setup: Team lines up in 4 even rows on the sideline facing the field.\nInstruction: Line team up on the sideline or hash marks. Coach leads cadence. Perform high knees, karaoke, butt kicks, shuffling, and 10-yard short sprints.", key: "Full speed, proper posture" },
+        { name: "Agility Ladder", desc: "Setup: Set up 2-3 agility ladders 5 yards apart.\nInstruction: Set up 2-3 agility ladders. Players run through doing icky shuffle, two-in, and lateral quick steps. Keep the line moving fast.", key: "Eyes up, quick feet" },
+        { name: "Form Tackling (No Pads)", desc: "Setup: Pair players up. Walk through the fit position, proper head placement, and wrap mechanics on air without taking players to the ground.\nInstruction: Pair players up. Walk through the fit position, proper head placement, and wrap mechanics on air without taking players to the ground.", key: "Head across bow, sink hips" },
+        { name: "Team Stretch", desc: "Setup: Players spread out in a circle or rows. Team captains in the center.\nInstruction: Players spread out in a circle or rows. Team captains lead stretches. Focus on hamstrings, quads, groins, and shoulders.", key: "Stretch tight muscles" },
+        { name: "Blocking Circuit (4 Groups)", desc: "Setup: 4 stations. Require 4 coaches and multiple hit shields.\nInstruction: Rotate every 3-5 mins. Station 1: 3-point stance get-off. Station 2: Drive block shield. Station 3: Down block angle. Station 4: Reach block step.", key: "Low pads, violent hands" },
+        { name: "Agility & Footwork Circuit", desc: "Setup: 4 stations. Cones and ladders required.\nInstruction: Rotate every 3 mins. Station 1: Ladder drills. Station 2: Cone weave. Station 3: 5-10-5 shuttle. Station 4: Short hurdle jumps.", key: "Fast feet, stay balanced" }
+      ]
+    };
+
+    const defaultFormations = [
+      {
+        id: "form_11", unit: "offense", name: "11 Offense", subtitle: "1 RB - 1 TE (Y1) - 3 WRs (X, W, Z)", collapsed: false,
+        rows: [
+          { id: "row_11_ol", label: "Offensive Line & TE (Y1)", rowClass: "oline", positions: [
+            { id: "11-LT", name: "LT" }, { id: "11-LG", name: "LG" }, { id: "11-C", name: "C" }, { id: "11-RG", name: "RG" }, { id: "11-RT", name: "RT" }, { id: "11-Y1", name: "Y1" }
+          ]},
+          { id: "row_11_wr", label: "Wide Receivers (X, W, Z)", rowClass: "receivers", positions: [
+            { id: "11-X", name: "X" }, { id: "11-W", name: "W" }, { id: "11-Z", name: "Z" }
+          ]},
+          { id: "row_11_bk", label: "Backfield (1 - 4)", rowClass: "backfield", positions: [
+            { id: "11-1", name: "1 (QB)" }, { id: "11-4", name: "4 (RB)" }
+          ]}
+        ]
+      },
+      {
+        id: "form_44", unit: "defense", name: "44 Defense", subtitle: "Stack Front (11 Positions)", collapsed: false,
+        rows: [
+          { id: "row_44_fs", label: "Free Safety (Deep Center)", rowClass: "secondary-safety", positions: [
+            { id: "44-FS", name: "FS" }
+          ]},
+          { id: "row_44_cb", label: "Secondary / Cornerbacks", rowClass: "secondary-corners", positions: [
+            { id: "44-CB1", name: "CB 1" }, { id: "44-CB2", name: "CB 2" }
+          ]},
+          { id: "row_44_lb", label: "Linebacker Level (ROVER - WILL - MIKE - SAM)", rowClass: "linebackers-tight", positions: [
+            { id: "44-ROVER", name: "ROVER" }, { id: "44-WILL", name: "WILL" }, { id: "44-MIKE", name: "MIKE" }, { id: "44-SAM", name: "SAM" }
+          ]},
+          { id: "row_44_dl", label: "Defensive Line (WDE - DT1 - DT2 - SDE)", rowClass: "dl", positions: [
+            { id: "44-WDE", name: "WDE" }, { id: "44-DT1", name: "DT 1" }, { id: "44-DT2", name: "DT 2" }, { id: "44-SDE", name: "SDE" }
+          ]}
+        ]
+      },
+      {
+        id: "form_ko", unit: "st", name: "Kickoff Team", subtitle: "8 Coverage + 3 Backs", collapsed: false,
+        rows: [
+          { id: "row_ko_line", label: "Front Coverage Line (L1-L4, R4-R1)", rowClass: "oline", positions: [
+            { id: "KO-L1", name: "L1" }, { id: "KO-L2", name: "L2" }, { id: "KO-L3", name: "L3" }, { id: "KO-L4", name: "L4" },
+            { id: "KO-R4", name: "R4" }, { id: "KO-R3", name: "R3" }, { id: "KO-R2", name: "R2" }, { id: "KO-R1", name: "R1" }
+          ]},
+          { id: "row_ko_bk", label: "Backfield Level (LBH - Kicker - RBH)", rowClass: "oline", positions: [
+            { id: "KO-LBH", name: "LBH" }, { id: "KO-KICKER", name: "Kicker" }, { id: "KO-RBH", name: "RBH" }
+          ]}
+        ]
+      },
+      {
+        id: "form_grp_off", unit: "groups", name: "Offensive Depth Chart", subtitle: "Standard Format", collapsed: false,
+        rows: [
+          { id: "row_grp_ol", label: "Offensive Line & Tight Ends", rowClass: "oline", positions: [
+            { id: "GRP-LT", name: "LT" }, { id: "GRP-LG", name: "LG" }, { id: "GRP-C", name: "C" }, { id: "GRP-RG", name: "RG" }, { id: "GRP-RT", name: "RT" }, { id: "GRP-TES", name: "TEs" }
+          ]},
+          { id: "row_grp_wr", label: "Wide Receivers", rowClass: "receivers", positions: [
+            { id: "GRP-X", name: "X" }, { id: "GRP-Z", name: "Z" }
+          ]},
+          { id: "row_grp_bk", label: "Backfield Stack", rowClass: "backfield", positions: [
+            { id: "GRP-QB", name: "QB" }, { id: "GRP-FB", name: "FB" }, { id: "GRP-RB", name: "RB" }
+          ]}
+        ]
+      },
+      {
+        id: "form_grp_def", unit: "groups", name: "Defensive Depth Chart", subtitle: "Standard 4-4 Front", collapsed: false,
+        rows: [
+          { id: "row_grp_d_sec", label: "Secondary Level", rowClass: "secondary-corners", positions: [
+            { id: "GRP-CB1", name: "CB 1" }, { id: "GRP-FS", name: "FS" }, { id: "GRP-CB2", name: "CB 2" }
+          ]},
+          { id: "row_grp_d_lb", label: "Linebacker Level", rowClass: "linebackers-tight", positions: [
+            { id: "GRP-ROVER", name: "ROVER" }, { id: "GRP-WILL", name: "WILL" }, { id: "GRP-MIKE", name: "MIKE" }, { id: "GRP-SAM", name: "SAM" }
+          ]},
+          { id: "row_grp_d_dl", label: "Defensive Line", rowClass: "dl", positions: [
+            { id: "GRP-WDE", name: "WDE" }, { id: "GRP-DT1", name: "DT 1" }, { id: "GRP-DT2", name: "DT 2" }, { id: "GRP-SDE", name: "SDE" }
+          ]}
+        ]
+      }
+    ];
+
+    const defaultDepthChartAssignments = {};
+
+    const defaultPracticePlan = [
+      { time: 10, category: "Pre Practice", drill: "", coaches: [], desc: "", key: "", customDrill: "", periodType: "circuit", stations: [
+        { drill: "QB & Center Exchange", desc: "Setup: 2 footballs per pair. Centers line up on a yard line.\nInstruction: Centers and QBs pair up to practice under-center and shotgun snaps before formal periods begin. Rotate through all QBs and Centers.", key: "100% snap accuracy", customDrill: "", coaches: [] },
+        { drill: "Specialists: Kicking & Holding", desc: "Setup: Kicker and Holder working independently on the hash.\nInstruction: Specialists work on snap, hold, and kick mechanics independently. Kickers work on approach drops and leg swing contact.", key: "Timing and rhythm", customDrill: "", coaches: [] }
+      ]},
+      { time: 10, category: "Warm-Up & Breaks", drill: "Dynamic Warm-Up", coaches: [], desc: "Setup: Team lines up in 4 even rows on the sideline facing the field.\nInstruction: Line team up on the sideline or hash marks. Coach leads cadence. Perform high knees, karaoke, butt kicks, shuffling, and 10-yard short sprints.", key: "Full speed, proper posture", customDrill: "", periodType: "normal" }
+    ];
+
+    const wbColors = ['blue', 'yellow', 'green', 'red', 'white'];
+    let saveTimeout = null;
+
+    // STATE VARIABLES
+    let dynamicDrills = JSON.parse(localStorage.getItem("footballDynamicDrills")) || null;
+    let practiceTemplates = JSON.parse(localStorage.getItem("footballPracticeTemplates")) || [];
+    let savedCoaches = JSON.parse(localStorage.getItem("footballSavedCoaches")) || [];
+    let savedCustomCategories = JSON.parse(localStorage.getItem("footballCustomCategories")) || [];
+    let practiceData = JSON.parse(localStorage.getItem("footballPracticeData")) || [];
+    let currentPracticeId = null;
+    let currentWeek = "0";
+    let weeklyData = JSON.parse(localStorage.getItem("footballWeeklyData")) || {};
+    let depthChart = null;
+    let activeUnit = "offense";
+    let selectedTouchPlayer = null;
+    let collapsedDrillCats = JSON.parse(localStorage.getItem("footballCollapsedDrills")) || {};
+
     // Role & Auth State
     let currentUser = null;
     let userRole = 'viewer'; 
     let isSignUpMode = false;
     let userRoleUnsubscribe = null;
+
+    function saveCoaches() {
+      if (userRole !== 'admin') return;
+      localStorage.setItem("footballSavedCoaches", JSON.stringify(savedCoaches));
+    }
+
+    function timeToMins(timeStr) {
+      if(!timeStr) return 0;
+      let [h, m] = timeStr.split(':');
+      return parseInt(h) * 60 + parseInt(m);
+    }
+
+    function minsToTimeStr(totalMins) {
+      let m = (totalMins + 1440) % 1440; 
+      let h = Math.floor(m / 60);
+      let mins = m % 60;
+      let ampm = h >= 12 ? 'PM' : 'AM';
+      h = h % 12;
+      if (h === 0) h = 12;
+      return `${h}:${mins.toString().padStart(2, '0')} ${ampm}`;
+    }
+
+    function generateUniqueId(prefix) {
+      return prefix + "_" + Date.now().toString(36) + "_" + Math.random().toString(36).substr(2, 5);
+    }
+
+    function getWeekFormations(week) {
+      if (!weeklyData[week]) weeklyData[week] = { opponent: "" };
+      
+      // Removed the auto-healing loop! If it's an empty array (deleted by user), leave it empty.
+      if (!weeklyData[week].formations) {
+        weeklyData[week].formations = JSON.parse(JSON.stringify(defaultFormations));
+      }
+      return weeklyData[week].formations;
+    }
+
+    function getWeekDepthChart(week) {
+      if (!weeklyData[week]) weeklyData[week] = { opponent: "" };
+      if (!weeklyData[week].depthChart || typeof weeklyData[week].depthChart !== 'object') {
+        weeklyData[week].depthChart = JSON.parse(JSON.stringify(defaultDepthChartAssignments));
+      }
+      return weeklyData[week].depthChart;
+    }
+
+    function initScoutingData() {
+      if (!weeklyData[currentWeek]) weeklyData[currentWeek] = {};
+      if (!weeklyData[currentWeek].scouting) {
+        weeklyData[currentWeek].scouting = {
+           year: new Date().getFullYear().toString(),
+           week: "Week " + currentWeek,
+           opponent: weeklyData[currentWeek].opponent || "",
+           teamOverview: "",
+           keyPlayers: "",
+           offenseTendencies: "",
+           defenseTendencies: "",
+           specialTeams: ""
+        };
+      }
+    }
+
+    function initWristbandData() {
+      if (!weeklyData[currentWeek]) weeklyData[currentWeek] = {};
+
+      let wbData = weeklyData[currentWeek].wristbandData;
+
+      if (!wbData || typeof wbData !== 'object') {
+          wbData = { rows: 16, columns: [] };
+      }
+
+      if (weeklyData[currentWeek].wristband) {
+          delete weeklyData[currentWeek].wristband;
+      }
+
+      if (wbData.pages) {
+          wbData.columns = wbData.pages.map(p => ({
+              color: p.color || 'white',
+              plays: (p.plays || []).map(pt => ({ text: pt || "", color: p.color || 'white' }))
+          }));
+          delete wbData.pages;
+          delete wbData.startIndex;
+      }
+
+      if (typeof wbData.rows !== 'number' || isNaN(wbData.rows)) {
+          wbData.rows = 16;
+      }
+
+      if (!Array.isArray(wbData.columns) || wbData.columns.length === 0) {
+          wbData.columns = [
+              { color: "blue", plays: [] },
+              { color: "yellow", plays: [] }
+          ];
+      }
+
+      wbData.columns.forEach(c => {
+         if (!Array.isArray(c.plays)) c.plays = [];
+         while(c.plays.length < wbData.rows) {
+            c.plays.push({ text: "", color: c.color || 'white' });
+         }
+         while(c.plays.length > wbData.rows) {
+            c.plays.pop();
+         }
+      });
+
+      weeklyData[currentWeek].wristbandData = wbData;
+    }
+
+    function sanitizePracticeData() {
+      if (!dynamicDrills || Object.keys(dynamicDrills).length === 0) {
+          dynamicDrills = JSON.parse(JSON.stringify(defaultDynamicDrills));
+      }
+
+      try {
+        let stored = localStorage.getItem("footballPracticeData");
+        if (stored) {
+          practiceData = JSON.parse(stored);
+        }
+      } catch(e) {
+        practiceData = [];
+      }
+
+      if (!Array.isArray(practiceData) || practiceData.length === 0) {
+        const todayDate = new Date().toISOString().split('T')[0];
+        practiceData = [{
+          id: Date.now().toString(),
+          title: "Practice 1",
+          year: new Date().getFullYear().toString(),
+          week: "Week 1",
+          day: "Day 1",
+          date: todayDate,
+          startTime: "17:00",
+          endTime: "19:00",
+          lastEdited: Date.now(),
+          plan: JSON.parse(JSON.stringify(defaultPracticePlan))
+        }];
+      }
+
+      practiceData.forEach((p, pIdx) => {
+        if (!p) return;
+        if (!p.id) p.id = (Date.now() + pIdx).toString();
+        if (!p.title) p.title = "Practice " + (pIdx + 1);
+        if (!p.year) p.year = (p.date ? p.date.substring(0,4) : new Date().getFullYear().toString());
+        if (!p.week) p.week = p.folder || "Week 1";
+        if (!p.day) p.day = p.date || "Monday";
+        delete p.folder; 
+
+        if (!p.date) p.date = new Date().toISOString().split('T')[0];
+        if (!p.startTime) p.startTime = "17:00";
+        if (!p.endTime) p.endTime = "19:00";
+        if (!p.lastEdited) p.lastEdited = Date.now();
+        
+        if (!Array.isArray(p.plan)) {
+          p.plan = [];
+        }
+      });
+
+      if (!currentPracticeId || !practiceData.find(p => p.id === currentPracticeId)) {
+        let sorted = [...practiceData].sort((a,b) => (b.lastEdited || 0) - (a.lastEdited || 0));
+        if(sorted.length > 0) currentPracticeId = sorted[0].id;
+      }
+    }
+
+    function initializeApp() {
+      sanitizePracticeData();
+
+      const urlParams = new URLSearchParams(window.location.search);
+      let weekParam = urlParams.get('week');
+      if (weekParam && weeklyData[weekParam]) {
+        currentWeek = weekParam;
+        const wSelect = document.getElementById("week-select");
+        if(wSelect) wSelect.value = currentWeek;
+      }
+
+      initWristbandData();
+      initScoutingData();
+      depthChart = getWeekDepthChart(currentWeek);
+      const oppInput = document.getElementById("opponent-input");
+      if(oppInput) oppInput.value = weeklyData[currentWeek] ? (weeklyData[currentWeek].opponent || "") : "";
+
+      updateRosterFormationOptions();
+      renderMasterRoster();
+      renderActiveBoards();
+      populatePracticeDropdown();
+      renderPracticePlan();
+    }
 
     // Listen to Firebase Auth state
     if (auth) {
@@ -1674,9 +2036,1477 @@ const firebaseConfig = {
         .catch(err => alert("Error updating user: " + err.message));
     }
 
-    function isUserEditing() {
-      const active = document.activeElement;
-      return active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.tagName === 'SELECT');
+    function markPracticeEdited() {
+      if (userRole !== 'admin') return;
+      const p = getCurrentPractice();
+      if (p) {
+        p.lastEdited = Date.now();
+      }
+    }
+
+    function togglePracticeTree(e) {
+        if(e) e.stopPropagation();
+        const el = document.getElementById('practice-tree-dropdown');
+        if (el.style.display === 'none' || el.style.display === '') {
+            closeAllDropdowns();
+            el.style.display = 'block';
+        } else {
+            el.style.display = 'none';
+        }
+    }
+
+    function toggleTreeNode(el, e) {
+        if(e) e.stopPropagation();
+        const ul = el.nextElementSibling;
+        if(ul) {
+           if(ul.style.display === 'none') {
+               ul.style.display = 'block';
+               el.innerHTML = el.innerHTML.replace('📁', '📂');
+           } else {
+               ul.style.display = 'none';
+               el.innerHTML = el.innerHTML.replace('📂', '📁');
+           }
+        }
+    }
+
+    function selectPracticeFromTree(id, e) {
+        if(e) e.stopPropagation();
+        document.getElementById('practice-tree-dropdown').style.display = 'none';
+        changePractice(id);
+    }
+
+    function handlePlanDragStart(e, planId) {
+        if (userRole !== 'admin') { e.preventDefault(); return; }
+        e.dataTransfer.setData('text/plain', planId);
+    }
+
+    function handlePlanDrop(e, targetYear, targetWeek) {
+        e.preventDefault();
+        e.target.classList.remove('drag-over');
+        if (userRole !== 'admin') return;
+        const planId = e.dataTransfer.getData('text/plain');
+        const plan = practiceData.find(p => p.id === planId);
+        if (plan) {
+            plan.year = targetYear;
+            plan.week = targetWeek;
+            plan.lastEdited = Date.now();
+            triggerDebouncedSave();
+            populatePracticeDropdown(); 
+        }
+    }
+
+    function populatePracticeDropdown() {
+      const display = document.getElementById("selected-practice-display");
+      const treeContainer = document.getElementById("practice-tree-dropdown");
+      if(!display || !treeContainer) return;
+
+      const cur = getCurrentPractice();
+      display.textContent = cur ? `${cur.year || ''} > ${cur.week || ''} > ${cur.day || ''}: ${cur.title}` : 'Select Practice...';
+
+      const printTitle = document.getElementById('print-practice-title');
+      const printDate = document.getElementById('print-practice-date');
+      if(printTitle) printTitle.textContent = cur ? cur.title : '';
+      if(printDate) printDate.textContent = cur ? `Year: ${cur.year || ''} | Week: ${cur.week || ''} | Day: ${cur.day || ''} | Date: ${cur.date || ''}` : '';
+
+      const tree = {};
+      practiceData.forEach(p => {
+         const y = p.year || new Date().getFullYear().toString();
+         const w = p.week || "Week 1";
+         if(!tree[y]) tree[y] = {};
+         if(!tree[y][w]) tree[y][w] = [];
+         tree[y][w].push(p);
+      });
+
+      let html = '<ul class="tree-root">';
+      Object.keys(tree).sort((a,b) => b.localeCompare(a)).forEach(y => {
+         const isCurYear = cur && (cur.year === y || (!cur.year && y === new Date().getFullYear().toString()));
+         const displayYear = isCurYear ? 'block' : 'none';
+         const caretIconY = isCurYear ? '📂' : '📁';
+
+         html += `<li><span class="tree-caret" onclick="toggleTreeNode(this, event)">${caretIconY} ${y}</span><ul class="nested" style="display:${displayYear};">`;
+         
+         Object.keys(tree[y]).sort().forEach(w => {
+             const isCurWeek = isCurYear && cur && cur.week === w;
+             const displayWeek = isCurWeek ? 'block' : 'none';
+             const caretIconW = isCurWeek ? '📂' : '📁';
+
+             html += `<li>
+                <span class="tree-caret week-drop-target" data-year="${y}" data-week="${w}" 
+                      ondragover="event.preventDefault(); this.classList.add('drag-over');" 
+                      ondragleave="this.classList.remove('drag-over');" 
+                      ondrop="handlePlanDrop(event, '${y}', '${w}')" 
+                      onclick="toggleTreeNode(this, event)">${caretIconW} ${w}</span>
+                <ul class="nested" style="display:${displayWeek};">`;
+             
+             tree[y][w].sort((a,b) => new Date(a.date||0) - new Date(b.date||0)).forEach(p => {
+                 let isSel = cur && p.id === currentPracticeId;
+                 html += `<li class="tree-leaf ${isSel ? 'selected' : ''}" draggable="${userRole==='admin'?'true':'false'}" ondragstart="handlePlanDragStart(event, '${p.id}')" onclick="selectPracticeFromTree('${p.id}', event)">📄 ${p.day || ''} - ${p.title}</li>`;
+             });
+             html += `</ul></li>`;
+         });
+         html += `</ul></li>`;
+      });
+      html += '</ul>';
+      treeContainer.innerHTML = html;
+    }
+
+    function changePractice(id) {
+      currentPracticeId = id;
+      markPracticeEdited();
+      renderPracticePlan();
+      populatePracticeDropdown();
+      triggerDebouncedSave();
+    }
+
+    function createNewPractice() {
+      if (userRole !== 'admin') return;
+      
+      let templateOptions = "0: Blank Template\n";
+      practiceTemplates.forEach((t, i) => {
+          templateOptions += `${i+1}: ${t.name}\n`;
+      });
+      const tmplChoice = prompt(`Create from Template?\nEnter number:\n${templateOptions}`, "0");
+      if (tmplChoice === null) return;
+      
+      let basePlan = [];
+      const tIdx = parseInt(tmplChoice) - 1;
+      if (tIdx >= 0 && tIdx < practiceTemplates.length) {
+          basePlan = JSON.parse(JSON.stringify(practiceTemplates[tIdx].plan));
+      }
+
+      const defaultDate = new Date().toISOString().split('T')[0];
+      const pYear = prompt("Enter Year (e.g., 2026):", new Date().getFullYear().toString());
+      if (pYear === null) return;
+      const pWeek = prompt("Enter Week (e.g., Week 1, Camp):", "Week 1");
+      if (pWeek === null) return;
+      const pDay = prompt("Enter Day (e.g., Monday, Day 1):", "Monday");
+      if (pDay === null) return;
+      const title = prompt("Enter Practice Title:", "Full Pads");
+      if (!title) return;
+      const pDate = prompt("Enter Date for scheduling (YYYY-MM-DD):", defaultDate);
+      if (pDate === null) return;
+      
+      const newPlan = {
+        id: Date.now().toString(),
+        title: title.trim(),
+        year: pYear.trim() || new Date().getFullYear().toString(),
+        week: pWeek.trim() || "Week 1",
+        day: pDay.trim() || "Monday",
+        date: pDate.trim() || defaultDate,
+        startTime: "17:00",
+        endTime: "19:00",
+        lastEdited: Date.now(),
+        plan: basePlan 
+      };
+
+      practiceData.push(newPlan);
+      currentPracticeId = newPlan.id;
+      saveState();
+      populatePracticeDropdown();
+      renderPracticePlan();
+    }
+
+    function saveAsTemplate() {
+      if (userRole !== 'admin') return;
+      const p = getCurrentPractice();
+      if(!p) return;
+      const tName = prompt("Enter a name for this template:", p.title + " Template");
+      if (tName && tName.trim() !== "") {
+          practiceTemplates.push({
+              id: "tmpl_" + Date.now(),
+              name: tName.trim(),
+              plan: JSON.parse(JSON.stringify(p.plan))
+          });
+          saveState();
+          alert("Template saved successfully!");
+      }
+    }
+
+    function editPracticeDetails() {
+      if (userRole !== 'admin') return;
+      const p = getCurrentPractice();
+      if(!p) return;
+      
+      const newYear = prompt("Edit Year:", p.year || new Date().getFullYear().toString());
+      if (newYear === null) return;
+      const newWeek = prompt("Edit Week:", p.week || "Week 1");
+      if (newWeek === null) return;
+      const newDay = prompt("Edit Day:", p.day || "Monday");
+      if (newDay === null) return;
+      const newTitle = prompt("Edit Practice Title:", p.title);
+      if (newTitle === null) return;
+      const newDate = prompt("Edit Date (YYYY-MM-DD):", p.date || new Date().toISOString().split('T')[0]);
+      if (newDate === null) return;
+      
+      p.year = newYear.trim();
+      p.week = newWeek.trim();
+      p.day = newDay.trim();
+      p.title = newTitle.trim();
+      p.date = newDate.trim();
+      p.lastEdited = Date.now();
+      
+      saveState();
+      populatePracticeDropdown();
+    }
+
+    function copyPracticePrompt() {
+      if (userRole !== 'admin') return;
+      const p = getCurrentPractice();
+      if(!p) return;
+      let optionsStr = practiceData.map((prac, i) => `${i+1}: ${prac.year} > ${prac.week} > ${prac.day} (${prac.title})`).join("\n");
+      const targetIdxStr = prompt(`Copy another practice's layout into "${p.title}"? \n\nEnter the number of the practice to copy FROM:\n\n${optionsStr}`);
+      if(!targetIdxStr) return;
+      const targetIdx = parseInt(targetIdxStr) - 1;
+      if(isNaN(targetIdx) || targetIdx < 0 || targetIdx >= practiceData.length) {
+         alert("Invalid selection.");
+         return;
+      }
+      if(practiceData[targetIdx].id === p.id) {
+         alert("Cannot copy a practice to itself.");
+         return;
+      }
+      
+      if(confirm(`Overwrite current plan "${p.title}" with "${practiceData[targetIdx].title}"?`)) {
+         p.plan = JSON.parse(JSON.stringify(practiceData[targetIdx].plan));
+         p.lastEdited = Date.now();
+         saveState();
+         renderPracticePlan();
+      }
+    }
+
+    function resetPracticePlanData() {
+      if (userRole !== 'admin') return;
+      const p = getCurrentPractice();
+      if(!p) return;
+      if(confirm(`Reset "${p.title}" back to the default practice plan template?`)) {
+        p.plan = JSON.parse(JSON.stringify(defaultPracticePlan));
+        p.lastEdited = Date.now();
+        saveState();
+        renderPracticePlan();
+        alert("Practice plan successfully reset to default.");
+      }
+    }
+
+    function deletePractice() {
+      if (userRole !== 'admin') return;
+      if(practiceData.length <= 1) {
+        alert("Cannot delete the only practice plan. Please create another one first or edit this one.");
+        return;
+      }
+      const p = getCurrentPractice();
+      if(!p) return;
+      if(confirm(`Are you sure you want to completely delete "${p.title}"?`)) {
+        practiceData = practiceData.filter(prac => prac.id !== p.id);
+        let sorted = [...practiceData].sort((a,b) => (b.lastEdited || 0) - (a.lastEdited || 0));
+        currentPracticeId = sorted[0].id;
+        saveState();
+        populatePracticeDropdown();
+        renderPracticePlan();
+      }
+    }
+
+    function updatePracticeTimes(field, value) {
+      if (userRole !== 'admin') return;
+      const p = getCurrentPractice();
+      if(!p) return;
+      p[field] = value;
+      p.lastEdited = Date.now();
+      saveState();
+      renderPracticePlan();
+    }
+
+    function changeWeek(newWeek) {
+      currentWeek = newWeek;
+      initWristbandData();
+      initScoutingData();
+      depthChart = getWeekDepthChart(currentWeek);
+      const oppInput = document.getElementById("opponent-input");
+      if(oppInput) oppInput.value = weeklyData[currentWeek] ? (weeklyData[currentWeek].opponent || "") : "";
+      
+      updateRosterFormationOptions();
+      
+      if (activeUnit === 'wristband') renderWristband();
+      else if (activeUnit === 'scouting') renderScouting();
+      else if (activeUnit === 'drills') renderDrillsTab();
+      else if (activeUnit === 'practice') {
+         populatePracticeDropdown();
+         renderPracticePlan();
+      } else renderActiveBoards();
+      
+      renderMasterRoster();
+    }
+
+    function updateOpponentLabel(val) {
+      if (userRole !== 'admin') return;
+      if (!weeklyData[currentWeek]) weeklyData[currentWeek] = {};
+      weeklyData[currentWeek].opponent = val;
+      
+      initScoutingData();
+      weeklyData[currentWeek].scouting.opponent = val;
+      
+      const scoutOpp = document.getElementById('scout-opponent');
+      if (scoutOpp) scoutOpp.value = val;
+      
+      saveState();
+      
+      const printTitle = document.getElementById('print-scout-title');
+      if (printTitle && activeUnit === 'scouting') {
+         const scout = weeklyData[currentWeek].scouting;
+         const yr = scout.year ? `${scout.year} ` : "";
+         const wk = scout.week ? `${scout.week} - ` : "";
+         printTitle.textContent = `Scouting Report: ${yr}${wk}${val || 'Week ' + currentWeek}`;
+      }
+    }
+
+    function copyWeekToPrompt() {
+      if (userRole !== 'admin') return;
+      const targetWeek = prompt(`Copy current Week ${currentWeek} depth chart, wristband, & scouting to which week? (Enter a number 0 to 8):`);
+      if (targetWeek === null) return;
+
+      const cleanedTarget = targetWeek.trim();
+      if (!["0", "1", "2", "3", "4", "5", "6", "7", "8"].includes(cleanedTarget)) {
+        alert("Invalid week number! Please enter a single digit between 0 and 8.");
+        return;
+      }
+
+      if (cleanedTarget === currentWeek) {
+        alert("Target week is the same as current week!");
+        return;
+      }
+
+      if (confirm(`Are you sure you want to overwrite Week ${cleanedTarget} data with Week ${currentWeek}'s data?`)) {
+        if (!weeklyData[cleanedTarget]) weeklyData[cleanedTarget] = {};
+        weeklyData[cleanedTarget].depthChart = JSON.parse(JSON.stringify(getWeekDepthChart(currentWeek)));
+        weeklyData[cleanedTarget].formations = JSON.parse(JSON.stringify(getWeekFormations(currentWeek)));
+        if (weeklyData[currentWeek].wristbandData) {
+          weeklyData[cleanedTarget].wristbandData = JSON.parse(JSON.stringify(weeklyData[currentWeek].wristbandData));
+        }
+        if (weeklyData[currentWeek].scouting) {
+          weeklyData[cleanedTarget].scouting = JSON.parse(JSON.stringify(weeklyData[currentWeek].scouting));
+        }
+        saveState();
+        alert(`Successfully copied Week ${currentWeek} data to Week ${cleanedTarget}!`);
+      }
+    }
+
+    function switchUnitTab(unit) {
+      activeUnit = unit;
+      document.getElementById('panel-defense').classList.toggle('hidden', unit !== 'defense');
+      document.getElementById('panel-offense').classList.toggle('hidden', unit !== 'offense');
+      document.getElementById('panel-st').classList.toggle('hidden', unit !== 'st');
+      document.getElementById('panel-groups').classList.toggle('hidden', unit !== 'groups');
+      document.getElementById('panel-wristband').classList.toggle('hidden', unit !== 'wristband');
+      document.getElementById('panel-scouting').classList.toggle('hidden', unit !== 'scouting');
+      document.getElementById('panel-drills').classList.toggle('hidden', unit !== 'drills');
+      document.getElementById('panel-practice').classList.toggle('hidden', unit !== 'practice');
+      document.getElementById('panel-users').classList.toggle('hidden', unit !== 'users');
+
+      document.getElementById('tab-btn-defense').classList.toggle('active', unit === 'defense');
+      document.getElementById('tab-btn-offense').classList.toggle('active', unit === 'offense');
+      document.getElementById('tab-btn-st').classList.toggle('active', unit === 'st');
+      document.getElementById('tab-btn-groups').classList.toggle('active', unit === 'groups');
+      document.getElementById('tab-btn-wristband').classList.toggle('active', unit === 'wristband');
+      document.getElementById('tab-btn-scouting').classList.toggle('active', unit === 'scouting');
+      document.getElementById('tab-btn-drills').classList.toggle('active', unit === 'drills');
+      document.getElementById('tab-btn-practice').classList.toggle('active', unit === 'practice');
+      document.getElementById('tab-btn-users').classList.toggle('active', unit === 'users');
+
+      const sidebar = document.getElementById('sidebar-panel');
+      const mainWeekBar = document.getElementById('main-week-bar');
+      
+      if (unit === 'practice' || unit === 'drills' || unit === 'users') {
+        if(sidebar) sidebar.classList.add('hidden');
+        if(mainWeekBar) mainWeekBar.classList.add('hidden');
+      } else if (unit === 'wristband' || unit === 'scouting') {
+        if(sidebar) sidebar.classList.add('hidden');
+        if(mainWeekBar) mainWeekBar.classList.remove('hidden');
+      } else {
+        if(sidebar) sidebar.classList.remove('hidden');
+        if(mainWeekBar) mainWeekBar.classList.remove('hidden');
+      }
+
+      if (unit === 'practice') {
+         populatePracticeDropdown();
+         renderPracticePlan();
+      } else if (unit === 'wristband') {
+         renderWristband();
+      } else if (unit === 'scouting') {
+         renderScouting();
+      } else if (unit === 'drills') {
+         renderDrillsTab();
+      } else if (unit === 'users') {
+         loadUsersTable();
+      } else {
+         renderActiveBoards();
+      }
+      
+      updateRosterFormationOptions();
+      renderMasterRoster();
+    }
+
+    /* SCOUTING LOGIC */
+    function renderScouting() {
+      initScoutingData();
+      const scout = weeklyData[currentWeek].scouting;
+      
+      const textFields = ['teamOverview', 'keyPlayers', 'offenseTendencies', 'defenseTendencies', 'specialTeams'];
+      textFields.forEach(f => {
+         const el = document.getElementById('scout-' + f);
+         if (el) {
+             el.value = scout[f] || "";
+             autoResizeTextarea(el);
+         }
+      });
+
+      ['year', 'week', 'opponent'].forEach(f => {
+         const el = document.getElementById('scout-' + f);
+         if (el) el.value = scout[f] || "";
+      });
+      
+      const printTitle = document.getElementById('print-scout-title');
+      const opp = scout.opponent || weeklyData[currentWeek].opponent || `Week ${currentWeek}`;
+      const yr = scout.year ? `${scout.year} ` : "";
+      const wk = scout.week ? `${scout.week} - ` : "";
+      if (printTitle) printTitle.textContent = `Scouting Report: ${yr}${wk}${opp}`;
+    }
+
+    function updateScouting(field, value) {
+      if (userRole !== 'admin') return;
+      initScoutingData();
+      weeklyData[currentWeek].scouting[field] = value;
+      
+      if (field === 'opponent') {
+         weeklyData[currentWeek].opponent = value;
+         const oppInput = document.getElementById("opponent-input");
+         if(oppInput) oppInput.value = value;
+      }
+      
+      triggerDebouncedSave();
+
+      if (['year', 'week', 'opponent'].includes(field)) {
+         const scout = weeklyData[currentWeek].scouting;
+         const printTitle = document.getElementById('print-scout-title');
+         const opp = scout.opponent || weeklyData[currentWeek].opponent || `Week ${currentWeek}`;
+         const yr = scout.year ? `${scout.year} ` : "";
+         const wk = scout.week ? `${scout.week} - ` : "";
+         if (printTitle) printTitle.textContent = `Scouting Report: ${yr}${wk}${opp}`;
+      }
+    }
+
+    /* MASTER DRILLS LOGIC */
+    function toggleDrillCat(cat, e) {
+        if(e) e.stopPropagation();
+        collapsedDrillCats[cat] = !collapsedDrillCats[cat];
+        localStorage.setItem('footballCollapsedDrills', JSON.stringify(collapsedDrillCats));
+        renderDrillsTab();
+    }
+
+    function renderDrillsTab() {
+       const wrapper = document.getElementById("drills-wrapper");
+       if (!wrapper) return;
+       let html = `<div class="drill-tree">`;
+       
+       Object.keys(dynamicDrills).forEach(cat => {
+           const isCollapsed = collapsedDrillCats[cat];
+           const icon = isCollapsed ? '📁' : '📂';
+           const displayStyle = isCollapsed ? 'none' : 'block';
+
+           html += `
+             <div class="drill-cat-node">
+                 <div class="drill-cat-header" onclick="toggleDrillCat('${cat}', event)">
+                     <span style="user-select:none;">${icon} ${cat}</span>
+                     <div class="admin-only" style="display:flex; gap:4px;">
+                        <button onclick="addDrillToCategory('${cat}', event)" class="toggle-board-btn">+ Add Drill</button>
+                        <button onclick="renameDrillCategory('${cat}', event)" class="toggle-board-btn">✏️ Rename</button>
+                        <button onclick="deleteDrillCategory('${cat}', event)" class="toggle-board-btn" style="color:red;">🗑️</button>
+                     </div>
+                 </div>
+                 <div class="drill-cat-body" style="display:${displayStyle};">
+           `;
+           
+           if(dynamicDrills[cat].length === 0) {
+               html += `<div style="text-align:center; color:var(--text-muted); font-style:italic; padding: 10px;">No drills in this category.</div>`;
+           } else {
+               html += `
+                 <div style="display: grid; grid-template-columns: 20% 50% 25% 5%; gap: 8px; font-weight: bold; font-size: 10px; color: var(--primary); margin-bottom: 6px; border-bottom: 1px solid #ccc; padding-bottom: 4px;">
+                    <div>Drill Name</div>
+                    <div>Setup & Instructions</div>
+                    <div>Coaching Focus / Key</div>
+                    <div class="admin-only" style="text-align:center;">Del</div>
+                 </div>
+               `;
+               dynamicDrills[cat].forEach((d, i) => {
+                  html += `
+                     <div class="drill-item-row">
+                        <div><input type="text" class="prac-input" value="${d.name}" oninput="updateDrillField('${cat}', ${i}, 'name', this.value)" placeholder="Drill Name"></div>
+                        <div><textarea class="prac-textarea" style="min-height:30px;" oninput="autoResizeTextarea(this); updateDrillField('${cat}', ${i}, 'desc', this.value);" placeholder="Setup: ...\nInstruction: ...">${d.desc}</textarea></div>
+                        <div><input type="text" class="prac-input" value="${d.key}" oninput="updateDrillField('${cat}', ${i}, 'key', this.value)" placeholder="Focus..."></div>
+                        <div class="admin-only" style="text-align:center; padding-top:4px;"><button class="remove-btn" onclick="deleteDrillFromCategory('${cat}', ${i}, event)">&times;</button></div>
+                     </div>
+                  `;
+               });
+           }
+           
+           html += `</div></div>`;
+       });
+       
+       html += `</div>`;
+       wrapper.innerHTML = html;
+       document.querySelectorAll('#panel-drills .prac-textarea').forEach(ta => autoResizeTextarea(ta));
+    }
+
+    function addDrillCategory() {
+      if (userRole !== 'admin') return;
+      const cat = prompt("Enter new Drill Category Name:");
+      if (cat && cat.trim() !== "" && !dynamicDrills[cat]) {
+          dynamicDrills[cat.trim()] = [];
+          triggerDebouncedSave();
+          renderDrillsTab();
+      }
+    }
+
+    function renameDrillCategory(oldCat, e) {
+      if (e) e.stopPropagation();
+      if (userRole !== 'admin') return;
+      const newCat = prompt("Rename Category:", oldCat);
+      if (newCat && newCat.trim() !== "" && newCat !== oldCat && !dynamicDrills[newCat]) {
+          dynamicDrills[newCat.trim()] = dynamicDrills[oldCat];
+          delete dynamicDrills[oldCat];
+          if (collapsedDrillCats[oldCat] !== undefined) {
+             collapsedDrillCats[newCat.trim()] = collapsedDrillCats[oldCat];
+             delete collapsedDrillCats[oldCat];
+          }
+          triggerDebouncedSave();
+          renderDrillsTab();
+      }
+    }
+
+    function deleteDrillCategory(cat, e) {
+      if (e) e.stopPropagation();
+      if (userRole !== 'admin') return;
+      if (confirm(`Are you sure you want to delete the category "${cat}" and all its drills?`)) {
+          delete dynamicDrills[cat];
+          delete collapsedDrillCats[cat];
+          triggerDebouncedSave();
+          renderDrillsTab();
+      }
+    }
+
+    function addDrillToCategory(cat, e) {
+      if (e) e.stopPropagation();
+      if (userRole !== 'admin') return;
+      collapsedDrillCats[cat] = false; 
+      dynamicDrills[cat].unshift({ name: "New Drill", desc: "", key: "" });
+      triggerDebouncedSave();
+      renderDrillsTab();
+    }
+
+    function updateDrillField(cat, index, field, val) {
+      if (userRole !== 'admin') return;
+      dynamicDrills[cat][index][field] = val;
+      triggerDebouncedSave();
+    }
+
+    function deleteDrillFromCategory(cat, index, e) {
+      if (e) e.stopPropagation();
+      if (userRole !== 'admin') return;
+      if(confirm("Delete this drill?")) {
+         dynamicDrills[cat].splice(index, 1);
+         triggerDebouncedSave();
+         renderDrillsTab();
+      }
+    }
+
+    function findDrillByName(drillName) {
+      for (const cat in dynamicDrills) {
+        const found = dynamicDrills[cat].find(d => d.name === drillName);
+        if (found) return found;
+      }
+      return null;
+    }
+
+    function createFormationPrompt(unit) {
+      if (userRole !== 'admin') return;
+      const name = prompt(`Enter new ${unit.toUpperCase()} formation name:`, "New Formation");
+      if(!name || name.trim() === "") return;
+      const subtitle = prompt("Enter subtitle/description:", "Personnel / Alignment details");
+      const forms = getWeekFormations(currentWeek);
+      
+      const formId = generateUniqueId("form");
+      const rowId = generateUniqueId("row");
+      const posId = generateUniqueId("pos");
+
+      const newForm = {
+        id: formId,
+        unit: unit,
+        name: name.trim(),
+        subtitle: (subtitle || "").trim(),
+        collapsed: false,
+        rows: [
+          { id: rowId, label: "Main Level", rowClass: "oline", positions: [
+            { id: posId, name: "POS 1" }
+          ]}
+        ]
+      };
+      
+      forms.push(newForm);
+      if(!depthChart) depthChart = getWeekDepthChart(currentWeek);
+      depthChart[posId] = [];
+      
+      updateRosterFormationOptions();
+      triggerDebouncedSave();
+      renderActiveBoards();
+      renderMasterRoster();
+    }
+
+    function renameFormation(formId) {
+      if (userRole !== 'admin') return;
+      const forms = getWeekFormations(currentWeek);
+      const form = forms.find(f => f.id === formId);
+      if(!form) return;
+      const newName = prompt("Edit Formation Name:", form.name);
+      if(newName && newName.trim() !== "") {
+        form.name = newName.trim();
+        const newSub = prompt("Edit Subtitle:", form.subtitle || "");
+        if(newSub !== null) form.subtitle = newSub.trim();
+        updateRosterFormationOptions();
+        triggerDebouncedSave();
+        renderActiveBoards();
+      }
+    }
+
+    function deleteFormation(formId) {
+      if (userRole !== 'admin') return;
+      const forms = getWeekFormations(currentWeek);
+      if(confirm("Are you sure you want to delete this entire formation?")) {
+        weeklyData[currentWeek].formations = forms.filter(f => f.id !== formId);
+        updateRosterFormationOptions();
+        triggerDebouncedSave();
+        renderActiveBoards();
+        renderMasterRoster();
+      }
+    }
+
+    function moveFormationItem(formId, direction) {
+      if (userRole !== 'admin') return;
+      const forms = getWeekFormations(currentWeek);
+      const idx = forms.findIndex(f => f.id === formId);
+      if(idx < 0) return;
+      const targetIdx = idx + direction;
+      if(targetIdx < 0 || targetIdx >= forms.length) return;
+      
+      const temp = forms[idx];
+      forms[idx] = forms[targetIdx];
+      forms[targetIdx] = temp;
+      triggerDebouncedSave();
+      renderActiveBoards();
+    }
+
+    function addRowToFormation(formId) {
+      if (userRole !== 'admin') return;
+      const forms = getWeekFormations(currentWeek);
+      const form = forms.find(f => f.id === formId);
+      if(!form) return;
+      const label = prompt("Enter Row/Level Name (e.g., 'Linebackers', 'Backfield'):", "New Level");
+      if(!label || label.trim() === "") return;
+      
+      const rowId = generateUniqueId("row");
+      const posId = generateUniqueId("pos");
+
+      form.rows.push({
+        id: rowId,
+        label: label.trim(),
+        rowClass: "oline",
+        positions: [
+          { id: posId, name: "POS 1" }
+        ]
+      });
+      
+      if(!depthChart) depthChart = getWeekDepthChart(currentWeek);
+      depthChart[posId] = [];
+      
+      triggerDebouncedSave();
+      renderActiveBoards();
+      renderMasterRoster();
+    }
+
+    function renameRow(formId, rowId) {
+      if (userRole !== 'admin') return;
+      const forms = getWeekFormations(currentWeek);
+      const form = forms.find(f => f.id === formId);
+      if(!form) return;
+      const row = form.rows.find(r => r.id === rowId);
+      if(!row) return;
+      const newLabel = prompt("Edit Row/Level Name:", row.label);
+      if(newLabel && newLabel.trim() !== "") {
+        row.label = newLabel.trim();
+        triggerDebouncedSave();
+        renderActiveBoards();
+      }
+    }
+
+    function deleteRow(formId, rowId) {
+      if (userRole !== 'admin') return;
+      const forms = getWeekFormations(currentWeek);
+      const form = forms.find(f => f.id === formId);
+      if(!form) return;
+      if(confirm("Delete this row and its positions?")) {
+        form.rows = form.rows.filter(r => r.id !== rowId);
+        triggerDebouncedSave();
+        renderActiveBoards();
+        renderMasterRoster();
+      }
+    }
+
+    function addPositionToRow(formId, rowId) {
+      if (userRole !== 'admin') return;
+      const forms = getWeekFormations(currentWeek);
+      const form = forms.find(f => f.id === formId);
+      if(!form) return;
+      const row = form.rows.find(r => r.id === rowId);
+      if(!row) return;
+      const posName = prompt("Enter Position Name (e.g. 'LT', 'MIKE', 'SLOT'):", "POS");
+      if(!posName || posName.trim() === "") return;
+      
+      const posId = generateUniqueId("pos");
+      
+      row.positions.push({
+        id: posId,
+        name: posName.trim()
+      });
+      
+      if(!depthChart[newPosId]) depthChart[newPosId] = [];
+      
+      triggerDebouncedSave();
+      renderActiveBoards();
+      renderMasterRoster();
+    }
+
+    function renamePosition(formId, rowId, posId) {
+      if (userRole !== 'admin') return;
+      const forms = getWeekFormations(currentWeek);
+      const form = forms.find(f => f.id === formId);
+      if(!form) return;
+      const row = form.rows.find(r => r.id === rowId);
+      if(!row) return;
+      const pos = row.positions.find(p => p.id === posId);
+      if(!pos) return;
+
+      const newName = prompt("Rename Position Tag:", pos.name || pos.id);
+      if(newName && newName.trim() !== "") {
+        pos.name = newName.trim();
+        triggerDebouncedSave();
+        renderActiveBoards();
+      }
+    }
+
+    function deletePosition(formId, rowId, posId) {
+      if (userRole !== 'admin') return;
+      const forms = getWeekFormations(currentWeek);
+      const form = forms.find(f => f.id === formId);
+      if(!form) return;
+      const row = form.rows.find(r => r.id === rowId);
+      if(!row) return;
+
+      if(confirm("Delete this position card?")) {
+        row.positions = row.positions.filter(p => p.id !== posId);
+        delete depthChart[posId];
+        triggerDebouncedSave();
+        renderActiveBoards();
+        renderMasterRoster();
+      }
+    }
+
+    function movePosition(formId, rowId, posId, direction) {
+      if (userRole !== 'admin') return;
+      const forms = getWeekFormations(currentWeek);
+      const form = forms.find(f => f.id === formId);
+      if(!form) return;
+      const row = form.rows.find(r => r.id === rowId);
+      if(!row) return;
+      const idx = row.positions.findIndex(p => p.id === posId);
+      if(idx < 0) return;
+      const targetIdx = idx + direction;
+      if(targetIdx < 0 || targetIdx >= row.positions.length) return;
+      
+      const temp = row.positions[idx];
+      row.positions[idx] = row.positions[targetIdx];
+      row.positions[targetIdx] = temp;
+      triggerDebouncedSave();
+      renderActiveBoards();
+    }
+
+    function toggleFormationCollapse(formId) {
+      const forms = getWeekFormations(currentWeek);
+      const form = forms.find(f => f.id === formId);
+      if(form) {
+        form.collapsed = !form.collapsed;
+        localStorage.setItem("footballWeeklyData", JSON.stringify(weeklyData));
+        if (userRole === 'admin') {
+          triggerDebouncedSave();
+        }
+        renderActiveBoards();
+      }
+    }
+
+    function renderActiveBoards() {
+      const containerId = "boards-" + activeUnit;
+      const container = document.getElementById(containerId);
+      if(!container) return;
+      
+      const forms = getWeekFormations(currentWeek).filter(f => f.unit === activeUnit);
+      container.innerHTML = "";
+
+      const searchEl = document.getElementById("search-input");
+      const searchTerm = (searchEl ? searchEl.value : "").toLowerCase().trim();
+
+      forms.forEach(form => {
+        const formDiv = document.createElement("div");
+        formDiv.className = "formation-container";
+        formDiv.id = "board_" + form.id;
+
+        formDiv.innerHTML = `
+          <div class="board-title">
+            <div>
+              <span>${form.name}</span> 
+              ${form.subtitle ? `<span style="font-size:11px; color:var(--text-muted); font-weight:normal; margin-left:8px;">${form.subtitle}</span>` : ''}
+            </div>
+            <div class="board-controls no-print">
+              <button class="toggle-board-btn admin-only" onclick="renameFormation('${form.id}')" title="Rename formation">✏️ Rename</button>
+              <button class="toggle-board-btn admin-only" onclick="addRowToFormation('${form.id}')" title="Add row/level">+ Add Row</button>
+              <button class="reorder-btn admin-only" onclick="moveFormationItem('${form.id}', -1)" title="Move up">▲</button>
+              <button class="reorder-btn admin-only" onclick="moveFormationItem('${form.id}', 1)" title="Move down">▼</button>
+              <button class="toggle-board-btn" onclick="toggleFormationCollapse('${form.id}')">${form.collapsed ? 'Show' : 'Hide'}</button>
+              <button class="toggle-board-btn admin-only" style="color:#ef4444;" onclick="deleteFormation('${form.id}')" title="Delete formation">🗑️</button>
+            </div>
+          </div>
+          <div class="formation-body ${form.collapsed ? 'collapsed' : ''}" id="body_${form.id}"></div>
+        `;
+
+        const bodyDiv = formDiv.querySelector(".formation-body");
+
+        (form.rows || []).forEach(row => {
+          const rowWrap = document.createElement("div");
+          rowWrap.className = "row-container";
+          
+          rowWrap.innerHTML = `
+            <div class="level-header-bar">
+              <span class="level-label" onclick="renameRow('${form.id}', '${row.id}')" title="Click to rename row">${row.label || 'Row / Level'} <span class="no-print admin-only">✏️</span></span>
+              <div class="row-actions no-print">
+                <button class="row-action-btn admin-only" onclick="addPositionToRow('${form.id}', '${row.id}')">+ Add Position</button>
+                <button class="row-action-btn admin-only" style="color:#ef4444;" onclick="deleteRow('${form.id}', '${row.id}')">✕</button>
+              </div>
+            </div>
+            <div class="formation-row ${row.rowClass || 'oline'}" id="row_el_${row.id}"></div>
+          `;
+
+          const posRowEl = rowWrap.querySelector(".formation-row");
+
+          (row.positions || []).forEach(pos => {
+            const card = document.createElement("div");
+            card.className = "position-card";
+            card.id = `card-${pos.id}`;
+
+            if (userRole === 'admin') {
+              card.ondragover = (e) => { e.preventDefault(); card.classList.add("drag-over"); };
+              card.ondragleave = () => card.classList.remove("drag-over");
+              card.ondrop = (e) => handleCardDrop(e, pos.id);
+              card.onclick = () => handleCardTap(pos.id);
+            }
+
+            const players = Array.isArray(depthChart[pos.id]) ? depthChart[pos.id] : [];
+
+            card.innerHTML = `
+              <div class="position-header">
+                <span class="pos-title-wrap" onclick="renamePosition('${form.id}', '${row.id}', '${pos.id}')" title="Click to rename position">
+                  ${pos.name || pos.id} <span class="no-print admin-only" style="font-size:9px;">✏️</span>
+                </span>
+                <div class="pos-header-actions no-print">
+                  <button class="pos-hdr-btn admin-only" onclick="movePosition('${form.id}', '${row.id}', '${pos.id}', -1)" title="Move left">◀</button>
+                  <button class="pos-hdr-btn admin-only" onclick="movePosition('${form.id}', '${row.id}', '${pos.id}', 1)" title="Move right">▶</button>
+                  <button class="pos-hdr-btn del-pos admin-only" onclick="deletePosition('${form.id}', '${row.id}', '${pos.id}')" title="Delete">&times;</button>
+                  <span class="pos-count">${players.length}</span>
+                </div>
+              </div>
+              <div class="card-search-container no-print admin-only" onclick="event.stopPropagation()">
+                <input type="text" id="input-${pos.id}" class="card-search-input" placeholder="+ Find..." oninput="filterCardDropdown('${pos.id}', this.value)" onfocus="filterCardDropdown('${pos.id}', this.value)" />
+                <div id="dropdown-${pos.id}" class="card-search-dropdown"></div>
+              </div>
+              <ul class="player-list" id="list-${pos.id}"></ul>
+            `;
+
+            const list = card.querySelector(".player-list");
+
+            if (players.length === 0) {
+              list.innerHTML = `<div class="empty-msg admin-only">${selectedTouchPlayer ? "Tap to Add" : "Drop Player"}</div>`;
+            } else {
+              players.forEach((player, idx) => {
+                if(!player) return;
+                const li = document.createElement("li");
+
+                let itemClass = "player-item ";
+                let rankLabel = "";
+                let badgeClass = "";
+
+                if (idx === 0) { itemClass += "is-starter"; rankLabel = "ST"; badgeClass = "rank-badge rank-starter"; }
+                else if (idx === 1) { itemClass += "is-sub-gold"; rankLabel = "D2"; badgeClass = "rank-badge rank-sub-gold"; }
+                else if (idx === 2) { itemClass += "is-sub-blue"; rankLabel = "D3"; badgeClass = "rank-badge rank-sub-blue"; }
+                else { itemClass += "is-sub-gray"; rankLabel = `D${idx + 1}`; badgeClass = "rank-badge rank-sub-gray"; }
+
+                if (activeUnit === "groups") {
+                  badgeClass = "rank-badge rank-sub-gray";
+                  itemClass = "player-item is-sub-gray";
+                }
+
+                const masterEntry = masterRoster.find(m => (m.num && m.num === player.num) || (m.lastName && m.lastName === player.name) || (m.firstName && m.firstName === player.name));
+                const isMatch = searchTerm && masterEntry && (
+                  (masterEntry.firstName && masterEntry.firstName.toLowerCase().includes(searchTerm)) || 
+                  (masterEntry.lastName && masterEntry.lastName.toLowerCase().includes(searchTerm)) || 
+                  (masterEntry.num && masterEntry.num.toLowerCase().includes(searchTerm))
+                );
+
+                if (isMatch || (selectedTouchPlayer && selectedTouchPlayer.name === player.name)) {
+                  itemClass += " search-match";
+                }
+
+                li.className = itemClass;
+                if (userRole === 'admin') {
+                  li.draggable = true;
+                  li.ondragstart = (e) => handlePlayerDragStart(e, pos.id, idx, player.name, player.num);
+                  li.onclick = (e) => handleTouchSelect(player.name, player.num, pos.id, idx, e);
+                }
+
+                li.innerHTML = `
+                  <div class="player-info">
+                    <span class="${badgeClass}">${rankLabel}</span>
+                    <span class="num-tag">${player.num ? '#' + player.num : ''}</span>
+                    <span>${player.name || ''}</span>
+                  </div>
+                  <div class="action-group no-print admin-only">
+                    <button class="reorder-btn" onclick="movePlayerOrder('${pos.id}', ${idx}, -1, event)" ${idx === 0 ? 'style="opacity:0.3; pointer-events:none;"' : ''}>▲</button>
+                    <button class="reorder-btn" onclick="movePlayerOrder('${pos.id}', ${idx}, 1, event)" ${idx === players.length - 1 ? 'style="opacity:0.3; pointer-events:none;"' : ''}>▼</button>
+                    <button class="remove-btn" onclick="removePlayer('${pos.id}', ${idx}, event)">&times;</button>
+                  </div>
+                `;
+                list.appendChild(li);
+              });
+            }
+
+            posRowEl.appendChild(card);
+          });
+
+          bodyDiv.appendChild(rowWrap);
+        });
+
+        container.appendChild(formDiv);
+      });
+    }
+
+    function triggerDebouncedSave() {
+      clearTimeout(saveTimeout);
+      // Immediately save to local storage for speed
+      localStorage.setItem("footballPracticeData", JSON.stringify(practiceData));
+      localStorage.setItem("footballWeeklyData", JSON.stringify(weeklyData));
+      localStorage.setItem("footballDynamicDrills", JSON.stringify(dynamicDrills));
+      
+      // Debounce the cloud sync so it doesn't interrupt typing
+      saveTimeout = setTimeout(() => {
+          saveState();
+      }, 1500);
+    }
+
+    function saveState() {
+      if (userRole !== 'admin') return;
+
+      if (!weeklyData[currentWeek]) weeklyData[currentWeek] = {};
+      weeklyData[currentWeek].opponent = (document.getElementById("opponent-input") ? document.getElementById("opponent-input").value : "") || "";
+      weeklyData[currentWeek].depthChart = depthChart;
+      weeklyData[currentWeek].formations = getWeekFormations(currentWeek);
+
+      localStorage.setItem("footballWeeklyData", JSON.stringify(weeklyData));
+      localStorage.setItem("footballPracticeData", JSON.stringify(practiceData));
+      localStorage.setItem("footballCustomCategories", JSON.stringify(savedCustomCategories));
+      localStorage.setItem("footballPracticeTemplates", JSON.stringify(practiceTemplates));
+      localStorage.setItem("footballDynamicDrills", JSON.stringify(dynamicDrills));
+      
+      if (cloudEnabled && db) {
+        document.getElementById("sync-text").textContent = "Syncing...";
+        db.collection("rosters").doc("main10u_weeks").set({ 
+            weeklyData: weeklyData,
+            practiceData: practiceData,
+            savedCustomCategories: savedCustomCategories,
+            practiceTemplates: practiceTemplates,
+            dynamicDrills: dynamicDrills
+        })
+          .then(() => {
+            document.getElementById("sync-text").textContent = "Live Cloud Sync Active";
+          })
+          .catch((err) => {
+            console.error("Cloud save failed:", err);
+            document.getElementById("sync-text").textContent = "Saved Locally";
+          });
+      }
+    }
+
+    if (cloudEnabled && db) {
+      db.collection("rosters").doc("main10u_weeks").onSnapshot((doc) => {
+        if (doc.exists) {
+          const data = doc.data();
+          if (data.weeklyData) {
+            weeklyData = data.weeklyData;
+            localStorage.setItem("footballWeeklyData", JSON.stringify(weeklyData));
+            depthChart = getWeekDepthChart(currentWeek);
+            const oppInput = document.getElementById("opponent-input");
+            if(oppInput) oppInput.value = weeklyData[currentWeek] ? (weeklyData[currentWeek].opponent || "") : "";
+          }
+          if (data.practiceData) {
+            practiceData = data.practiceData;
+            localStorage.setItem("footballPracticeData", JSON.stringify(practiceData));
+            if (!practiceData.find(p => p.id === currentPracticeId) && practiceData.length > 0) {
+                let sorted = [...practiceData].sort((a,b) => (b.lastEdited || 0) - (a.lastEdited || 0));
+                if(sorted.length > 0) currentPracticeId = sorted[0].id;
+            }
+          }
+          if (data.dynamicDrills) {
+            dynamicDrills = data.dynamicDrills;
+            localStorage.setItem("footballDynamicDrills", JSON.stringify(dynamicDrills));
+          }
+          if (data.savedCustomCategories) {
+            savedCustomCategories = data.savedCustomCategories;
+            localStorage.setItem("footballCustomCategories", JSON.stringify(savedCustomCategories));
+          }
+          if (data.practiceTemplates) {
+            practiceTemplates = data.practiceTemplates;
+            localStorage.setItem("footballPracticeTemplates", JSON.stringify(practiceTemplates));
+          }
+          
+          if (!isUserEditing()) {
+             renderActiveBoards();
+             if (activeUnit === 'wristband') renderWristband();
+             if (activeUnit === 'scouting') renderScouting();
+             if (activeUnit === 'drills') renderDrillsTab();
+             updateRosterFormationOptions();
+             renderMasterRoster();
+             populatePracticeDropdown();
+             renderPracticePlan();
+          }
+        }
+      });
+    } else {
+      document.getElementById("sync-text").textContent = "Local Storage Mode";
+    }
+
+    /* PRACTICE PLAN & TABLE RESIZING LOGIC */
+    function updatePracticeTextData(idx, field, value) {
+      if (userRole !== 'admin') return;
+      const current = practiceData.find(p => p.id === currentPracticeId);
+      if (!current || !Array.isArray(current.plan) || !current.plan[idx]) return;
+      current.plan[idx][field] = value;
+      current.lastEdited = Date.now();
+      triggerDebouncedSave();
+      if (field === 'time') renderPracticePlan();
+    }
+    
+    function updateCircuitTextData(rowIdx, stationIdx, field, value) {
+      if (userRole !== 'admin') return;
+      const current = practiceData.find(p => p.id === currentPracticeId);
+      if (!current || !Array.isArray(current.plan) || !current.plan[rowIdx]) return;
+      if (!Array.isArray(current.plan[rowIdx].stations) || !current.plan[rowIdx].stations[stationIdx]) return;
+      current.plan[rowIdx].stations[stationIdx][field] = value;
+      current.lastEdited = Date.now();
+      triggerDebouncedSave();
+    }
+
+    function updatePeriodType(idx, val) {
+      if (userRole !== 'admin') return;
+      const current = practiceData.find(p => p.id === currentPracticeId);
+      if (!current || !Array.isArray(current.plan) || !current.plan[idx]) return;
+      const row = current.plan[idx];
+      row.periodType = val;
+      if ((val === 'circuit' || val === 'groups') && (!Array.isArray(row.stations) || row.stations.length === 0)) {
+        row.stations = [
+          { drill: "", desc: "", key: "", customDrill: "", coaches: [], videoLink: "" },
+          { drill: "", desc: "", key: "", customDrill: "", coaches: [], videoLink: "" }
+        ];
+      }
+      current.lastEdited = Date.now();
+      saveState();
+      renderPracticePlan();
+    }
+
+    function getAllDrillOptions(selectedVal) {
+      let html = `<option value="">-- Select Drill --</option>`;
+      Object.keys(dynamicDrills).forEach(cat => {
+        html += `<optgroup label="${cat}">`;
+        dynamicDrills[cat].forEach(d => {
+          html += `<option value="${d.name}" ${selectedVal === d.name ? 'selected' : ''}>${d.name}</option>`;
+        });
+        html += `</optgroup>`;
+      });
+      html += `<option value="Custom" ${selectedVal === 'Custom' ? 'selected' : ''}>Custom Drill / Write In</option>`;
+      return html;
+    }
+
+    function autoResizeTextarea(el) {
+      el.style.height = 'auto';
+      el.style.height = (el.scrollHeight + 2) + 'px';
+    }
+
+    // Force full expansion of textareas right before print and swap them to clean printable divs
+    window.addEventListener('beforeprint', () => {
+      if (document.activeElement && typeof document.activeElement.blur === 'function') {
+         document.activeElement.blur(); 
+      }
+      
+      document.querySelectorAll('.prac-textarea, .wb-play-input, .scout-textarea').forEach(el => {
+        const div = document.createElement('div');
+        div.className = 'print-text-node';
+        if(el.classList.contains('wb-play-input')) div.classList.add('wb-print-text');
+        
+        if (el.tagName === 'SELECT') {
+           div.textContent = el.options[el.selectedIndex] ? el.options[el.selectedIndex].text : '';
+        } else {
+           div.textContent = el.value || '';
+        }
+        
+        el.parentNode.insertBefore(div, el);
+        el.style.display = 'none';
+      });
+    });
+
+    window.addEventListener('afterprint', () => {
+      document.querySelectorAll('.print-text-node').forEach(div => div.remove());
+      document.querySelectorAll('.prac-textarea, .wb-play-input, .scout-textarea').forEach(el => el.style.display = '');
+    });
+
+    function renderPracticePlan() {
+      const tbody = document.getElementById("practice-rows");
+      if (!tbody) return;
+      
+      try {
+        tbody.innerHTML = "";
+        const current = practiceData.find(p => p.id === currentPracticeId);
+        if (!current || !Array.isArray(current.plan)) return;
+        const plan = current.plan;
+
+        if (plan.length === 0) {
+           tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 20px; color: var(--text-muted); font-style: italic;">This practice plan is blank. Click "+ Add Period" to begin.</td></tr>`;
+           return;
+        }
+
+        // Calculate Times
+        let totalMins = timeToMins(current.endTime) - timeToMins(current.startTime);
+        if (totalMins < 0) totalMins += 1440; // overnight check
+        
+        let preMins = 0;
+        let scheduledMins = 0;
+        current.plan.forEach(r => {
+           if (r.category === 'Pre Practice') preMins += (r.time || 0);
+           else scheduledMins += (r.time || 0);
+        });
+
+        let preClock = timeToMins(current.startTime) - preMins;
+        let mainClock = timeToMins(current.startTime);
+
+        // Render Dashboard Stats
+        const statsDiv = document.getElementById("prac-stats");
+        if (statsDiv) {
+          const remaining = totalMins - scheduledMins;
+          const remainingColor = remaining < 0 ? '#ef4444' : 'var(--text-muted)';
+          
+          let statsHtml = `
+            <span>Total Time: <span style="color:var(--text);">${totalMins} mins</span></span>
+            <span style="color:#cbd5e1;">|</span>
+            <span>Scheduled: <span style="color:var(--text);">${scheduledMins} mins</span></span>
+            <span style="color:#cbd5e1;">|</span>
+            <span style="color:${remainingColor};">Unaccounted Time: ${remaining} mins</span>
+          `;
+          
+          document.getElementById('prac-start').value = current.startTime || "17:00";
+          document.getElementById('prac-end').value = current.endTime || "19:00";
+          statsDiv.innerHTML = statsHtml;
+        }
+
+        current.plan.forEach((row, idx) => {
+          if (!row) return;
+
+          // Calculate period timestamp
+          let rowStartMins, rowEndMins;
+          if (row.category === 'Pre Practice') {
+             rowStartMins = preClock;
+             preClock += (row.time || 0);
+             rowEndMins = preClock;
+          } else {
+             rowStartMins = mainClock;
+             mainClock += (row.time || 0);
+             rowEndMins = mainClock;
+          }
+          let timeLabel = minsToTimeStr(rowStartMins) + ' - ' + minsToTimeStr(rowEndMins);
+
+          let catOptions = `<option value="">-- Select Category --</option>`;
+          Object.keys(dynamicDrills).forEach(cat => {
+               catOptions += `<option value="${cat}" ${row.category === cat ? 'selected' : ''}>${cat}</option>`;
+          });
+          savedCustomCategories.forEach(cat => {
+               if (!dynamicDrills[cat]) {
+                 catOptions += `<option value="${cat}" ${row.category === cat ? 'selected' : ''}>${cat} (Custom)</option>`;
+               }
+          });
+          catOptions += `<option value="Custom" ${row.category === "Custom" ? 'selected' : ''}>+ New Custom Category...</option>`;
+
+          let periodTypeSelect = `
+            <div style="margin-top:6px;" class="no-print admin-only">
+              <select class="prac-select" style="font-size:10px; padding:2px; font-weight:bold;" onchange="updatePeriodType(${idx}, this.value)">
+                <option value="normal" ${row.periodType === 'normal' ? 'selected' : ''}>Whole Group</option>
+                <option value="circuit" ${row.periodType === 'circuit' ? 'selected' : ''}>Circuit (Rotate)</option>
+                <option value="groups" ${row.periodType === 'groups' ? 'selected' : ''}>Split Groups (Static)</option>
+              </select>
+            </div>
+          `;
+
+          let coachBadges = '';
+          const rowCoaches = Array.isArray(row.coaches) ? row.coaches : [];
+          rowCoaches.forEach(c => {
+            coachBadges += `<span class="coach-badge" onclick="removeCoachFromRow(${idx}, '${c}')" title="Click to remove">${c} <span class="no-print admin-only">&times;</span></span>`;
+          });
+          
+          let coachSelectOptions = `<option value="">+ Coach</option><option value="NEW">+ New Coach</option>`;
+          savedCoaches.forEach(c => {
+            coachSelectOptions += `<option value="${c}">${c}</option>`;
+          });
+
+          const isMulti = (row.periodType === 'circuit' || row.periodType === 'groups');
+
+          if (isMulti) {
+             if (!Array.isArray(row.stations) || row.stations.length === 0) {
+               row.stations = [
+                 { drill: "", desc: "", key: "", customDrill: "", coaches: [], videoLink: "" },
+                 { drill: "", desc: "", key: "", customDrill: "", coaches: [], videoLink: "" }
+               ];
+             }
+             const numStations = row.stations.length;
+             const blockLabel = row.periodType === 'groups' ? 'Group' : 'Station';
+
+             let rotationHtml = '';
+             if (row.periodType === 'circuit' && numStations > 0) {
+                let timePer = (row.time / numStations).toFixed(1);
+                timePer = timePer.endsWith('.0') ? timePer.slice(0, -2) : timePer;
+                rotationHtml = `<div class="rotation-timer">${timePer} mins / station</div>`;
+             } else if (row.periodType === 'groups') {
+                rotationHtml = `<div class="rotation-timer">Full ${row.time} mins</div>`;
+             }
+
+             row.stations.forEach((st, i) => {
+                if (!st) st = { drill: "", desc: "", key: "", customDrill: "", coaches: [], videoLink: "" };
+                if (!Array.isArray(st.coaches)) st.coaches = [];
+                if (typeof st.videoLink === 'undefined') st.videoLink = "";
+
+                let stationSelectHtml = `
+                  <div class="station-block">
+                    <div class="station-title">${blockLabel} ${i+1}</div>
+                    <select class="prac-select" onchange="updateCircuitDrill(${idx}, ${i}, this.value)">
+                      ${getAllDrillOptions(st.drill)}
+                    </select>
+                    ${st.drill === 'Custom' || (!st.drill && st.customDrill) ? `<input type="text" class="prac-input" style="margin-top:3px;" placeholder="Custom drill..." value="${st.customDrill || ''}" oninput="updateCircuitTextData(${idx}, ${i}, 'customDrill', this.value)">` : ''}
+                    <div style="margin-top:3px;" class="no-print">
+                      <input type="text" class="prac-input" style="font-size:10px; padding:2px;" placeholder="Optional video link..." value="${st.videoLink}" oninput="updateCircuitTextData(${idx}, ${i}, 'videoLink', this.value)">
+                    </div>
+                    ${st.videoLink ? `<div style="margin-top:2px;"><a href="${st.videoLink}" target="_blank" class="video-link-btn no-print">🔗 View Link</a></div>` : ''}
+                  </div>
+                `;
+
+                let stationDescHtml = `
+                  <div class="station-block">
+                    <textarea class="prac-textarea" oninput="autoResizeTextarea(this); updateCircuitTextData(${idx}, ${i}, 'desc', this.value);" placeholder="${blockLabel} ${i+1} description...">${st.desc || ''}</textarea>
+                  </div>
+                `;
+
+                let stationKeysHtml = `
+                  <div class="station-block">
+                    <input type="text" class="prac-input" value="${st.key || ''}" oninput="updateCircuitTextData(${idx}, ${i}, 'key', this.value);" placeholder="Focus...">
+                  </div>
+                `;
+
+                let stCoachBadges = '';
+                st.coaches.forEach(c => {
+                  stCoachBadges += `<span class="coach-badge" onclick="removeCoachFromStation(${idx}, ${i}, '${c}')" title="Click to remove">${c} <span class="no-print admin-only">&times;</span></span>`;
+                });
+
+                let stationCoachHtml = `
+                  <div class="station-block">
+                    <div>${stCoachBadges}</div>
+                    <select class="prac-select no-print admin-only" style="font-size:10px; padding:2px; margin-top:2px;" onchange="handleStationCoachSelection(${idx}, ${i}, this.value)">
+                      ${coachSelectOptions}
+                    </select>
+                  </div>
+                `;
+
+                const subTr = document.createElement("tr");
+
+                if (i === 0) {
+                  let stationCountSelect = `
+                    <div style="margin-top:4px;" class="no-print admin-only">
+                       <strong>Count:</strong> 
+                       <select class="prac-select" style="width:auto; display:inline-block; font-size:10px; padding:2px;" onchange="updateCircuitStations(${idx}, this.value)">
+                         <option value="2" ${numStations===2?'selected':''}>2</option>
+                         <option value="3" ${numStations===3?'selected':''}>3</option>
+                         <option value="4" ${numStations===4?'selected':''}>4</option>
+                         <option value="5" ${numStations===5?'selected':''}>5</option>
+                         <option value="6" ${numStations===6?'selected':''}>6</option>
+                       </select>
+                    </div>
+                  `;
+
+                  subTr.innerHTML = `
+                    <td rowspan="${numStations}">
+                      <div class="prac-time-input-wrap no-print">
+                        <input type="number" min="0" max="120" class="prac-input" value="${row.time || 0}" oninput="updatePracticeTextData(${idx}, 'time', parseInt(this.value) || 0)" style="width:40px; display:inline-block;"> 
+                        <span style="font-size:10px; color:var(--text-muted);">mins</span>
+                      </div>
+                      <div class="period-schedule-time">
+                        <span class="print-only-inline" style="display:none;"><strong>${row.time} Mins</strong><br></span>
+                        ${timeLabel}
+                      </div>
+                      ${rotationHtml}
+                    </td>
+                    <td rowspan="${numStations}">
+                      <select class="prac-select" onchange="updatePracticeCategory(${idx}, this.value)">
+                        ${catOptions}
+                      </select>
+                      ${periodTypeSelect}
+                      ${stationCountSelect}
+                    </td>
+                    <td>${stationSelectHtml}</td>
+                    <td>${stationDescHtml}</td>
+                    <td>${stationCoachHtml}</td>
+                    <td>${stationKeysHtml}</td>
+                    <td rowspan="${numStations}" class="no-print admin-only" style="text-align:center; vertical-align:middle;">
+                      <div style="display:flex; flex-direction:column; gap:4px; align-items:center;">
+                        <button class="reorder-btn" onclick="movePracticeRow(${idx}, -1)">▲</button>
+                        <button class="reorder-btn" onclick="movePracticeRow(${idx}, 1)">▼</button>
+                        <button class="remove-btn" onclick="removePracticeRow(${idx})">&times;</button>
+                      </div>
+                    </td>
+                  `;
+                } else {
+                  subTr.innerHTML = `
+                    <td>${stationSelectHtml}</td>
+                    <td>${stationDescHtml}</td>
+                    <td>${stationCoachHtml}</td>
+                    <td>${stationKeysHtml}</td>
+                  `;
+                }
+
+                tbody.appendChild(subTr);
+             });
+
+          } else {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>
+                <div class="prac-time-input-wrap no-print">
+                  <input type="number" min="0" max="120" class="prac-input" value="${row.time || 0}" oninput="updatePracticeTextData(${idx}, 'time', parseInt(this.value) || 0)" style="width:40px; display:inline-block;"> 
+                  <span style="font-size:10px; color:var(--text-muted);">mins</span>
+                </div>
+                <div class="period-schedule-time">
+                  <span class="print-only-inline" style="display:none;"><strong>${row.time} Mins</strong><br></span>
+                  ${timeLabel}
+                </div>
+              </td>
+              <td>
+                <select class="prac-select" onchange="updatePracticeCategory(${idx}, this.value)">
+                  ${catOptions}
+                </select>
+                ${periodTypeSelect}
+              </td>
+              <td>
+                <select class="prac-select" onchange="updatePracticeDrill(${idx}, this.value)">
+                  ${getAllDrillOptions(row.drill)}
+                </select>
+                ${row.drill === 'Custom' || !row.drill ? `<input type="text" class="prac-input" style="margin-top:4px;" placeholder="Custom drill name..." value="${row.customDrill || ''}" oninput="updatePracticeTextData(${idx}, 'customDrill', this.value)">` : ''}
+                <div style="margin-top:4px;" class="no-print">
+                  <input type="text" class="prac-input" style="font-size:10px; padding:2px;" placeholder="Optional video link..." value="${row.videoLink}" oninput="updatePracticeTextData(${idx}, 'videoLink', this.value)">
+                </div>
+                ${row.videoLink ? `<div style="margin-top:2px;"><a href="${row.videoLink}" target="_blank" class="video-link-btn no-print">🔗 View Link</a></div>` : ''}
+              </td>
+              <td><textarea class="prac-textarea" oninput="autoResizeTextarea(this); updatePracticeTextData(${idx}, 'desc', this.value);" placeholder="Drill description & setup...">${row.desc || ''}</textarea></td>
+              <td>
+                <div style="margin-bottom:4px;">${coachBadges}</div>
+                <select class="prac-select no-print admin-only" onchange="handleCoachSelection(${idx}, this.value)">
+                  ${coachSelectOptions}
+                </select>
+              </td>
+              <td><input type="text" class="prac-input" value="${row.key || ''}" oninput="updatePracticeTextData(${idx}, 'key', this.value);" placeholder="Key coaching focus..."></td>
+              <td class="no-print admin-only" style="text-align:center;">
+                <div style="display:flex; flex-direction:column; gap:4px; align-items:center;">
+                  <button class="reorder-btn" onclick="movePracticeRow(${idx}, -1)">▲</button>
+                  <button class="reorder-btn" onclick="movePracticeRow(${idx}, 1)">▼</button>
+                  <button class="remove-btn" onclick="removePracticeRow(${idx})">&times;</button>
+                </div>
+              </td>
+            `;
+
+            tbody.appendChild(tr);
+          }
+        });
+
+        document.querySelectorAll('.prac-textarea').forEach(ta => autoResizeTextarea(ta));
+        initTableResizing();
+      } catch (err) {
+        console.error("Error rendering practice plan:", err);
+      }
+    }
+
+    function initTableResizing() {
+      if (userRole !== 'admin') return;
+      const table = document.getElementById("main-practice-table");
+      if (!table) return;
+      
+      // Force fixed layout for precise column control
+      table.style.tableLayout = "fixed";
+
+      const ths = table.querySelectorAll("thead th");
+      ths.forEach((th, i) => {
+        const resizer = th.querySelector(".col-resizer");
+        if (!resizer) return;
+
+        resizer.addEventListener("mousedown", function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+
+          const startX = e.pageX;
+          const startWidth = th.offsetWidth;
+          
+          const nextTh = ths[i + 1];
+          const nextStartWidth = nextTh ? nextTh.offsetWidth : 0;
+          const tableWidth = table.offsetWidth;
+
+          resizer.classList.add("resizing");
+
+          const onMouseMove = function(e) {
+            const diffX = e.pageX - startX;
+            const newWidth = startWidth + diffX;
+
+            if (newWidth > 30 && nextTh) {
+              const newNextWidth = nextStartWidth - diffX;
+              if (newNextWidth > 30) {
+                // Convert back to percentages so it stays responsive
+                th.style.width = ((newWidth / tableWidth) * 100) + "%";
+                nextTh.style.width = ((newNextWidth / tableWidth) * 100) + "%";
+              }
+            }
+          };
+
+          const onMouseUp = function() {
+            document.removeEventListener("mousemove", onMouseMove);
+            document.removeEventListener("mouseup", onMouseUp);
+            resizer.classList.remove("resizing");
+          };
+
+          document.addEventListener("mousemove", onMouseMove);
+          document.addEventListener("mouseup", onMouseUp);
+        });
+      });
     }
 
     function updateRosterFormationOptions() {
@@ -1709,6 +3539,8 @@ const firebaseConfig = {
       });
 
       select.innerHTML = html;
+      
+      // Preserve selection if it still exists
       if (Array.from(select.options).some(o => o.value === currentVal)) {
         select.value = currentVal;
       } else {
@@ -1716,88 +3548,260 @@ const firebaseConfig = {
       }
     }
 
-    function getActivePlayerPositionsCount(num) {
-      if (!num || !depthChart) return 0;
+    function addPracticeRow() {
+      if (userRole !== 'admin') return;
+      const current = practiceData.find(p => p.id === currentPracticeId);
+      if (!current) return;
+      if (!Array.isArray(current.plan)) current.plan = [];
       
-      const select = document.getElementById("roster-formation-select");
-      const filterVal = select ? select.value : "all";
-      const forms = getWeekFormations(currentWeek);
+      current.plan.push({ 
+        time: 15, 
+        category: "Warm-Up & Breaks", 
+        drill: "", 
+        desc: "", 
+        key: "", 
+        customDrill: "", 
+        coaches: [], 
+        periodType: 'normal',
+        videoLink: "",
+        stations: [
+          { drill: "", desc: "", key: "", customDrill: "", coaches: [], videoLink: "" },
+          { drill: "", desc: "", key: "", customDrill: "", coaches: [], videoLink: "" }
+        ]
+      });
+      current.lastEdited = Date.now();
+      saveState();
+      renderPracticePlan();
+    }
 
-      let targetForms = [];
-      if (filterVal === "all") {
-        targetForms = forms;
-      } else if (filterVal === "current_tab") {
-        targetForms = forms.filter(f => f.unit === activeUnit);
+    function removePracticeRow(idx) {
+      if (userRole !== 'admin') return;
+      const current = practiceData.find(p => p.id === currentPracticeId);
+      if (!current || !Array.isArray(current.plan)) return;
+      current.plan.splice(idx, 1);
+      current.lastEdited = Date.now();
+      saveState();
+      renderPracticePlan();
+    }
+
+    function movePracticeRow(index, direction) {
+      if (userRole !== 'admin') return;
+      const current = practiceData.find(p => p.id === currentPracticeId);
+      if (!current || !Array.isArray(current.plan)) return;
+      const plan = current.plan;
+      const targetIndex = index + direction;
+      if (targetIndex < 0 || targetIndex >= plan.length) return;
+
+      const temp = plan[index];
+      plan[index] = plan[targetIndex];
+      plan[targetIndex] = temp;
+
+      current.lastEdited = Date.now();
+      saveState();
+      renderPracticePlan();
+    }
+
+    function updatePracticeCategory(idx, catValue) {
+      if (userRole !== 'admin') return;
+      const current = practiceData.find(p => p.id === currentPracticeId);
+      if (!current || !Array.isArray(current.plan) || !current.plan[idx]) return;
+      const row = current.plan[idx];
+
+      if (catValue === "Custom") {
+        const newCat = prompt("Enter new custom category name:");
+        if (newCat && newCat.trim() !== "") {
+          const cleanCat = newCat.trim();
+          if (!savedCustomCategories.includes(cleanCat)) {
+            savedCustomCategories.push(cleanCat);
+            localStorage.setItem("footballCustomCategories", JSON.stringify(savedCustomCategories));
+          }
+          row.category = cleanCat;
+        } else {
+          return;
+        }
       } else {
-        targetForms = forms.filter(f => f.id === filterVal);
+        row.category = catValue;
       }
 
-      if (targetForms.length === 0) return 0;
-
-      const validPosIds = new Set();
-      targetForms.forEach(form => {
-        (form.rows || []).forEach(row => {
-          (row.positions || []).forEach(pos => {
-            validPosIds.add(pos.id);
-          });
-        });
-      });
-
-      let count = 0;
-      validPosIds.forEach(posId => {
-        if (Array.isArray(depthChart[posId])) {
-          count += depthChart[posId].filter(p => p && p.num === num).length;
+      row.drill = "";
+      row.desc = "";
+      row.key = "";
+      row.customDrill = "";
+      
+      if (row.category === "Tackle Circuit" || row.category === "Tackling (Whole Team)" || row.category === "Pre Practice") {
+        row.periodType = 'circuit';
+        if (!Array.isArray(row.stations) || row.stations.length === 0) {
+           row.stations = [
+             { drill: "", desc: "", key: "", customDrill: "", coaches: [], videoLink: "" },
+             { drill: "", desc: "", key: "", customDrill: "", coaches: [], videoLink: "" }
+           ];
         }
-      });
-      return count;
+      }
+      
+      current.lastEdited = Date.now();
+      saveState();
+      renderPracticePlan();
     }
 
-    function filterRoster() {
-      renderMasterRoster();
-      renderActiveBoards();
+    function updatePracticeDrill(idx, drillValue) {
+      if (userRole !== 'admin') return;
+      const current = practiceData.find(p => p.id === currentPracticeId);
+      if (!current || !Array.isArray(current.plan) || !current.plan[idx]) return;
+      const row = current.plan[idx];
+      row.drill = drillValue;
+      
+      if (drillValue !== "Custom") {
+        row.customDrill = ""; 
+        const drillObj = findDrillByName(drillValue);
+        if (drillObj) {
+          row.desc = drillObj.desc || "";
+          row.key = drillObj.key || "";
+        } else if (drillValue === "") {
+          row.desc = "";
+          row.key = "";
+        }
+      } else {
+        row.desc = "";
+        row.key = "";
+      }
+      
+      current.lastEdited = Date.now();
+      saveState();
+      renderPracticePlan();
     }
 
-    function renderMasterRoster() {
-      const rosterContainer = document.getElementById("master-roster-list");
-      if (!rosterContainer) return;
-      const searchEl = document.getElementById("search-input");
-      const searchTerm = (searchEl ? searchEl.value : "").toLowerCase().trim();
-      rosterContainer.innerHTML = "";
+    function updateCircuitStations(rowIdx, newCount) {
+      if (userRole !== 'admin') return;
+      const current = practiceData.find(p => p.id === currentPracticeId);
+      if (!current || !Array.isArray(current.plan) || !current.plan[rowIdx]) return;
+      const target = parseInt(newCount);
+      const row = current.plan[rowIdx];
+      if (!Array.isArray(row.stations)) row.stations = [];
+      while (row.stations.length < target) {
+        row.stations.push({ drill: "", desc: "", key: "", customDrill: "", coaches: [], videoLink: "" });
+      }
+      while (row.stations.length > target) {
+        row.stations.pop();
+      }
+      current.lastEdited = Date.now();
+      saveState();
+      renderPracticePlan();
+    }
 
-      masterRoster.forEach(player => {
-        const fName = (player.firstName || "").toLowerCase();
-        const lName = (player.lastName || "").toLowerCase();
-        const pNum = (player.num || "").toString().toLowerCase();
-
-        const matches = !searchTerm || fName.includes(searchTerm) || lName.includes(searchTerm) || pNum.includes(searchTerm);
-        if (!matches) return;
-
-        const spotCount = player.num ? getActivePlayerPositionsCount(player.num) : 0;
-
-        const li = document.createElement("li");
-        li.className = "full-roster-item";
-        li.dataset.name = player.lastName || player.firstName;
-        li.dataset.num = player.num || "";
-
-        if (selectedTouchPlayer && selectedTouchPlayer.num === player.num && player.num !== "") {
-          li.classList.add("selected-touch");
+    function updateCircuitDrill(rowIdx, stationIdx, drillValue) {
+      if (userRole !== 'admin') return;
+      const current = practiceData.find(p => p.id === currentPracticeId);
+      if (!current || !Array.isArray(current.plan) || !current.plan[rowIdx]) return;
+      const row = current.plan[rowIdx];
+      if (!Array.isArray(row.stations) || !row.stations[stationIdx]) return;
+      const st = row.stations[stationIdx];
+      st.drill = drillValue;
+      if (drillValue !== "Custom") {
+        st.customDrill = "";
+        const drillObj = findDrillByName(drillValue);
+        if (drillObj) {
+          st.desc = drillObj.desc || "";
+          st.key = drillObj.key || "";
+        } else if (drillValue === "") {
+          st.desc = "";
+          st.key = "";
         }
+      } else {
+        st.desc = "";
+        st.key = "";
+      }
+      current.lastEdited = Date.now();
+      saveState();
+      renderPracticePlan();
+    }
 
-        if (userRole === 'admin') {
-          li.draggable = true;
-          li.ondragstart = handleRosterDragStart;
-          li.onclick = (e) => handleTouchSelect(player.lastName || player.firstName, player.num || "", null, null, e);
+    function handleCoachSelection(rowIdx, value) {
+      if (userRole !== 'admin') return;
+      if (!value) return;
+      const current = practiceData.find(p => p.id === currentPracticeId);
+      if (!current || !Array.isArray(current.plan) || !current.plan[rowIdx]) return;
+      const row = current.plan[rowIdx];
+      if (!Array.isArray(row.coaches)) row.coaches = [];
+
+      if (value === "NEW") {
+        const newCoach = prompt("Enter new coach name:");
+        if (newCoach && newCoach.trim() !== "") {
+          const cleanName = newCoach.trim();
+          if (!savedCoaches.includes(cleanName)) {
+            savedCoaches.push(cleanName);
+            saveCoaches();
+          }
+          if (!row.coaches.includes(cleanName)) {
+            row.coaches.push(cleanName);
+          }
         }
+      } else {
+        if (!row.coaches.includes(value)) {
+          row.coaches.push(value);
+        }
+      }
+      current.lastEdited = Date.now();
+      saveState();
+      renderPracticePlan();
+    }
 
-        li.innerHTML = `
-          <div>
-            <span class="num-tag" style="min-width:26px; color:var(--primary);">${player.num ? '#' + player.num : ''}</span> 
-            <span>${player.firstName || ''} ${player.lastName || ''}</span>
-          </div>
-          ${spotCount > 0 ? `<span class="multi-badge">${spotCount} Spot${spotCount > 1 ? 's' : ''}</span>` : ''}
-        `;
-        rosterContainer.appendChild(li);
-      });
+    function removeCoachFromRow(rowIdx, coachName) {
+      if (userRole !== 'admin') return;
+      const current = practiceData.find(p => p.id === currentPracticeId);
+      if (!current || !Array.isArray(current.plan) || !current.plan[rowIdx]) return;
+      const row = current.plan[rowIdx];
+      if (Array.isArray(row.coaches)) {
+        row.coaches = row.coaches.filter(c => c !== coachName);
+        current.lastEdited = Date.now();
+        saveState();
+        renderPracticePlan();
+      }
+    }
+
+    function handleStationCoachSelection(rowIdx, stationIdx, value) {
+      if (userRole !== 'admin') return;
+      if (!value) return;
+      const current = practiceData.find(p => p.id === currentPracticeId);
+      if (!current || !Array.isArray(current.plan) || !current.plan[rowIdx]) return;
+      const row = current.plan[rowIdx];
+      if (!Array.isArray(row.stations) || !row.stations[stationIdx]) return;
+      const st = row.stations[stationIdx];
+      if (!Array.isArray(st.coaches)) st.coaches = [];
+
+      if (value === "NEW") {
+        const newCoach = prompt("Enter new coach name:");
+        if (newCoach && newCoach.trim() !== "") {
+          const cleanName = newCoach.trim();
+          if (!savedCoaches.includes(cleanName)) {
+            savedCoaches.push(cleanName);
+            saveCoaches();
+          }
+          if (!st.coaches.includes(cleanName)) {
+            st.coaches.push(cleanName);
+          }
+        }
+      } else {
+        if (!st.coaches.includes(value)) {
+          st.coaches.push(value);
+        }
+      }
+      markPracticeEdited();
+      saveState();
+      renderPracticePlan();
+    }
+
+    function removeCoachFromStation(rowIdx, stationIdx, coachName) {
+      if (userRole !== 'admin') return;
+      const current = practiceData.find(p => p.id === currentPracticeId);
+      if (!current || !Array.isArray(current.plan) || !current.plan[rowIdx]) return;
+      const row = current.plan[rowIdx];
+      if (!Array.isArray(row.stations) || !row.stations[stationIdx]) return;
+      const st = row.stations[stationIdx];
+      if (Array.isArray(st.coaches)) {
+        st.coaches = st.coaches.filter(c => c !== coachName);
+        saveState();
+        renderPracticePlan();
+      }
     }
 
     // Initialize application on load
