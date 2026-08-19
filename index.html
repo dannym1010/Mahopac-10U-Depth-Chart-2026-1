@@ -56,7 +56,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      z-index: 10000;
+      z-index: 100000;
     }
 
     .auth-card {
@@ -166,8 +166,6 @@
     .rank-badge { font-size: 8px; font-weight: bold; padding: 2px 4px; border-radius: 3px; text-transform: uppercase; }
     .rank-starter { background: #000000; color: #ffffff; }
     .rank-sub-gold { background: #eab308; color: #000000; }
-    .rank-sub-blue { background: #1d4ed8; color: #ffffff; }
-    .rank-sub-gray { background: #64748b; color: #ffffff; }
 
     .remove-btn { background: none; border: none; color: #ef4444; font-weight: bold; cursor: pointer; font-size: 13px; }
 
@@ -183,12 +181,6 @@
     .wb-body-blue { background-color: #cce5ff !important; } 
     .wb-sub-yellow { background-color: #ffff00 !important; color: #000 !important; }
     .wb-body-yellow { background-color: #ffffff !important; } 
-    .wb-sub-green { background-color: #92d050 !important; color: #000 !important; }
-    .wb-body-green { background-color: #eaf1dd !important; } 
-    .wb-sub-red { background-color: #ff0000 !important; color: #fff !important; }
-    .wb-body-red { background-color: #f2dcdb !important; } 
-    .wb-sub-white { background-color: #ffffff !important; color: #000 !important; }
-    .wb-body-white { background-color: #ffffff !important; }
 
     /* Practice Dropdown */
     .tree-root { list-style: none; margin: 0; padding: 0; }
@@ -243,6 +235,7 @@
         <button type="submit" id="auth-submit-btn" class="btn-primary">Sign In</button>
       </form>
       <div id="auth-error" style="color:#ef4444; font-size:12px; margin-top:10px; font-weight:bold; display:none;"></div>
+      <div style="margin-top:15px;"><span style="color:#64748b; font-size:11px; cursor:pointer; text-decoration:underline;" onclick="bypassLogin()">Continue without login (Offline Mode)</span></div>
     </div>
   </div>
 
@@ -272,7 +265,11 @@
     <div class="week-controls">
       <span class="week-label">Game Week:</span>
       <select id="week-select" class="week-select" onchange="changeWeek(this.value)">
-        <option value="0">Week 0</option><option value="1">Week 1</option><option value="2">Week 2</option><option value="3">Week 3</option><option value="4">Week 4</option><option value="5">Week 5</option><option value="6">Week 6</option><option value="7">Week 7</option><option value="8">Week 8</option>
+        <option value="0">Week 0</option><option value="1">Week 1</option>
+        <option value="2">Week 2</option><option value="3">Week 3</option>
+        <option value="4">Week 4</option><option value="5">Week 5</option>
+        <option value="6">Week 6</option><option value="7">Week 7</option>
+        <option value="8">Week 8</option>
       </select>
       <button class="copy-week-btn admin-only" onclick="copyWeekToPrompt()">📋 Copy Lineup To...</button>
     </div>
@@ -296,7 +293,6 @@
   </div>
 
   <div class="app-layout">
-    
     <div class="boards-container">
       <div class="unit-panel" id="panel-offense"><button class="add-form-btn admin-only" onclick="createFormationPrompt('offense')">+ Add Offensive Formation</button><div id="boards-offense"></div></div>
       <div class="unit-panel hidden" id="panel-defense"><button class="add-form-btn admin-only" onclick="createFormationPrompt('defense')">+ Add Defensive Formation</button><div id="boards-defense"></div></div>
@@ -351,9 +347,9 @@
           <div class="board-title" style="position: relative; overflow: visible;">
             <div style="display:flex; align-items:center; gap:8px; overflow: visible;">
               <span>Practice:</span>
-              <div style="position:relative; width: 250px; z-index: 9999;">
+              <div style="position:relative; width: 250px; z-index: 99999;">
                 <div id="selected-practice-display" class="practice-tree-btn" onclick="togglePracticeTree(event)">Select Practice...</div>
-                <div id="practice-tree-dropdown" class="card-search-dropdown" onclick="event.stopPropagation()" style="display:none; width: 350px; max-height: 400px; padding:8px; top: 100%; left: 0; z-index: 9999;"></div>
+                <div id="practice-tree-dropdown" class="card-search-dropdown" onclick="event.stopPropagation()" style="display:none; width: 350px; max-height: 400px; padding:8px; top: 100%; left: 0; z-index: 99999;"></div>
               </div>
               <button class="toggle-board-btn admin-only" onclick="createNewPractice()">+ New</button>
               <button class="toggle-board-btn admin-only" onclick="deletePractice()" style="color:#ef4444;">🗑️</button>
@@ -412,7 +408,7 @@
 
   <script>
     // ----------------------------------------------------------------------------------
-    // APPLICATION LOGIC
+    // APPLICATION CORE SCRIPT
     // ----------------------------------------------------------------------------------
 const firebaseConfig = {
        apiKey: "AIzaSyBxAet3UzgBNuMUyUgj2MDWgrK5X63IPvg",
@@ -453,7 +449,7 @@ const firebaseConfig = {
     let currentWeek = "0";
     let activeCountFormationId = null;
     let currentUser = null;
-    let userRole = 'admin'; // default to admin in local mode
+    let userRole = 'admin';
     let isSignUpMode = false;
     let userRoleUnsubscribe = null;
     let saveTimeout = null;
@@ -570,7 +566,7 @@ const firebaseConfig = {
       renderMasterRoster();
     }
 
-    // --- Drag & Drop Mechanics ---
+    // --- Drag & Drop ---
     function handleRosterDragStart(e, name, num) {
       draggedData = { type: "roster", name, num };
       e.dataTransfer.setData("text/plain", name);
@@ -698,7 +694,6 @@ const firebaseConfig = {
       masterRoster.forEach(player => {
         if (term && !player.firstName.toLowerCase().includes(term) && !player.lastName.toLowerCase().includes(term) && !player.num.includes(term)) return;
 
-        // Calculate spots
         let count = 0;
         const forms = getWeekFormations(currentWeek).filter(f => f.unit === activeUnit && (!activeCountFormationId || f.id === activeCountFormationId));
         forms.forEach(f => {
@@ -1016,33 +1011,45 @@ const firebaseConfig = {
       document.getElementById("auth-submit-btn").textContent = isSignUpMode ? "Create Account" : "Sign In";
     }
 
+    function bypassLogin() {
+      document.getElementById("auth-overlay").style.display = "none";
+      applyRole('admin');
+    }
+
     function handleEmailAuth(e) {
       e.preventDefault();
-      if (!auth) return;
+      const errDiv = document.getElementById("auth-error");
+      if (!auth) {
+        if (errDiv) { errDiv.textContent = "Firebase Auth not active. Use Offline Mode below."; errDiv.style.display = "block"; }
+        return;
+      }
       const email = document.getElementById("auth-email").value;
       const pass = document.getElementById("auth-password").value;
       if (isSignUpMode) {
-        auth.createUserWithEmailAndPassword(email, pass).catch(err => alert(err.message));
+        auth.createUserWithEmailAndPassword(email, pass).catch(err => {
+          if (errDiv) { errDiv.textContent = err.message; errDiv.style.display = "block"; }
+        });
       } else {
-        auth.signInWithEmailAndPassword(email, pass).catch(err => alert(err.message));
+        auth.signInWithEmailAndPassword(email, pass).catch(err => {
+          if (errDiv) { errDiv.textContent = err.message; errDiv.style.display = "block"; }
+        });
       }
     }
 
     function signInWithGoogle() {
-      if (!auth) return;
-      auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(err => alert(err.message));
+      const errDiv = document.getElementById("auth-error");
+      if (!auth) {
+        if (errDiv) { errDiv.textContent = "Firebase Auth not active. Use Offline Mode below."; errDiv.style.display = "block"; }
+        return;
+      }
+      auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(err => {
+        if (errDiv) { errDiv.textContent = err.message; errDiv.style.display = "block"; }
+      });
     }
 
     function signOutUser() {
       if (auth) auth.signOut();
       else location.reload();
-    }
-
-    function closeAllDropdowns(e) {
-      if (e && e.target && e.target.closest('#practice-tree-dropdown')) return;
-      if (e && e.target && e.target.closest('#selected-practice-display')) return;
-      const pt = document.getElementById('practice-tree-dropdown');
-      if (pt) pt.style.display = 'none';
     }
 
     // Run
