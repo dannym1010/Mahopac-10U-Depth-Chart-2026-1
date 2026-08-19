@@ -364,14 +364,14 @@
       box-shadow: 0 2px 4px rgba(30, 58, 138, 0.2);
     }
 
-    /* Main Layout - Top Aligned for Sticky */
+    /* Main Layout */
     .app-layout {
       display: flex;
       gap: 12px;
       max-width: 1400px;
       margin: 0 auto;
       flex-direction: row;
-      align-items: flex-start; /* CRITICAL: Enables clean top-aligned sticky sidebar */
+      align-items: flex-start;
     }
 
     @media (max-width: 900px) {
@@ -395,7 +395,6 @@
       gap: 20px;
     }
 
-    /* Formation Container - Interactive Styles */
     .formation-container {
       background: #ffffff;
       border: 2px dashed var(--card-border);
@@ -405,6 +404,7 @@
       box-shadow: 0 1px 3px rgba(0,0,0,0.05);
       cursor: pointer;
       transition: border-color 0.2s, background-color 0.2s, box-shadow 0.2s;
+      overflow: visible; /* Prevents dropdowns from getting clipped */
     }
 
     .formation-container:hover {
@@ -638,7 +638,7 @@
       background: #ffffff;
       border: 1px solid var(--card-border);
       border-radius: 0 0 6px 6px;
-      max-height: 200px;
+      max-height: 120px;
       overflow-y: auto;
       z-index: 100;
       box-shadow: 0 4px 6px rgba(0,0,0,0.15);
@@ -874,7 +874,7 @@
       .scouting-grid { grid-template-columns: 1fr; }
     }
 
-    /* Practice Plan Resizable Table & Alternating Shading Styles */
+    /* Practice Plan Resizable Table */
     .practice-dashboard {
       background: #f1f5f9;
       padding: 8px 12px;
@@ -1037,11 +1037,19 @@
       color: white;
     }
 
-    /* Sidebar Roster Panel (Aligned Top and Sticky) */
-    .sidebar {
+    /* Sidebar Wrapper & Panels */
+    #sidebar-container {
       flex: 1;
       min-width: 220px;
       max-width: 280px;
+      position: sticky;
+      top: 15px;
+      max-height: calc(100vh - 30px);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar {
       background: var(--card-bg);
       border-radius: 8px;
       padding: 12px;
@@ -1049,22 +1057,18 @@
       display: flex;
       flex-direction: column;
       box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-      position: -webkit-sticky;
-      position: sticky;
-      top: 10px;
-      max-height: calc(100vh - 20px);
-      box-sizing: border-box;
+      flex-grow: 1;
+      max-height: 100%;
     }
 
     @media (max-width: 900px) {
-      .sidebar {
+      #sidebar-container {
          position: static;
          max-width: 100%;
          max-height: 600px;
       }
     }
 
-    .sidebar.hidden { display: none !important; }
     .sidebar h2 { font-size: 14px; margin-top: 0; margin-bottom: 8px; color: var(--primary); border-bottom: 1px solid var(--card-border); padding-bottom: 6px; }
 
     .search-box {
@@ -1110,11 +1114,10 @@
       @page { size: letter portrait; margin: 0.25in; }
       body { background-color: #ffffff; padding: 0; margin: 0; font-size: 10px; }
       
-      .toolbar, .sidebar, .remove-btn, .action-group, p.subtitle, .search-box, .card-search-container, .tab-navigation, .toggle-board-btn, .week-bar, .board-controls, .add-row-btn, .add-form-btn, .row-actions, .pos-header-actions, .col-resizer, .practice-dashboard { display: none !important; }
+      .toolbar, #sidebar-container, .remove-btn, .action-group, p.subtitle, .search-box, .card-search-container, .tab-navigation, .toggle-board-btn, .week-bar, .board-controls, .add-row-btn, .add-form-btn, .row-actions, .pos-header-actions, .col-resizer, .practice-dashboard { display: none !important; }
       
       .app-layout, .boards-container, .unit-panel:not(.hidden) { display: block !important; }
       
-      /* Standard Panels */
       .formation-body.collapsed { display: block !important; }
       .formation-container { border: 1px solid #000000 !important; box-shadow: none !important; padding: 4px; page-break-inside: auto !important; margin-bottom: 4px; background: #ffffff !important; }
       .formation-row { min-width: 100% !important; page-break-inside: avoid; }
@@ -1123,87 +1126,36 @@
       .player-item { border: 1px solid #cbd5e1 !important; font-size: 7.5px; padding: 2px 3px; margin-bottom: 2px; }
       h1 { margin-top: 0; font-size: 12px; color: #000000; text-align: center; }
       
-      /* Wristband Print Specifics */
-      #panel-wristband .wb-exact-table {
-        border: 2px solid #000000; 
-        width: 5.25in !important; 
-        margin: 0;
-        table-layout: fixed !important; 
-      }
+      #panel-wristband .wb-exact-table { border: 2px solid #000000; width: 5.25in !important; margin: 0; table-layout: fixed !important; }
       #panel-wristband .wb-exact-table td { height: 0.18in !important; }
       #panel-wristband .wb-sub-idx { width: 0.25in !important; }
       #panel-wristband .wb-play-input { display: none !important; }
       #panel-wristband .wb-cell-controls { display: none !important; }
-      #panel-wristband .print-text-node.wb-print-text {
-        font-size: 8.5px !important; 
-        padding: 0 2px !important;
-        font-weight: bold;
-        text-transform: uppercase;
-        font-family: "Times New Roman", Times, serif !important;
-      }
-      #panel-wristband input[type="text"] {
-        border: none !important;
-        background: transparent !important;
-      }
+      #panel-wristband .print-text-node.wb-print-text { font-size: 8.5px !important; padding: 0 2px !important; font-weight: bold; text-transform: uppercase; font-family: "Times New Roman", Times, serif !important; }
+      #panel-wristband input[type="text"] { border: none !important; background: transparent !important; }
 
-      /* Scouting Print Specifics */
       #panel-scouting .scouting-grid { display: block !important; }
       #panel-scouting .station-block { page-break-inside: avoid; border: 1px solid #000; padding: 8px; margin-bottom: 8px; border-radius: 0; }
       #panel-scouting .station-title { font-size: 11px; border-bottom: 1px solid #000; padding-bottom: 2px; margin-bottom: 4px; color: #000; }
 
-      /* Practice Table Print */
-      .practice-table { 
-        border: 2px solid #000000; 
-        width: 100% !important; 
-        table-layout: fixed !important; 
-        font-size: 10px !important; 
-        page-break-inside: auto;
-      }
+      .practice-table { border: 2px solid #000000; width: 100% !important; table-layout: fixed !important; font-size: 10px !important; page-break-inside: auto; }
       .practice-table tr { page-break-inside: avoid; page-break-after: auto; }
-      .practice-table th, .practice-table td { 
-        border: 1px solid #000000 !important; 
-        padding: 3px 4px !important; 
-        overflow: hidden !important;
-        word-wrap: break-word;
-      }
+      .practice-table th, .practice-table td { border: 1px solid #000000 !important; padding: 3px 4px !important; overflow: hidden !important; word-wrap: break-word; }
       .practice-table tbody tr:nth-child(odd) { background-color: #ffffff !important; }
       .practice-table tbody tr:nth-child(even) { background-color: #f4f6f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 
       .prac-time-input-wrap { display: none !important; }
-      
       .period-schedule-time { color: #000000 !important; font-size: 11px !important; margin-top: 2px; }
       .rotation-timer { color: #000000 !important; font-size: 10px !important; }
       .print-only-inline { display: inline !important; }
-
-      .prac-input, .prac-select {
-        border: none !important; 
-        background: transparent !important; 
-        padding: 0 !important;
-        appearance: none; 
-        -webkit-appearance: none; 
-        color: #000000 !important; 
-        font-size: 10px !important; 
-        margin: 0;
-      }
-
-      .print-text-node {
-        display: block !important;
-        font-size: 10px !important; 
-        white-space: pre-wrap;
-        word-break: break-word;
-        color: #000000;
-        padding: 2px 0;
-      }
-
+      .prac-input, .prac-select { border: none !important; background: transparent !important; padding: 0 !important; appearance: none; -webkit-appearance: none; color: #000000 !important; font-size: 10px !important; margin: 0; }
+      .print-text-node { display: block !important; font-size: 10px !important; white-space: pre-wrap; word-break: break-word; color: #000000; padding: 2px 0; }
       .prac-textarea { display: none !important; }
       .station-block { border-bottom: 1px solid #ccc; margin-bottom: 2px; padding-bottom: 2px; page-break-inside: avoid; }
-      .coach-badge {
-        background: transparent !important; color: #000000 !important; padding: 0 !important; margin: 0 !important; font-size: 10px !important; font-weight: normal !important; 
-      }
+      .coach-badge { background: transparent !important; color: #000000 !important; padding: 0 !important; margin: 0 !important; font-size: 10px !important; font-weight: normal !important; }
       .coach-badge::after { content: ", "; }
       .coach-badge:last-child::after { content: ""; }
       .no-print { display: none !important; }
-      
       .print-only-header { display: block !important; text-align: center; margin-bottom: 4px; }
       .print-only-header h2 { margin: 0 0 2px 0; font-size: 14px; }
       .print-only-header p { margin: 0; font-size: 11px; color: #333; }
@@ -1357,6 +1309,7 @@
               <button class="toolbar button" onclick="if(document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur(); setTimeout(()=>window.print(), 100);" style="padding:4px 10px; margin-left:6px;">🖨️ Print Wristband</button>
             </div>
           </div>
+          
           <div id="wristband-grid" style="overflow-x: auto; padding: 4px; display:flex; justify-content:center;">
             <!-- Table Populated by JS -->
           </div>
@@ -1516,16 +1469,34 @@
 
     </div>
 
-    <!-- Master Roster Sidebar -->
-    <div class="sidebar" id="sidebar-panel">
-      <h2>Master Roster</h2>
-      <div style="margin-bottom: 8px;">
-        <label style="font-size: 11px; font-weight: bold; color: var(--text-muted); display: block; margin-bottom: 3px;" id="roster-count-label">Counting: All in Tab</label>
-        <div style="font-size: 9px; color: var(--accent); margin-bottom: 6px;">Click any formation box to filter</div>
-      </div>
-      <input type="text" id="search-input" class="search-box" placeholder="Search first/last name or #..." oninput="filterRoster()" />
-      <ul class="full-roster-list" id="master-roster-list"></ul>
+    <!-- SIDEBAR CONTAINER (Allows dynamic switching of sidebars without breaking layout) -->
+    <div id="sidebar-container" style="flex: 1; min-width: 220px; max-width: 280px; position: sticky; top: 15px; max-height: calc(100vh - 30px); display: flex; flex-direction: column;">
+        
+        <!-- Master Roster Sidebar -->
+        <div class="sidebar" id="sidebar-panel">
+          <h2>Master Roster</h2>
+          <div style="margin-bottom: 8px;">
+            <label style="font-size: 11px; font-weight: bold; color: var(--text-muted); display: block; margin-bottom: 3px;" id="roster-count-label">Counting: All in Tab</label>
+            <div style="font-size: 9px; color: var(--accent); margin-bottom: 6px;">Click any formation box to filter</div>
+          </div>
+          <input type="text" id="search-input" class="search-box" placeholder="Search first/last name or #..." oninput="filterRoster()" />
+          <ul class="full-roster-list" id="master-roster-list"></ul>
+        </div>
+
+        <!-- Play Library Sidebar (For Wristbands) -->
+        <div class="sidebar hidden" id="plays-sidebar-panel">
+          <h2>Play Library</h2>
+          <p style="font-size:10px; color:var(--text-muted); margin-top:-5px; margin-bottom:10px;">Drag plays onto your wristband</p>
+          <div style="display:flex; gap:4px; margin-bottom:10px;" class="admin-only">
+            <input type="text" id="new-play-input" class="search-box" style="margin:0; padding:6px;" placeholder="New play name..." onkeypress="if(event.key === 'Enter') addPlayToLibrary()">
+            <button class="add-row-btn" style="margin:0; padding:6px 10px;" onclick="addPlayToLibrary()">Add</button>
+          </div>
+          <input type="text" id="play-search-input" class="search-box" placeholder="Search saved plays..." oninput="renderPlayLibrary()" />
+          <ul class="full-roster-list" id="play-library-list"></ul>
+        </div>
+
     </div>
+
   </div>
 
   <script>
@@ -1565,7 +1536,6 @@ const firebaseConfig = {
       ]
     };
 
-    // Complete rich default formation library
     const defaultFormations = [
       {
         id: "form_11", unit: "offense", name: "11 Offense", subtitle: "1 RB - 1 TE (Y1) - 3 WRs (X, W, Z)", collapsed: false,
@@ -1578,20 +1548,6 @@ const firebaseConfig = {
           ]},
           { id: "row_11_bk", label: "Backfield (1 - 4)", rowClass: "backfield", positions: [
             { id: "11-1", name: "1 (QB)" }, { id: "11-4", name: "4 (RB)" }
-          ]}
-        ]
-      },
-      {
-        id: "form_21", unit: "offense", name: "21 Heavy", subtitle: "2 RBs - 1 TE - 2 WRs", collapsed: false,
-        rows: [
-          { id: "row_21_ol", label: "Offensive Line & TE", rowClass: "oline", positions: [
-            { id: "21-LT", name: "LT" }, { id: "21-LG", name: "LG" }, { id: "21-C", name: "C" }, { id: "21-RG", name: "RG" }, { id: "21-RT", name: "RT" }, { id: "21-Y", name: "TE" }
-          ]},
-          { id: "row_21_wr", label: "Wide Receivers", rowClass: "receivers", positions: [
-            { id: "21-X", name: "X" }, { id: "21-Z", name: "Z" }
-          ]},
-          { id: "row_21_bk", label: "Backfield Stack", rowClass: "backfield", positions: [
-            { id: "21-QB", name: "QB" }, { id: "21-FB", name: "FB" }, { id: "21-RB", name: "RB" }
           ]}
         ]
       },
@@ -1609,23 +1565,6 @@ const firebaseConfig = {
           ]},
           { id: "row_44_dl", label: "Defensive Line (WDE - DT1 - DT2 - SDE)", rowClass: "dl", positions: [
             { id: "44-WDE", name: "WDE" }, { id: "44-DT1", name: "DT 1" }, { id: "44-DT2", name: "DT 2" }, { id: "44-SDE", name: "SDE" }
-          ]}
-        ]
-      },
-      {
-        id: "form_53", unit: "defense", name: "53 Defense", subtitle: "5-3 Bear Front", collapsed: false,
-        rows: [
-          { id: "row_53_fs", label: "Free Safety", rowClass: "secondary-safety", positions: [
-            { id: "53-FS", name: "FS" }
-          ]},
-          { id: "row_53_cb", label: "Cornerbacks", rowClass: "secondary-corners", positions: [
-            { id: "53-CB1", name: "CB 1" }, { id: "53-CB2", name: "CB 2" }
-          ]},
-          { id: "row_53_lb", label: "Linebackers", rowClass: "linebackers-tight", positions: [
-            { id: "53-WLB", name: "WLB" }, { id: "53-MLB", name: "MLB" }, { id: "53-SLB", name: "SLB" }
-          ]},
-          { id: "row_53_dl", label: "Defensive Line", rowClass: "dl", positions: [
-            { id: "53-WDE", name: "WDE" }, { id: "53-WT", name: "WT" }, { id: "53-NT", name: "NT" }, { id: "53-ST", name: "ST" }, { id: "53-SDE", name: "SDE" }
           ]}
         ]
       },
@@ -1677,6 +1616,7 @@ const firebaseConfig = {
     
     // STATE VARIABLES
     let saveTimeout = null;
+    let masterPlayLibrary = JSON.parse(localStorage.getItem("footballMasterPlays")) || ["24 Dive", "25 Trap", "Sweep Right", "Bootleg Pass", "Screen Pass"];
     let dynamicDrills = JSON.parse(localStorage.getItem("footballDynamicDrills")) || null;
     let practiceTemplates = JSON.parse(localStorage.getItem("footballPracticeTemplates")) || [];
     let savedCoaches = JSON.parse(localStorage.getItem("footballSavedCoaches")) || [];
@@ -1689,6 +1629,8 @@ const firebaseConfig = {
     let activeUnit = "offense";
     let selectedTouchPlayer = null;
     let collapsedDrillCats = JSON.parse(localStorage.getItem("footballCollapsedDrills")) || {};
+    
+    // NEW Roster Tracking State
     let activeCountFormationId = null;
 
     let currentUser = null;
@@ -1960,6 +1902,7 @@ const firebaseConfig = {
       
       const userRef = db.collection("users").doc(user.uid);
       
+      // If we get blocked by Firestore rules, fallback to local admin so we don't lock the UI
       userRef.get().then((doc) => {
         if (doc.exists) {
            applyRole(doc.data().role || 'viewer');
@@ -2004,7 +1947,7 @@ const firebaseConfig = {
       }
 
       renderActiveBoards();
-      if (activeUnit === 'wristband') renderWristband();
+      if (activeUnit === 'wristband') { renderWristband(); renderPlayLibrary(); }
       if (activeUnit === 'scouting') renderScouting();
       if (activeUnit === 'drills') renderDrillsTab();
       renderPracticePlan();
@@ -2062,35 +2005,6 @@ const firebaseConfig = {
       const active = document.activeElement;
       return active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.tagName === 'SELECT');
     }
-
-    const masterRoster = [
-      { num: "2", firstName: "Mohammed", lastName: "Ibrahim" },
-      { num: "4", firstName: "Vincent", lastName: "Cambigianis" },
-      { num: "6", firstName: "Andrew", lastName: "Henderson" },
-      { num: "7", firstName: "Jayden", lastName: "Silva" },
-      { num: "8", firstName: "James", lastName: "Kilkenny" },
-      { num: "10", firstName: "Luke", lastName: "Mancini" },
-      { num: "11", firstName: "Dorian", lastName: "Berish" },
-      { num: "12", firstName: "Richard", lastName: "Barry" },
-      { num: "13", firstName: "Landon", lastName: "Veto" },
-      { num: "15", firstName: "Henry", lastName: "Swansen" },
-      { num: "17", firstName: "David", lastName: "Dicob" },
-      { num: "19", firstName: "Paul", lastName: "Nardella" },
-      { num: "20", firstName: "Jack", lastName: "Furfaro" },
-      { num: "21", firstName: "Nash", lastName: "Ward" },
-      { num: "22", firstName: "Jaxson", lastName: "Pestone" },
-      { num: "27", firstName: "Sean", lastName: "Lacerra" },
-      { num: "33", firstName: "Michael", lastName: "Frascone" },
-      { num: "34", firstName: "Eddie", lastName: "Flemming" },
-      { num: "40", firstName: "Chris", lastName: "Sokol" },
-      { num: "44", firstName: "Caden", lastName: "Jones" },
-      { num: "48", firstName: "Michael", lastName: "Sweeny" },
-      { num: "50", firstName: "Colin", lastName: "Convery" },
-      { num: "52", firstName: "John", lastName: "Piqueras" },
-      { num: "56", firstName: "Ryan", lastName: "Russell" },
-      { num: "66", firstName: "Luca", lastName: "Mucciacciaro" },
-      { num: "99", firstName: "Conrad", lastName: "Crean" }
-    ];
 
     function markPracticeEdited() {
       if (userRole !== 'admin') return;
@@ -2316,6 +2230,7 @@ const firebaseConfig = {
          alert("Cannot copy a practice to itself.");
          return;
       }
+      
       if(confirm(`Overwrite current plan "${p.title}" with "${practiceData[targetIdx].title}"?`)) {
          p.plan = JSON.parse(JSON.stringify(practiceData[targetIdx].plan));
          p.lastEdited = Date.now();
@@ -2374,7 +2289,7 @@ const firebaseConfig = {
       
       activeCountFormationId = null; // Reset counting filter when changing weeks
       
-      if (activeUnit === 'wristband') renderWristband();
+      if (activeUnit === 'wristband') { renderWristband(); renderPlayLibrary(); }
       else if (activeUnit === 'scouting') renderScouting();
       else if (activeUnit === 'drills') renderDrillsTab();
       else if (activeUnit === 'practice') {
@@ -2460,21 +2375,39 @@ const firebaseConfig = {
       document.getElementById('tab-btn-users').classList.toggle('active', unit === 'users');
 
       const mainWeekBar = document.getElementById('main-week-bar');
+      const sidebarContainer = document.getElementById('sidebar-container');
+      const rosterPanel = document.getElementById('sidebar-panel');
+      const playsPanel = document.getElementById('plays-sidebar-panel');
+      
+      // Handle Top Bar visibility
       if (unit === 'drills' || unit === 'users' || unit === 'practice') {
         if(mainWeekBar) mainWeekBar.classList.add('hidden');
       } else {
         if(mainWeekBar) mainWeekBar.classList.remove('hidden');
       }
 
-      // DO NOT HIDE SIDEBAR ON ANY TAB
-      const sidebar = document.getElementById('sidebar-panel');
-      if (sidebar) sidebar.classList.remove('hidden');
+      // Handle Right Sidebars Visibility
+      if (unit === 'wristband') {
+        if(sidebarContainer) sidebarContainer.classList.remove('hidden');
+        if(rosterPanel) rosterPanel.classList.add('hidden');
+        if(playsPanel) playsPanel.classList.remove('hidden');
+      } else if (unit === 'practice' || unit === 'scouting' || unit === 'drills' || unit === 'users') {
+        // Full width tabs - hide sidebars
+        if(sidebarContainer) sidebarContainer.classList.add('hidden');
+      } else {
+        // Depth chart tabs - show roster
+        if(sidebarContainer) sidebarContainer.classList.remove('hidden');
+        if(rosterPanel) rosterPanel.classList.remove('hidden');
+        if(playsPanel) playsPanel.classList.add('hidden');
+      }
 
+      // Render the specific tab's contents
       if (unit === 'practice') {
          populatePracticeDropdown();
          renderPracticePlan();
       } else if (unit === 'wristband') {
          renderWristband();
+         renderPlayLibrary();
       } else if (unit === 'scouting') {
          renderScouting();
       } else if (unit === 'drills') {
@@ -2485,7 +2418,82 @@ const firebaseConfig = {
          renderActiveBoards();
       }
       
-      renderMasterRoster();
+      renderMasterRoster(); // Reset roster UI appropriately 
+    }
+
+    /* PLAY LIBRARY LOGIC FOR WRISTBAND TAB */
+    function savePlayLibrary() {
+        if (userRole !== 'admin') return;
+        localStorage.setItem("footballMasterPlays", JSON.stringify(masterPlayLibrary));
+        if (cloudEnabled && db) {
+            db.collection("rosters").doc("main10u_weeks").update({
+                masterPlayLibrary: masterPlayLibrary
+            }).catch(e => console.log("Silent cloud save for play library: ", e));
+        }
+    }
+
+    function renderPlayLibrary() {
+        const list = document.getElementById("play-library-list");
+        if (!list) return;
+        const term = (document.getElementById("play-search-input").value || "").toLowerCase().trim();
+        list.innerHTML = "";
+
+        if (masterPlayLibrary.length === 0) {
+            list.innerHTML = `<div style="text-align:center; padding:10px; color:var(--text-muted); font-size:10px;">No plays saved. Add some above!</div>`;
+            return;
+        }
+
+        masterPlayLibrary.forEach((play, idx) => {
+            if (term && !play.toLowerCase().includes(term)) return;
+            const li = document.createElement("li");
+            li.className = "full-roster-item";
+            
+            if (userRole === 'admin') {
+                li.draggable = true;
+                li.ondragstart = (e) => {
+                    e.dataTransfer.setData("text/plain", play);
+                    e.dataTransfer.effectAllowed = "copy";
+                };
+            }
+            
+            li.innerHTML = `
+                <span>📋 <strong>${play}</strong></span>
+                <button class="remove-btn admin-only" onclick="removePlayFromLibrary(${idx})">&times;</button>
+            `;
+            list.appendChild(li);
+        });
+    }
+
+    function addPlayToLibrary() {
+        const input = document.getElementById("new-play-input");
+        const play = input.value.trim();
+        if (play) {
+            masterPlayLibrary.push(play);
+            input.value = "";
+            savePlayLibrary();
+            renderPlayLibrary();
+        }
+    }
+
+    function removePlayFromLibrary(idx) {
+        if (confirm("Delete this play from the library forever?")) {
+            masterPlayLibrary.splice(idx, 1);
+            savePlayLibrary();
+            renderPlayLibrary();
+        }
+    }
+
+    function dropPlayToWristband(e, colIdx, rowIdx) {
+        e.preventDefault();
+        e.currentTarget.style.outline = 'none';
+        if (userRole !== 'admin') return;
+        
+        const playText = e.dataTransfer.getData("text/plain");
+        if (playText) {
+            weeklyData[currentWeek].wristbandData.columns[colIdx].plays[rowIdx].text = playText;
+            triggerDebouncedSave();
+            renderWristband();
+        }
     }
 
     /* SCOUTING LOGIC */
@@ -2671,7 +2679,7 @@ const firebaseConfig = {
 
     function handleFormationClick(formId) {
         if (activeCountFormationId === formId) {
-            activeCountFormationId = null; // Toggle off if clicked again
+            activeCountFormationId = null; 
         } else {
             activeCountFormationId = formId;
         }
@@ -2912,6 +2920,18 @@ const firebaseConfig = {
       }
     }
 
+    function restoreUnitDefaults() {
+      if (userRole !== 'admin') return;
+      if(confirm(`Restore default ${activeUnit.toUpperCase()} formations for Week ${currentWeek}? This will overwrite current boards on this tab.`)) {
+          const defaultFormsForUnit = JSON.parse(JSON.stringify(defaultFormations.filter(f => f.unit === activeUnit)));
+          let otherForms = getWeekFormations(currentWeek).filter(f => f.unit !== activeUnit);
+          weeklyData[currentWeek].formations = [...otherForms, ...defaultFormsForUnit];
+          triggerDebouncedSave();
+          renderActiveBoards();
+          renderMasterRoster();
+      }
+    }
+
     function renderActiveBoards() {
       const containerId = "boards-" + activeUnit;
       const container = document.getElementById(containerId);
@@ -2925,7 +2945,7 @@ const firebaseConfig = {
              <div style="padding:40px 20px; text-align:center; color:var(--text-muted); border:2px dashed var(--card-border); border-radius:10px; background:#f8fafc;">
                 <div style="font-size:24px; margin-bottom:10px;">📋</div>
                 <strong style="font-size:14px; color:var(--primary);">No boards found for ${activeUnit.toUpperCase()}</strong><br><br>
-                <span class="admin-only">Click the <b>+ Add Formation</b> button above to create one.</span>
+                <span class="admin-only">Click the <b>+ Add Formation</b> button above to create one from scratch, or <button onclick="restoreUnitDefaults()" style="background:none; border:none; color:var(--accent); font-weight:bold; text-decoration:underline; cursor:pointer; padding:0;">Restore Default Formations</button>.</span>
              </div>
           `;
           return;
@@ -3083,10 +3103,12 @@ const firebaseConfig = {
 
     function triggerDebouncedSave() {
       clearTimeout(saveTimeout);
+      // Immediately save to local storage for speed
       localStorage.setItem("footballPracticeData", JSON.stringify(practiceData));
       localStorage.setItem("footballWeeklyData", JSON.stringify(weeklyData));
       localStorage.setItem("footballDynamicDrills", JSON.stringify(dynamicDrills));
       
+      // Debounce the cloud sync so it doesn't interrupt typing
       saveTimeout = setTimeout(() => {
           saveState();
       }, 1500);
@@ -3159,7 +3181,7 @@ const firebaseConfig = {
           
           if (!isUserEditing()) {
              renderActiveBoards();
-             if (activeUnit === 'wristband') renderWristband();
+             if (activeUnit === 'wristband') { renderWristband(); renderPlayLibrary(); }
              if (activeUnit === 'scouting') renderScouting();
              if (activeUnit === 'drills') renderDrillsTab();
              renderMasterRoster();
@@ -3228,10 +3250,12 @@ const firebaseConfig = {
       el.style.height = (el.scrollHeight + 2) + 'px';
     }
 
+    // Force full expansion of textareas right before print and swap them to clean printable divs
     window.addEventListener('beforeprint', () => {
       if (document.activeElement && typeof document.activeElement.blur === 'function') {
          document.activeElement.blur(); 
       }
+      
       document.querySelectorAll('.prac-textarea, .wb-play-input, .scout-textarea').forEach(el => {
         const div = document.createElement('div');
         div.className = 'print-text-node';
@@ -3272,8 +3296,9 @@ const firebaseConfig = {
            return;
         }
 
+        // Calculate Times
         let totalMins = timeToMins(current.endTime) - timeToMins(current.startTime);
-        if (totalMins < 0) totalMins += 1440; 
+        if (totalMins < 0) totalMins += 1440; // overnight check
         
         let preMins = 0;
         let scheduledMins = 0;
@@ -3285,6 +3310,7 @@ const firebaseConfig = {
         let preClock = timeToMins(current.startTime) - preMins;
         let mainClock = timeToMins(current.startTime);
 
+        // Render Dashboard Stats
         const statsDiv = document.getElementById("prac-stats");
         if (statsDiv) {
           const remaining = totalMins - scheduledMins;
@@ -3306,6 +3332,7 @@ const firebaseConfig = {
         current.plan.forEach((row, idx) => {
           if (!row) return;
 
+          // Calculate period timestamp
           let rowStartMins, rowEndMins;
           if (row.category === 'Pre Practice') {
              rowStartMins = preClock;
@@ -3537,6 +3564,7 @@ const firebaseConfig = {
       const table = document.getElementById("main-practice-table");
       if (!table) return;
       
+      // Force fixed layout for precise column control
       table.style.tableLayout = "fixed";
 
       const ths = table.querySelectorAll("thead th");
@@ -3564,6 +3592,7 @@ const firebaseConfig = {
             if (newWidth > 30 && nextTh) {
               const newNextWidth = nextStartWidth - diffX;
               if (newNextWidth > 30) {
+                // Convert back to percentages so it stays responsive
                 th.style.width = ((newWidth / tableWidth) * 100) + "%";
                 nextTh.style.width = ((newNextWidth / tableWidth) * 100) + "%";
               }
@@ -3838,174 +3867,21 @@ const firebaseConfig = {
       }
     }
 
-    /* PLAYER DRAG & DROP LOGIC */
-    function removePlayer(posId, index, e) {
-      if (userRole !== 'admin') return;
-      if (e) e.stopPropagation();
-      if(depthChart && depthChart[posId]) {
-        depthChart[posId].splice(index, 1);
-        saveState();
-        renderActiveBoards();
-        renderMasterRoster();
-      }
-    }
-
-    function movePlayerOrder(posId, index, direction, e) {
-      if (userRole !== 'admin') return;
-      if (e) e.stopPropagation();
-      if(!depthChart) return;
-      const list = depthChart[posId];
-      if(!list) return;
-      const targetIndex = index + direction;
-      if (targetIndex < 0 || targetIndex >= list.length) return;
-
-      const temp = list[index];
-      list[index] = list[targetIndex];
-      list[targetIndex] = temp;
-
-      saveState();
-      renderActiveBoards();
-    }
-
-    function filterCardDropdown(posId, searchTerm) {
-      if (userRole !== 'admin') return;
-      const dropdown = document.getElementById(`dropdown-${posId}`);
-      if (!dropdown) return;
-
-      const term = (searchTerm || "").toLowerCase().trim();
-      if (!term) {
-        dropdown.classList.remove("active");
-        return;
-      }
-
-      dropdown.innerHTML = "";
-      const matches = masterRoster.filter(p => 
-        (p.firstName && p.firstName.toLowerCase().includes(term)) || 
-        (p.lastName && p.lastName.toLowerCase().includes(term)) || 
-        (p.num && p.num.toLowerCase().includes(term))
-      );
-
-      if (matches.length === 0) {
-        dropdown.innerHTML = `<div class="dropdown-item" style="color:var(--text-muted);">No match</div>`;
-      } else {
-        matches.forEach(player => {
-          const item = document.createElement("div");
-          item.className = "dropdown-item";
-          item.innerHTML = `<span><strong>#${player.num}</strong> ${player.firstName} ${player.lastName}</span><span>+ Add</span>`;
-          item.onclick = (e) => {
-            e.stopPropagation();
-            addPlayerToPosition(posId, player.lastName || player.firstName, player.num);
-            dropdown.classList.remove("active");
-            document.getElementById(`input-${posId}`).value = "";
-          };
-          dropdown.appendChild(item);
-        });
-      }
-
-      dropdown.classList.add("active");
-    }
-
-    function addPlayerToPosition(posId, name, num) {
-      if (userRole !== 'admin') return;
-      if (!depthChart) depthChart = getWeekDepthChart(currentWeek);
-      if (!depthChart[posId]) depthChart[posId] = [];
-      depthChart[posId].push({ name, num });
-      saveState();
-      renderActiveBoards();
-      renderMasterRoster();
-    }
-
-    function closeAllDropdowns() {
-      document.querySelectorAll('.card-search-dropdown').forEach(d => {
-         if (d.id !== 'practice-tree-dropdown') d.classList.remove('active');
-      });
-      const pt = document.getElementById('practice-tree-dropdown');
-      if (pt) pt.style.display = 'none';
-    }
-
-    let draggedData = null;
-
-    function handleRosterDragStart(e) {
-      if (userRole !== 'admin') return;
-      draggedData = { type: "roster", name: e.target.dataset.name, num: e.target.dataset.num };
-      e.dataTransfer.effectAllowed = "copy";
-    }
-
-    function handlePlayerDragStart(e, sourcePos, sourceIndex, name, num) {
-      if (userRole !== 'admin') return;
-      draggedData = { type: "position", name, num, sourcePos, sourceIndex };
-      e.dataTransfer.effectAllowed = "move";
-    }
-
-    function handleCardDrop(e, targetPos) {
-      if (userRole !== 'admin') return;
-      e.preventDefault();
-      document.querySelectorAll(".position-card").forEach(c => c.classList.remove("drag-over"));
-      if (!draggedData) return;
-
-      if (!depthChart) depthChart = getWeekDepthChart(currentWeek);
-
-      if (draggedData.type === "position") {
-        if (draggedData.sourcePos === targetPos) return;
-        if (depthChart[draggedData.sourcePos]) {
-          depthChart[draggedData.sourcePos].splice(draggedData.sourceIndex, 1);
-        }
-        addPlayerToPosition(targetPos, draggedData.name, draggedData.num);
-      } else {
-        addPlayerToPosition(targetPos, draggedData.name, draggedData.num);
-      }
-
-      draggedData = null;
-    }
-
-    function handleTouchSelect(name, num, posKey, index, e) {
-      if (userRole !== 'admin') return;
-      if (e) e.stopPropagation();
-      selectedTouchPlayer = { name, num, posKey, index };
-      renderActiveBoards();
-      renderMasterRoster();
-    }
-
-    function handleCardTap(targetPos) {
-      if (userRole !== 'admin') return;
-      if (!selectedTouchPlayer) return;
-
-      if (!depthChart) depthChart = getWeekDepthChart(currentWeek);
-
-      if (selectedTouchPlayer.posKey) {
-        if (selectedTouchPlayer.posKey !== targetPos) {
-          if(depthChart[selectedTouchPlayer.posKey]) {
-            depthChart[selectedTouchPlayer.posKey].splice(selectedTouchPlayer.index, 1);
-          }
-          addPlayerToPosition(targetPos, selectedTouchPlayer.name, selectedTouchPlayer.num);
-        }
-      } else {
-        addPlayerToPosition(targetPos, selectedTouchPlayer.name, selectedTouchPlayer.num);
-      }
-
-      selectedTouchPlayer = null;
-      renderActiveBoards();
-      renderMasterRoster();
-    }
-
     function getActivePlayerPositionsCount(num) {
       if (!num || !depthChart) return 0;
       
       let targetForms = getWeekFormations(currentWeek).filter(f => f.unit === activeUnit);
-      if (targetForms.length === 0) return 0; 
+      if (!targetForms || targetForms.length === 0) return 0; 
 
       if (activeCountFormationId) {
-        const matched = targetForms.filter(f => f.id === activeCountFormationId);
-        if (matched.length > 0) {
-          targetForms = matched;
-        }
+         targetForms = targetForms.filter(f => f.id === activeCountFormationId);
       }
 
       const validPosIds = new Set();
       targetForms.forEach(form => {
         (form.rows || []).forEach(row => {
           (row.positions || []).forEach(pos => {
-            if (pos && pos.id) validPosIds.add(pos.id);
+            validPosIds.add(pos.id);
           });
         });
       });
@@ -4013,7 +3889,7 @@ const firebaseConfig = {
       let count = 0;
       validPosIds.forEach(posId => {
         if (Array.isArray(depthChart[posId])) {
-          count += depthChart[posId].filter(p => p && (String(p.num) === String(num))).length;
+          count += depthChart[posId].filter(p => p && p.num === num).length;
         }
       });
       return count;
@@ -4124,20 +4000,258 @@ const firebaseConfig = {
       if (confirm(`Reset Week ${currentWeek} back to default?`)) {
         weeklyData[currentWeek] = {
           opponent: "",
-          depthChart: JSON.parse(JSON.stringify(defaultDepthChartAssignments)),
-          formations: JSON.parse(JSON.stringify(defaultFormations))
-        };
-        depthChart = weeklyData[currentWeek].depthChart;
-        const oppInput = document.getElementById("opponent-input");
-        if(oppInput) oppInput.value = "";
-        saveState();
-        renderActiveBoards();
-        renderMasterRoster();
-      }
-    }
+          depthChart: JSON.parse(JSON.stringify(Here is a completely updated structural layout for those two dashboard modules. 
 
-    // Initialize application on load
-    initializeApp();
-  </script>
+Since I don't have your exact underlying codebase, I’ve built a clean, self-contained HTML/JS/CSS module that you can drop directly into your project. 
+
+It accomplishes four things:
+1. **Fixes the Practice Folder System:** It uses a straightforward JavaScript object to store and swap between plans seamlessly.
+2. **Removes the Master Roster:** The wristband builder is now entirely focused on plays, not personnel.
+3. **Adds a Playbook Repository:** You can type out plays to generate a clickable, draggable list.
+4. **Wires up the Drag-and-Drop:** Uses native HTML5 Drag and Drop API. (The most common reason drag-and-drop fails is forgetting to add `e.preventDefault()` to the `dragover` event on the drop zones).
+
+### The Updated Module Code
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Practice & Wristband Dashboard</title>
+<style>
+  /* Base Dashboard Styles */
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f4f4f9; margin: 0; padding: 20px; }
+  .nav { display: flex; gap: 10px; margin-bottom: 20px; }
+  .nav button { padding: 10px 20px; cursor: pointer; background: #333; color: white; border: none; border-radius: 4px; }
+  .nav button:hover { background: #555; }
+  .tab-content { display: none; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+  .active { display: block; }
+  .input-group { display: flex; gap: 5px; margin-bottom: 15px; }
+  .input-group input { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px;}
+  .input-group button { padding: 8px 15px; background: #2e7d32; color: white; border: none; border-radius: 4px; cursor: pointer; }
+
+  /* 1. Practice Plan Folders */
+  .folder-system { display: flex; gap: 20px; min-height: 300px; }
+  .folder-list { width: 30%; border-right: 1px solid #eee; padding-right: 15px; }
+  .folder-item { padding: 10px; background: #f9f9f9; border: 1px solid #ddd; margin-bottom: 5px; border-radius: 4px; cursor: pointer; }
+  .folder-item:hover, .folder-item.selected { background: #e3f2fd; border-color: #90caf9; }
+  .plan-details { width: 70%; }
+  #plan-content { width: 100%; height: 250px; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; resize: vertical; }
+
+  /* 2. Wristband Drag & Drop */
+  .builder-container { display: flex; gap: 20px; }
+  
+  /* Playbook Repo Column */
+  .play-repo { width: 40%; background: #fafafa; padding: 15px; border-radius: 8px; border: 1px solid #eee; }
+  .play-item { background: white; border: 1px solid #ccc; padding: 10px; margin-bottom: 5px; cursor: grab; border-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+  .play-item:active { cursor: grabbing; }
+
+  /* Wristband Drop Zone Column */
+  .wristband { width: 60%; background: #e8f5e9; padding: 15px; border-radius: 8px; border: 1px solid #c8e6c9; }
+  .wristband-slot { border: 2px dashed #81c784; padding: 10px; margin-bottom: 10px; background: #fff; min-height: 25px; border-radius: 4px; display: flex; align-items: center; transition: all 0.2s; }
+  .wristband-slot.drag-over { background: #c8e6c9; border-color: #2e7d32; transform: scale(1.02); }
+  .slot-number { font-weight: bold; margin-right: 15px; width: 25px; color: #555; }
+  .slot-play { flex: 1; }
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <button onclick="showTab('practice-tab')">Practice Plans</button>
+  <button onclick="showTab('wristband-tab')">Wristband Builder</button>
+</div>
+
+<!-- MODULE 1: Practice Plan Folders -->
+<div id="practice-tab" class="tab-content active">
+  <h2>Practice Plans</h2>
+  <div class="input-group">
+    <input type="text" id="new-plan-name" placeholder="New Folder Name (e.g., Week 3 Scripts)">
+    <button onclick="addPracticePlan()">Add Folder</button>
+  </div>
+  <div class="folder-system">
+    <div class="folder-list" id="folder-list">
+      <!-- Folders dynamically render here -->
+    </div>
+    <div class="plan-details" id="plan-details" style="display: none;">
+      <h3 id="current-plan-title" style="margin-top:0;">Select a plan</h3>
+      <textarea id="plan-content" placeholder="Enter station rotations, drill circuits, etc..."></textarea>
+      <button onclick="savePlanContent()" style="margin-top: 10px; padding: 8px 15px; background: #1976d2; color: white; border: none; border-radius: 4px; cursor: pointer;">Save Plan</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODULE 2: Wristband Builder -->
+<div id="wristband-tab" class="tab-content">
+  <h2>Wristband Layout Builder</h2>
+  
+  <div class="builder-container">
+    
+    <!-- Left: Playbook Repository -->
+    <div class="play-repo">
+      <h3 style="margin-top:0;">Play Repository</h3>
+      <div class="input-group">
+        <input type="text" id="new-play-name" placeholder="e.g., Trips Right 24 Dive">
+        <button onclick="addPlayToRepo()">Add Play</button>
+      </div>
+      <div id="play-list">
+        <!-- Draggable plays render here -->
+      </div>
+    </div>
+
+    <!-- Right: Wristband Drop Zones -->
+    <div class="wristband">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <h3 style="margin:0;">Wristband (8-Play Layout)</h3>
+        <button onclick="clearWristband()" style="padding: 5px 10px; cursor: pointer;">Clear Slots</button>
+      </div>
+      <div id="wristband-slots">
+        <!-- Drop zones render here -->
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // --- Global Navigation ---
+  function showTab(tabId) {
+    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+    document.getElementById(tabId).classList.add('active');
+  }
+
+  // --- Logic: Practice Plan Folders ---
+  let practicePlans = {
+    "Defensive Install": "1. 4-4 Stack Alignment Review\n2. Block Shedding\n3. Inside Run Fit",
+    "Offensive Circuits": "1. Snap Exchange\n2. Backfield Mesh\n3. Pass Routes"
+  };
+  let activePlan = null;
+
+  function renderFolders() {
+    const list = document.getElementById('folder-list');
+    list.innerHTML = '';
+    for (const planName in practicePlans) {
+      const div = document.createElement('div');
+      div.className = `folder-item ${activePlan === planName ? 'selected' : ''}`;
+      div.innerHTML = `📁 ${planName}`;
+      div.onclick = () => openPlan(planName);
+      list.appendChild(div);
+    }
+  }
+
+  function addPracticePlan() {
+    const input = document.getElementById('new-plan-name');
+    const name = input.value.trim();
+    if (name && !practicePlans[name]) {
+      practicePlans[name] = "";
+      input.value = '';
+      openPlan(name);
+    }
+  }
+
+  function openPlan(planName) {
+    activePlan = planName;
+    renderFolders(); // Update selected styling
+    document.getElementById('plan-details').style.display = 'block';
+    document.getElementById('current-plan-title').textContent = planName;
+    document.getElementById('plan-content').value = practicePlans[planName];
+  }
+
+  function savePlanContent() {
+    if (activePlan) {
+      practicePlans[activePlan] = document.getElementById('plan-content').value;
+      alert('Plan saved successfully.');
+    }
+  }
+
+  // --- Logic: Wristband Drag and Drop Builder ---
+  let playbook = ["Downtown", "Uptown", "Mike Pressure", "Will Pressure", "Cover 3"];
+
+  function renderPlaybook() {
+    const list = document.getElementById('play-list');
+    list.innerHTML = '';
+    playbook.forEach((play, index) => {
+      const div = document.createElement('div');
+      div.className = 'play-item';
+      div.draggable = true; 
+      div.textContent = play;
+      
+      // Step 1: The item being dragged stores its text data
+      div.addEventListener('dragstart', (e) => {
+        e.dataTransfer.setData('text/plain', play);
+        e.dataTransfer.effectAllowed = 'copy';
+      });
+      list.appendChild(div);
+    });
+  }
+
+  function addPlayToRepo() {
+    const input = document.getElementById('new-play-name');
+    const name = input.value.trim();
+    if (name) {
+      playbook.push(name);
+      input.value = '';
+      renderPlaybook();
+    }
+  }
+
+  function initWristbandSlots(numSlots = 8) {
+    const container = document.getElementById('wristband-slots');
+    container.innerHTML = '';
+    
+    for (let i = 1; i <= numSlots; i++) {
+      const slot = document.createElement('div');
+      slot.className = 'wristband-slot';
+      
+      const numberSpan = document.createElement('span');
+      numberSpan.className = 'slot-number';
+      numberSpan.textContent = i + '.';
+      
+      const playSpan = document.createElement('span');
+      playSpan.className = 'slot-play';
+      playSpan.textContent = 'Drop play here...';
+      playSpan.style.color = '#999';
+
+      slot.appendChild(numberSpan);
+      slot.appendChild(playSpan);
+
+      // Step 2: The drop zone must preventDefault on dragover to allow dropping
+      slot.addEventListener('dragover', (e) => {
+        e.preventDefault(); 
+        slot.classList.add('drag-over');
+      });
+
+      // Visual feedback when dragging leaves the zone
+      slot.addEventListener('dragleave', () => {
+        slot.classList.remove('drag-over');
+      });
+
+      // Step 3: Handle the actual drop
+      slot.addEventListener('drop', (e) => {
+        e.preventDefault();
+        slot.classList.remove('drag-over');
+        
+        // Retrieve the play text and update the slot
+        const playName = e.dataTransfer.getData('text/plain');
+        playSpan.textContent = playName;
+        playSpan.style.color = '#000';
+        playSpan.style.fontWeight = 'bold';
+      });
+
+      container.appendChild(slot);
+    }
+  }
+
+  function clearWristband() {
+    initWristbandSlots(8);
+  }
+
+  // Init application on load
+  window.onload = () => {
+    renderFolders();
+    renderPlaybook();
+    initWristbandSlots(8); 
+  };
+</script>
 </body>
 </html>
