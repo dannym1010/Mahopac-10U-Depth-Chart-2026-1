@@ -149,7 +149,7 @@
       position: relative;
       box-shadow: 0 1px 3px rgba(0,0,0,0.05);
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: border-color 0.2s, background-color 0.2s, box-shadow 0.2s;
       overflow: visible;
     }
     .formation-container:hover { border-color: var(--primary); }
@@ -203,8 +203,8 @@
     .dropdown-item:hover { background-color: #eff6ff; color: var(--accent); font-weight: bold; }
 
     .player-list { list-style: none; padding: 4px; margin: 0; min-height: 45px; }
-    .player-item { background: #f8fafc; border: 1px solid var(--card-border); padding: 4px 6px; margin-bottom: 4px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; cursor: grab; font-size: 11px; touch-action: manipulation; }
-    .player-item.selected-touch { border-color: #2563eb !important; background: #dbeafe !important; }
+    .player-item { background: #f8fafc; border: 1px solid var(--card-border); padding: 4px 6px; margin-bottom: 4px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; cursor: grab; font-size: 11px; touch-action: manipulation; z-index: 10; }
+    .player-item.selected-touch { border-color: #2563eb !important; background-color: #dbeafe !important; }
     .player-item.search-match { background-color: #fef08a !important; border-color: #ca8a04 !important; }
     .player-info { display: flex; gap: 4px; align-items: center; pointer-events: none; }
     .num-tag { font-weight: bold; }
@@ -236,6 +236,7 @@
     .wb-play-input { width: calc(100% - 20px); height: 100%; border: none; background: transparent; font-family: inherit; font-size: inherit; text-transform: inherit; outline: none; padding: 0; margin: 0; font-weight: bold; color: #000; }
     .wb-cell-color-btn { position: absolute; right: 2px; top: 2px; background: rgba(255,255,255,0.7); border: 1px solid #ccc; border-radius: 3px; font-size: 10px; cursor: pointer; padding: 1px 4px; opacity: 0; transition: opacity 0.2s; }
     .wb-play-cell:hover .wb-cell-color-btn { opacity: 1; }
+    
     .wb-sub-blue { background-color: #00b0f0 !important; color: #000 !important; }
     .wb-body-blue { background-color: #cce5ff !important; } 
     .wb-sub-yellow { background-color: #ffff00 !important; color: #000 !important; }
@@ -302,9 +303,6 @@
     .search-box { width: 100%; padding: 8px 10px; border: 1px solid var(--card-border); border-radius: 6px; font-size: 12px; margin-bottom: 10px; box-sizing: border-box; outline: none; }
     .search-box:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2); }
     .full-roster-list { list-style: none; padding: 0; margin: 0; overflow-y: auto; flex-grow: 1; min-height: 200px; }
-    .full-roster-item { padding: 6px 8px; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; justify-content: space-between; font-size: 11px; cursor: grab; background: #f8fafc; margin-bottom: 4px; border-radius: 4px; border: 1px solid var(--card-border); touch-action: manipulation; }
-    .full-roster-item:hover { border-color: var(--accent); background: #eff6ff; }
-    .multi-badge { font-size: 9px; background: #e2e8f0; color: #475569; padding: 1px 5px; border-radius: 10px; font-weight: bold; }
 
     /* PRINT STYLES - SINGLE PAGE OPTIMIZATION & FULL TEXT VISIBILITY */
     @media print {
@@ -367,10 +365,8 @@
         <button id="tab-login" class="auth-tab-btn active" onclick="switchAuthTab('login')">Sign In</button>
         <button id="tab-register" class="auth-tab-btn" onclick="switchAuthTab('register')">Create Account</button>
       </div>
-
       <h2 id="auth-main-title">🏈 Coach Portal</h2>
       <p id="auth-main-subtitle">Log in to manage depth charts, playbooks, and practice itineraries.</p>
-      
       <button class="btn-google" onclick="signInWithGoogle()">
         <svg width="18" height="18" viewBox="0 0 24 24">
           <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -380,15 +376,12 @@
         </svg>
         Continue with Google
       </button>
-
       <div class="auth-divider">OR EMAIL</div>
-
       <form id="email-auth-form" onsubmit="handleEmailAuth(event)">
         <input type="email" id="auth-email" class="auth-input" placeholder="Coach Email Address" required autocomplete="username" />
         <input type="password" id="auth-password" class="auth-input" placeholder="Password" required autocomplete="current-password" />
         <button type="submit" id="auth-submit-btn" class="btn-primary">Sign In</button>
       </form>
-      
       <span class="auth-switch" id="auth-switch-btn" onclick="toggleAuthMode()">Don't have an account? Sign Up</span>
       <div id="auth-error" style="color:#ef4444; font-size:12px; margin-top:10px; font-weight:bold; background:#fee2e2; padding:8px; border-radius:4px; display:none; border:1px solid #fca5a5;"></div>
     </div>
@@ -410,7 +403,6 @@
         <button class="toggle-board-btn no-print" onclick="signOutUser()">🚪 Sign Out</button>
       </div>
     </div>
-    
     <div style="display:flex; gap:6px;">
       <button class="admin-only" onclick="exportData()">Backup</button>
       <button class="admin-only" onclick="document.getElementById('import-file').click()">Import</button>
@@ -495,7 +487,6 @@
               <button class="toolbar button" onclick="if(document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur(); setTimeout(()=>window.print(), 100);" style="padding:4px 10px; margin-left:6px;">🖨️ Print Wristband</button>
             </div>
           </div>
-          
           <div id="wristband-grid" style="overflow-x: auto; padding: 4px; display:flex; justify-content:center; width:100%;">
             <!-- Table Populated by JS -->
           </div>
@@ -578,14 +569,14 @@
         </div>
 
         <div class="formation-container" style="cursor:default !important; overflow: visible !important;">
-          <div class="board-title no-print" style="position: relative;">
-            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+          <div class="board-title no-print" style="position: relative; overflow: visible;">
+            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; overflow: visible;">
               <span>Practice:</span>
               
               <!-- Custom Folder Tree Dropdown -->
-              <div style="position:relative; width: 250px; z-index: 500;">
+              <div style="position:relative; width: 250px; z-index: 9999; overflow: visible;">
                 <div id="selected-practice-display" class="practice-tree-btn" style="pointer-events: auto !important;" onclick="togglePracticeTree(event)">Select Practice...</div>
-                <div id="practice-tree-dropdown" class="card-search-dropdown" onclick="event.stopPropagation()" style="display:none; width: 350px; max-height: 400px; text-align:left; padding:8px; border:2px solid var(--primary); pointer-events: auto !important; z-index: 1000;">
+                <div id="practice-tree-dropdown" class="card-search-dropdown" onclick="event.stopPropagation()" style="display:none; width: 350px; max-height: 400px; text-align:left; padding:8px; border:2px solid var(--primary); pointer-events: auto !important; z-index: 9999; top: 100%; left: 0;">
                    <!-- Populated by JS -->
                 </div>
               </div>
@@ -653,7 +644,7 @@
 
     </div>
 
-    <!-- SIDEBAR CONTAINER (Allows dynamic switching of sidebars without breaking layout) -->
+    <!-- SIDEBAR CONTAINER -->
     <div id="sidebar-container" style="flex: 1; min-width: 220px; max-width: 280px; position: sticky; top: 15px; max-height: calc(100vh - 30px); display: flex; flex-direction: column;">
         
         <!-- Master Roster Sidebar -->
@@ -713,6 +704,15 @@ const firebaseConfig = {
       console.warn("Firebase not configured. Using local storage mode.", err);
     }
 
+    // Safely parse JSON from local storage
+    function safeJSONParse(key, fallback) {
+       try {
+          const val = localStorage.getItem(key);
+          if (val) return JSON.parse(val);
+       } catch(e) {}
+       return fallback;
+    }
+
     function closeAllDropdowns(e) {
       if (e && e.target && e.target.closest('#practice-tree-dropdown')) return;
       if (e && e.target && e.target.closest('#selected-practice-display')) return;
@@ -730,7 +730,6 @@ const firebaseConfig = {
       ]
     };
 
-    // Complete rich default formation library
     const defaultFormations = [
       {
         id: "form_11", unit: "offense", name: "11 Offense", subtitle: "1 RB - 1 TE (Y1) - 3 WRs (X, W, Z)", collapsed: false,
@@ -743,20 +742,6 @@ const firebaseConfig = {
           ]},
           { id: "row_11_bk", label: "Backfield (1 - 4)", rowClass: "backfield", positions: [
             { id: "11-1", name: "1 (QB)" }, { id: "11-4", name: "4 (RB)" }
-          ]}
-        ]
-      },
-      {
-        id: "form_21", unit: "offense", name: "21 Heavy", subtitle: "2 RBs - 1 TE - 2 WRs", collapsed: false,
-        rows: [
-          { id: "row_21_ol", label: "Offensive Line & TE", rowClass: "oline", positions: [
-            { id: "21-LT", name: "LT" }, { id: "21-LG", name: "LG" }, { id: "21-C", name: "C" }, { id: "21-RG", name: "RG" }, { id: "21-RT", name: "RT" }, { id: "21-Y", name: "TE" }
-          ]},
-          { id: "row_21_wr", label: "Wide Receivers", rowClass: "receivers", positions: [
-            { id: "21-X", name: "X" }, { id: "21-Z", name: "Z" }
-          ]},
-          { id: "row_21_bk", label: "Backfield Stack", rowClass: "backfield", positions: [
-            { id: "21-QB", name: "QB" }, { id: "21-FB", name: "FB" }, { id: "21-RB", name: "RB" }
           ]}
         ]
       },
@@ -774,23 +759,6 @@ const firebaseConfig = {
           ]},
           { id: "row_44_dl", label: "Defensive Line (WDE - DT1 - DT2 - SDE)", rowClass: "dl", positions: [
             { id: "44-WDE", name: "WDE" }, { id: "44-DT1", name: "DT 1" }, { id: "44-DT2", name: "DT 2" }, { id: "44-SDE", name: "SDE" }
-          ]}
-        ]
-      },
-      {
-        id: "form_53", unit: "defense", name: "53 Defense", subtitle: "5-3 Bear Front", collapsed: false,
-        rows: [
-          { id: "row_53_fs", label: "Free Safety", rowClass: "secondary-safety", positions: [
-            { id: "53-FS", name: "FS" }
-          ]},
-          { id: "row_53_cb", label: "Cornerbacks", rowClass: "secondary-corners", positions: [
-            { id: "53-CB1", name: "CB 1" }, { id: "53-CB2", name: "CB 2" }
-          ]},
-          { id: "row_53_lb", label: "Linebackers", rowClass: "linebackers-tight", positions: [
-            { id: "53-WLB", name: "WLB" }, { id: "53-MLB", name: "MLB" }, { id: "53-SLB", name: "SLB" }
-          ]},
-          { id: "row_53_dl", label: "Defensive Line", rowClass: "dl", positions: [
-            { id: "53-WDE", name: "WDE" }, { id: "53-WT", name: "WT" }, { id: "53-NT", name: "NT" }, { id: "53-ST", name: "ST" }, { id: "53-SDE", name: "SDE" }
           ]}
         ]
       },
@@ -819,20 +787,6 @@ const firebaseConfig = {
             { id: "GRP-QB", name: "QB" }, { id: "GRP-FB", name: "FB" }, { id: "GRP-RB", name: "RB" }
           ]}
         ]
-      },
-      {
-        id: "form_grp_def", unit: "groups", name: "Defensive Depth Chart", subtitle: "Standard 4-4 Front", collapsed: false,
-        rows: [
-          { id: "row_grp_d_sec", label: "Secondary Level", rowClass: "secondary-corners", positions: [
-            { id: "GRP-CB1", name: "CB 1" }, { id: "GRP-FS", name: "FS" }, { id: "GRP-CB2", name: "CB 2" }
-          ]},
-          { id: "row_grp_d_lb", label: "Linebacker Level", rowClass: "linebackers-tight", positions: [
-            { id: "GRP-ROVER", name: "ROVER" }, { id: "GRP-WILL", name: "WILL" }, { id: "GRP-MIKE", name: "MIKE" }, { id: "GRP-SAM", name: "SAM" }
-          ]},
-          { id: "row_grp_d_dl", label: "Defensive Line", rowClass: "dl", positions: [
-            { id: "GRP-WDE", name: "WDE" }, { id: "GRP-DT1", name: "DT 1" }, { id: "GRP-DT2", name: "DT 2" }, { id: "GRP-SDE", name: "SDE" }
-          ]}
-        ]
       }
     ];
 
@@ -842,19 +796,22 @@ const firebaseConfig = {
     
     // STATE VARIABLES
     let saveTimeout = null;
-    let masterPlayLibrary = JSON.parse(localStorage.getItem("footballMasterPlays")) || ["24 Dive", "25 Trap", "Sweep Right", "Bootleg Pass", "Screen Pass"];
-    let dynamicDrills = JSON.parse(localStorage.getItem("footballDynamicDrills")) || null;
-    let practiceTemplates = JSON.parse(localStorage.getItem("footballPracticeTemplates")) || [];
-    let savedCoaches = JSON.parse(localStorage.getItem("footballSavedCoaches")) || [];
-    let savedCustomCategories = JSON.parse(localStorage.getItem("footballCustomCategories")) || [];
-    let practiceData = JSON.parse(localStorage.getItem("footballPracticeData")) || [];
+    
+    let masterPlayLibrary = safeJSONParse("footballMasterPlays", ["24 Dive", "25 Trap", "Sweep Right", "Bootleg Pass", "Screen Pass"]);
+    if(!Array.isArray(masterPlayLibrary)) masterPlayLibrary = ["24 Dive", "25 Trap", "Sweep Right", "Bootleg Pass", "Screen Pass"];
+    
+    let dynamicDrills = safeJSONParse("footballDynamicDrills", defaultDynamicDrills);
+    let practiceTemplates = safeJSONParse("footballPracticeTemplates", []);
+    let savedCoaches = safeJSONParse("footballSavedCoaches", []);
+    let savedCustomCategories = safeJSONParse("footballCustomCategories", []);
+    let practiceData = safeJSONParse("footballPracticeData", []);
     let currentPracticeId = null;
     let currentWeek = "0";
-    let weeklyData = JSON.parse(localStorage.getItem("footballWeeklyData")) || {};
+    let weeklyData = safeJSONParse("footballWeeklyData", {});
     let depthChart = null;
     let activeUnit = "offense";
     let selectedTouchPlayer = null;
-    let collapsedDrillCats = JSON.parse(localStorage.getItem("footballCollapsedDrills")) || {};
+    let collapsedDrillCats = safeJSONParse("footballCollapsedDrills", {});
     
     // Roster Tracking State
     let activeCountFormationId = null;
@@ -897,7 +854,7 @@ const firebaseConfig = {
       if (!Array.isArray(weeklyData[week].formations) || weeklyData[week].formations.length === 0) {
         weeklyData[week].formations = JSON.parse(JSON.stringify(defaultFormations));
       } else {
-        const existingUnits = new Set(weeklyData[week].formations.map(f => f.unit));
+        const existingUnits = new Set(weeklyData[week].formations.filter(f => f).map(f => f.unit));
         ['offense', 'defense', 'st', 'groups'].forEach(u => {
           if (!existingUnits.has(u)) {
             const unitDefaults = defaultFormations.filter(df => df.unit === u);
@@ -949,10 +906,9 @@ const firebaseConfig = {
           delete wbData.pages;
           delete wbData.startIndex;
       }
-      
-      wbData.rows = parseInt(wbData.rows);
-      if (isNaN(wbData.rows) || wbData.rows <= 0) wbData.rows = 16;
-      
+      if (typeof wbData.rows !== 'number' || isNaN(wbData.rows)) {
+          wbData.rows = 16;
+      }
       if (!Array.isArray(wbData.columns) || wbData.columns.length === 0) {
           wbData.columns = [
               { color: "blue", plays: [] },
@@ -975,11 +931,7 @@ const firebaseConfig = {
       if (!dynamicDrills || Object.keys(dynamicDrills).length === 0) {
           dynamicDrills = JSON.parse(JSON.stringify(defaultDynamicDrills));
       }
-      try {
-        let stored = localStorage.getItem("footballPracticeData");
-        if (stored) practiceData = JSON.parse(stored);
-      } catch(e) { practiceData = []; }
-
+      
       if (!Array.isArray(practiceData) || practiceData.length === 0) {
         const todayDate = new Date().toISOString().split('T')[0];
         practiceData = [{
@@ -992,7 +944,7 @@ const firebaseConfig = {
           startTime: "17:00",
           endTime: "19:00",
           lastEdited: Date.now(),
-          plan: JSON.parse(JSON.stringify(defaultPracticePlan))
+          plan: []
         }];
       }
 
@@ -1145,13 +1097,13 @@ const firebaseConfig = {
               applyRole('admin');
               document.getElementById("auth-overlay").style.display = "none";
            }).catch(err => {
-              console.error("Firestore write blocked. Bypassing locally.", err);
+              console.error("Firestore write blocked. Defaulting to admin locally.", err);
               applyRole('admin');
               document.getElementById("auth-overlay").style.display = "none";
            });
         }
       }).catch(err => {
-         console.error("Firestore read blocked. Bypassing locally.", err);
+         console.error("Firestore read blocked. Defaulting to admin locally.", err);
          applyRole('admin');
          document.getElementById("auth-overlay").style.display = "none";
       });
@@ -1233,6 +1185,35 @@ const firebaseConfig = {
       const active = document.activeElement;
       return active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.tagName === 'SELECT');
     }
+
+    const masterRoster = [
+      { num: "2", firstName: "Mohammed", lastName: "Ibrahim" },
+      { num: "4", firstName: "Vincent", lastName: "Cambigianis" },
+      { num: "6", firstName: "Andrew", lastName: "Henderson" },
+      { num: "7", firstName: "Jayden", lastName: "Silva" },
+      { num: "8", firstName: "James", lastName: "Kilkenny" },
+      { num: "10", firstName: "Luke", lastName: "Mancini" },
+      { num: "11", firstName: "Dorian", lastName: "Berish" },
+      { num: "12", firstName: "Richard", lastName: "Barry" },
+      { num: "13", firstName: "Landon", lastName: "Veto" },
+      { num: "15", firstName: "Henry", lastName: "Swansen" },
+      { num: "17", firstName: "David", lastName: "Dicob" },
+      { num: "19", firstName: "Paul", lastName: "Nardella" },
+      { num: "20", firstName: "Jack", lastName: "Furfaro" },
+      { num: "21", firstName: "Nash", lastName: "Ward" },
+      { num: "22", firstName: "Jaxson", lastName: "Pestone" },
+      { num: "27", firstName: "Sean", lastName: "Lacerra" },
+      { num: "33", firstName: "Michael", lastName: "Frascone" },
+      { num: "34", firstName: "Eddie", lastName: "Flemming" },
+      { num: "40", firstName: "Chris", lastName: "Sokol" },
+      { num: "44", firstName: "Caden", lastName: "Jones" },
+      { num: "48", firstName: "Michael", lastName: "Sweeny" },
+      { num: "50", firstName: "Colin", lastName: "Convery" },
+      { num: "52", firstName: "John", lastName: "Piqueras" },
+      { num: "56", firstName: "Ryan", lastName: "Russell" },
+      { num: "66", firstName: "Luca", lastName: "Mucciacciaro" },
+      { num: "99", firstName: "Conrad", lastName: "Crean" }
+    ];
 
     function markPracticeEdited() {
       if (userRole !== 'admin') return;
@@ -1545,6 +1526,7 @@ const firebaseConfig = {
          const scout = weeklyData[currentWeek].scouting;
          const yr = scout.year ? `${scout.year} ` : "";
          const wk = scout.week ? `${scout.week} - ` : "";
+         const opp = scout.opponent || weeklyData[currentWeek].opponent || `Week ${currentWeek}`;
          printTitle.textContent = `Scouting Report: ${yr}${wk}${opp}`;
       }
     }
@@ -2922,8 +2904,14 @@ const firebaseConfig = {
 
         if (userRole === 'admin') {
           li.draggable = true;
-          li.ondragstart = handleRosterDragStart;
-          li.onclick = (e) => handleTouchSelect(player.lastName || player.firstName, player.num || "", null, null, e);
+          li.ondragstart = (e) => {
+              e.stopPropagation();
+              handleRosterDragStart(e);
+          };
+          li.onclick = (e) => {
+              e.stopPropagation();
+              handleTouchSelect(player.lastName || player.firstName, player.num || "", null, null, e);
+          };
         }
 
         li.innerHTML = `
