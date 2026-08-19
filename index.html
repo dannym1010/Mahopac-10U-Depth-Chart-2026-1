@@ -371,7 +371,7 @@
       max-width: 1400px;
       margin: 0 auto;
       flex-direction: row;
-      align-items: flex-start;
+      align-items: flex-start; 
     }
 
     @media (max-width: 900px) {
@@ -387,12 +387,14 @@
       flex-direction: column;
       gap: 15px;
       width: 100%;
+      overflow: visible; /* Prevents practice folder dropdown from getting chopped off */
     }
 
     .unit-panel {
       display: flex;
       flex-direction: column;
       gap: 20px;
+      overflow: visible; 
     }
 
     .formation-container {
@@ -404,7 +406,7 @@
       box-shadow: 0 1px 3px rgba(0,0,0,0.05);
       cursor: pointer;
       transition: border-color 0.2s, background-color 0.2s, box-shadow 0.2s;
-      overflow: visible; /* Prevents dropdowns from getting clipped */
+      overflow: visible;
     }
 
     .formation-container:hover {
@@ -469,7 +471,6 @@
       display: none !important;
     }
 
-    /* Level / Row Headers */
     .row-container {
       margin-bottom: 12px;
     }
@@ -517,7 +518,6 @@
       color: var(--primary);
     }
 
-    /* Formation Rows */
     .formation-row {
       display: flex;
       gap: 6px;
@@ -533,7 +533,6 @@
     .formation-row.linebackers-tight { justify-content: center; gap: 15px; }
     .formation-row.dl { justify-content: center; gap: 20px; }
 
-    /* Tactical Position Cards */
     .position-card {
       background: var(--card-bg);
       border-radius: 6px;
@@ -607,7 +606,6 @@
       background: #fee2e2;
     }
 
-    /* Position In-Card Search Input & Dropdown */
     .card-search-container {
       padding: 3px 4px;
       background: #f1f5f9;
@@ -706,7 +704,6 @@
       font-weight: bold;
     }
 
-    /* Sub & Starter Rank Colors */
     .rank-badge {
       font-size: 8px;
       font-weight: bold;
@@ -725,11 +722,9 @@
     .player-item.is-sub-blue { color: #1d4ed8; font-weight: bold; }
     .player-item.is-sub-gray { color: #64748b; font-weight: normal; }
 
-    /* Grey Badges on Depth Chart Tab */
     #panel-groups .rank-badge { background: #64748b !important; color: #ffffff !important; }
     #panel-groups .player-item { color: #475569 !important; font-weight: normal !important; }
 
-    /* Action Reorder Controls */
     .action-group {
       display: flex;
       align-items: center;
@@ -793,7 +788,14 @@
         position: relative;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
+        transition: all 0.2s;
     }
+    /* DRAG OVER STYLE FOR WRISTBAND CELLS */
+    .wb-play-cell.drag-over {
+        background-color: #c8e6c9 !important;
+        border: 2px dashed #2e7d32 !important;
+    }
+    
     .wb-play-input {
         width: calc(100% - 20px);
         height: 100%;
@@ -874,7 +876,7 @@
       .scouting-grid { grid-template-columns: 1fr; }
     }
 
-    /* Practice Plan Resizable Table */
+    /* Practice Plan Resizable Table & Alternating Shading Styles */
     .practice-dashboard {
       background: #f1f5f9;
       padding: 8px 12px;
@@ -1504,6 +1506,7 @@
     // APPLICATION CORE SCRIPT
     // ----------------------------------------------------------------------------------
     
+    // 🔥 PASTE YOUR FIREBASE KEYS HERE 🔥
 const firebaseConfig = {
        apiKey: "AIzaSyBxAet3UzgBNuMUyUgj2MDWgrK5X63IPvg",
        authDomain: "u-depth-chart.firebaseapp.com",
@@ -1520,12 +1523,10 @@ const firebaseConfig = {
     let cloudEnabled = false;
 
     try {
-      if (firebaseConfig.apiKey !== "YOUR_API_KEY") {
-        firebase.initializeApp(firebaseConfig);
-        db = firebase.firestore();
-        auth = firebase.auth();
-        cloudEnabled = true;
-      }
+      firebase.initializeApp(firebaseConfig);
+      db = firebase.firestore();
+      auth = firebase.auth();
+      cloudEnabled = true;
     } catch (err) {
       console.warn("Firebase not configured. Using local storage mode.", err);
     }
@@ -1536,6 +1537,7 @@ const firebaseConfig = {
       ]
     };
 
+    // Complete rich default formation library
     const defaultFormations = [
       {
         id: "form_11", unit: "offense", name: "11 Offense", subtitle: "1 RB - 1 TE (Y1) - 3 WRs (X, W, Z)", collapsed: false,
@@ -1548,6 +1550,20 @@ const firebaseConfig = {
           ]},
           { id: "row_11_bk", label: "Backfield (1 - 4)", rowClass: "backfield", positions: [
             { id: "11-1", name: "1 (QB)" }, { id: "11-4", name: "4 (RB)" }
+          ]}
+        ]
+      },
+      {
+        id: "form_21", unit: "offense", name: "21 Heavy", subtitle: "2 RBs - 1 TE - 2 WRs", collapsed: false,
+        rows: [
+          { id: "row_21_ol", label: "Offensive Line & TE", rowClass: "oline", positions: [
+            { id: "21-LT", name: "LT" }, { id: "21-LG", name: "LG" }, { id: "21-C", name: "C" }, { id: "21-RG", name: "RG" }, { id: "21-RT", name: "RT" }, { id: "21-Y", name: "TE" }
+          ]},
+          { id: "row_21_wr", label: "Wide Receivers", rowClass: "receivers", positions: [
+            { id: "21-X", name: "X" }, { id: "21-Z", name: "Z" }
+          ]},
+          { id: "row_21_bk", label: "Backfield Stack", rowClass: "backfield", positions: [
+            { id: "21-QB", name: "QB" }, { id: "21-FB", name: "FB" }, { id: "21-RB", name: "RB" }
           ]}
         ]
       },
@@ -1565,6 +1581,23 @@ const firebaseConfig = {
           ]},
           { id: "row_44_dl", label: "Defensive Line (WDE - DT1 - DT2 - SDE)", rowClass: "dl", positions: [
             { id: "44-WDE", name: "WDE" }, { id: "44-DT1", name: "DT 1" }, { id: "44-DT2", name: "DT 2" }, { id: "44-SDE", name: "SDE" }
+          ]}
+        ]
+      },
+      {
+        id: "form_53", unit: "defense", name: "53 Defense", subtitle: "5-3 Bear Front", collapsed: false,
+        rows: [
+          { id: "row_53_fs", label: "Free Safety", rowClass: "secondary-safety", positions: [
+            { id: "53-FS", name: "FS" }
+          ]},
+          { id: "row_53_cb", label: "Cornerbacks", rowClass: "secondary-corners", positions: [
+            { id: "53-CB1", name: "CB 1" }, { id: "53-CB2", name: "CB 2" }
+          ]},
+          { id: "row_53_lb", label: "Linebackers", rowClass: "linebackers-tight", positions: [
+            { id: "53-WLB", name: "WLB" }, { id: "53-MLB", name: "MLB" }, { id: "53-SLB", name: "SLB" }
+          ]},
+          { id: "row_53_dl", label: "Defensive Line", rowClass: "dl", positions: [
+            { id: "53-WDE", name: "WDE" }, { id: "53-WT", name: "WT" }, { id: "53-NT", name: "NT" }, { id: "53-ST", name: "ST" }, { id: "53-SDE", name: "SDE" }
           ]}
         ]
       },
@@ -1630,7 +1663,7 @@ const firebaseConfig = {
     let selectedTouchPlayer = null;
     let collapsedDrillCats = JSON.parse(localStorage.getItem("footballCollapsedDrills")) || {};
     
-    // NEW Roster Tracking State
+    // Roster Tracking State
     let activeCountFormationId = null;
 
     let currentUser = null;
@@ -1749,10 +1782,15 @@ const firebaseConfig = {
       if (!dynamicDrills || Object.keys(dynamicDrills).length === 0) {
           dynamicDrills = JSON.parse(JSON.stringify(defaultDynamicDrills));
       }
+
       try {
         let stored = localStorage.getItem("footballPracticeData");
-        if (stored) practiceData = JSON.parse(stored);
-      } catch(e) { practiceData = []; }
+        if (stored) {
+          practiceData = JSON.parse(stored);
+        }
+      } catch(e) {
+        practiceData = [];
+      }
 
       if (!Array.isArray(practiceData) || practiceData.length === 0) {
         const todayDate = new Date().toISOString().split('T')[0];
@@ -1778,11 +1816,15 @@ const firebaseConfig = {
         if (!p.week) p.week = p.folder || "Week 1";
         if (!p.day) p.day = p.date || "Monday";
         delete p.folder; 
+
         if (!p.date) p.date = new Date().toISOString().split('T')[0];
         if (!p.startTime) p.startTime = "17:00";
         if (!p.endTime) p.endTime = "19:00";
         if (!p.lastEdited) p.lastEdited = Date.now();
-        if (!Array.isArray(p.plan)) p.plan = [];
+        
+        if (!Array.isArray(p.plan)) {
+          p.plan = [];
+        }
       });
 
       if (!currentPracticeId || !practiceData.find(p => p.id === currentPracticeId)) {
@@ -1793,6 +1835,7 @@ const firebaseConfig = {
 
     function initializeApp() {
       sanitizePracticeData();
+
       const urlParams = new URLSearchParams(window.location.search);
       let weekParam = urlParams.get('week');
       if (weekParam && weeklyData[weekParam]) {
@@ -1800,6 +1843,7 @@ const firebaseConfig = {
         const wSelect = document.getElementById("week-select");
         if(wSelect) wSelect.value = currentWeek;
       }
+
       initWristbandData();
       initScoutingData();
       depthChart = getWeekDepthChart(currentWeek);
@@ -1812,7 +1856,7 @@ const firebaseConfig = {
       renderMasterRoster();
     }
 
-    // Auth Listeners
+    // Listen to Firebase Auth state
     if (auth) {
       auth.onAuthStateChanged((user) => {
         const overlay = document.getElementById("auth-overlay");
@@ -1835,14 +1879,17 @@ const firebaseConfig = {
       applyRole(userRole);
     }
 
-    function toggleAuthMode() {
-      isSignUpMode = !isSignUpMode;
+    function switchAuthTab(tab) {
+      isSignUpMode = (tab === 'register');
       document.getElementById("tab-login").classList.toggle("active", !isSignUpMode);
       document.getElementById("tab-register").classList.toggle("active", isSignUpMode);
       document.getElementById("auth-submit-btn").textContent = isSignUpMode ? "Create Account" : "Sign In";
-      document.getElementById("auth-switch-btn").textContent = isSignUpMode ? "Already have an account? Sign In" : "Don't have an account? Sign Up";
       document.getElementById("auth-error").style.display = "none";
       document.getElementById("auth-error").textContent = "";
+    }
+
+    function toggleAuthMode() {
+      switchAuthTab(isSignUpMode ? 'login' : 'register');
     }
 
     function displayAuthError(msg) {
@@ -1861,6 +1908,7 @@ const firebaseConfig = {
         displayAuthError("Firebase Auth is not configured with your API credentials yet.");
         return;
       }
+
       if (isSignUpMode) {
         auth.createUserWithEmailAndPassword(email, password)
           .catch(err => displayAuthError(err.message));
@@ -1878,54 +1926,55 @@ const firebaseConfig = {
 
     function signInWithGoogle() {
       document.getElementById("auth-error").style.display = "none";
+
       if (!auth) {
         displayAuthError("Firebase Auth is not configured with your API credentials yet.");
         return;
       }
+
       const provider = new firebase.auth.GoogleAuthProvider();
       auth.signInWithPopup(provider)
         .catch(err => displayAuthError(err.message));
     }
 
     function signOutUser() {
-      if (auth) auth.signOut();
-      else location.reload();
+      if (auth) {
+        auth.signOut();
+      } else {
+        location.reload();
+      }
     }
 
     function listenToUserRole(user) {
       if (!db) {
         applyRole('admin');
-        document.getElementById("auth-overlay").style.display = "none";
         return;
       }
       if (userRoleUnsubscribe) userRoleUnsubscribe();
       
       const userRef = db.collection("users").doc(user.uid);
-      
-      // If we get blocked by Firestore rules, fallback to local admin so we don't lock the UI
-      userRef.get().then((doc) => {
+      userRoleUnsubscribe = userRef.onSnapshot((doc) => {
         if (doc.exists) {
-           applyRole(doc.data().role || 'viewer');
-           document.getElementById("auth-overlay").style.display = "none";
+          applyRole(doc.data().role || 'viewer');
         } else {
-           userRef.set({
+          db.collection("users").get().then((snap) => {
+            const isFirstUser = snap.empty;
+            const newRole = isFirstUser ? 'admin' : 'viewer';
+            userRef.set({
               email: user.email,
               displayName: user.displayName || user.email.split('@')[0],
-              role: 'admin',
+              role: newRole,
               createdAt: Date.now()
-           }).then(() => {
-              applyRole('admin');
-              document.getElementById("auth-overlay").style.display = "none";
-           }).catch(err => {
-              console.error("Firestore write blocked. Defaulting to admin locally.", err);
-              applyRole('admin');
-              document.getElementById("auth-overlay").style.display = "none";
-           });
+            });
+            applyRole(newRole);
+          }).catch(err => {
+            console.error("Firestore rules blocked user query. Defaulting to viewer.", err);
+            applyRole('viewer');
+          });
         }
-      }).catch(err => {
-         console.error("Firestore read blocked. Defaulting to admin locally.", err);
-         applyRole('admin');
-         document.getElementById("auth-overlay").style.display = "none";
+      }, (err) => {
+        console.warn("Could not listen to user role, defaulting to viewer.", err);
+        applyRole('viewer');
       });
     }
 
@@ -2009,7 +2058,9 @@ const firebaseConfig = {
     function markPracticeEdited() {
       if (userRole !== 'admin') return;
       const p = getCurrentPractice();
-      if (p) p.lastEdited = Date.now();
+      if (p) {
+        p.lastEdited = Date.now();
+      }
     }
 
     function togglePracticeTree(e) {
@@ -2128,8 +2179,11 @@ const firebaseConfig = {
 
     function createNewPractice() {
       if (userRole !== 'admin') return;
+      
       let templateOptions = "0: Blank Template\n";
-      practiceTemplates.forEach((t, i) => { templateOptions += `${i+1}: ${t.name}\n`; });
+      practiceTemplates.forEach((t, i) => {
+          templateOptions += `${i+1}: ${t.name}\n`;
+      });
       const tmplChoice = prompt(`Create from Template?\nEnter number:\n${templateOptions}`, "0");
       if (tmplChoice === null) return;
       
@@ -2485,7 +2539,7 @@ const firebaseConfig = {
 
     function dropPlayToWristband(e, colIdx, rowIdx) {
         e.preventDefault();
-        e.currentTarget.style.outline = 'none';
+        e.currentTarget.classList.remove('drag-over');
         if (userRole !== 'admin') return;
         
         const playText = e.dataTransfer.getData("text/plain");
@@ -2679,7 +2733,7 @@ const firebaseConfig = {
 
     function handleFormationClick(formId) {
         if (activeCountFormationId === formId) {
-            activeCountFormationId = null; 
+            activeCountFormationId = null; // Toggle off if clicked again
         } else {
             activeCountFormationId = formId;
         }
@@ -3611,277 +3665,22 @@ const firebaseConfig = {
       });
     }
 
-    function addPracticeRow() {
-      if (userRole !== 'admin') return;
-      const current = practiceData.find(p => p.id === currentPracticeId);
-      if (!current) return;
-      if (!Array.isArray(current.plan)) current.plan = [];
-      
-      current.plan.push({ 
-        time: 15, 
-        category: "Warm-Up & Breaks", 
-        drill: "", 
-        desc: "", 
-        key: "", 
-        customDrill: "", 
-        coaches: [], 
-        periodType: 'normal',
-        videoLink: "",
-        stations: [
-          { drill: "", desc: "", key: "", customDrill: "", coaches: [], videoLink: "" },
-          { drill: "", desc: "", key: "", customDrill: "", coaches: [], videoLink: "" }
-        ]
-      });
-      current.lastEdited = Date.now();
-      saveState();
-      renderPracticePlan();
-    }
-
-    function removePracticeRow(idx) {
-      if (userRole !== 'admin') return;
-      const current = practiceData.find(p => p.id === currentPracticeId);
-      if (!current || !Array.isArray(current.plan)) return;
-      current.plan.splice(idx, 1);
-      current.lastEdited = Date.now();
-      saveState();
-      renderPracticePlan();
-    }
-
-    function movePracticeRow(index, direction) {
-      if (userRole !== 'admin') return;
-      const current = practiceData.find(p => p.id === currentPracticeId);
-      if (!current || !Array.isArray(current.plan)) return;
-      const plan = current.plan;
-      const targetIndex = index + direction;
-      if (targetIndex < 0 || targetIndex >= plan.length) return;
-
-      const temp = plan[index];
-      plan[index] = plan[targetIndex];
-      plan[targetIndex] = temp;
-
-      current.lastEdited = Date.now();
-      saveState();
-      renderPracticePlan();
-    }
-
-    function updatePracticeCategory(idx, catValue) {
-      if (userRole !== 'admin') return;
-      const current = practiceData.find(p => p.id === currentPracticeId);
-      if (!current || !Array.isArray(current.plan) || !current.plan[idx]) return;
-      const row = current.plan[idx];
-
-      if (catValue === "Custom") {
-        const newCat = prompt("Enter new custom category name:");
-        if (newCat && newCat.trim() !== "") {
-          const cleanCat = newCat.trim();
-          if (!savedCustomCategories.includes(cleanCat)) {
-            savedCustomCategories.push(cleanCat);
-            localStorage.setItem("footballCustomCategories", JSON.stringify(savedCustomCategories));
-          }
-          row.category = cleanCat;
-        } else {
-          return;
-        }
-      } else {
-        row.category = catValue;
-      }
-
-      row.drill = "";
-      row.desc = "";
-      row.key = "";
-      row.customDrill = "";
-      
-      if (row.category === "Tackle Circuit" || row.category === "Tackling (Whole Team)" || row.category === "Pre Practice") {
-        row.periodType = 'circuit';
-        if (!Array.isArray(row.stations) || row.stations.length === 0) {
-           row.stations = [
-             { drill: "", desc: "", key: "", customDrill: "", coaches: [], videoLink: "" },
-             { drill: "", desc: "", key: "", customDrill: "", coaches: [], videoLink: "" }
-           ];
-        }
-      }
-      
-      current.lastEdited = Date.now();
-      saveState();
-      renderPracticePlan();
-    }
-
-    function updatePracticeDrill(idx, drillValue) {
-      if (userRole !== 'admin') return;
-      const current = practiceData.find(p => p.id === currentPracticeId);
-      if (!current || !Array.isArray(current.plan) || !current.plan[idx]) return;
-      const row = current.plan[idx];
-      row.drill = drillValue;
-      
-      if (drillValue !== "Custom") {
-        row.customDrill = ""; 
-        const drillObj = findDrillByName(drillValue);
-        if (drillObj) {
-          row.desc = drillObj.desc || "";
-          row.key = drillObj.key || "";
-        } else if (drillValue === "") {
-          row.desc = "";
-          row.key = "";
-        }
-      } else {
-        row.desc = "";
-        row.key = "";
-      }
-      
-      current.lastEdited = Date.now();
-      saveState();
-      renderPracticePlan();
-    }
-
-    function updateCircuitStations(rowIdx, newCount) {
-      if (userRole !== 'admin') return;
-      const current = practiceData.find(p => p.id === currentPracticeId);
-      if (!current || !Array.isArray(current.plan) || !current.plan[rowIdx]) return;
-      const target = parseInt(newCount);
-      const row = current.plan[rowIdx];
-      if (!Array.isArray(row.stations)) row.stations = [];
-      while (row.stations.length < target) {
-        row.stations.push({ drill: "", desc: "", key: "", customDrill: "", coaches: [], videoLink: "" });
-      }
-      while (row.stations.length > target) {
-        row.stations.pop();
-      }
-      current.lastEdited = Date.now();
-      saveState();
-      renderPracticePlan();
-    }
-
-    function updateCircuitDrill(rowIdx, stationIdx, drillValue) {
-      if (userRole !== 'admin') return;
-      const current = practiceData.find(p => p.id === currentPracticeId);
-      if (!current || !Array.isArray(current.plan) || !current.plan[rowIdx]) return;
-      const row = current.plan[rowIdx];
-      if (!Array.isArray(row.stations) || !row.stations[stationIdx]) return;
-      const st = row.stations[stationIdx];
-      st.drill = drillValue;
-      if (drillValue !== "Custom") {
-        st.customDrill = "";
-        const drillObj = findDrillByName(drillValue);
-        if (drillObj) {
-          st.desc = drillObj.desc || "";
-          st.key = drillObj.key || "";
-        } else if (drillValue === "") {
-          st.desc = "";
-          st.key = "";
-        }
-      } else {
-        st.desc = "";
-        st.key = "";
-      }
-      current.lastEdited = Date.now();
-      saveState();
-      renderPracticePlan();
-    }
-
-    function handleCoachSelection(rowIdx, value) {
-      if (userRole !== 'admin') return;
-      if (!value) return;
-      const current = practiceData.find(p => p.id === currentPracticeId);
-      if (!current || !Array.isArray(current.plan) || !current.plan[rowIdx]) return;
-      const row = current.plan[rowIdx];
-      if (!Array.isArray(row.coaches)) row.coaches = [];
-
-      if (value === "NEW") {
-        const newCoach = prompt("Enter new coach name:");
-        if (newCoach && newCoach.trim() !== "") {
-          const cleanName = newCoach.trim();
-          if (!savedCoaches.includes(cleanName)) {
-            savedCoaches.push(cleanName);
-            saveCoaches();
-          }
-          if (!row.coaches.includes(cleanName)) {
-            row.coaches.push(cleanName);
-          }
-        }
-      } else {
-        if (!row.coaches.includes(value)) {
-          row.coaches.push(value);
-        }
-      }
-      current.lastEdited = Date.now();
-      saveState();
-      renderPracticePlan();
-    }
-
-    function removeCoachFromRow(rowIdx, coachName) {
-      if (userRole !== 'admin') return;
-      const current = practiceData.find(p => p.id === currentPracticeId);
-      if (!current || !Array.isArray(current.plan) || !current.plan[rowIdx]) return;
-      const row = current.plan[rowIdx];
-      if (Array.isArray(row.coaches)) {
-        row.coaches = row.coaches.filter(c => c !== coachName);
-        current.lastEdited = Date.now();
-        saveState();
-        renderPracticePlan();
-      }
-    }
-
-    function handleStationCoachSelection(rowIdx, stationIdx, value) {
-      if (userRole !== 'admin') return;
-      if (!value) return;
-      const current = practiceData.find(p => p.id === currentPracticeId);
-      if (!current || !Array.isArray(current.plan) || !current.plan[rowIdx]) return;
-      const row = current.plan[rowIdx];
-      if (!Array.isArray(row.stations) || !row.stations[stationIdx]) return;
-      const st = row.stations[stationIdx];
-      if (!Array.isArray(st.coaches)) st.coaches = [];
-
-      if (value === "NEW") {
-        const newCoach = prompt("Enter new coach name:");
-        if (newCoach && newCoach.trim() !== "") {
-          const cleanName = newCoach.trim();
-          if (!savedCoaches.includes(cleanName)) {
-            savedCoaches.push(cleanName);
-            saveCoaches();
-          }
-          if (!st.coaches.includes(cleanName)) {
-            st.coaches.push(cleanName);
-          }
-        }
-      } else {
-        if (!st.coaches.includes(value)) {
-          st.coaches.push(value);
-        }
-      }
-      markPracticeEdited();
-      saveState();
-      renderPracticePlan();
-    }
-
-    function removeCoachFromStation(rowIdx, stationIdx, coachName) {
-      if (userRole !== 'admin') return;
-      const current = practiceData.find(p => p.id === currentPracticeId);
-      if (!current || !Array.isArray(current.plan) || !current.plan[rowIdx]) return;
-      const row = current.plan[rowIdx];
-      if (!Array.isArray(row.stations) || !row.stations[stationIdx]) return;
-      const st = row.stations[stationIdx];
-      if (Array.isArray(st.coaches)) {
-        st.coaches = st.coaches.filter(c => c !== coachName);
-        saveState();
-        renderPracticePlan();
-      }
-    }
-
     function getActivePlayerPositionsCount(num) {
       if (!num || !depthChart) return 0;
       
       let targetForms = getWeekFormations(currentWeek).filter(f => f.unit === activeUnit);
-      if (!targetForms || targetForms.length === 0) return 0; 
+      if (targetForms.length === 0) return 0; 
 
       if (activeCountFormationId) {
-         targetForms = targetForms.filter(f => f.id === activeCountFormationId);
+         const matched = targetForms.filter(f => f.id === activeCountFormationId);
+         if (matched.length > 0) targetForms = matched;
       }
 
       const validPosIds = new Set();
       targetForms.forEach(form => {
         (form.rows || []).forEach(row => {
           (row.positions || []).forEach(pos => {
-            validPosIds.add(pos.id);
+            if (pos && pos.id) validPosIds.add(pos.id);
           });
         });
       });
@@ -3889,7 +3688,7 @@ const firebaseConfig = {
       let count = 0;
       validPosIds.forEach(posId => {
         if (Array.isArray(depthChart[posId])) {
-          count += depthChart[posId].filter(p => p && p.num === num).length;
+          count += depthChart[posId].filter(p => p && (String(p.num) === String(num))).length;
         }
       });
       return count;
@@ -3958,300 +3757,8 @@ const firebaseConfig = {
       });
     }
 
-    function exportData() {
-      if (userRole !== 'admin') return;
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ weeklyData, practiceData, savedCoaches, savedCustomCategories, practiceTemplates, dynamicDrills }, null, 2));
-      const downloadAnchor = document.createElement('a');
-      downloadAnchor.setAttribute("href", dataStr);
-      downloadAnchor.setAttribute("download", "football_operations_backup.json");
-      document.body.appendChild(downloadAnchor);
-      downloadAnchor.click();
-      downloadAnchor.remove();
-    }
-
-    function importData(event) {
-      if (userRole !== 'admin') return;
-      const file = event.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        try {
-          const imported = JSON.parse(e.target.result);
-          if (imported.weeklyData) weeklyData = imported.weeklyData;
-          if (imported.practiceData) practiceData = imported.practiceData;
-          if (imported.savedCoaches) savedCoaches = imported.savedCoaches;
-          if (imported.savedCustomCategories) savedCustomCategories = imported.savedCustomCategories;
-          if (imported.practiceTemplates) practiceTemplates = imported.practiceTemplates;
-          if (imported.dynamicDrills) dynamicDrills = imported.dynamicDrills;
-          saveState();
-          saveCoaches();
-          initializeApp();
-          alert("All Depth Chart and Practice Plan data successfully loaded!");
-        } catch (err) {
-          alert("Invalid file format.");
-        }
-      };
-      reader.readAsText(file);
-    }
-
-    function resetDefault() {
-      if (userRole !== 'admin') return;
-      if (confirm(`Reset Week ${currentWeek} back to default?`)) {
-        weeklyData[currentWeek] = {
-          opponent: "",
-          depthChart: JSON.parse(JSON.stringify(Here is a completely updated structural layout for those two dashboard modules. 
-
-Since I don't have your exact underlying codebase, I’ve built a clean, self-contained HTML/JS/CSS module that you can drop directly into your project. 
-
-It accomplishes four things:
-1. **Fixes the Practice Folder System:** It uses a straightforward JavaScript object to store and swap between plans seamlessly.
-2. **Removes the Master Roster:** The wristband builder is now entirely focused on plays, not personnel.
-3. **Adds a Playbook Repository:** You can type out plays to generate a clickable, draggable list.
-4. **Wires up the Drag-and-Drop:** Uses native HTML5 Drag and Drop API. (The most common reason drag-and-drop fails is forgetting to add `e.preventDefault()` to the `dragover` event on the drop zones).
-
-### The Updated Module Code
-
-```html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Practice & Wristband Dashboard</title>
-<style>
-  /* Base Dashboard Styles */
-  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f4f4f9; margin: 0; padding: 20px; }
-  .nav { display: flex; gap: 10px; margin-bottom: 20px; }
-  .nav button { padding: 10px 20px; cursor: pointer; background: #333; color: white; border: none; border-radius: 4px; }
-  .nav button:hover { background: #555; }
-  .tab-content { display: none; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-  .active { display: block; }
-  .input-group { display: flex; gap: 5px; margin-bottom: 15px; }
-  .input-group input { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px;}
-  .input-group button { padding: 8px 15px; background: #2e7d32; color: white; border: none; border-radius: 4px; cursor: pointer; }
-
-  /* 1. Practice Plan Folders */
-  .folder-system { display: flex; gap: 20px; min-height: 300px; }
-  .folder-list { width: 30%; border-right: 1px solid #eee; padding-right: 15px; }
-  .folder-item { padding: 10px; background: #f9f9f9; border: 1px solid #ddd; margin-bottom: 5px; border-radius: 4px; cursor: pointer; }
-  .folder-item:hover, .folder-item.selected { background: #e3f2fd; border-color: #90caf9; }
-  .plan-details { width: 70%; }
-  #plan-content { width: 100%; height: 250px; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; resize: vertical; }
-
-  /* 2. Wristband Drag & Drop */
-  .builder-container { display: flex; gap: 20px; }
-  
-  /* Playbook Repo Column */
-  .play-repo { width: 40%; background: #fafafa; padding: 15px; border-radius: 8px; border: 1px solid #eee; }
-  .play-item { background: white; border: 1px solid #ccc; padding: 10px; margin-bottom: 5px; cursor: grab; border-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-  .play-item:active { cursor: grabbing; }
-
-  /* Wristband Drop Zone Column */
-  .wristband { width: 60%; background: #e8f5e9; padding: 15px; border-radius: 8px; border: 1px solid #c8e6c9; }
-  .wristband-slot { border: 2px dashed #81c784; padding: 10px; margin-bottom: 10px; background: #fff; min-height: 25px; border-radius: 4px; display: flex; align-items: center; transition: all 0.2s; }
-  .wristband-slot.drag-over { background: #c8e6c9; border-color: #2e7d32; transform: scale(1.02); }
-  .slot-number { font-weight: bold; margin-right: 15px; width: 25px; color: #555; }
-  .slot-play { flex: 1; }
-</style>
-</head>
-<body>
-
-<div class="nav">
-  <button onclick="showTab('practice-tab')">Practice Plans</button>
-  <button onclick="showTab('wristband-tab')">Wristband Builder</button>
-</div>
-
-<!-- MODULE 1: Practice Plan Folders -->
-<div id="practice-tab" class="tab-content active">
-  <h2>Practice Plans</h2>
-  <div class="input-group">
-    <input type="text" id="new-plan-name" placeholder="New Folder Name (e.g., Week 3 Scripts)">
-    <button onclick="addPracticePlan()">Add Folder</button>
-  </div>
-  <div class="folder-system">
-    <div class="folder-list" id="folder-list">
-      <!-- Folders dynamically render here -->
-    </div>
-    <div class="plan-details" id="plan-details" style="display: none;">
-      <h3 id="current-plan-title" style="margin-top:0;">Select a plan</h3>
-      <textarea id="plan-content" placeholder="Enter station rotations, drill circuits, etc..."></textarea>
-      <button onclick="savePlanContent()" style="margin-top: 10px; padding: 8px 15px; background: #1976d2; color: white; border: none; border-radius: 4px; cursor: pointer;">Save Plan</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODULE 2: Wristband Builder -->
-<div id="wristband-tab" class="tab-content">
-  <h2>Wristband Layout Builder</h2>
-  
-  <div class="builder-container">
-    
-    <!-- Left: Playbook Repository -->
-    <div class="play-repo">
-      <h3 style="margin-top:0;">Play Repository</h3>
-      <div class="input-group">
-        <input type="text" id="new-play-name" placeholder="e.g., Trips Right 24 Dive">
-        <button onclick="addPlayToRepo()">Add Play</button>
-      </div>
-      <div id="play-list">
-        <!-- Draggable plays render here -->
-      </div>
-    </div>
-
-    <!-- Right: Wristband Drop Zones -->
-    <div class="wristband">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-        <h3 style="margin:0;">Wristband (8-Play Layout)</h3>
-        <button onclick="clearWristband()" style="padding: 5px 10px; cursor: pointer;">Clear Slots</button>
-      </div>
-      <div id="wristband-slots">
-        <!-- Drop zones render here -->
-      </div>
-    </div>
-
-  </div>
-</div>
-
-<script>
-  // --- Global Navigation ---
-  function showTab(tabId) {
-    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-    document.getElementById(tabId).classList.add('active');
-  }
-
-  // --- Logic: Practice Plan Folders ---
-  let practicePlans = {
-    "Defensive Install": "1. 4-4 Stack Alignment Review\n2. Block Shedding\n3. Inside Run Fit",
-    "Offensive Circuits": "1. Snap Exchange\n2. Backfield Mesh\n3. Pass Routes"
-  };
-  let activePlan = null;
-
-  function renderFolders() {
-    const list = document.getElementById('folder-list');
-    list.innerHTML = '';
-    for (const planName in practicePlans) {
-      const div = document.createElement('div');
-      div.className = `folder-item ${activePlan === planName ? 'selected' : ''}`;
-      div.innerHTML = `📁 ${planName}`;
-      div.onclick = () => openPlan(planName);
-      list.appendChild(div);
-    }
-  }
-
-  function addPracticePlan() {
-    const input = document.getElementById('new-plan-name');
-    const name = input.value.trim();
-    if (name && !practicePlans[name]) {
-      practicePlans[name] = "";
-      input.value = '';
-      openPlan(name);
-    }
-  }
-
-  function openPlan(planName) {
-    activePlan = planName;
-    renderFolders(); // Update selected styling
-    document.getElementById('plan-details').style.display = 'block';
-    document.getElementById('current-plan-title').textContent = planName;
-    document.getElementById('plan-content').value = practicePlans[planName];
-  }
-
-  function savePlanContent() {
-    if (activePlan) {
-      practicePlans[activePlan] = document.getElementById('plan-content').value;
-      alert('Plan saved successfully.');
-    }
-  }
-
-  // --- Logic: Wristband Drag and Drop Builder ---
-  let playbook = ["Downtown", "Uptown", "Mike Pressure", "Will Pressure", "Cover 3"];
-
-  function renderPlaybook() {
-    const list = document.getElementById('play-list');
-    list.innerHTML = '';
-    playbook.forEach((play, index) => {
-      const div = document.createElement('div');
-      div.className = 'play-item';
-      div.draggable = true; 
-      div.textContent = play;
-      
-      // Step 1: The item being dragged stores its text data
-      div.addEventListener('dragstart', (e) => {
-        e.dataTransfer.setData('text/plain', play);
-        e.dataTransfer.effectAllowed = 'copy';
-      });
-      list.appendChild(div);
-    });
-  }
-
-  function addPlayToRepo() {
-    const input = document.getElementById('new-play-name');
-    const name = input.value.trim();
-    if (name) {
-      playbook.push(name);
-      input.value = '';
-      renderPlaybook();
-    }
-  }
-
-  function initWristbandSlots(numSlots = 8) {
-    const container = document.getElementById('wristband-slots');
-    container.innerHTML = '';
-    
-    for (let i = 1; i <= numSlots; i++) {
-      const slot = document.createElement('div');
-      slot.className = 'wristband-slot';
-      
-      const numberSpan = document.createElement('span');
-      numberSpan.className = 'slot-number';
-      numberSpan.textContent = i + '.';
-      
-      const playSpan = document.createElement('span');
-      playSpan.className = 'slot-play';
-      playSpan.textContent = 'Drop play here...';
-      playSpan.style.color = '#999';
-
-      slot.appendChild(numberSpan);
-      slot.appendChild(playSpan);
-
-      // Step 2: The drop zone must preventDefault on dragover to allow dropping
-      slot.addEventListener('dragover', (e) => {
-        e.preventDefault(); 
-        slot.classList.add('drag-over');
-      });
-
-      // Visual feedback when dragging leaves the zone
-      slot.addEventListener('dragleave', () => {
-        slot.classList.remove('drag-over');
-      });
-
-      // Step 3: Handle the actual drop
-      slot.addEventListener('drop', (e) => {
-        e.preventDefault();
-        slot.classList.remove('drag-over');
-        
-        // Retrieve the play text and update the slot
-        const playName = e.dataTransfer.getData('text/plain');
-        playSpan.textContent = playName;
-        playSpan.style.color = '#000';
-        playSpan.style.fontWeight = 'bold';
-      });
-
-      container.appendChild(slot);
-    }
-  }
-
-  function clearWristband() {
-    initWristbandSlots(8);
-  }
-
-  // Init application on load
-  window.onload = () => {
-    renderFolders();
-    renderPlaybook();
-    initWristbandSlots(8); 
-  };
-</script>
+    // Initialize application on load
+    initializeApp();
+  </script>
 </body>
 </html>
