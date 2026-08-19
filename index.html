@@ -364,14 +364,14 @@
       box-shadow: 0 2px 4px rgba(30, 58, 138, 0.2);
     }
 
-    /* Main Layout */
+    /* Main Layout - Modified for Sticky Sidebar */
     .app-layout {
       display: flex;
       gap: 12px;
       max-width: 1400px;
       margin: 0 auto;
       flex-direction: row;
-      position: relative; /* important for sticky children */
+      align-items: flex-start; /* CRITICAL: Allows children to not stretch, enabling sticky */
     }
 
     @media (max-width: 900px) {
@@ -395,6 +395,7 @@
       gap: 20px;
     }
 
+    /* Formation Container - Interactive Styles */
     .formation-container {
       background: #ffffff;
       border: 2px dashed var(--card-border);
@@ -403,6 +404,18 @@
       position: relative;
       box-shadow: 0 1px 3px rgba(0,0,0,0.05);
       overflow-x: auto;
+      cursor: pointer; /* Indicates it can be clicked to count */
+      transition: all 0.2s ease;
+    }
+
+    .formation-container:hover {
+      border-color: var(--primary);
+    }
+
+    .formation-container.counting-active {
+      border-color: var(--accent);
+      background-color: #eff6ff;
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
     }
 
     .board-title {
@@ -417,12 +430,15 @@
       align-items: center;
       flex-wrap: wrap;
       gap: 6px;
+      pointer-events: none; /* Let the container catch the click */
     }
-
+    
+    /* Make controls clickable again */
     .board-controls {
       display: flex;
       align-items: center;
       gap: 4px;
+      pointer-events: auto;
     }
 
     .toggle-board-btn, .add-pos-btn, .add-form-btn {
@@ -460,6 +476,7 @@
     /* Level / Row Headers */
     .row-container {
       margin-bottom: 12px;
+      pointer-events: none;
     }
 
     .level-header-bar {
@@ -469,6 +486,7 @@
       margin-bottom: 6px;
       border-bottom: 1px solid #e2e8f0;
       padding-bottom: 2px;
+      pointer-events: auto;
     }
 
     .level-label {
@@ -511,6 +529,7 @@
       gap: 6px;
       flex-wrap: wrap;
       min-width: 100%;
+      pointer-events: auto;
     }
 
     .formation-row.oline { justify-content: center; gap: 8px; }
@@ -1039,11 +1058,11 @@
       box-shadow: 0 1px 3px rgba(0,0,0,0.05);
       
       /* New Sticky Properties */
+      position: -webkit-sticky;
       position: sticky;
       top: 50vh;
       transform: translateY(-50%);
-      align-self: flex-start;
-      max-height: 85vh; /* Prevents it from clipping off top/bottom of screen */
+      max-height: 85vh; 
     }
 
     @media (max-width: 900px) {
@@ -1075,7 +1094,7 @@
       padding: 0; 
       margin: 0; 
       overflow-y: auto; 
-      flex-grow: 1; /* Automatically fill the rest of the sticky sidebar */
+      flex-grow: 1; 
       min-height: 200px;
     }
     
@@ -1107,9 +1126,9 @@
       
       /* Standard Panels */
       .formation-body.collapsed { display: block !important; }
-      .formation-container { border: 1px solid #000000; box-shadow: none; padding: 4px; page-break-inside: auto !important; margin-bottom: 4px; }
+      .formation-container { border: 1px solid #000000 !important; box-shadow: none !important; padding: 4px; page-break-inside: auto !important; margin-bottom: 4px; background: #ffffff !important; }
       .formation-row { min-width: 100% !important; page-break-inside: avoid; }
-      .position-card { border: 1px solid #000000 !important; box-shadow: none !important; min-width: 65px; }
+      .position-card { border: 1px solid #000000 !important; box-shadow: none !important; min-width: 65px; background: #ffffff !important; }
       .position-header { background: #e2e8f0 !important; color: #000000 !important; border-bottom: 1px solid #000000 !important; font-size: 8px; padding: 2px 3px; }
       .player-item { border: 1px solid #cbd5e1 !important; font-size: 7.5px; padding: 2px 3px; margin-bottom: 2px; }
       h1 { margin-top: 0; font-size: 12px; color: #000000; text-align: center; }
@@ -1131,10 +1150,6 @@
         font-weight: bold;
         text-transform: uppercase;
         font-family: "Times New Roman", Times, serif !important;
-      }
-      #panel-wristband input[type="text"] {
-        border: none !important;
-        background: transparent !important;
       }
 
       /* Scouting Print Specifics */
@@ -1240,10 +1255,6 @@
       
       <span class="auth-switch" id="auth-switch-btn" onclick="toggleAuthMode()">Don't have an account? Sign Up</span>
       <div id="auth-error" style="color:#ef4444; font-size:12px; margin-top:10px; font-weight:bold; background:#fee2e2; padding:8px; border-radius:4px; display:none; border:1px solid #fca5a5;"></div>
-      
-      <div style="margin-top:20px; font-size:10px;">
-        <span style="color:#94a3b8; cursor:pointer;" onclick="bypassAuth()">[Bypass Login for Local Testing]</span>
-      </div>
     </div>
   </div>
 
@@ -1341,7 +1352,7 @@
         <div class="print-only-header">
            <h2 id="print-wb-title">Weekly Play Wristband</h2>
         </div>
-        <div class="formation-container" style="padding: 4px; overflow: hidden;">
+        <div class="formation-container" style="padding: 4px; overflow: hidden; cursor:default !important;">
           <div class="board-title no-print" style="padding: 8px; margin-bottom:0;">
             <div style="display:flex; align-items:center; gap:12px;">
               <span>Wristband Builder</span>
@@ -1352,7 +1363,6 @@
               <button class="toolbar button" onclick="if(document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur(); setTimeout(()=>window.print(), 100);" style="padding:4px 10px; margin-left:6px;">🖨️ Print Wristband</button>
             </div>
           </div>
-          
           <div id="wristband-grid" style="overflow-x: auto; padding: 4px; display:flex; justify-content:center;">
             <!-- Table Populated by JS -->
           </div>
@@ -1364,7 +1374,7 @@
         <div class="print-only-header">
            <h2 id="print-scout-title">Scouting Report</h2>
         </div>
-        <div class="formation-container">
+        <div class="formation-container" style="cursor:default !important;">
           <div class="board-title no-print">
             <div style="display:flex; align-items:center; gap:12px;">
               <span>Scouting Report</span>
@@ -1415,7 +1425,7 @@
          <div class="print-only-header">
             <h2>Master Drill Library</h2>
          </div>
-         <div class="formation-container" style="background:transparent; border:none; padding:0; box-shadow:none;">
+         <div class="formation-container" style="background:transparent; border:none; padding:0; box-shadow:none; cursor:default !important;">
             <div class="board-title no-print" style="background:#fff; border:1px solid var(--card-border); border-radius:8px; padding:10px; margin-bottom:10px;">
                <span>Master Drill Library</span>
                <button class="add-row-btn admin-only" style="margin:0;" onclick="addDrillCategory()">+ Add New Category</button>
@@ -1435,7 +1445,7 @@
            <p id="print-practice-date"></p>
         </div>
 
-        <div class="formation-container">
+        <div class="formation-container" style="cursor:default !important;">
           <div class="board-title no-print">
             <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
               <span>Practice:</span>
@@ -1497,7 +1507,7 @@
 
       <!-- USER MANAGEMENT PANEL (HEAD COACH ONLY) -->
       <div class="unit-panel hidden" id="panel-users">
-        <div class="formation-container">
+        <div class="formation-container" style="cursor:default !important;">
           <div class="board-title">
             <span>👥 Staff & User Permissions</span>
           </div>
@@ -1515,6 +1525,10 @@
     <!-- Master Roster Sidebar -->
     <div class="sidebar" id="sidebar-panel">
       <h2>Master Roster</h2>
+      <div style="margin-bottom: 8px;">
+        <label style="font-size: 11px; font-weight: bold; color: var(--text-muted); display: block; margin-bottom: 3px;" id="roster-count-label">Counting: All in Tab</label>
+        <div style="font-size: 9px; color: var(--accent); margin-bottom: 6px;">Click any formation to filter</div>
+      </div>
       <input type="text" id="search-input" class="search-box" placeholder="Search first/last name or #..." oninput="filterRoster()" />
       <ul class="full-roster-list" id="master-roster-list"></ul>
     </div>
@@ -1522,7 +1536,7 @@
 
   <script>
     // ----------------------------------------------------------------------------------
-    // ONLY ONE SET OF CONSTANTS DEFINED HERE AT THE TOP TO PREVENT FATAL JS CRASHES!
+    // SECURE FIREBASE CONNECTION
     // ----------------------------------------------------------------------------------
     
 const firebaseConfig = {
@@ -1592,6 +1606,9 @@ const firebaseConfig = {
     let activeUnit = "offense";
     let selectedTouchPlayer = null;
     let collapsedDrillCats = JSON.parse(localStorage.getItem("footballCollapsedDrills")) || {};
+    
+    // NEW Roster Tracking State
+    let activeCountFormationId = null;
 
     let currentUser = null;
     let userRole = 'viewer'; 
@@ -2267,6 +2284,8 @@ const firebaseConfig = {
       const oppInput = document.getElementById("opponent-input");
       if(oppInput) oppInput.value = weeklyData[currentWeek] ? (weeklyData[currentWeek].opponent || "") : "";
       
+      activeCountFormationId = null; // Reset counting when changing weeks
+      
       if (activeUnit === 'wristband') renderWristband();
       else if (activeUnit === 'scouting') renderScouting();
       else if (activeUnit === 'drills') renderDrillsTab();
@@ -2330,6 +2349,8 @@ const firebaseConfig = {
 
     function switchUnitTab(unit) {
       activeUnit = unit;
+      activeCountFormationId = null; // Always reset spot counter filter when changing tabs
+
       document.getElementById('panel-defense').classList.toggle('hidden', unit !== 'defense');
       document.getElementById('panel-offense').classList.toggle('hidden', unit !== 'offense');
       document.getElementById('panel-st').classList.toggle('hidden', unit !== 'st');
@@ -2350,17 +2371,12 @@ const firebaseConfig = {
       document.getElementById('tab-btn-practice').classList.toggle('active', unit === 'practice');
       document.getElementById('tab-btn-users').classList.toggle('active', unit === 'users');
 
-      const sidebar = document.getElementById('sidebar-panel');
       const mainWeekBar = document.getElementById('main-week-bar');
       
-      if (unit === 'practice' || unit === 'drills' || unit === 'users') {
-        if(sidebar) sidebar.classList.add('hidden');
+      // Hide weekbar on specific utility tabs
+      if (unit === 'drills' || unit === 'users' || unit === 'practice') {
         if(mainWeekBar) mainWeekBar.classList.add('hidden');
-      } else if (unit === 'wristband' || unit === 'scouting') {
-        if(sidebar) sidebar.classList.add('hidden');
-        if(mainWeekBar) mainWeekBar.classList.remove('hidden');
       } else {
-        if(sidebar) sidebar.classList.remove('hidden');
         if(mainWeekBar) mainWeekBar.classList.remove('hidden');
       }
 
@@ -2653,6 +2669,22 @@ const firebaseConfig = {
     }
 
     /* DYNAMIC FORMATIONS & POSITIONS */
+    function handleFormationClick(formId) {
+        if (activeCountFormationId === formId) return; // Prevent loop if already clicked
+        activeCountFormationId = formId;
+
+        document.querySelectorAll('.formation-container').forEach(el => {
+            el.classList.remove('counting-active');
+        });
+        
+        const activeEl = document.getElementById('board_' + formId);
+        if (activeEl) {
+            activeEl.classList.add('counting-active');
+        }
+
+        renderMasterRoster(); // Immediately update the counts based on the new selection
+    }
+
     function createFormationPrompt(unit) {
       if (userRole !== 'admin') return;
       const name = prompt(`Enter new ${unit.toUpperCase()} formation name:`, "New Formation");
@@ -2706,6 +2738,7 @@ const firebaseConfig = {
       const forms = getWeekFormations(currentWeek);
       if(confirm("Are you sure you want to delete this entire formation?")) {
         weeklyData[currentWeek].formations = forms.filter(f => f.id !== formId);
+        if (activeCountFormationId === formId) activeCountFormationId = null; // reset if deleting the active one
         triggerDebouncedSave();
         renderActiveBoards();
         renderMasterRoster(); 
@@ -2874,18 +2907,6 @@ const firebaseConfig = {
       }
     }
 
-    function restoreUnitDefaults() {
-      if (userRole !== 'admin') return;
-      if(confirm(`Restore default ${activeUnit.toUpperCase()} formations for Week ${currentWeek}? This will overwrite current boards on this tab.`)) {
-          const defaultFormsForUnit = JSON.parse(JSON.stringify(defaultFormations.filter(f => f.unit === activeUnit)));
-          let otherForms = getWeekFormations(currentWeek).filter(f => f.unit !== activeUnit);
-          weeklyData[currentWeek].formations = [...otherForms, ...defaultFormsForUnit];
-          triggerDebouncedSave();
-          renderActiveBoards();
-          renderMasterRoster();
-      }
-    }
-
     function renderActiveBoards() {
       const containerId = "boards-" + activeUnit;
       const container = document.getElementById(containerId);
@@ -2899,7 +2920,7 @@ const firebaseConfig = {
              <div style="padding:40px 20px; text-align:center; color:var(--text-muted); border:2px dashed var(--card-border); border-radius:10px; background:#f8fafc;">
                 <div style="font-size:24px; margin-bottom:10px;">📋</div>
                 <strong style="font-size:14px; color:var(--primary);">No boards found for ${activeUnit.toUpperCase()}</strong><br><br>
-                <span class="admin-only">Click the <b>+ Add Formation</b> button above to create one from scratch, or <button onclick="restoreUnitDefaults()" style="background:none; border:none; color:var(--accent); font-weight:bold; text-decoration:underline; cursor:pointer; padding:0;">Restore Default Formations</button>.</span>
+                <span class="admin-only">Click the <b>+ Add Formation</b> button above to create one.</span>
              </div>
           `;
           return;
@@ -2910,8 +2931,14 @@ const firebaseConfig = {
 
       forms.forEach(form => {
         const formDiv = document.createElement("div");
-        formDiv.className = "formation-container";
+        formDiv.className = "formation-container" + (activeCountFormationId === form.id ? " counting-active" : "");
         formDiv.id = "board_" + form.id;
+        
+        // This makes clicking the formation count its specific spots in the roster sidebar
+        formDiv.onclick = (e) => {
+            if (e.target.closest('button') || e.target.closest('input') || e.target.closest('.player-item')) return;
+            handleFormationClick(form.id);
+        };
 
         formDiv.innerHTML = `
           <div class="board-title">
@@ -3143,6 +3170,7 @@ const firebaseConfig = {
       document.getElementById("sync-text").textContent = "Local Storage Mode";
     }
 
+    /* PRACTICE PLAN & TABLE RESIZING LOGIC */
     function updatePracticeTextData(idx, field, value) {
       if (userRole !== 'admin') return;
       const current = practiceData.find(p => p.id === currentPracticeId);
@@ -3512,7 +3540,6 @@ const firebaseConfig = {
       const table = document.getElementById("main-practice-table");
       if (!table) return;
       
-      // Force fixed layout for precise column control
       table.style.tableLayout = "fixed";
 
       const ths = table.querySelectorAll("thead th");
@@ -3540,7 +3567,6 @@ const firebaseConfig = {
             if (newWidth > 30 && nextTh) {
               const newNextWidth = nextStartWidth - diffX;
               if (newNextWidth > 30) {
-                // Convert back to percentages so it stays responsive
                 th.style.width = ((newWidth / tableWidth) * 100) + "%";
                 nextTh.style.width = ((newNextWidth / tableWidth) * 100) + "%";
               }
@@ -3559,21 +3585,286 @@ const firebaseConfig = {
       });
     }
 
+    function addPracticeRow() {
+      if (userRole !== 'admin') return;
+      const current = practiceData.find(p => p.id === currentPracticeId);
+      if (!current) return;
+      if (!Array.isArray(current.plan)) current.plan = [];
+      
+      current.plan.push({ 
+        time: 15, 
+        category: "Warm-Up & Breaks", 
+        drill: "", 
+        desc: "", 
+        key: "", 
+        customDrill: "", 
+        coaches: [], 
+        periodType: 'normal',
+        videoLink: "",
+        stations: [
+          { drill: "", desc: "", key: "", customDrill: "", coaches: [], videoLink: "" },
+          { drill: "", desc: "", key: "", customDrill: "", coaches: [], videoLink: "" }
+        ]
+      });
+      current.lastEdited = Date.now();
+      saveState();
+      renderPracticePlan();
+    }
+
+    function removePracticeRow(idx) {
+      if (userRole !== 'admin') return;
+      const current = practiceData.find(p => p.id === currentPracticeId);
+      if (!current || !Array.isArray(current.plan)) return;
+      current.plan.splice(idx, 1);
+      current.lastEdited = Date.now();
+      saveState();
+      renderPracticePlan();
+    }
+
+    function movePracticeRow(index, direction) {
+      if (userRole !== 'admin') return;
+      const current = practiceData.find(p => p.id === currentPracticeId);
+      if (!current || !Array.isArray(current.plan)) return;
+      const plan = current.plan;
+      const targetIndex = index + direction;
+      if (targetIndex < 0 || targetIndex >= plan.length) return;
+
+      const temp = plan[index];
+      plan[index] = plan[targetIndex];
+      plan[targetIndex] = temp;
+
+      current.lastEdited = Date.now();
+      saveState();
+      renderPracticePlan();
+    }
+
+    function updatePracticeCategory(idx, catValue) {
+      if (userRole !== 'admin') return;
+      const current = practiceData.find(p => p.id === currentPracticeId);
+      if (!current || !Array.isArray(current.plan) || !current.plan[idx]) return;
+      const row = current.plan[idx];
+
+      if (catValue === "Custom") {
+        const newCat = prompt("Enter new custom category name:");
+        if (newCat && newCat.trim() !== "") {
+          const cleanCat = newCat.trim();
+          if (!savedCustomCategories.includes(cleanCat)) {
+            savedCustomCategories.push(cleanCat);
+            localStorage.setItem("footballCustomCategories", JSON.stringify(savedCustomCategories));
+          }
+          row.category = cleanCat;
+        } else {
+          return;
+        }
+      } else {
+        row.category = catValue;
+      }
+
+      row.drill = "";
+      row.desc = "";
+      row.key = "";
+      row.customDrill = "";
+      
+      if (row.category === "Tackle Circuit" || row.category === "Tackling (Whole Team)" || row.category === "Pre Practice") {
+        row.periodType = 'circuit';
+        if (!Array.isArray(row.stations) || row.stations.length === 0) {
+           row.stations = [
+             { drill: "", desc: "", key: "", customDrill: "", coaches: [], videoLink: "" },
+             { drill: "", desc: "", key: "", customDrill: "", coaches: [], videoLink: "" }
+           ];
+        }
+      }
+      
+      current.lastEdited = Date.now();
+      saveState();
+      renderPracticePlan();
+    }
+
+    function updatePracticeDrill(idx, drillValue) {
+      if (userRole !== 'admin') return;
+      const current = practiceData.find(p => p.id === currentPracticeId);
+      if (!current || !Array.isArray(current.plan) || !current.plan[idx]) return;
+      const row = current.plan[idx];
+      row.drill = drillValue;
+      
+      if (drillValue !== "Custom") {
+        row.customDrill = ""; 
+        const drillObj = findDrillByName(drillValue);
+        if (drillObj) {
+          row.desc = drillObj.desc || "";
+          row.key = drillObj.key || "";
+        } else if (drillValue === "") {
+          row.desc = "";
+          row.key = "";
+        }
+      } else {
+        row.desc = "";
+        row.key = "";
+      }
+      
+      current.lastEdited = Date.now();
+      saveState();
+      renderPracticePlan();
+    }
+
+    function updateCircuitStations(rowIdx, newCount) {
+      if (userRole !== 'admin') return;
+      const current = practiceData.find(p => p.id === currentPracticeId);
+      if (!current || !Array.isArray(current.plan) || !current.plan[rowIdx]) return;
+      const target = parseInt(newCount);
+      const row = current.plan[rowIdx];
+      if (!Array.isArray(row.stations)) row.stations = [];
+      while (row.stations.length < target) {
+        row.stations.push({ drill: "", desc: "", key: "", customDrill: "", coaches: [], videoLink: "" });
+      }
+      while (row.stations.length > target) {
+        row.stations.pop();
+      }
+      current.lastEdited = Date.now();
+      saveState();
+      renderPracticePlan();
+    }
+
+    function updateCircuitDrill(rowIdx, stationIdx, drillValue) {
+      if (userRole !== 'admin') return;
+      const current = practiceData.find(p => p.id === currentPracticeId);
+      if (!current || !Array.isArray(current.plan) || !current.plan[rowIdx]) return;
+      const row = current.plan[rowIdx];
+      if (!Array.isArray(row.stations) || !row.stations[stationIdx]) return;
+      const st = row.stations[stationIdx];
+      st.drill = drillValue;
+      if (drillValue !== "Custom") {
+        st.customDrill = "";
+        const drillObj = findDrillByName(drillValue);
+        if (drillObj) {
+          st.desc = drillObj.desc || "";
+          st.key = drillObj.key || "";
+        } else if (drillValue === "") {
+          st.desc = "";
+          st.key = "";
+        }
+      } else {
+        st.desc = "";
+        st.key = "";
+      }
+      current.lastEdited = Date.now();
+      saveState();
+      renderPracticePlan();
+    }
+
+    function handleCoachSelection(rowIdx, value) {
+      if (userRole !== 'admin') return;
+      if (!value) return;
+      const current = practiceData.find(p => p.id === currentPracticeId);
+      if (!current || !Array.isArray(current.plan) || !current.plan[rowIdx]) return;
+      const row = current.plan[rowIdx];
+      if (!Array.isArray(row.coaches)) row.coaches = [];
+
+      if (value === "NEW") {
+        const newCoach = prompt("Enter new coach name:");
+        if (newCoach && newCoach.trim() !== "") {
+          const cleanName = newCoach.trim();
+          if (!savedCoaches.includes(cleanName)) {
+            savedCoaches.push(cleanName);
+            saveCoaches();
+          }
+          if (!row.coaches.includes(cleanName)) {
+            row.coaches.push(cleanName);
+          }
+        }
+      } else {
+        if (!row.coaches.includes(value)) {
+          row.coaches.push(value);
+        }
+      }
+      current.lastEdited = Date.now();
+      saveState();
+      renderPracticePlan();
+    }
+
+    function removeCoachFromRow(rowIdx, coachName) {
+      if (userRole !== 'admin') return;
+      const current = practiceData.find(p => p.id === currentPracticeId);
+      if (!current || !Array.isArray(current.plan) || !current.plan[rowIdx]) return;
+      const row = current.plan[rowIdx];
+      if (Array.isArray(row.coaches)) {
+        row.coaches = row.coaches.filter(c => c !== coachName);
+        current.lastEdited = Date.now();
+        saveState();
+        renderPracticePlan();
+      }
+    }
+
+    function handleStationCoachSelection(rowIdx, stationIdx, value) {
+      if (userRole !== 'admin') return;
+      if (!value) return;
+      const current = practiceData.find(p => p.id === currentPracticeId);
+      if (!current || !Array.isArray(current.plan) || !current.plan[rowIdx]) return;
+      const row = current.plan[rowIdx];
+      if (!Array.isArray(row.stations) || !row.stations[stationIdx]) return;
+      const st = row.stations[stationIdx];
+      if (!Array.isArray(st.coaches)) st.coaches = [];
+
+      if (value === "NEW") {
+        const newCoach = prompt("Enter new coach name:");
+        if (newCoach && newCoach.trim() !== "") {
+          const cleanName = newCoach.trim();
+          if (!savedCoaches.includes(cleanName)) {
+            savedCoaches.push(cleanName);
+            saveCoaches();
+          }
+          if (!st.coaches.includes(cleanName)) {
+            st.coaches.push(cleanName);
+          }
+        }
+      } else {
+        if (!st.coaches.includes(value)) {
+          st.coaches.push(value);
+        }
+      }
+      markPracticeEdited();
+      saveState();
+      renderPracticePlan();
+    }
+
+    function removeCoachFromStation(rowIdx, stationIdx, coachName) {
+      if (userRole !== 'admin') return;
+      const current = practiceData.find(p => p.id === currentPracticeId);
+      if (!current || !Array.isArray(current.plan) || !current.plan[rowIdx]) return;
+      const row = current.plan[rowIdx];
+      if (!Array.isArray(row.stations) || !row.stations[stationIdx]) return;
+      const st = row.stations[stationIdx];
+      if (Array.isArray(st.coaches)) {
+        st.coaches = st.coaches.filter(c => c !== coachName);
+        saveState();
+        renderPracticePlan();
+      }
+    }
+
     function getActivePlayerPositionsCount(num) {
       if (!num || !depthChart) return 0;
       
-      const activeForms = getWeekFormations(currentWeek).filter(f => f.unit === activeUnit);
-      if (activeForms.length === 0) return 0; // Don't show spots if looking at Wristband/Practice tabs
+      let targetForms = getWeekFormations(currentWeek).filter(f => f.unit === activeUnit);
+      if (targetForms.length === 0) return 0; 
 
-      let count = 0;
-      activeForms.forEach(form => {
+      if (activeCountFormationId) {
+         targetForms = targetForms.filter(f => f.id === activeCountFormationId);
+      }
+
+      const validPosIds = new Set();
+      targetForms.forEach(form => {
         (form.rows || []).forEach(row => {
           (row.positions || []).forEach(pos => {
-            if (Array.isArray(depthChart[pos.id])) {
-              count += depthChart[pos.id].filter(p => p && p.num === num).length;
-            }
+            validPosIds.add(pos.id);
           });
         });
+      });
+
+      let count = 0;
+      validPosIds.forEach(posId => {
+        if (Array.isArray(depthChart[posId])) {
+          count += depthChart[posId].filter(p => p && p.num === num).length;
+        }
       });
       return count;
     }
@@ -3585,6 +3876,17 @@ const firebaseConfig = {
     function renderMasterRoster() {
       const rosterContainer = document.getElementById("master-roster-list");
       if (!rosterContainer) return;
+
+      const labelEl = document.getElementById("roster-count-label");
+      if (labelEl) {
+          if (activeCountFormationId) {
+              const form = getWeekFormations(currentWeek).find(f => f.id === activeCountFormationId);
+              labelEl.innerHTML = `Counting: <span style="color:var(--accent);">${form ? form.name : 'Selected Formation'}</span>`;
+          } else {
+              labelEl.textContent = `Counting: All ${activeUnit.toUpperCase()}`;
+          }
+      }
+
       const searchEl = document.getElementById("search-input");
       const searchTerm = (searchEl ? searchEl.value : "").toLowerCase().trim();
       rosterContainer.innerHTML = "";
