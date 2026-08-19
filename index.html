@@ -194,6 +194,7 @@
     body.view-only .prac-input, 
     body.view-only .prac-select, 
     body.view-only .prac-textarea,
+    body.view-only .week-select,
     body.view-only .opponent-input,
     body.view-only .wb-play-input {
       pointer-events: none;
@@ -210,7 +211,6 @@
     body.view-only .player-item {
       cursor: default !important;
     }
-    /* ---------------------------------------- */
 
     /* Action Toolbar */
     .toolbar {
@@ -814,6 +814,10 @@
     .tree-leaf.selected { background-color: #dbeafe; font-weight: bold; border-left: 2px solid var(--accent); }
     
     .week-drop-target.drag-over { background-color: #fef08a; padding: 2px 4px; border-radius: 4px; }
+    
+    .practice-tree-btn {
+      padding:4px 8px; border:1px solid var(--card-border); border-radius:4px; font-weight:bold; cursor:pointer; background:#fff; height:28px; line-height:18px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
 
     /* Drill Tree View Styles */
     .drill-tree { list-style: none; padding: 0; margin: 0; }
@@ -1377,7 +1381,7 @@
               
               <!-- Custom Folder Tree Dropdown -->
               <div style="position:relative; width: 250px;">
-                <div id="selected-practice-display" class="practice-tree-btn" style="padding:4px 8px; border:1px solid var(--card-border); border-radius:4px; font-weight:bold; cursor:pointer; background:#fff; height:28px; line-height:18px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" onclick="togglePracticeTree(event)">Select Practice...</div>
+                <div id="selected-practice-display" class="practice-tree-btn" onclick="togglePracticeTree(event)">Select Practice...</div>
                 <div id="practice-tree-dropdown" class="card-search-dropdown" style="display:none; width: 350px; max-height: 400px; text-align:left; padding:8px; border:2px solid var(--primary);">
                    <!-- Populated by JS -->
                 </div>
@@ -1935,39 +1939,48 @@ const firebaseConfig = {
 
     function initWristbandData() {
       if (!weeklyData[currentWeek]) weeklyData[currentWeek] = {};
-      if (!weeklyData[currentWeek].wristbandData) {
-        weeklyData[currentWeek].wristbandData = {
-           rows: 16,
-           columns: [
-              { color: "blue", plays: Array(16).fill("").map(() => ({ text: "", color: "blue" })) },
-              { color: "yellow", plays: Array(16).fill("").map(() => ({ text: "", color: "yellow" })) }
-           ]
-        };
-      } else if (weeklyData[currentWeek].wristband) {
-         weeklyData[currentWeek].wristbandData = {
-           rows: 16,
-           columns: [
-              { color: "blue", plays: Array(16).fill("").map(() => ({ text: "", color: "blue" })) },
-              { color: "yellow", plays: Array(16).fill("").map(() => ({ text: "", color: "yellow" })) }
-           ]
-         };
-         delete weeklyData[currentWeek].wristband; 
-      } else if (weeklyData[currentWeek].wristbandData.pages) {
-         weeklyData[currentWeek].wristbandData.columns = weeklyData[currentWeek].wristbandData.pages.map(p => {
-             return { color: p.color, plays: p.plays.map(pt => ({ text: pt || "", color: p.color })) };
-         });
-         delete weeklyData[currentWeek].wristbandData.pages;
-         delete weeklyData[currentWeek].wristbandData.startIndex;
+
+      let wbData = weeklyData[currentWeek].wristbandData;
+
+      if (!wbData || typeof wbData !== 'object') {
+          wbData = { rows: 16, columns: [] };
       }
-      
-      weeklyData[currentWeek].wristbandData.columns.forEach(c => {
-         while(c.plays.length < weeklyData[currentWeek].wristbandData.rows) {
-            c.plays.push({ text: "", color: c.color });
+
+      if (weeklyData[currentWeek].wristband) {
+          delete weeklyData[currentWeek].wristband;
+      }
+
+      if (wbData.pages) {
+          wbData.columns = wbData.pages.map(p => ({
+              color: p.color || 'white',
+              plays: (p.plays || []).map(pt => ({ text: pt || "", color: p.color || 'white' }))
+          }));
+          delete wbData.pages;
+          delete wbData.startIndex;
+      }
+
+      if (typeof wbData.rows !== 'number' || isNaN(wbData.rows)) {
+          wbData.rows = 16;
+      }
+
+      if (!Array.isArray(wbData.columns) || wbData.columns.length === 0) {
+          wbData.columns = [
+              { color: "blue", plays: [] },
+              { color: "yellow", plays: [] }
+          ];
+      }
+
+      wbData.columns.forEach(c => {
+         if (!Array.isArray(c.plays)) c.plays = [];
+         while(c.plays.length < wbData.rows) {
+            c.plays.push({ text: "", color: c.color || 'white' });
          }
-         while(c.plays.length > weeklyData[currentWeek].wristbandData.rows) {
+         while(c.plays.length > wbData.rows) {
             c.plays.pop();
          }
       });
+
+      weeklyData[currentWeek].wristbandData = wbData;
     }
 
     function sanitizePracticeData() {
@@ -2458,6 +2471,8 @@ const firebaseConfig = {
       } else {
          renderActiveBoards();
       }
+      
+      renderMasterRoster(); // ALWAYS re-render roster so spot counter updates for new tab
     }
 
     /* SCOUTING LOGIC */
@@ -2675,6 +2690,7 @@ const firebaseConfig = {
       
       triggerDebouncedSave();
       renderActiveBoards();
+      renderMasterRoster(); // update counts
     }
 
     function renameFormation(formId) {
@@ -2699,6 +2715,7 @@ const firebaseConfig = {
         weeklyData[currentWeek].formations = forms.filter(f => f.id !== formId);
         triggerDebouncedSave();
         renderActiveBoards();
+        renderMasterRoster(); // update counts
       }
     }
 
@@ -2742,6 +2759,7 @@ const firebaseConfig = {
       
       triggerDebouncedSave();
       renderActiveBoards();
+      renderMasterRoster();
     }
 
     function renameRow(formId, rowId) {
@@ -2768,6 +2786,7 @@ const firebaseConfig = {
         form.rows = form.rows.filter(r => r.id !== rowId);
         triggerDebouncedSave();
         renderActiveBoards();
+        renderMasterRoster();
       }
     }
 
@@ -2788,11 +2807,11 @@ const firebaseConfig = {
         name: posName.trim()
       });
       
-      if(!depthChart) depthChart = getWeekDepthChart(currentWeek);
-      depthChart[posId] = [];
+      if(!depthChart[newPosId]) depthChart[newPosId] = [];
       
       triggerDebouncedSave();
       renderActiveBoards();
+      renderMasterRoster();
     }
 
     function renamePosition(formId, rowId, posId) {
@@ -2826,6 +2845,7 @@ const firebaseConfig = {
         delete depthChart[posId];
         triggerDebouncedSave();
         renderActiveBoards();
+        renderMasterRoster();
       }
     }
 
@@ -3924,12 +3944,25 @@ const firebaseConfig = {
       renderMasterRoster();
     }
 
-    function getPlayerPositionsCount(num) {
+    function getActivePlayerPositionsCount(num) {
       if (!num || !depthChart) return 0;
+      
+      const activeForms = getWeekFormations(currentWeek).filter(f => f.unit === activeUnit);
+      if (activeForms.length === 0) return 0; // Don't show spots if looking at a tab with no formations (like Wristband/Practice)
+
+      const validPosIds = new Set();
+      activeForms.forEach(form => {
+        (form.rows || []).forEach(row => {
+          (row.positions || []).forEach(pos => {
+            validPosIds.add(pos.id);
+          });
+        });
+      });
+
       let count = 0;
-      Object.keys(depthChart).forEach(key => {
-        if (Array.isArray(depthChart[key])) {
-          count += depthChart[key].filter(p => p && p.num === num).length;
+      validPosIds.forEach(posId => {
+        if (Array.isArray(depthChart[posId])) {
+          count += depthChart[posId].filter(p => p && p.num === num).length;
         }
       });
       return count;
@@ -3955,7 +3988,7 @@ const firebaseConfig = {
         const matches = !searchTerm || fName.includes(searchTerm) || lName.includes(searchTerm) || pNum.includes(searchTerm);
         if (!matches) return;
 
-        const spotCount = player.num ? getPlayerPositionsCount(player.num) : 0;
+        const spotCount = player.num ? getActivePlayerPositionsCount(player.num) : 0;
 
         const li = document.createElement("li");
         li.className = "full-roster-item";
