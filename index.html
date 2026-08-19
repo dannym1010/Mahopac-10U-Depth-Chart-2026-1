@@ -371,6 +371,7 @@
       max-width: 1400px;
       margin: 0 auto;
       flex-direction: row;
+      position: relative; /* important for sticky children */
     }
 
     @media (max-width: 900px) {
@@ -1024,18 +1025,34 @@
       color: white;
     }
 
-    /* Sidebar Roster Panel */
+    /* Sidebar Roster Panel (Now Sticky Centered!) */
     .sidebar {
       flex: 1;
       min-width: 220px;
+      max-width: 280px;
       background: var(--card-bg);
       border-radius: 8px;
       padding: 12px;
       border: 1px solid var(--card-border);
-      max-height: 850px;
       display: flex;
       flex-direction: column;
       box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      
+      /* New Sticky Properties */
+      position: sticky;
+      top: 50vh;
+      transform: translateY(-50%);
+      align-self: flex-start;
+      max-height: 85vh; /* Prevents it from clipping off top/bottom of screen */
+    }
+
+    @media (max-width: 900px) {
+      .sidebar {
+         position: static;
+         transform: none;
+         max-width: 100%;
+         max-height: 600px;
+      }
     }
 
     .sidebar.hidden { display: none !important; }
@@ -1053,7 +1070,15 @@
     }
     .search-box:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2); }
 
-    .full-roster-list { list-style: none; padding: 0; margin: 0; overflow-y: auto; max-height: 400px; }
+    .full-roster-list { 
+      list-style: none; 
+      padding: 0; 
+      margin: 0; 
+      overflow-y: auto; 
+      flex-grow: 1; /* Automatically fill the rest of the sticky sidebar */
+      min-height: 200px;
+    }
+    
     .full-roster-item {
       padding: 6px 8px;
       border-bottom: 1px solid #f1f5f9;
@@ -1213,6 +1238,7 @@
         <button type="submit" id="auth-submit-btn" class="btn-primary">Sign In</button>
       </form>
       
+      <span class="auth-switch" id="auth-switch-btn" onclick="toggleAuthMode()">Don't have an account? Sign Up</span>
       <div id="auth-error" style="color:#ef4444; font-size:12px; margin-top:10px; font-weight:bold; background:#fee2e2; padding:8px; border-radius:4px; display:none; border:1px solid #fca5a5;"></div>
       
       <div style="margin-top:20px; font-size:10px;">
@@ -1495,7 +1521,11 @@
   </div>
 
   <script>
-    const firebaseConfig = {
+    // ----------------------------------------------------------------------------------
+    // ONLY ONE SET OF CONSTANTS DEFINED HERE AT THE TOP TO PREVENT FATAL JS CRASHES!
+    // ----------------------------------------------------------------------------------
+    
+const firebaseConfig = {
        apiKey: "AIzaSyBxAet3UzgBNuMUyUgj2MDWgrK5X63IPvg",
        authDomain: "u-depth-chart.firebaseapp.com",
        projectId: "u-depth-chart",
@@ -1539,49 +1569,6 @@
           ]},
           { id: "row_11_bk", label: "Backfield (1 - 4)", rowClass: "backfield", positions: [
             { id: "11-1", name: "1 (QB)" }, { id: "11-4", name: "4 (RB)" }
-          ]}
-        ]
-      },
-      {
-        id: "form_44", unit: "defense", name: "44 Defense", subtitle: "Stack Front (11 Positions)", collapsed: false,
-        rows: [
-          { id: "row_44_fs", label: "Free Safety (Deep Center)", rowClass: "secondary-safety", positions: [
-            { id: "44-FS", name: "FS" }
-          ]},
-          { id: "row_44_cb", label: "Secondary / Cornerbacks", rowClass: "secondary-corners", positions: [
-            { id: "44-CB1", name: "CB 1" }, { id: "44-CB2", name: "CB 2" }
-          ]},
-          { id: "row_44_lb", label: "Linebacker Level (ROVER - WILL - MIKE - SAM)", rowClass: "linebackers-tight", positions: [
-            { id: "44-ROVER", name: "ROVER" }, { id: "44-WILL", name: "WILL" }, { id: "44-MIKE", name: "MIKE" }, { id: "44-SAM", name: "SAM" }
-          ]},
-          { id: "row_44_dl", label: "Defensive Line (WDE - DT1 - DT2 - SDE)", rowClass: "dl", positions: [
-            { id: "44-WDE", name: "WDE" }, { id: "44-DT1", name: "DT 1" }, { id: "44-DT2", name: "DT 2" }, { id: "44-SDE", name: "SDE" }
-          ]}
-        ]
-      },
-      {
-        id: "form_ko", unit: "st", name: "Kickoff Team", subtitle: "8 Coverage + 3 Backs", collapsed: false,
-        rows: [
-          { id: "row_ko_line", label: "Front Coverage Line (L1-L4, R4-R1)", rowClass: "oline", positions: [
-            { id: "KO-L1", name: "L1" }, { id: "KO-L2", name: "L2" }, { id: "KO-L3", name: "L3" }, { id: "KO-L4", name: "L4" },
-            { id: "KO-R4", name: "R4" }, { id: "KO-R3", name: "R3" }, { id: "KO-R2", name: "R2" }, { id: "KO-R1", name: "R1" }
-          ]},
-          { id: "row_ko_bk", label: "Backfield Level (LBH - Kicker - RBH)", rowClass: "oline", positions: [
-            { id: "KO-LBH", name: "LBH" }, { id: "KO-KICKER", name: "Kicker" }, { id: "KO-RBH", name: "RBH" }
-          ]}
-        ]
-      },
-      {
-        id: "form_grp_off", unit: "groups", name: "Offensive Depth Chart", subtitle: "Standard Format", collapsed: false,
-        rows: [
-          { id: "row_grp_ol", label: "Offensive Line & Tight Ends", rowClass: "oline", positions: [
-            { id: "GRP-LT", name: "LT" }, { id: "GRP-LG", name: "LG" }, { id: "GRP-C", name: "C" }, { id: "GRP-RG", name: "RG" }, { id: "GRP-RT", name: "RT" }, { id: "GRP-TES", name: "TEs" }
-          ]},
-          { id: "row_grp_wr", label: "Wide Receivers", rowClass: "receivers", positions: [
-            { id: "GRP-X", name: "X" }, { id: "GRP-Z", name: "Z" }
-          ]},
-          { id: "row_grp_bk", label: "Backfield Stack", rowClass: "backfield", positions: [
-            { id: "GRP-QB", name: "QB" }, { id: "GRP-FB", name: "FB" }, { id: "GRP-RB", name: "RB" }
           ]}
         ]
       }
@@ -1638,6 +1625,8 @@
 
     function getWeekFormations(week) {
       if (!weeklyData[week]) weeklyData[week] = { opponent: "" };
+      
+      // Removed the auto-healing loop! If it's an empty array (deleted by user), leave it empty.
       if (!weeklyData[week].formations) {
         weeklyData[week].formations = JSON.parse(JSON.stringify(defaultFormations));
       }
@@ -1831,7 +1820,13 @@
           .catch(err => displayAuthError(err.message));
       } else {
         auth.signInWithEmailAndPassword(email, password)
-          .catch(err => displayAuthError(err.message));
+          .catch(err => {
+             if(err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found') {
+                 displayAuthError("Account not found or incorrect password. Did you mean to Create an Account?");
+             } else {
+                 displayAuthError(err.message);
+             }
+          });
       }
     }
 
@@ -1861,7 +1856,6 @@
       
       const userRef = db.collection("users").doc(user.uid);
       
-      // If we get blocked by Firestore rules, fallback to local admin so we don't lock the UI
       userRef.get().then((doc) => {
         if (doc.exists) {
            applyRole(doc.data().role || 'viewer');
@@ -1912,9 +1906,11 @@
       renderPracticePlan();
     }
 
+    /* IN-APP USER MANAGEMENT */
     function loadUsersTable() {
       const container = document.getElementById("users-table-container");
       if (!container || !db) return;
+
       db.collection("users").onSnapshot((snapshot) => {
          let html = `
            <table class="practice-table" style="table-layout:auto; font-size:12px;">
@@ -1927,6 +1923,7 @@
              </thead>
              <tbody>
          `;
+
          snapshot.forEach(doc => {
             const u = doc.data();
             const isMe = currentUser && doc.id === currentUser.uid;
@@ -1943,6 +1940,7 @@
               </tr>
             `;
          });
+
          html += `</tbody></table>`;
          container.innerHTML = html;
       });
@@ -2381,7 +2379,7 @@
          renderActiveBoards();
       }
       
-      renderMasterRoster(); // Auto updates roster count based on new activeUnit
+      renderMasterRoster(); // ALWAYS re-render roster so spot counter updates for new tab
     }
 
     /* SCOUTING LOGIC */
@@ -2420,6 +2418,7 @@
          const oppInput = document.getElementById("opponent-input");
          if(oppInput) oppInput.value = value;
       }
+      
       triggerDebouncedSave();
 
       if (['year', 'week', 'opponent'].includes(field)) {
@@ -2485,8 +2484,10 @@
                   `;
                });
            }
+           
            html += `</div></div>`;
        });
+       
        html += `</div>`;
        wrapper.innerHTML = html;
        document.querySelectorAll('#panel-drills .prac-textarea').forEach(ta => autoResizeTextarea(ta));
@@ -3038,20 +3039,25 @@
                 list.appendChild(li);
               });
             }
+
             posRowEl.appendChild(card);
           });
+
           bodyDiv.appendChild(rowWrap);
         });
+
         container.appendChild(formDiv);
       });
     }
 
     function triggerDebouncedSave() {
       clearTimeout(saveTimeout);
+      // Immediately save to local storage for speed
       localStorage.setItem("footballPracticeData", JSON.stringify(practiceData));
       localStorage.setItem("footballWeeklyData", JSON.stringify(weeklyData));
       localStorage.setItem("footballDynamicDrills", JSON.stringify(dynamicDrills));
       
+      // Debounce the cloud sync so it doesn't interrupt typing
       saveTimeout = setTimeout(() => {
           saveState();
       }, 1500);
@@ -3192,10 +3198,12 @@
       el.style.height = (el.scrollHeight + 2) + 'px';
     }
 
+    // Force full expansion of textareas right before print and swap them to clean printable divs
     window.addEventListener('beforeprint', () => {
       if (document.activeElement && typeof document.activeElement.blur === 'function') {
          document.activeElement.blur(); 
       }
+      
       document.querySelectorAll('.prac-textarea, .wb-play-input, .scout-textarea').forEach(el => {
         const div = document.createElement('div');
         div.className = 'print-text-node';
@@ -3236,8 +3244,9 @@
            return;
         }
 
+        // Calculate Times
         let totalMins = timeToMins(current.endTime) - timeToMins(current.startTime);
-        if (totalMins < 0) totalMins += 1440; 
+        if (totalMins < 0) totalMins += 1440; // overnight check
         
         let preMins = 0;
         let scheduledMins = 0;
@@ -3249,6 +3258,7 @@
         let preClock = timeToMins(current.startTime) - preMins;
         let mainClock = timeToMins(current.startTime);
 
+        // Render Dashboard Stats
         const statsDiv = document.getElementById("prac-stats");
         if (statsDiv) {
           const remaining = totalMins - scheduledMins;
@@ -3270,6 +3280,7 @@
         current.plan.forEach((row, idx) => {
           if (!row) return;
 
+          // Calculate period timestamp
           let rowStartMins, rowEndMins;
           if (row.category === 'Pre Practice') {
              rowStartMins = preClock;
@@ -3501,6 +3512,7 @@
       const table = document.getElementById("main-practice-table");
       if (!table) return;
       
+      // Force fixed layout for precise column control
       table.style.tableLayout = "fixed";
 
       const ths = table.querySelectorAll("thead th");
@@ -3528,6 +3540,7 @@
             if (newWidth > 30 && nextTh) {
               const newNextWidth = nextStartWidth - diffX;
               if (newNextWidth > 30) {
+                // Convert back to percentages so it stays responsive
                 th.style.width = ((newWidth / tableWidth) * 100) + "%";
                 nextTh.style.width = ((newNextWidth / tableWidth) * 100) + "%";
               }
