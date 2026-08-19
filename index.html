@@ -158,6 +158,9 @@
       border-bottom: 1px solid #e2e8f0;
     }
 
+    .auth-divider:not(:empty)::before { margin-right: .5em; }
+    .auth-divider:not(:empty)::after { margin-left: .5em; }
+
     .auth-switch {
       font-size: 11px;
       color: var(--accent);
@@ -684,10 +687,6 @@
     .player-item.is-sub-gold { color: #b45309; font-weight: bold; }
     .player-item.is-sub-blue { color: #1d4ed8; font-weight: bold; }
     .player-item.is-sub-gray { color: #64748b; font-weight: normal; }
-
-    /* Grey Badges on Depth Chart Tab */
-    #panel-groups .rank-badge { background: #64748b !important; color: #ffffff !important; }
-    #panel-groups .player-item { color: #475569 !important; font-weight: normal !important; }
 
     /* Action Reorder Controls */
     .action-group {
@@ -1644,18 +1643,12 @@ const firebaseConfig = {
 
     const defaultDepthChartAssignments = {};
 
-    const defaultPracticePlan = [
-      { time: 10, category: "Pre Practice", drill: "", coaches: [], desc: "", key: "", customDrill: "", periodType: "circuit", stations: [
-        { drill: "QB & Center Exchange", desc: "Setup: 2 footballs per pair. Centers line up on a yard line.\nInstruction: Centers and QBs pair up to practice under-center and shotgun snaps before formal periods begin. Rotate through all QBs and Centers.", key: "100% snap accuracy", customDrill: "", coaches: [] },
-        { drill: "Specialists: Kicking & Holding", desc: "Setup: Kicker and Holder working independently on the hash.\nInstruction: Specialists work on snap, hold, and kick mechanics independently. Kickers work on approach drops and leg swing contact.", key: "Timing and rhythm", customDrill: "", coaches: [] }
-      ]},
-      { time: 10, category: "Warm-Up & Breaks", drill: "Dynamic Warm-Up", coaches: [], desc: "Setup: Team lines up in 4 even rows on the sideline facing the field.\nInstruction: Line team up on the sideline or hash marks. Coach leads cadence. Perform high knees, karaoke, butt kicks, shuffling, and 10-yard short sprints.", key: "Full speed, proper posture", customDrill: "", periodType: "normal" }
-    ];
+    const defaultPracticePlan = [];
 
     const wbColors = ['blue', 'yellow', 'green', 'red', 'white'];
-    let saveTimeout = null;
-
+    
     // STATE VARIABLES
+    let saveTimeout = null;
     let dynamicDrills = JSON.parse(localStorage.getItem("footballDynamicDrills")) || null;
     let practiceTemplates = JSON.parse(localStorage.getItem("footballPracticeTemplates")) || [];
     let savedCoaches = JSON.parse(localStorage.getItem("footballSavedCoaches")) || [];
@@ -1669,7 +1662,6 @@ const firebaseConfig = {
     let selectedTouchPlayer = null;
     let collapsedDrillCats = JSON.parse(localStorage.getItem("footballCollapsedDrills")) || {};
 
-    // Role & Auth State
     let currentUser = null;
     let userRole = 'viewer'; 
     let isSignUpMode = false;
@@ -1696,14 +1688,8 @@ const firebaseConfig = {
       return `${h}:${mins.toString().padStart(2, '0')} ${ampm}`;
     }
 
-    function generateUniqueId(prefix) {
-      return prefix + "_" + Date.now().toString(36) + "_" + Math.random().toString(36).substr(2, 5);
-    }
-
     function getWeekFormations(week) {
       if (!weeklyData[week]) weeklyData[week] = { opponent: "" };
-      
-      // Removed the auto-healing loop! If it's an empty array (deleted by user), leave it empty.
       if (!weeklyData[week].formations) {
         weeklyData[week].formations = JSON.parse(JSON.stringify(defaultFormations));
       }
@@ -1859,29 +1845,6 @@ const firebaseConfig = {
       renderPracticePlan();
     }
 
-    // Listen to Firebase Auth state
-    if (auth) {
-      auth.onAuthStateChanged((user) => {
-        const overlay = document.getElementById("auth-overlay");
-        if (user) {
-          currentUser = user;
-          overlay.style.display = "none";
-          document.getElementById("user-display-email").textContent = user.email || user.displayName;
-          listenToUserRole(user);
-        } else {
-          currentUser = null;
-          overlay.style.display = "flex";
-          document.body.classList.add("view-only");
-          document.getElementById("user-display-email").textContent = "";
-          if (userRoleUnsubscribe) userRoleUnsubscribe();
-        }
-      });
-    } else {
-      document.getElementById("auth-overlay").style.display = "none";
-      userRole = localStorage.getItem('footballUserRole') || 'admin';
-      applyRole(userRole);
-    }
-
     function toggleAuthMode() {
       isSignUpMode = !isSignUpMode;
       document.getElementById("auth-submit-btn").textContent = isSignUpMode ? "Create Account" : "Sign In";
@@ -1989,7 +1952,6 @@ const firebaseConfig = {
       renderPracticePlan();
     }
 
-    /* IN-APP USER MANAGEMENT */
     function loadUsersTable() {
       const container = document.getElementById("users-table-container");
       if (!container || !db) return;
@@ -2034,6 +1996,131 @@ const firebaseConfig = {
       db.collection("users").doc(uid).update({ role: newRole })
         .then(() => alert("User access level updated successfully!"))
         .catch(err => alert("Error updating user: " + err.message));
+    }
+
+    function isUserEditing() {
+      const active = document.activeElement;
+      return active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.tagName === 'SELECT');
+    }
+
+    function updateRosterFormationOptions() {
+      const select = document.getElementById("roster-formation-select");
+      if (!select) return;
+      const currentVal = select.value || "all";
+      
+      const forms = getWeekFormations(currentWeek);
+      let html = `
+        <option value="all">All Formations (Total)</option>
+        <option value="current_tab">Active Tab Formations</option>
+      `;
+
+      const units = [
+        { id: "offense", name: "Offense" },
+        { id: "defense", name: "Defense" },
+        { id: "st", name: "Special Teams" },
+        { id: "groups", name: "Depth Chart" }
+      ];
+
+      units.forEach(u => {
+        const uForms = forms.filter(f => f.unit === u.id);
+        if (uForms.length > 0) {
+          html += `<optgroup label="${u.name}">`;
+          uForms.forEach(f => {
+            html += `<option value="${f.id}">${f.name}</option>`;
+          });
+          html += `</optgroup>`;
+        }
+      });
+
+      select.innerHTML = html;
+      if (Array.from(select.options).some(o => o.value === currentVal)) {
+        select.value = currentVal;
+      } else {
+        select.value = "all";
+      }
+    }
+
+    function getActivePlayerPositionsCount(num) {
+      if (!num || !depthChart) return 0;
+      
+      const select = document.getElementById("roster-formation-select");
+      const filterVal = select ? select.value : "all";
+      const forms = getWeekFormations(currentWeek);
+
+      let targetForms = [];
+      if (filterVal === "all") {
+        targetForms = forms;
+      } else if (filterVal === "current_tab") {
+        targetForms = forms.filter(f => f.unit === activeUnit);
+      } else {
+        targetForms = forms.filter(f => f.id === filterVal);
+      }
+
+      if (targetForms.length === 0) return 0;
+
+      const validPosIds = new Set();
+      targetForms.forEach(form => {
+        (form.rows || []).forEach(row => {
+          (row.positions || []).forEach(pos => {
+            validPosIds.add(pos.id);
+          });
+        });
+      });
+
+      let count = 0;
+      validPosIds.forEach(posId => {
+        if (Array.isArray(depthChart[posId])) {
+          count += depthChart[posId].filter(p => p && p.num === num).length;
+        }
+      });
+      return count;
+    }
+
+    function filterRoster() {
+      renderMasterRoster();
+    }
+
+    function renderMasterRoster() {
+      const rosterContainer = document.getElementById("master-roster-list");
+      if (!rosterContainer) return;
+      const searchEl = document.getElementById("search-input");
+      const searchTerm = (searchEl ? searchEl.value : "").toLowerCase().trim();
+      rosterContainer.innerHTML = "";
+
+      masterRoster.forEach(player => {
+        const fName = (player.firstName || "").toLowerCase();
+        const lName = (player.lastName || "").toLowerCase();
+        const pNum = (player.num || "").toString().toLowerCase();
+
+        const matches = !searchTerm || fName.includes(searchTerm) || lName.includes(searchTerm) || pNum.includes(searchTerm);
+        if (!matches) return;
+
+        const spotCount = player.num ? getActivePlayerPositionsCount(player.num) : 0;
+
+        const li = document.createElement("li");
+        li.className = "full-roster-item";
+        li.dataset.name = player.lastName || player.firstName;
+        li.dataset.num = player.num || "";
+
+        if (selectedTouchPlayer && selectedTouchPlayer.num === player.num && player.num !== "") {
+          li.classList.add("selected-touch");
+        }
+
+        if (userRole === 'admin') {
+          li.draggable = true;
+          li.ondragstart = handleRosterDragStart;
+          li.onclick = (e) => handleTouchSelect(player.lastName || player.firstName, player.num || "", null, null, e);
+        }
+
+        li.innerHTML = `
+          <div>
+            <span class="num-tag" style="min-width:26px; color:var(--primary);">${player.num ? '#' + player.num : ''}</span> 
+            <span>${player.firstName || ''} ${player.lastName || ''}</span>
+          </div>
+          ${spotCount > 0 ? `<span class="multi-badge">${spotCount} Spot${spotCount > 1 ? 's' : ''}</span>` : ''}
+        `;
+        rosterContainer.appendChild(li);
+      });
     }
 
     function markPracticeEdited() {
@@ -2623,6 +2710,10 @@ const firebaseConfig = {
         if (found) return found;
       }
       return null;
+    }
+
+    function generateUniqueId(prefix) {
+       return prefix + "_" + Date.now().toString(36) + "_" + Math.random().toString(36).substr(2, 5);
     }
 
     function createFormationPrompt(unit) {
@@ -3507,45 +3598,6 @@ const firebaseConfig = {
           document.addEventListener("mouseup", onMouseUp);
         });
       });
-    }
-
-    function updateRosterFormationOptions() {
-      const select = document.getElementById("roster-formation-select");
-      if (!select) return;
-      const currentVal = select.value || "all";
-      
-      const forms = getWeekFormations(currentWeek);
-      let html = `
-        <option value="all">All Formations (Total)</option>
-        <option value="current_tab">Active Tab Formations</option>
-      `;
-
-      const units = [
-        { id: "offense", name: "Offense" },
-        { id: "defense", name: "Defense" },
-        { id: "st", name: "Special Teams" },
-        { id: "groups", name: "Depth Chart" }
-      ];
-
-      units.forEach(u => {
-        const uForms = forms.filter(f => f.unit === u.id);
-        if (uForms.length > 0) {
-          html += `<optgroup label="${u.name}">`;
-          uForms.forEach(f => {
-            html += `<option value="${f.id}">${f.name}</option>`;
-          });
-          html += `</optgroup>`;
-        }
-      });
-
-      select.innerHTML = html;
-      
-      // Preserve selection if it still exists
-      if (Array.from(select.options).some(o => o.value === currentVal)) {
-        select.value = currentVal;
-      } else {
-        select.value = "all";
-      }
     }
 
     function addPracticeRow() {
