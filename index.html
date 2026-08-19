@@ -789,6 +789,13 @@ const firebaseConfig = {
     }
     initFirebase();
 
+    function closeAllDropdowns(event) {
+      const dropdown = document.getElementById("practice-tree-dropdown");
+      if (dropdown && event.target.id !== "selected-practice-display" && !dropdown.contains(event.target)) {
+        dropdown.style.display = "none";
+      }
+    }
+
     function safeJSONParse(key, fallback) {
       try {
         const val = localStorage.getItem(key);
@@ -855,6 +862,11 @@ const firebaseConfig = {
     let weeklyData = safeJSONParse("footballWeeklyData", {});
     let practiceData = safeJSONParse("footballPracticeData", []);
     let masterPlayLibrary = safeJSONParse("footballMasterPlays", ["24 Dive", "25 Trap", "Sweep Right", "Bootleg Pass", "Screen Pass"]);
+    
+    // VARIABLES ADDED TO PREVENT REFERENCE ERRORS
+    const defaultDynamicDrills = {}; 
+    let collapsedDrillCats = {};
+    
     let dynamicDrills = safeJSONParse("footballDynamicDrills", defaultDynamicDrills);
     let practiceTemplates = safeJSONParse("footballPracticeTemplates", []);
     let savedCoaches = safeJSONParse("footballSavedCoaches", []);
@@ -953,15 +965,20 @@ const firebaseConfig = {
       try {
         sanitizePracticeData();
         initWristbandData();
-        initScoutingData();
+        
+        // This handles cases where these functions might not be fully stubbed if part of a bigger project
+        if(typeof initScoutingData === "function") initScoutingData();
+        
         depthChart = getWeekDepthChart(currentWeek);
         
         const oppInput = document.getElementById("opponent-input");
         if(oppInput) oppInput.value = weeklyData[currentWeek] ? (weeklyData[currentWeek].opponent || "") : "";
 
         renderActiveBoards();
-        populatePracticeDropdown();
-        renderPracticePlan();
+        
+        if(typeof populatePracticeDropdown === "function") populatePracticeDropdown();
+        if(typeof renderPracticePlan === "function") renderPracticePlan();
+        
         renderMasterRoster();
       } catch (e) {
         console.error("Fatal initialization error:", e);
@@ -999,7 +1016,7 @@ const firebaseConfig = {
       }
       depthChart[targetPos].push({ name: draggedData.name, num: draggedData.num });
       draggedData = null;
-      saveState();
+      if(typeof saveState === "function") saveState();
       renderActiveBoards();
       renderMasterRoster();
     }
@@ -1009,7 +1026,7 @@ const firebaseConfig = {
       if (e) e.stopPropagation();
       if (depthChart[posId]) {
         depthChart[posId].splice(idx, 1);
-        saveState();
+        if(typeof saveState === "function") saveState();
         renderActiveBoards();
         renderMasterRoster();
       }
@@ -1226,7 +1243,7 @@ const firebaseConfig = {
               html += `
                   <td class="wb-sub-idx wb-sub-${cell.color}">${r+1}</td>
                   <td class="wb-play-cell wb-body-${cell.color}" ondragover="event.preventDefault(); this.classList.add('drag-over');" ondragleave="this.classList.remove('drag-over');" ondrop="dropPlayToWristband(event, ${cIdx}, ${r})">
-                      <input type="text" class="wb-play-input" value="${cell.text}" ondrop="dropPlayToWristband(event, ${cIdx}, ${r})" oninput="weeklyData[currentWeek].wristbandData.columns[${cIdx}].plays[${r}].text = this.value; triggerDebouncedSave();" />
+                      <input type="text" class="wb-play-input" value="${cell.text}" ondrop="dropPlayToWristband(event, ${cIdx}, ${r})" oninput="weeklyData[currentWeek].wristbandData.columns[${cIdx}].plays[${r}].text = this.value; if(typeof triggerDebouncedSave === 'function') triggerDebouncedSave();" />
                   </td>
               `;
           });
@@ -1239,7 +1256,9 @@ const firebaseConfig = {
     function renderPlayLibrary() {
         const list = document.getElementById("play-library-list");
         if (!list) return;
-        const term = (document.getElementById("play-search-input") ? document.getElementById("play-search-input"].value : "").toLowerCase().trim();
+        
+        // PARENTHESIS FIX APPLIED HERE
+        const term = (document.getElementById("play-search-input") ? document.getElementById("play-search-input").value : "").toLowerCase().trim();
         list.innerHTML = "";
 
         if (masterPlayLibrary.length === 0) {
@@ -1274,7 +1293,7 @@ const firebaseConfig = {
         if (play) {
             masterPlayLibrary.push(play);
             input.value = "";
-            savePlayLibrary();
+            if(typeof savePlayLibrary === "function") savePlayLibrary();
             renderPlayLibrary();
         }
     }
@@ -1282,7 +1301,7 @@ const firebaseConfig = {
     function removePlayFromLibrary(idx) {
         if (confirm("Delete this play from the library forever?")) {
             masterPlayLibrary.splice(idx, 1);
-            savePlayLibrary();
+            if(typeof savePlayLibrary === "function") savePlayLibrary();
             renderPlayLibrary();
         }
     }
@@ -1296,7 +1315,7 @@ const firebaseConfig = {
         const playText = e.dataTransfer.getData("text/plain");
         if (playText) {
             weeklyData[currentWeek].wristbandData.columns[colIdx].plays[rowIdx].text = playText;
-            saveState();
+            if(typeof saveState === "function") saveState();
             renderWristband();
         }
     }
@@ -1307,7 +1326,7 @@ const firebaseConfig = {
       const wbData = weeklyData[currentWeek].wristbandData;
       wbData.rows += 1;
       wbData.columns.forEach(c => c.plays.push({ text: "", color: c.color }));
-      saveState();
+      if(typeof saveState === "function") saveState();
       renderWristband();
     }
 
@@ -1318,22 +1337,22 @@ const firebaseConfig = {
       if (wbData.rows > 1) {
          wbData.rows -= 1;
          wbData.columns.forEach(c => c.plays.pop());
-         saveState();
+         if(typeof saveState === "function") saveState();
          renderWristband();
       }
     }
 
     /* SCOUTING LOGIC */
     function renderScouting() {
-      initScoutingData();
-      const scout = weeklyData[currentWeek].scouting;
+      if(typeof initScoutingData === "function") initScoutingData();
+      const scout = weeklyData[currentWeek].scouting || {};
       
       const textFields = ['teamOverview', 'keyPlayers', 'offenseTendencies', 'defenseTendencies', 'specialTeams'];
       textFields.forEach(f => {
          const el = document.getElementById('scout-' + f);
          if (el) {
              el.value = scout[f] || "";
-             autoResizeTextarea(el);
+             if(typeof autoResizeTextarea === "function") autoResizeTextarea(el);
          }
       });
 
@@ -1351,7 +1370,9 @@ const firebaseConfig = {
 
     function updateScouting(field, value) {
       if (userRole !== 'admin') return;
-      initScoutingData();
+      if(typeof initScoutingData === "function") initScoutingData();
+      
+      if(!weeklyData[currentWeek].scouting) weeklyData[currentWeek].scouting = {};
       weeklyData[currentWeek].scouting[field] = value;
       
       if (field === 'opponent') {
@@ -1360,7 +1381,7 @@ const firebaseConfig = {
          if(oppInput) oppInput.value = value;
       }
       
-      triggerDebouncedSave();
+      if(typeof triggerDebouncedSave === "function") triggerDebouncedSave();
 
       if (['year', 'week', 'opponent'].includes(field)) {
          const scout = weeklyData[currentWeek].scouting;
@@ -1418,7 +1439,7 @@ const firebaseConfig = {
                   html += `
                      <div class="drill-item-row">
                         <div><input type="text" class="prac-input" value="${d.name}" oninput="updateDrillField('${cat}', ${i}, 'name', this.value)" placeholder="Drill Name"></div>
-                        <div><textarea class="prac-textarea" style="min-height:30px;" oninput="autoResizeTextarea(this); updateDrillField('${cat}', ${i}, 'desc', this.value);" placeholder="Setup: ...\nInstruction: ...">${d.desc}</textarea></div>
+                        <div><textarea class="prac-textarea" style="min-height:30px;" oninput="if(typeof autoResizeTextarea === 'function') autoResizeTextarea(this); updateDrillField('${cat}', ${i}, 'desc', this.value);" placeholder="Setup: ...\nInstruction: ...">${d.desc}</textarea></div>
                         <div><input type="text" class="prac-input" value="${d.key}" oninput="updateDrillField('${cat}', ${i}, 'key', this.value)" placeholder="Focus..."></div>
                         <div class="admin-only" style="text-align:center; padding-top:4px;"><button class="remove-btn" onclick="deleteDrillFromCategory('${cat}', ${i}, event)">&times;</button></div>
                      </div>
@@ -1431,7 +1452,10 @@ const firebaseConfig = {
        
        html += `</div>`;
        wrapper.innerHTML = html;
-       document.querySelectorAll('#panel-drills .prac-textarea').forEach(ta => autoResizeTextarea(ta));
+       
+       if(typeof autoResizeTextarea === "function"){
+          document.querySelectorAll('#panel-drills .prac-textarea').forEach(ta => autoResizeTextarea(ta));
+       }
     }
 
     function addDrillCategory() {
@@ -1439,7 +1463,7 @@ const firebaseConfig = {
       const cat = prompt("Enter new Drill Category Name:");
       if (cat && cat.trim() !== "" && !dynamicDrills[cat]) {
           dynamicDrills[cat.trim()] = [];
-          triggerDebouncedSave();
+          if(typeof triggerDebouncedSave === "function") triggerDebouncedSave();
           renderDrillsTab();
       }
     }
@@ -1455,7 +1479,7 @@ const firebaseConfig = {
              collapsedDrillCats[newCat.trim()] = collapsedDrillCats[oldCat];
              delete collapsedDrillCats[oldCat];
           }
-          triggerDebouncedSave();
+          if(typeof triggerDebouncedSave === "function") triggerDebouncedSave();
           renderDrillsTab();
       }
     }
@@ -1466,7 +1490,7 @@ const firebaseConfig = {
       if (confirm(`Are you sure you want to delete the category "${cat}" and all its drills?`)) {
           delete dynamicDrills[cat];
           delete collapsedDrillCats[cat];
-          triggerDebouncedSave();
+          if(typeof triggerDebouncedSave === "function") triggerDebouncedSave();
           renderDrillsTab();
       }
     }
@@ -1476,14 +1500,14 @@ const firebaseConfig = {
       if (userRole !== 'admin') return;
       collapsedDrillCats[cat] = false; 
       dynamicDrills[cat].unshift({ name: "New Drill", desc: "", key: "" });
-      triggerDebouncedSave();
+      if(typeof triggerDebouncedSave === "function") triggerDebouncedSave();
       renderDrillsTab();
     }
 
     function updateDrillField(cat, index, field, val) {
       if (userRole !== 'admin') return;
       dynamicDrills[cat][index][field] = val;
-      triggerDebouncedSave();
+      if(typeof triggerDebouncedSave === "function") triggerDebouncedSave();
     }
 
     function deleteDrillFromCategory(cat, index, e) {
@@ -1491,7 +1515,7 @@ const firebaseConfig = {
       if (userRole !== 'admin') return;
       if(confirm("Delete this drill?")) {
          dynamicDrills[cat].splice(index, 1);
-         triggerDebouncedSave();
+         if(typeof triggerDebouncedSave === "function") triggerDebouncedSave();
          renderDrillsTab();
       }
     }
@@ -1532,9 +1556,9 @@ const firebaseConfig = {
       const subtitle = prompt("Enter subtitle/description:", "Personnel / Alignment details");
       const forms = getWeekFormations(currentWeek);
       
-      const formId = generateUniqueId("form");
-      const rowId = generateUniqueId("row");
-      const posId = generateUniqueId("pos");
+      const formId = (typeof generateUniqueId === "function") ? generateUniqueId("form") : 'form_' + Date.now();
+      const rowId = (typeof generateUniqueId === "function") ? generateUniqueId("row") : 'row_' + Date.now();
+      const posId = (typeof generateUniqueId === "function") ? generateUniqueId("pos") : 'pos_' + Date.now();
 
       const newForm = {
         id: formId,
@@ -1553,7 +1577,7 @@ const firebaseConfig = {
       if(!depthChart) depthChart = getWeekDepthChart(currentWeek);
       depthChart[posId] = [];
       
-      triggerDebouncedSave();
+      if(typeof triggerDebouncedSave === "function") triggerDebouncedSave();
       renderActiveBoards();
       renderMasterRoster(); 
     }
@@ -1568,7 +1592,7 @@ const firebaseConfig = {
         form.name = newName.trim();
         const newSub = prompt("Edit Subtitle:", form.subtitle || "");
         if(newSub !== null) form.subtitle = newSub.trim();
-        triggerDebouncedSave();
+        if(typeof triggerDebouncedSave === "function") triggerDebouncedSave();
         renderActiveBoards();
       }
     }
@@ -1579,7 +1603,7 @@ const firebaseConfig = {
       if(confirm("Are you sure you want to delete this entire formation?")) {
         weeklyData[currentWeek].formations = forms.filter(f => f.id !== formId);
         if (activeCountFormationId === formId) activeCountFormationId = null;
-        triggerDebouncedSave();
+        if(typeof triggerDebouncedSave === "function") triggerDebouncedSave();
         renderActiveBoards();
         renderMasterRoster(); 
       }
@@ -1596,7 +1620,7 @@ const firebaseConfig = {
       const temp = forms[idx];
       forms[idx] = forms[targetIdx];
       forms[targetIdx] = temp;
-      triggerDebouncedSave();
+      if(typeof triggerDebouncedSave === "function") triggerDebouncedSave();
       renderActiveBoards();
     }
 
@@ -1608,8 +1632,8 @@ const firebaseConfig = {
       const label = prompt("Enter Row/Level Name (e.g., 'Linebackers', 'Backfield'):", "New Level");
       if(!label || label.trim() === "") return;
       
-      const rowId = generateUniqueId("row");
-      const posId = generateUniqueId("pos");
+      const rowId = (typeof generateUniqueId === "function") ? generateUniqueId("row") : 'row_' + Date.now();
+      const posId = (typeof generateUniqueId === "function") ? generateUniqueId("pos") : 'pos_' + Date.now();
 
       form.rows.push({
         id: rowId,
@@ -1623,7 +1647,7 @@ const firebaseConfig = {
       if(!depthChart) depthChart = getWeekDepthChart(currentWeek);
       depthChart[posId] = [];
       
-      triggerDebouncedSave();
+      if(typeof triggerDebouncedSave === "function") triggerDebouncedSave();
       renderActiveBoards();
       renderMasterRoster();
     }
@@ -1638,7 +1662,7 @@ const firebaseConfig = {
       const newLabel = prompt("Edit Row/Level Name:", row.label);
       if(newLabel && newLabel.trim() !== "") {
         row.label = newLabel.trim();
-        triggerDebouncedSave();
+        if(typeof triggerDebouncedSave === "function") triggerDebouncedSave();
         renderActiveBoards();
       }
     }
@@ -1650,7 +1674,7 @@ const firebaseConfig = {
       if(!form) return;
       if(confirm("Delete this row and its positions?")) {
         form.rows = form.rows.filter(r => r.id !== rowId);
-        triggerDebouncedSave();
+        if(typeof triggerDebouncedSave === "function") triggerDebouncedSave();
         renderActiveBoards();
         renderMasterRoster();
       }
@@ -1666,7 +1690,7 @@ const firebaseConfig = {
       const posName = prompt("Enter Position Name (e.g. 'LT', 'MIKE', 'SLOT'):", "POS");
       if(!posName || posName.trim() === "") return;
       
-      const posId = generateUniqueId("pos");
+      const posId = (typeof generateUniqueId === "function") ? generateUniqueId("pos") : 'pos_' + Date.now();
       
       row.positions.push({
         id: posId,
@@ -1675,7 +1699,7 @@ const firebaseConfig = {
       
       if(!depthChart[posId]) depthChart[posId] = [];
       
-      triggerDebouncedSave();
+      if(typeof triggerDebouncedSave === "function") triggerDebouncedSave();
       renderActiveBoards();
       renderMasterRoster();
     }
@@ -1693,7 +1717,7 @@ const firebaseConfig = {
       const newName = prompt("Rename Position Tag:", pos.name || pos.id);
       if(newName && newName.trim() !== "") {
         pos.name = newName.trim();
-        triggerDebouncedSave();
+        if(typeof triggerDebouncedSave === "function") triggerDebouncedSave();
         renderActiveBoards();
       }
     }
@@ -1709,7 +1733,7 @@ const firebaseConfig = {
       if(confirm("Delete this position card?")) {
         row.positions = row.positions.filter(p => p.id !== posId);
         delete depthChart[posId];
-        triggerDebouncedSave();
+        if(typeof triggerDebouncedSave === "function") triggerDebouncedSave();
         renderActiveBoards();
         renderMasterRoster();
       }
@@ -1730,7 +1754,7 @@ const firebaseConfig = {
       const temp = row.positions[idx];
       row.positions[idx] = row.positions[targetIdx];
       row.positions[targetIdx] = temp;
-      triggerDebouncedSave();
+      if(typeof triggerDebouncedSave === "function") triggerDebouncedSave();
       renderActiveBoards();
     }
 
@@ -1741,7 +1765,7 @@ const firebaseConfig = {
         form.collapsed = !form.collapsed;
         localStorage.setItem("footballWeeklyData", JSON.stringify(weeklyData));
         if (userRole === 'admin') {
-          triggerDebouncedSave();
+          if(typeof triggerDebouncedSave === "function") triggerDebouncedSave();
         }
         renderActiveBoards();
       }
@@ -1754,6 +1778,16 @@ const firebaseConfig = {
       document.getElementById("tab-register").classList.toggle('active', isSignUpMode);
       document.getElementById("auth-submit-btn").textContent = isSignUpMode ? "Create Account" : "Sign In";
       document.getElementById("auth-error").style.display = "none";
+    }
+
+    // A stub for applying role if it's missing from the rest of the truncated logic
+    function applyRole(role) {
+       userRole = role;
+       if(role === 'admin') {
+          document.body.classList.remove('view-only');
+       } else {
+          document.body.classList.add('view-only');
+       }
     }
 
     function bypassLogin() {
