@@ -684,7 +684,9 @@
               <button class="toggle-board-btn admin-only" onclick="saveAsTemplate()">💾 Save Template</button>
               <button class="toggle-board-btn admin-only" onclick="deletePractice()" style="color:#ef4444;">🗑️ Delete</button>
             </div>
-            <div>
+            <div style="display:flex; gap:6px; align-items:center;">
+              <button class="add-row-btn admin-only" style="margin:0;" onclick="document.getElementById('import-prac-file').click()">📥 Import Plan</button>
+              <input type="file" id="import-prac-file" style="display:none;" onchange="importExternalPracticePlan(event)" accept=".txt,.doc,.docx,.csv,.json" />
               <button class="add-row-btn admin-only" onclick="addPracticeRow()">+ Add Period</button>
               <button class="toolbar button" onclick="if(document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur(); setTimeout(()=>window.print(), 100);" style="padding:4px 10px; margin-left:6px;">🖨️ Print Plan</button>
             </div>
@@ -907,6 +909,127 @@
     let currentPracticeId = null;
     
     let weekSortOrder = safeJSONParse("footballWeekOrder", {});
+
+    // --- IMPORT PRACTICE PLAN FROM FILE / TEXT ---
+    function importExternalPracticePlan(e) {
+        if (userRole !== 'admin') return;
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                const content = event.target.result;
+                let title = file.name.replace(/\.[^/.]+$/, "");
+                let yearStr = new Date().getFullYear().toString();
+                let weekFolder = "Week 1";
+                let dayStr = "Monday";
+                let startTimeStr = "17:15";
+                let endTimeStr = "20:00";
+                let newPlanPeriods = [];
+
+                if (file.name.endsWith('.json')) {
+                    const parsed = JSON.parse(content);
+                    if (Array.isArray(parsed)) {
+                        practiceData.push(...parsed);
+                    } else if (parsed.plan) {
+                        practiceData.push(parsed);
+                    }
+                } else {
+                    // Smart Text Parsing for Formatted Text/Docx
+                    const lines = content.split('\n');
+                    let currentCategory = "Warm-Up";
+                    let currentDrill = "";
+                    let currentDesc = [];
+                    let currentDuration = 5;
+
+                    lines.forEach((line, idx) => {
+                        let trimmed = line.trim();
+                        if (!trimmed) return;
+
+                        if (idx === 0) {
+                            title = trimmed;
+                            // Attempt to extract date like 8/10/26 or 2026
+                            let dateMatch = trimmed.match(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+                            if (dateMatch) {
+                                let yr = dateMatch[3];
+                                if (yr.length === 2) yr = "20" + yr;
+                                yearStr = yr;
+                            }
+                            return;
+                        }
+
+                        let timeMatch = trimmed.match(/^(\d{1,2}:\d{2})\s*(?:[–-]\s*(\d{1,2}:\d{2}))?/);
+                        if (timeMatch) {
+                            if (currentDrill || currentDesc.length > 0) {
+                                newPlanPeriods.push({
+                                    time: currentDuration,
+                                    category: currentCategory,
+                                    drill: currentDrill || currentCategory,
+                                    desc: currentDesc.join('\n'),
+                                    key: "",
+                                    coaches: []
+                                });
+                                currentDesc = [];
+                            }
+
+                            let textAfterTime = trimmed.replace(timeMatch[0], '').replace(/^[–-]\s*/, '').trim();
+                            currentDrill = textAfterTime;
+
+                            if (textAfterTime.toLowerCase().includes('water')) {
+                                currentCategory = "Water Break";
+                            } else if (textAfterTime.toLowerCase().includes('special teams')) {
+                                currentCategory = "Special Teams";
+                            } else if (textAfterTime.toLowerCase().includes('offense')) {
+                                currentCategory = "Team Offense";
+                            } else if (textAfterTime.toLowerCase().includes('breakouts')) {
+                                currentCategory = "Breakouts";
+                            } else {
+                                currentCategory = "Indy / Fundamentals";
+                            }
+                        } else {
+                            currentDesc.push(trimmed);
+                        }
+                    });
+
+                    if (currentDrill || currentDesc.length > 0) {
+                        newPlanPeriods.push({
+                            time: currentDuration,
+                            category: currentCategory,
+                            drill: currentDrill || currentCategory,
+                            desc: currentDesc.join('\n'),
+                            key: "",
+                            coaches: []
+                        });
+                    }
+
+                    if (newPlanPeriods.length > 0) {
+                        let newPrac = {
+                            id: generateUniqueId('prac'),
+                            title: title,
+                            year: yearStr,
+                            week: weekFolder,
+                            day: dayStr,
+                            startTime: startTimeStr,
+                            endTime: endTimeStr,
+                            lastEdited: Date.now(),
+                            plan: newPlanPeriods
+                        };
+                        practiceData.push(newPrac);
+                        currentPracticeId = newPrac.id;
+                    }
+                }
+
+                saveState();
+                populatePracticeDropdown();
+                renderPracticePlan();
+                alert("Practice plan successfully imported into folder: " + yearStr + " / " + weekFolder);
+            } catch (err) {
+                alert("Error parsing file: " + err.message);
+            }
+        };
+        reader.readAsText(file);
+    }
 
     // --- PRINT MODAL LOGIC ---
     function openPrintModal(unitType) {
@@ -1518,18 +1641,15 @@
               while(row.positions.length < current) row.positions.push(null);
 
               if (newNum < current) {
-                  // User is decreasing slots. Remove unoccupied (null) slots first.
                   for (let i = row.positions.length - 1; i >= 0 && row.positions.length > newNum; i--) {
                       if (row.positions[i] === null) {
                           row.positions.splice(i, 1);
                       }
                   }
-                  // If still too many, trim from the end
                   if (row.positions.length > newNum) {
                       row.positions = row.positions.slice(0, newNum);
                   }
               } else {
-                  // User is increasing slots. Pad with nulls.
                   while(row.positions.length < newNum) row.positions.push(null);
               }
 
