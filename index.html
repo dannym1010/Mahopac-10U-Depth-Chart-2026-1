@@ -1512,11 +1512,28 @@
       const current = row.slotCount || 7;
       const val = prompt("Enter number of slots for this row (1 to 12):", current);
       if(val !== null) {
-          const num = parseInt(val);
-          if(!isNaN(num) && num >= 1 && num <= 12) {
-              row.slotCount = num;
-              while(row.positions.length < num) row.positions.push(null);
-              if(row.positions.length > num) row.positions = row.positions.slice(0, num);
+          const newNum = parseInt(val);
+          if(!isNaN(newNum) && newNum >= 1 && newNum <= 12) {
+              if (!Array.isArray(row.positions)) row.positions = [];
+              while(row.positions.length < current) row.positions.push(null);
+
+              if (newNum < current) {
+                  // User is decreasing slots. Remove unoccupied (null) slots first.
+                  for (let i = row.positions.length - 1; i >= 0 && row.positions.length > newNum; i--) {
+                      if (row.positions[i] === null) {
+                          row.positions.splice(i, 1);
+                      }
+                  }
+                  // If still too many, trim from the end
+                  if (row.positions.length > newNum) {
+                      row.positions = row.positions.slice(0, newNum);
+                  }
+              } else {
+                  // User is increasing slots. Pad with nulls.
+                  while(row.positions.length < newNum) row.positions.push(null);
+              }
+
+              row.slotCount = newNum;
               triggerDebouncedSave();
               renderActiveBoards();
           } else {
