@@ -153,7 +153,7 @@
     .level-header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; border-bottom: 1px solid #e2e8f0; padding-bottom: 2px; }
     .level-label { font-size: 10px; font-weight: bold; color: var(--text-muted); text-transform: uppercase; }
 
-    /* 7-Slot Independent Grid Layout per Row */
+    /* 7-Slot Independent Grid Layout per Row (Aligned to Top) */
     .formation-row {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
@@ -163,6 +163,7 @@
       background: #f8fafc;
       border: 1px solid var(--card-border);
       border-radius: 8px;
+      align-items: start;
     }
 
     .row-slot {
@@ -170,7 +171,7 @@
       border: 1px dashed #cbd5e1;
       border-radius: 6px;
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: center;
       position: relative;
       background: #ffffff;
@@ -193,6 +194,13 @@
     .rank-sub-gray { background: #64748b; color: #ffffff; }
 
     .remove-btn { background: none; border: none; color: #ef4444; font-weight: bold; cursor: pointer; font-size: 13px; }
+
+    /* Print Modal */
+    #print-modal {
+      position: fixed; inset: 0; background: rgba(15,23,42,0.7); display: flex; align-items: center; justify-content: center; z-index: 20000;
+    }
+    .print-modal-card { background: #fff; padding: 20px; border-radius: 8px; width: 320px; max-width: 90%; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+    .print-modal-card h3 { margin-top: 0; color: var(--primary); font-size: 16px; }
 
     /* Wristband Builder */
     .wb-exact-table { width: 100%; border-collapse: collapse; border: 2px solid #000000; background: #ffffff; }
@@ -419,41 +427,17 @@
     @media print {
       @page { size: letter portrait; margin: 0.25in; }
       body { background-color: #ffffff; padding: 0; margin: 0; font-size: 10px; }
-      .toolbar, #sidebar-container, .remove-btn, .action-group, p.subtitle, .search-box, .card-search-container, .tab-navigation, .toggle-board-btn, .week-bar, .board-controls, .add-row-btn, .add-form-btn, .row-actions, .col-resizer, .practice-dashboard { display: none !important; }
+      .toolbar, #sidebar-container, .remove-btn, .action-group, p.subtitle, .search-box, .card-search-container, .tab-navigation, .toggle-board-btn, .week-bar, .board-controls, .add-row-btn, .add-form-btn, .row-actions, .col-resizer, .practice-dashboard, #print-modal { display: none !important; }
       .app-layout, .boards-container, .unit-panel:not(.hidden) { display: block !important; }
+      .formation-container.print-hidden { display: none !important; }
       .formation-body.collapsed { display: block !important; }
       .formation-container { border: 1px solid #000000 !important; box-shadow: none !important; padding: 4px; page-break-inside: auto !important; margin-bottom: 4px; background: #ffffff !important; }
-      .formation-row { min-width: 100% !important; page-break-inside: avoid; }
+      .formation-row { min-width: 100% !important; page-break-inside: avoid; align-items: start !important; }
+      .row-slot { align-items: flex-start !important; border: none !important; background: transparent !important; min-height: auto !important; }
       .position-card { border: 1px solid #000000 !important; box-shadow: none !important; min-width: 65px; background: #ffffff !important; }
       .position-header { background: #e2e8f0 !important; color: #000000 !important; border-bottom: 1px solid #000000 !important; font-size: 8px; padding: 2px 3px; }
       .player-item { border: 1px solid #cbd5e1 !important; font-size: 7.5px; padding: 2px 3px; margin-bottom: 2px; }
       h1 { margin-top: 0; font-size: 12px; color: #000000; text-align: center; }
-      #panel-wristband .wb-exact-table { border: 2px solid #000000; width: 5.25in !important; margin: 0; table-layout: fixed !important; }
-      #panel-wristband .wb-exact-table td { height: 0.18in !important; }
-      #panel-wristband .wb-sub-idx { width: 0.25in !important; }
-      #panel-wristband .wb-play-input { display: none !important; }
-      #panel-wristband .wb-cell-controls { display: none !important; }
-      #panel-wristband .print-text-node.wb-print-text { font-size: 8.5px !important; padding: 0 2px !important; font-weight: bold; text-transform: uppercase; font-family: "Times New Roman", Times, serif !important; }
-      #panel-wristband input[type="text"] { border: none !important; background: transparent !important; }
-      #panel-scouting .scouting-grid { display: block !important; }
-      #panel-scouting .station-block { page-break-inside: avoid; border: 1px solid #000; padding: 8px; margin-bottom: 8px; border-radius: 0; }
-      #panel-scouting .station-title { font-size: 11px; border-bottom: 1px solid #000; padding-bottom: 2px; margin-bottom: 4px; color: #000; }
-      .practice-table { border: 2px solid #000000; width: 100% !important; table-layout: fixed !important; font-size: 10px !important; page-break-inside: auto; }
-      .practice-table tr { page-break-inside: avoid; page-break-after: auto; }
-      .practice-table th, .practice-table td { border: 1px solid #000000 !important; padding: 3px 4px !important; overflow: hidden !important; word-wrap: break-word; }
-      .practice-table tbody tr:nth-child(odd) { background-color: #ffffff !important; }
-      .practice-table tbody tr:nth-child(even) { background-color: #f4f6f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      .prac-time-input-wrap { display: none !important; }
-      .period-schedule-time { color: #000000 !important; font-size: 11px !important; margin-top: 2px; }
-      .rotation-timer { color: #000000 !important; font-size: 10px !important; }
-      .print-only-inline { display: inline !important; }
-      .prac-input, .prac-select { border: none !important; background: transparent !important; padding: 0 !important; appearance: none; -webkit-appearance: none; color: #000000 !important; font-size: 10px !important; margin: 0; }
-      .print-text-node { display: block !important; font-size: 10px !important; white-space: pre-wrap; word-break: break-word; color: #000000; padding: 2px 0; }
-      .prac-textarea { display: none !important; }
-      .station-block { border-bottom: 1px solid #ccc; margin-bottom: 2px; padding-bottom: 2px; page-break-inside: avoid; }
-      .coach-badge { background: transparent !important; color: #000000 !important; padding: 0 !important; margin: 0 !important; font-size: 10px !important; font-weight: normal !important; }
-      .coach-badge::after { content: ", "; }
-      .coach-badge:last-child::after { content: ""; }
       .no-print { display: none !important; }
       .print-only-header { display: block !important; text-align: center; margin-bottom: 4px; }
       .print-only-header h2 { margin: 0 0 2px 0; font-size: 14px; }
@@ -550,25 +534,37 @@
       
       <!-- OFFENSE PANEL -->
       <div class="unit-panel" id="panel-offense">
-        <button class="add-form-btn admin-only" onclick="createFormationPrompt('offense')">+ Add Offensive Formation</button>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+           <button class="add-form-btn admin-only" onclick="createFormationPrompt('offense')">+ Add Offensive Formation</button>
+           <button class="toggle-board-btn no-print" onclick="openPrintModal('offense')" style="padding:6px 12px; background:var(--primary); color:#fff;">🖨️ Print Formations</button>
+        </div>
         <div id="boards-offense"></div>
       </div>
 
       <!-- DEFENSE PANEL -->
       <div class="unit-panel hidden" id="panel-defense">
-        <button class="add-form-btn admin-only" onclick="createFormationPrompt('defense')">+ Add Defensive Formation</button>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+           <button class="add-form-btn admin-only" onclick="createFormationPrompt('defense')">+ Add Defensive Formation</button>
+           <button class="toggle-board-btn no-print" onclick="openPrintModal('defense')" style="padding:6px 12px; background:var(--primary); color:#fff;">🖨️ Print Formations</button>
+        </div>
         <div id="boards-defense"></div>
       </div>
 
       <!-- SPECIAL TEAMS PANEL -->
       <div class="unit-panel hidden" id="panel-st">
-        <button class="add-form-btn admin-only" onclick="createFormationPrompt('st')">+ Add Special Teams Board</button>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+           <button class="add-form-btn admin-only" onclick="createFormationPrompt('st')">+ Add Special Teams Board</button>
+           <button class="toggle-board-btn no-print" onclick="openPrintModal('st')" style="padding:6px 12px; background:var(--primary); color:#fff;">🖨️ Print Boards</button>
+        </div>
         <div id="boards-st"></div>
       </div>
 
       <!-- DEPTH CHART PANEL -->
       <div class="unit-panel hidden" id="panel-groups">
-        <button class="add-form-btn admin-only" onclick="createFormationPrompt('groups')">+ Add Depth Chart Board</button>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+           <button class="add-form-btn admin-only" onclick="createFormationPrompt('groups')">+ Add Depth Chart Board</button>
+           <button class="toggle-board-btn no-print" onclick="openPrintModal('groups')" style="padding:6px 12px; background:var(--primary); color:#fff;">🖨️ Print Boards</button>
+        </div>
         <div id="boards-groups"></div>
       </div>
 
@@ -773,6 +769,18 @@
     </div>
   </div>
 
+  <!-- PRINT SELECTION MODAL -->
+  <div id="print-modal" class="hidden">
+    <div class="print-modal-card">
+       <h3>Select Boards to Print</h3>
+       <div id="print-modal-list" style="max-height: 200px; overflow-y: auto; margin-bottom: 15px; text-align: left; font-size: 12px; display: flex; flex-direction: column; gap: 6px;"></div>
+       <div style="display: flex; gap: 8px; justify-content: flex-end;">
+          <button class="toggle-board-btn" onclick="document.getElementById('print-modal').classList.add('hidden')">Cancel</button>
+          <button class="add-row-btn" style="margin:0;" onclick="executeCustomPrint()">Print Selected</button>
+       </div>
+    </div>
+  </div>
+
   <script>
     // ----------------------------------------------------------------------------------
     // APPLICATION CORE SCRIPT
@@ -900,6 +908,47 @@
     let currentPracticeId = null;
     
     let weekSortOrder = safeJSONParse("footballWeekOrder", {});
+
+    // --- PRINT MODAL LOGIC ---
+    function openPrintModal(unitType) {
+       const modal = document.getElementById("print-modal");
+       const list = document.getElementById("print-modal-list");
+       if (!modal || !list) return;
+
+       const forms = getWeekFormations(currentWeek).filter(f => f && f.unit === unitType);
+       if (forms.length === 0) {
+           alert("No boards available to print in this tab.");
+           return;
+       }
+
+       let html = `<label style="font-weight:bold; margin-bottom:6px;"><input type="checkbox" id="print-select-all" checked onchange="toggleAllPrintCheckboxes(this)"> Select All</label><hr style="border:0; border-top:1px solid #e2e8f0; margin:4px 0 8px 0;">`;
+       forms.forEach(f => {
+           html += `<label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" class="print-board-chk" value="${f.id}" checked> ${f.name}</label>`;
+       });
+       list.innerHTML = html;
+       modal.classList.remove('hidden');
+    }
+
+    function toggleAllPrintCheckboxes(master) {
+       document.querySelectorAll('.print-board-chk').forEach(chk => chk.checked = master.checked);
+    }
+
+    function executeCustomPrint() {
+       const selectedIds = Array.from(document.querySelectorAll('.print-board-chk:checked')).map(chk => chk.value);
+       document.getElementById("print-modal").classList.add('hidden');
+
+       document.querySelectorAll('.formation-container').forEach(card => {
+           const boardId = card.id.replace('board_', '');
+           if (selectedIds.includes(boardId)) {
+               card.classList.remove('print-hidden');
+           } else {
+               card.classList.add('print-hidden');
+           }
+       });
+
+       if(document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur();
+       setTimeout(() => window.print(), 100);
+    }
 
     // --- TAB & WEEK LOGIC ---
     function switchUnitTab(unit) {
@@ -1228,7 +1277,7 @@
                   const rect = cardEl.getBoundingClientRect();
                   if (e.clientX > rect.left + rect.width / 2) finalIdx = tIdx + 1;
               }
-              tRow.positions[tIdx] = null; // clear target temporarily
+              tRow.positions[tIdx] = null; 
               tRow.positions.splice(finalIdx, 0, movedObj);
           }
 
