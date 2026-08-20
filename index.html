@@ -9,6 +9,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
   
   <!-- Mammoth.js for reading .docx files in the browser -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
@@ -510,6 +511,7 @@
     <button class="nav-tab" id="tab-btn-groups" onclick="switchUnitTab('groups')">Depth Chart</button>
     <button class="nav-tab" id="tab-btn-wristband" onclick="switchUnitTab('wristband')">Wristband</button>
     <button class="nav-tab" id="tab-btn-scouting" onclick="switchUnitTab('scouting')">Scouting</button>
+    <button class="nav-tab" id="tab-btn-guide" onclick="switchUnitTab('guide')">Positional Guide</button>
     <button class="nav-tab" id="tab-btn-drills" onclick="switchUnitTab('drills')">Drills</button>
     <button class="nav-tab" id="tab-btn-practice" onclick="switchUnitTab('practice')">Practice Plan</button>
     <button class="nav-tab admin-only" id="tab-btn-users" onclick="switchUnitTab('users')">👥 Manage Users</button>
@@ -625,6 +627,22 @@
                 <div class="station-title">Special Teams & Other Notes</div>
                 <textarea id="scout-specialTeams" class="prac-textarea scout-textarea" oninput="autoResizeTextarea(this); updateScouting('specialTeams', this.value)" placeholder="Kicker strength, returners, fake threats..."></textarea>
              </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- POSITIONAL GUIDE PANEL -->
+      <div class="unit-panel hidden" id="panel-guide">
+        <div class="formation-container">
+          <div class="board-title no-print">
+            <span>🛡️ Defensive Positional Guides</span>
+          </div>
+          <div style="display:flex; gap:8px; margin-bottom:15px; flex-wrap:wrap; border-bottom: 2px solid var(--card-border); padding-bottom: 10px;">
+             <button class="nav-tab active" id="guide-tab-53" onclick="switchGuidePos('53')">53 Defense</button>
+             <button class="nav-tab" id="guide-tab-44" onclick="switchGuidePos('44')">44 Defense</button>
+          </div>
+          <div id="guide-content-area" style="min-height: 500px; display:flex; flex-direction:column; gap: 10px;">
+             <!-- Injected via JS -->
           </div>
         </div>
       </div>
@@ -817,6 +835,7 @@
 
     let db = null;
     let auth = null;
+    let storage = null;
     let cloudEnabled = false;
 
     function initFirebase() {
@@ -825,6 +844,7 @@
           firebase.initializeApp(firebaseConfig);
           db = firebase.firestore();
           auth = firebase.auth();
+          storage = firebase.storage();
           cloudEnabled = true;
           console.log("Firebase connected.");
         }
@@ -856,6 +876,10 @@
     let currentUser = null;
     let userRole = 'admin';
     let isSignUpMode = false;
+
+    // Positional Guide variables updated to 53 and 44
+    let activeGuidePos = '53';
+    let pdfGuides = safeJSONParse("footballPdfGuides", { "53": "", "44": "" });
 
     const masterRoster = [
       { num: "2", firstName: "Mohammed", lastName: "Ibrahim" },
@@ -947,6 +971,7 @@
         localStorage.setItem("footballDynamicDrills", JSON.stringify(dynamicDrills));
         localStorage.setItem("footballSavedCoaches", JSON.stringify(savedCoaches));
         localStorage.setItem("footballWeekOrder", JSON.stringify(weekSortOrder));
+        localStorage.setItem("footballPdfGuides", JSON.stringify(pdfGuides));
 
         if (cloudEnabled && db && userRole === 'admin') {
             db.collection("teamData").doc("depthChartData").set({
@@ -956,6 +981,7 @@
                 dynamicDrills: dynamicDrills,
                 savedCoaches: savedCoaches,
                 weekSortOrder: weekSortOrder,
+                pdfGuides: pdfGuides,
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             }, { merge: true }).catch(err => {
                 console.error("Firestore sync error:", err);
@@ -1182,6 +1208,82 @@
        }
     }
 
+    // --- POSITIONAL GUIDE LOGIC ---
+    function switchGuidePos(pos) {
+        activeGuidePos = pos;
+        document.querySelectorAll('[id^="guide-tab-"]').forEach(btn => btn.classList.remove('active'));
+        document.getElementById('guide-tab-' + pos).classList.add('active');
+        renderGuideTab();
+    }
+
+    function renderGuideTab() {
+        const contentArea = document.getElementById('guide-content-area');
+        if (!contentArea) return;
+
+        const currentPdf = pdfGuides[activeGuidePos];
+
+        let html = `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <h3 style="margin:0; color:var(--primary); font-size:16px;">${activeGuidePos} Defense Guide</h3>
+                <div class="admin-only" style="display:flex; gap:6px;">
+                    <input type="file" id="pdf-upload-${activeGuidePos}" accept="application/pdf" style="display:none;" onchange="handlePdfUpload(event, '${activeGuidePos}')">
+                    <button class="add-row-btn" style="margin:0;" onclick="document.getElementById('pdf-upload-${activeGuidePos}').click()">📄 Upload PDF</button>
+                    ${currentPdf ? `<button class="toggle-board-btn" style="color:#ef4444;" onclick="deletePdfGuide('${activeGuidePos}')">🗑️ Remove PDF</button>` : ''}
+                </div>
+            </div>
+        `;
+
+        if (currentPdf) {
+            html += `<iframe src="${currentPdf}" style="width:100%; flex-grow:1; min-height:600px; border:none; border-radius:6px; background:#fff;"></iframe>`;
+        } else {
+            html += `<div style="flex-grow:1; display:flex; align-items:center; justify-content:center; color:var(--text-muted); font-style:italic;">No PDF guide has been uploaded for the ${activeGuidePos} defense. (Head Coach can upload one above).</div>`;
+        }
+
+        contentArea.innerHTML = html;
+    }
+
+    async function handlePdfUpload(e, pos) {
+        if (userRole !== 'admin') return;
+        const file = e.target.files[0];
+        if (!file) return;
+
+        if (cloudEnabled && storage) {
+            try {
+                alert("Uploading PDF to Firebase... Please wait.");
+                const storageRef = storage.ref(`guides/${pos}_guide_${Date.now()}.pdf`);
+                const snapshot = await storageRef.put(file);
+                const downloadURL = await snapshot.ref.getDownloadURL();
+                pdfGuides[pos] = downloadURL;
+                saveState();
+                renderGuideTab();
+            } catch (err) {
+                alert("Upload failed. Make sure Firebase Storage rules allow writing. " + err.message);
+            }
+        } else {
+            // Offline fallback using Base64
+            if (file.size > 800 * 1024) { 
+                alert("File is too large for offline local storage mode (Max ~800KB recommended). It may cause saving issues.");
+            }
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                pdfGuides[pos] = evt.target.result;
+                saveState();
+                renderGuideTab();
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function deletePdfGuide(pos) {
+        if (userRole !== 'admin') return;
+        if (confirm(`Remove the PDF guide for the ${pos} defense?`)) {
+            pdfGuides[pos] = "";
+            saveState();
+            renderGuideTab();
+        }
+    }
+
+
     // --- TAB & WEEK LOGIC ---
     function switchUnitTab(unit) {
       activeUnit = unit;
@@ -1216,6 +1318,8 @@
         renderPracticePlan();
       } else if (unit === 'users') {
         renderUsers();
+      } else if (unit === 'guide') {
+        renderGuideTab();
       } else {
         renderActiveBoards();
         renderMasterRoster();
@@ -1279,6 +1383,7 @@
               if (data.dynamicDrills) dynamicDrills = data.dynamicDrills;
               if (data.savedCoaches) savedCoaches = data.savedCoaches;
               if (data.weekSortOrder) weekSortOrder = data.weekSortOrder;
+              if (data.pdfGuides) pdfGuides = data.pdfGuides;
 
               // Re-render UI to reflect the newest live changes
               depthChart = getWeekDepthChart(currentWeek);
@@ -1288,6 +1393,7 @@
               if (activeUnit === 'practice') renderPracticePlan();
               if (activeUnit === 'wristband') renderWristband();
               if (activeUnit === 'scouting') renderScouting();
+              if (activeUnit === 'guide') renderGuideTab();
 
               console.log("Live changes synced from cloud.");
             }
