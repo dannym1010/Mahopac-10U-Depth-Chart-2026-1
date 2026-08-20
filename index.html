@@ -78,7 +78,7 @@
     .auth-tab-btn.active { color: var(--primary); border-bottom: 3px solid var(--primary); margin-bottom: -2px; }
 
     .auth-input { width: 100%; padding: 10px 12px; margin-bottom: 12px; border: 1px solid var(--card-border); border-radius: 6px; font-size: 13px; box-sizing: border-box; }
-    .btn-primary { width: 100%; padding: 10px; background: var(--primary); color: #fff; border: none; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer; margin-bottom: 10px; }
+    .btn-primary { width: 100%; padding: 10px; background: var(--primary); color: #fff; border: none; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: margin-bottom: 10px; }
     .btn-primary:hover { background: var(--accent); }
     .btn-google { width: 100%; padding: 10px; background: #ffffff; color: #333333; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
 
@@ -611,7 +611,7 @@
              </div>
              <div class="station-block">
                 <div class="station-title">Offensive Tendencies</div>
-                <textarea id="scout-offenseTendencies" class="prac-textarea scout-textarea" oninput="autoResizeTextarea(this); updateScouting('offenseTendencies', this.value)" placeholder="Formations, favorite plays, run/pass ratio..."></textarea>
+                <textarea id="scout-offenseTendencies" class="prac-textarea scout-textarea" oninput="autoResizeTextarea(this); updateScouting('teamOverview', this.value)" placeholder="Formations, favorite plays, run/pass ratio..."></textarea>
              </div>
              <div class="station-block">
                 <div class="station-title">Defensive Tendencies</div>
@@ -878,7 +878,6 @@
     let depthChart = null;
     let currentPracticeId = null;
     
-    // NEW: Variable to hold sorted list of practice weeks to allow reordering
     let weekSortOrder = safeJSONParse("footballWeekOrder", {});
 
     // --- TAB & WEEK LOGIC ---
@@ -976,7 +975,7 @@
         localStorage.setItem("footballMasterPlays", JSON.stringify(masterPlayLibrary));
         localStorage.setItem("footballDynamicDrills", JSON.stringify(dynamicDrills));
         localStorage.setItem("footballSavedCoaches", JSON.stringify(savedCoaches));
-        localStorage.setItem("footballWeekOrder", JSON.stringify(weekSortOrder)); // Save practice week order
+        localStorage.setItem("footballWeekOrder", JSON.stringify(weekSortOrder));
         console.log("State Saved Locally");
     }
 
@@ -1176,7 +1175,6 @@
       document.querySelectorAll(".position-card").forEach(c => c.classList.remove("drag-over"));
       if (!draggedData) return;
       
-      // NEW: Enhanced reordering logic for the exact same row to push cards properly
       if (draggedData.type === "position_card") {
           const sFormId = draggedData.formId;
           const sRowId = draggedData.rowId;
@@ -1193,7 +1191,7 @@
           const [movedPos] = sRow.positions.splice(sIndex, 1);
           
           const tIndex = tRow.positions.findIndex(p => p.id === targetPosId);
-          tRow.positions.splice(tIndex, 0, movedPos); // Inserts right before target card
+          tRow.positions.splice(tIndex, 0, movedPos);
           
           draggedData = null;
           triggerDebouncedSave();
@@ -1201,7 +1199,6 @@
           return;
       }
 
-      // If we are dropping a single player onto a position
       if (!depthChart[targetPosId]) depthChart[targetPosId] = [];
 
       if (draggedData.type === "position") {
@@ -1217,7 +1214,6 @@
       renderMasterRoster();
     }
     
-    // Handle dropping a position card into an empty row or at the end of a row
     function handleRowDrop(e, targetFormId, targetRowId) {
         if (userRole !== 'admin' || !draggedData || draggedData.type !== 'position_card') return;
         if (e.target.closest('.position-card')) return;
@@ -1937,8 +1933,6 @@
 
 
     // --- PRACTICE PLAN LOGIC ---
-    
-    // NEW: Handlers for week reordering & practice dropping
     function handlePracticeDragStart(e, pracId) {
         if (userRole !== 'admin') { e.preventDefault(); return; }
         draggedData = { type: 'practice', id: pracId };
@@ -1972,7 +1966,6 @@
             const sYear = draggedData.year;
             const sWeek = draggedData.week;
             
-            // Reorder week within the same year
             if (sYear === targetYear && sWeek !== targetWeek) {
                 let orderArray = weekSortOrder[sYear];
                 const sIdx = orderArray.indexOf(sWeek);
@@ -1988,7 +1981,6 @@
         draggedData = null;
     }
 
-    // NEW: Allow renaming of practice weeks 
     function renamePracticeWeek(year, oldWeek, e) {
         e.stopPropagation();
         if(userRole !== 'admin') return;
@@ -2036,7 +2028,6 @@
       });
 
       for (const y in groups) {
-          // Initialize/Sync custom sort order for weeks in this year
           if (!weekSortOrder[y]) weekSortOrder[y] = Object.keys(groups[y]);
           Object.keys(groups[y]).forEach(w => {
               if (!weekSortOrder[y].includes(w)) weekSortOrder[y].push(w);
@@ -2360,7 +2351,7 @@
     }
 
 
-    // --- USERS LOGIC (NEW: PULLS FROM FIRESTORE DATABASE) ---
+    // --- USERS LOGIC ---
     async function renderUsers() {
        const container = document.getElementById("users-table-container");
        if(!container) return;
@@ -2561,7 +2552,6 @@
       }
     }
 
-    // NEW: On Auth, look up permissions from the 'users' collection
     if (auth) {
       let authResolved = false;
       auth.onAuthStateChanged(async (user) => {
@@ -2573,12 +2563,35 @@
           document.getElementById("user-display-email").textContent = user.email || user.displayName || "Coach";
           document.getElementById("sync-text").textContent = "Live Cloud Sync Active";
           
-          let roleAssigned = 'viewer';
+          let roleAssigned = 'viewer'; // Default everyone to viewer (Coach) safely
+          
           if (db) {
              try {
-                 const doc = await db.collection('users').doc(user.email.toLowerCase()).get();
-                 if (doc.exists) roleAssigned = doc.data().role || 'viewer';
-             } catch(e) { console.error(e); }
+                 const userEmail = user.email.toLowerCase();
+                 const docRef = db.collection('users').doc(userEmail);
+                 const doc = await docRef.get();
+                 
+                 if (doc.exists) {
+                     // If user is already in the database, use their assigned role
+                     roleAssigned = doc.data().role || 'viewer';
+                 } else {
+                     // If they aren't in the database yet, check if it's YOU:
+                     if (userEmail === 'dannym1010@gmail.com') {
+                         roleAssigned = 'admin'; // You get Head Coach powers
+                     } else {
+                         roleAssigned = 'viewer'; // Everyone else defaults to view-only
+                     }
+                     
+                     // Automatically save this new profile to the database
+                     await docRef.set({ 
+                         email: userEmail, 
+                         role: roleAssigned, 
+                         status: 'Active' 
+                     });
+                 }
+             } catch(e) { 
+                 console.error("Database access error:", e); 
+             }
           }
           applyRole(roleAssigned);
           
@@ -2587,6 +2600,7 @@
           if (overlay) overlay.style.display = "flex";
         }
       });
+      
       setTimeout(() => {
         if (!authResolved) {
           console.warn("Auth state change timed out. Unlocking interface.");
