@@ -776,7 +776,7 @@
       <p id="generic-confirm-message" style="font-size:13px; margin-bottom:20px; color:var(--text); line-height:1.4;"></p>
       <div style="display: flex; gap: 8px; justify-content: flex-end;">
         <button class="toggle-board-btn" onclick="closeConfirmModal()">Cancel</button>
-        <button class="add-row-btn" style="margin:0; background:#ef4444;" id="generic-confirm-btn">Confirm Delete</button>
+        <button class="add-row-btn" style="margin:0; background:#ef4444;" id="generic-confirm-btn">Confirm Action</button>
       </div>
     </div>
   </div>
@@ -987,14 +987,12 @@
         };
 
         const confirmBtn = document.getElementById('generic-modal-confirm');
-        // Remove old event listeners by cloning
         const newConfirmBtn = confirmBtn.cloneNode(true);
         confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
         newConfirmBtn.addEventListener('click', genericModalCallback);
 
         document.getElementById('generic-modal').classList.remove('hidden');
         
-        // Auto-focus first input
         if (fields.length > 0) {
             setTimeout(() => document.getElementById(`modal-input-${fields[0].id}`).focus(), 100);
         }
@@ -1208,10 +1206,9 @@
                 populatePracticeDropdown();
                 renderPracticePlan();
                 
-                // Show simple standard alert for success to not overcomplicate native success prompts
-                alert(`Practice plan successfully imported into Year: ${yearStr} / ${weekFolder}!`);
+                openGenericModal("Import Success", [{id:'info', label:`Practice plan successfully imported into Year: ${yearStr} / ${weekFolder}!`, type:'hidden'}], ()=>{});
             } catch (err) {
-                alert("Error importing file: " + err.message);
+                openGenericModal("Error", [{id:'info', label:"Error importing file: "+err.message, type:'hidden'}], ()=>{});
             }
         };
 
@@ -1221,6 +1218,47 @@
             reader.readAsText(file);
         }
         e.target.value = '';
+    }
+
+    // --- PRINT MODAL LOGIC ---
+    function openPrintModal(unitType) {
+       const modal = document.getElementById("print-modal");
+       const list = document.getElementById("print-modal-list");
+       if (!modal || !list) return;
+
+       const forms = getWeekFormations(currentWeek).filter(f => f && f.unit === unitType);
+       if (forms.length === 0) {
+           openGenericModal("No Boards", [{id:'info', label:"No boards available to print in this tab.", type:'hidden'}], ()=>{});
+           return;
+       }
+
+       let html = `<label style="font-weight:bold; margin-bottom:6px;"><input type="checkbox" id="print-select-all" checked onchange="toggleAllPrintCheckboxes(this)"> Select All</label><hr style="border:0; border-top:1px solid #e2e8f0; margin:4px 0 8px 0;">`;
+       forms.forEach(f => {
+           html += `<label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" class="print-board-chk" value="${f.id}" checked> ${f.name}</label>`;
+       });
+       list.innerHTML = html;
+       modal.classList.remove('hidden');
+    }
+
+    function toggleAllPrintCheckboxes(master) {
+       document.querySelectorAll('.print-board-chk').forEach(chk => chk.checked = master.checked);
+    }
+
+    function executeCustomPrint() {
+       const selectedIds = Array.from(document.querySelectorAll('.print-board-chk:checked')).map(chk => chk.value);
+       document.getElementById("print-modal").classList.add('hidden');
+
+       document.querySelectorAll('.formation-container').forEach(card => {
+           const boardId = card.id.replace('board_', '');
+           if (selectedIds.includes(boardId)) {
+               card.classList.remove('print-hidden');
+           } else {
+               card.classList.add('print-hidden');
+           }
+       });
+
+       if(document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur();
+       setTimeout(() => window.print(), 100);
     }
 
     // --- TAB & WEEK LOGIC ---
@@ -1287,8 +1325,7 @@
                 openConfirmModal("Confirm Overwrite", `Are you sure you want to overwrite Week ${target} with ALL data from Week ${currentWeek}?`, "Overwrite Week", () => {
                     weeklyData[target] = JSON.parse(JSON.stringify(weeklyData[currentWeek]));
                     triggerDebouncedSave();
-                    // Alert ok here to notify success
-                    alert(`Successfully Copied to Week ${target}!`);
+                    openGenericModal("Success", [{id:'info', label:`Successfully Copied to Week ${target}!`, type:'hidden'}], ()=>{});
                 });
             }
         });
@@ -1308,6 +1345,7 @@
 
     // --- LIVE SYNC STORAGE FUNCTION ---
     async function saveState() {
+        // Local fallback
         localStorage.setItem("footballWeeklyData", JSON.stringify(weeklyData));
         localStorage.setItem("footballPracticeData", JSON.stringify(practiceData));
         localStorage.setItem("footballMasterPlays", JSON.stringify(masterPlayLibrary));
@@ -1315,6 +1353,7 @@
         localStorage.setItem("footballSavedCoaches", JSON.stringify(savedCoaches));
         localStorage.setItem("footballWeekOrder", JSON.stringify(weekSortOrder));
 
+        // Cloud sync if admin
         if (cloudEnabled && db && userRole === 'admin') {
             try {
                 await db.collection("teamData").doc("depthChartData").set({
@@ -1348,6 +1387,7 @@
             if (doc.exists) {
               const data = doc.data();
 
+              // Update in-memory data with cloud changes
               if (data.weeklyData) weeklyData = data.weeklyData;
               if (data.practiceData) practiceData = data.practiceData;
               if (data.masterPlayLibrary) masterPlayLibrary = data.masterPlayLibrary;
@@ -1355,6 +1395,7 @@
               if (data.savedCoaches) savedCoaches = data.savedCoaches;
               if (data.weekSortOrder) weekSortOrder = data.weekSortOrder;
 
+              // Re-render UI to reflect the newest live changes
               depthChart = getWeekDepthChart(currentWeek);
               renderActiveBoards();
               renderMasterRoster();
@@ -1383,6 +1424,39 @@
         if(h === 0) h = 12;
         let mStr = m < 10 ? '0'+m : m;
         return `${h}:${mStr} ${ampm}`;
+    }
+
+    // --- IMPORT / EXPORT DATA ---
+    function exportData() {
+        const data = { weeklyData, practiceData, masterPlayLibrary, dynamicDrills, savedCoaches, weekSortOrder };
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "football_manager_backup.json";
+        a.click();
+    }
+
+    function importData(e) {
+        const file = e.target.files[0];
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                const parsed = JSON.parse(event.target.result);
+                if(parsed.weeklyData) weeklyData = parsed.weeklyData;
+                if(parsed.practiceData) practiceData = parsed.practiceData;
+                if(parsed.masterPlayLibrary) masterPlayLibrary = parsed.masterPlayLibrary;
+                if(parsed.dynamicDrills) dynamicDrills = parsed.dynamicDrills;
+                if(parsed.savedCoaches) savedCoaches = parsed.savedCoaches;
+                if(parsed.weekSortOrder) weekSortOrder = parsed.weekSortOrder;
+                saveState();
+                location.reload();
+            } catch(err) {
+                openGenericModal("Error", [{id:'info', label:"Invalid backup file.", type:'hidden'}], ()=>{});
+            }
+        };
+        reader.readAsText(file);
     }
 
     function resetDefault() {
