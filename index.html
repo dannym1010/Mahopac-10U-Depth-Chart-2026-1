@@ -78,7 +78,7 @@
     .auth-tab-btn.active { color: var(--primary); border-bottom: 3px solid var(--primary); margin-bottom: -2px; }
 
     .auth-input { width: 100%; padding: 10px 12px; margin-bottom: 12px; border: 1px solid var(--card-border); border-radius: 6px; font-size: 13px; box-sizing: border-box; }
-    .btn-primary { width: 100%; padding: 10px; background: var(--primary); color: #fff; border: none; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: margin-bottom: 10px; }
+    .btn-primary { width: 100%; padding: 10px; background: var(--primary); color: #fff; border: none; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer; margin-bottom: 10px; }
     .btn-primary:hover { background: var(--accent); }
     .btn-google { width: 100%; padding: 10px; background: #ffffff; color: #333333; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
 
@@ -153,7 +153,7 @@
     .level-header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; border-bottom: 1px solid #e2e8f0; padding-bottom: 2px; }
     .level-label { font-size: 10px; font-weight: bold; color: var(--text-muted); text-transform: uppercase; }
 
-    .formation-row { display: flex; gap: 6px; flex-wrap: wrap; min-width: 100%; justify-content: center; min-height: 50px; padding-bottom: 10px; }
+    .formation-row { display: flex; gap: 6px; flex-wrap: wrap; min-width: 100%; justify-content: flex-start; min-height: 50px; padding: 4px 6px 10px 6px; }
     .formation-row.drag-over { background-color: #f1f5f9; border-radius: 8px; border: 2px dashed #94a3b8; }
 
     .position-card { background: var(--card-bg); border-radius: 6px; border: 2px solid var(--card-border); min-width: 110px; max-width: 150px; flex: 1; position: relative; transition: transform 0.1s; }
@@ -1216,7 +1216,6 @@
     
     function handleRowDrop(e, targetFormId, targetRowId) {
         if (userRole !== 'admin' || !draggedData || draggedData.type !== 'position_card') return;
-        if (e.target.closest('.position-card')) return;
         
         e.preventDefault();
         e.currentTarget.classList.remove('drag-over');
@@ -1231,11 +1230,18 @@
         const sRow = sForm.rows.find(r => r.id === sRowId);
         const tRow = tForm.rows.find(r => r.id === targetRowId);
         
-        if (sRowId === targetRowId) return; 
-        
         const sIndex = sRow.positions.findIndex(p => p.id === sPosId);
         const [movedPos] = sRow.positions.splice(sIndex, 1);
-        tRow.positions.push(movedPos); 
+
+        // Calculate drop coordinates relative to row width to determine if dropped on far left or far right
+        const rowRect = e.currentTarget.getBoundingClientRect();
+        const dropX = e.clientX - rowRect.left;
+        
+        if (dropX < rowRect.width / 2) {
+            tRow.positions.unshift(movedPos); // Move all the way to the left
+        } else {
+            tRow.positions.push(movedPos);    // Move all the way to the right
+        }
         
         draggedData = null;
         triggerDebouncedSave();
