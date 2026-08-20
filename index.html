@@ -1580,6 +1580,9 @@
           const tRow = tForm.rows.find(r => r.id === targetRowId);
           
           let sCount = tRow.slotCount || 7;
+          if (!Array.isArray(sRow.positions)) sRow.positions = [];
+          if (!Array.isArray(tRow.positions)) tRow.positions = [];
+
           while(sRow.positions.length < sCount) sRow.positions.push(null);
           while(tRow.positions.length < sCount) tRow.positions.push(null);
 
@@ -1671,6 +1674,9 @@
         const tRow = tForm.rows.find(r => r.id === targetRowId);
 
         let sCount = tRow.slotCount || 7;
+        if (!Array.isArray(sRow.positions)) sRow.positions = [];
+        if (!Array.isArray(tRow.positions)) tRow.positions = [];
+
         while(sRow.positions.length < sCount) sRow.positions.push(null);
         while(tRow.positions.length < sCount) tRow.positions.push(null);
 
@@ -2307,7 +2313,7 @@
       
       forms.push(newForm);
       if(!depthChart) depthChart = getWeekDepthChart(currentWeek);
-      depthChart[posId] = [];
+      if (!depthChart[posId]) depthChart[posId] = [];
       
       triggerDebouncedSave();
       renderActiveBoards();
@@ -2352,6 +2358,8 @@
       const rowId = generateUniqueId("row");
       const posId = generateUniqueId("pos");
 
+      if (!Array.isArray(form.rows)) form.rows = [];
+
       form.rows.push({
         id: rowId,
         label: label.trim(),
@@ -2363,7 +2371,7 @@
       });
       
       if(!depthChart) depthChart = getWeekDepthChart(currentWeek);
-      depthChart[posId] = [];
+      if (!depthChart[posId]) depthChart[posId] = [];
       
       triggerDebouncedSave();
       renderActiveBoards();
@@ -2422,7 +2430,8 @@
       const posId = generateUniqueId("pos");
       row.positions[emptyIndex] = { id: posId, name: posName.trim() };
       
-      if(!depthChart[posId]) depthChart[posId] = [];
+      if(!depthChart) depthChart = getWeekDepthChart(currentWeek);
+      if (!depthChart[posId]) depthChart[posId] = [];
       
       triggerDebouncedSave();
       renderActiveBoards();
