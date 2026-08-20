@@ -9,6 +9,9 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  
+  <!-- Mammoth.js for reading .docx files in the browser -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
 
   <style>
     :root {
@@ -685,8 +688,8 @@
               <button class="toggle-board-btn admin-only" onclick="deletePractice()" style="color:#ef4444;">🗑️ Delete</button>
             </div>
             <div style="display:flex; gap:6px; align-items:center;">
-              <button class="add-row-btn admin-only" style="margin:0;" onclick="document.getElementById('import-prac-file').click()">📥 Import Plan</button>
-              <input type="file" id="import-prac-file" style="display:none;" onchange="importExternalPracticePlan(event)" accept=".txt,.doc,.docx,.csv,.json" />
+              <button class="add-row-btn admin-only" style="margin:0; background:#0284c7;" onclick="document.getElementById('import-prac-file').click()">📥 Import Plan (.docx/.txt)</button>
+              <input type="file" id="import-prac-file" style="display:none;" onchange="importExternalPracticePlan(event)" accept=".txt,.docx,.csv,.json" />
               <button class="add-row-btn admin-only" onclick="addPracticeRow()">+ Add Period</button>
               <button class="toolbar button" onclick="if(document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur(); setTimeout(()=>window.print(), 100);" style="padding:4px 10px; margin-left:6px;">🖨️ Print Plan</button>
             </div>
@@ -910,34 +913,45 @@
     
     let weekSortOrder = safeJSONParse("footballWeekOrder", {});
 
-    // --- IMPORT PRACTICE PLAN FROM FILE / TEXT ---
+    // --- IMPORT PRACTICE PLAN FROM .DOCX, .TXT, .CSV, OR .JSON ---
     function importExternalPracticePlan(e) {
         if (userRole !== 'admin') return;
         const file = e.target.files[0];
         if (!file) return;
 
+        const isDocx = file.name.endsWith('.docx');
         const reader = new FileReader();
-        reader.onload = (event) => {
+
+        reader.onload = async (event) => {
             try {
-                const content = event.target.result;
-                let title = file.name.replace(/\.[^/.]+$/, "");
-                let yearStr = new Date().getFullYear().toString();
-                let weekFolder = "Week 1";
-                let dayStr = "Monday";
-                let startTimeStr = "17:15";
-                let endTimeStr = "20:00";
-                let newPlanPeriods = [];
+                let rawText = "";
+
+                if (isDocx) {
+                    // Parse .docx using Mammoth.js
+                    const arrayBuffer = event.target.result;
+                    const result = await mammoth.extractRawText({ arrayBuffer });
+                    rawText = result.value;
+                } else {
+                    // Read standard text/json/csv files
+                    rawText = event.target.result;
+                }
 
                 if (file.name.endsWith('.json')) {
-                    const parsed = JSON.parse(content);
+                    const parsed = JSON.parse(rawText);
                     if (Array.isArray(parsed)) {
                         practiceData.push(...parsed);
                     } else if (parsed.plan) {
                         practiceData.push(parsed);
                     }
                 } else {
-                    // Smart Text Parsing for Formatted Text/Docx
-                    const lines = content.split('\n');
+                    // Intelligent parsing of practice document layout
+                    const lines = rawText.split('\n');
+                    let title = file.name.replace(/\.[^/.]+$/, "");
+                    let yearStr = "2026";
+                    let weekFolder = "Week 1";
+                    let dayStr = "Monday";
+                    let newPlanPeriods = [];
+
                     let currentCategory = "Warm-Up";
                     let currentDrill = "";
                     let currentDesc = [];
@@ -947,9 +961,9 @@
                         let trimmed = line.trim();
                         if (!trimmed) return;
 
-                        if (idx === 0) {
+                        if (idx === 0 || (idx < 3 && trimmed.includes("Practice"))) {
                             title = trimmed;
-                            // Attempt to extract date like 8/10/26 or 2026
+                            // Scan for dates like 8/10/26 or 2026 to automatically categorize year
                             let dateMatch = trimmed.match(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
                             if (dateMatch) {
                                 let yr = dateMatch[3];
@@ -984,6 +998,8 @@
                                 currentCategory = "Team Offense";
                             } else if (textAfterTime.toLowerCase().includes('breakouts')) {
                                 currentCategory = "Breakouts";
+                            } else if (textAfterTime.toLowerCase().includes('arrival') || textAfterTime.toLowerCase().includes('lap')) {
+                                currentCategory = "Warm-Up";
                             } else {
                                 currentCategory = "Indy / Fundamentals";
                             }
@@ -1010,8 +1026,8 @@
                             year: yearStr,
                             week: weekFolder,
                             day: dayStr,
-                            startTime: startTimeStr,
-                            endTime: endTimeStr,
+                            startTime: "17:15",
+                            endTime: "20:00",
                             lastEdited: Date.now(),
                             plan: newPlanPeriods
                         };
@@ -1023,12 +1039,19 @@
                 saveState();
                 populatePracticeDropdown();
                 renderPracticePlan();
-                alert("Practice plan successfully imported into folder: " + yearStr + " / " + weekFolder);
+                alert(`Practice plan successfully imported and filed under Year: ${yearStr} / ${weekFolder}!`);
             } catch (err) {
-                alert("Error parsing file: " + err.message);
+                alert("Error importing file: " + err.message);
             }
         };
-        reader.readAsText(file);
+
+        if (isDocx) {
+            reader.readAsArrayBuffer(file);
+        } else {
+            reader.readAsText(file);
+        }
+        // Reset file input value so selecting the same file triggers onchange again if needed
+        e.target.value = '';
     }
 
     // --- PRINT MODAL LOGIC ---
