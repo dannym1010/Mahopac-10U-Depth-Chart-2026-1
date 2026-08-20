@@ -1580,9 +1580,6 @@
           const tRow = tForm.rows.find(r => r.id === targetRowId);
           
           let sCount = tRow.slotCount || 7;
-          if (!Array.isArray(sRow.positions)) sRow.positions = [];
-          if (!Array.isArray(tRow.positions)) tRow.positions = [];
-
           while(sRow.positions.length < sCount) sRow.positions.push(null);
           while(tRow.positions.length < sCount) tRow.positions.push(null);
 
@@ -1674,9 +1671,6 @@
         const tRow = tForm.rows.find(r => r.id === targetRowId);
 
         let sCount = tRow.slotCount || 7;
-        if (!Array.isArray(sRow.positions)) sRow.positions = [];
-        if (!Array.isArray(tRow.positions)) tRow.positions = [];
-
         while(sRow.positions.length < sCount) sRow.positions.push(null);
         while(tRow.positions.length < sCount) tRow.positions.push(null);
 
@@ -1731,133 +1725,137 @@
         }
 
         forms.forEach(form => {
-          if (!form) return;
-          const formDiv = document.createElement("div");
-          formDiv.className = "formation-container" + (activeCountFormationId === form.id ? " counting-active" : "");
-          formDiv.id = "board_" + form.id;
-          
-          formDiv.onclick = (e) => {
-              if (e.target.closest('button') || e.target.closest('input')) return;
-              handleFormationClick(form.id);
-          };
+          try {
+              if (!form) return;
+              const formDiv = document.createElement("div");
+              formDiv.className = "formation-container" + (activeCountFormationId === form.id ? " counting-active" : "");
+              formDiv.id = "board_" + form.id;
+              
+              formDiv.onclick = (e) => {
+                  if (e.target.closest('button') || e.target.closest('input')) return;
+                  handleFormationClick(form.id);
+              };
 
-          formDiv.innerHTML = `
-            <div class="board-title" draggable="${userRole === 'admin' ? 'true' : 'false'}" 
-                 ondragstart="handleFormationDragStart(event, '${form.id}')" 
-                 ondragover="event.preventDefault(); this.parentElement.classList.add('drag-over-board');" 
-                 ondragleave="this.parentElement.classList.remove('drag-over-board');" 
-                 ondrop="handleFormationDrop(event, '${form.id}')">
-              <div style="cursor:grab; display:flex; align-items:center;">
-                <span class="admin-only no-print" style="margin-right:8px; color:#94a3b8; font-size:16px;" title="Drag to reorder formation">↕</span>
-                <span>${form.name}</span> 
-                ${form.subtitle ? `<span style="font-size:11px; color:var(--text-muted); font-weight:normal; margin-left:8px;">${form.subtitle}</span>` : ''}
-              </div>
-              <div class="board-controls no-print">
-                <button class="toggle-board-btn admin-only" onclick="renameFormation('${form.id}')">✏️ Rename</button>
-                <button class="toggle-board-btn admin-only" onclick="addRowToFormation('${form.id}')">+ Add Row</button>
-                <button class="toggle-board-btn admin-only" style="color:#ef4444;" onclick="deleteFormation('${form.id}')">🗑️</button>
-              </div>
-            </div>
-            <div class="formation-body"></div>
-          `;
-
-          const bodyDiv = formDiv.querySelector(".formation-body");
-
-          (form.rows || []).forEach(row => {
-            if (!row) return;
-            const slotCount = row.slotCount || 7;
-            const rowWrap = document.createElement("div");
-            rowWrap.className = "row-container";
-            
-            rowWrap.innerHTML = `
-              <div class="level-header-bar">
-                <span class="level-label" onclick="renameRow('${form.id}', '${row.id}')">${row.label || 'Row'} ✏️</span>
-                <div class="row-actions no-print admin-only" style="display:flex; gap:4px; align-items:center;">
-                  <button class="row-action-btn" onclick="changeRowSlots('${form.id}', '${row.id}')" title="Change number of slots">⚙️ Slots (${slotCount})</button>
-                  <button class="row-action-btn" onclick="addPositionToRow('${form.id}', '${row.id}')">+ Pos</button>
-                  <button class="row-action-btn" style="color:#ef4444;" onclick="deleteRow('${form.id}', '${row.id}')">✕</button>
+              formDiv.innerHTML = `
+                <div class="board-title" draggable="${userRole === 'admin' ? 'true' : 'false'}" 
+                     ondragstart="handleFormationDragStart(event, '${form.id}')" 
+                     ondragover="event.preventDefault(); this.parentElement.classList.add('drag-over-board');" 
+                     ondragleave="this.parentElement.classList.remove('drag-over-board');" 
+                     ondrop="handleFormationDrop(event, '${form.id}')">
+                  <div style="cursor:grab; display:flex; align-items:center;">
+                    <span class="admin-only no-print" style="margin-right:8px; color:#94a3b8; font-size:16px;" title="Drag to reorder formation">↕</span>
+                    <span>${form.name}</span> 
+                    ${form.subtitle ? `<span style="font-size:11px; color:var(--text-muted); font-weight:normal; margin-left:8px;">${form.subtitle}</span>` : ''}
+                  </div>
+                  <div class="board-controls no-print">
+                    <button class="toggle-board-btn admin-only" onclick="renameFormation('${form.id}')">✏️ Rename</button>
+                    <button class="toggle-board-btn admin-only" onclick="addRowToFormation('${form.id}')">+ Add Row</button>
+                    <button class="toggle-board-btn admin-only" style="color:#ef4444;" onclick="deleteFormation('${form.id}')">🗑️</button>
+                  </div>
                 </div>
-              </div>
-              <div class="formation-row ${row.rowClass || 'oline'}" id="row-grid-${row.id}" style="grid-template-columns: repeat(${slotCount}, 1fr);"></div>
-            `;
+                <div class="formation-body"></div>
+              `;
 
-            const posRowEl = rowWrap.querySelector(".formation-row");
-            
-            if (!Array.isArray(row.positions)) row.positions = [];
-            while(row.positions.length < slotCount) row.positions.push(null);
-            if(row.positions.length > slotCount) row.positions = row.positions.slice(0, slotCount);
+              const bodyDiv = formDiv.querySelector(".formation-body");
 
-            row.positions.forEach((pos, slotIdx) => {
-              const slotDiv = document.createElement("div");
-              slotDiv.className = "row-slot";
-              if (userRole === 'admin') {
-                  slotDiv.ondragover = (e) => { e.preventDefault(); slotDiv.classList.add("drag-over"); };
-                  slotDiv.ondragleave = () => slotDiv.classList.remove("drag-over");
-                  slotDiv.ondrop = (e) => handleSlotDrop(e, form.id, row.id, slotIdx);
-              }
+              (form.rows || []).forEach(row => {
+                if (!row) return;
+                const slotCount = row.slotCount || 7;
+                const rowWrap = document.createElement("div");
+                rowWrap.className = "row-container";
+                
+                rowWrap.innerHTML = `
+                  <div class="level-header-bar">
+                    <span class="level-label" onclick="renameRow('${form.id}', '${row.id}')">${row.label || 'Row'} ✏️</span>
+                    <div class="row-actions no-print admin-only" style="display:flex; gap:4px; align-items:center;">
+                      <button class="row-action-btn" onclick="changeRowSlots('${form.id}', '${row.id}')" title="Change number of slots">⚙️ Slots (${slotCount})</button>
+                      <button class="row-action-btn" onclick="addPositionToRow('${form.id}', '${row.id}')">+ Pos</button>
+                      <button class="row-action-btn" style="color:#ef4444;" onclick="deleteRow('${form.id}', '${row.id}')">✕</button>
+                    </div>
+                  </div>
+                  <div class="formation-row ${row.rowClass || 'oline'}" id="row-grid-${row.id}" style="grid-template-columns: repeat(${slotCount}, 1fr);"></div>
+                `;
 
-              if (pos) {
-                  const card = document.createElement("div");
-                  card.className = "position-card";
-                  card.id = `card-${pos.id}`;
+                const posRowEl = rowWrap.querySelector(".formation-row");
+                
+                if (!Array.isArray(row.positions)) row.positions = [];
+                while(row.positions.length < slotCount) row.positions.push(null);
+                if(row.positions.length > slotCount) row.positions = row.positions.slice(0, slotCount);
 
+                row.positions.forEach((pos, slotIdx) => {
+                  const slotDiv = document.createElement("div");
+                  slotDiv.className = "row-slot";
                   if (userRole === 'admin') {
-                    card.ondragover = (e) => { e.preventDefault(); card.classList.add("drag-over"); e.stopPropagation(); };
-                    card.ondragleave = () => card.classList.remove("drag-over");
-                    card.ondrop = (e) => { handleCardDrop(e, form.id, row.id, pos.id); };
+                      slotDiv.ondragover = (e) => { e.preventDefault(); slotDiv.classList.add("drag-over"); };
+                      slotDiv.ondragleave = () => slotDiv.classList.remove("drag-over");
+                      slotDiv.ondrop = (e) => handleSlotDrop(e, form.id, row.id, slotIdx);
                   }
 
-                  const players = Array.isArray(depthChart[pos.id]) ? depthChart[pos.id].filter(p => p) : [];
+                  if (pos) {
+                      const card = document.createElement("div");
+                      card.className = "position-card";
+                      card.id = `card-${pos.id}`;
 
-                  let playersHtml = players.map((player, idx) => {
-                    let rankClass = 'rank-sub-gray';
-                    let rankLabel = 'D' + (idx + 1);
+                      if (userRole === 'admin') {
+                        card.ondragover = (e) => { e.preventDefault(); card.classList.add("drag-over"); e.stopPropagation(); };
+                        card.ondragleave = () => card.classList.remove("drag-over");
+                        card.ondrop = (e) => { handleCardDrop(e, form.id, row.id, pos.id); };
+                      }
 
-                    if (idx === 0) {
-                        rankClass = 'rank-starter';
-                        rankLabel = 'ST';
-                    } else if (idx === 1) {
-                        rankClass = 'rank-sub-gold';
-                        rankLabel = 'D2';
-                    } else if (idx === 2) {
-                        rankClass = 'rank-sub-blue';
-                        rankLabel = 'D3';
-                    }
-                    
-                    return `
-                    <li class="player-item" draggable="${userRole==='admin'?'true':'false'}" ondragstart="handlePlayerDragStart(event, '${pos.id}', ${idx}, '${player.name}', '${player.num}')">
-                      <div class="player-info">
-                        <span class="rank-badge ${rankClass}">${rankLabel}</span>
-                        <span class="num-tag">#${player.num}</span>
-                        <span>${player.name}</span>
-                      </div>
-                      <button class="remove-btn admin-only" onclick="removePlayer('${pos.id}', ${idx}, event)">&times;</button>
-                    </li>
-                    `;
-                  }).join("");
-                  
-                  card.innerHTML = `
-                    <div class="position-header" draggable="${userRole === 'admin' ? 'true' : 'false'}" ondragstart="handlePosCardDragStart(event, '${form.id}', '${row.id}', '${pos.id}')">
-                      <span style="cursor:grab;" title="Drag to move position">⋮⋮ ${pos.name}</span>
-                      <div class="no-print admin-only" style="display:flex; gap:2px;">
-                         <button class="pos-hdr-btn" onclick="deletePosition('${form.id}', '${row.id}', '${pos.id}')">&times;</button>
-                         <span class="pos-count">${players.length}</span>
-                      </div>
-                    </div>
-                    <ul class="player-list">${playersHtml || '<div style="color:var(--text-muted); font-size:10px; padding:6px; text-align:center;">Drop Player</div>'}</ul>
-                  `;
-                  slotDiv.appendChild(card);
-              }
-              posRowEl.appendChild(slotDiv);
-            });
+                      const players = (depthChart && Array.isArray(depthChart[pos.id])) ? depthChart[pos.id].filter(p => p) : [];
 
-            bodyDiv.appendChild(rowWrap);
-          });
+                      let playersHtml = players.map((player, idx) => {
+                        let rankClass = 'rank-sub-gray';
+                        let rankLabel = 'D' + (idx + 1);
 
-          container.appendChild(formDiv);
+                        if (idx === 0) {
+                            rankClass = 'rank-starter';
+                            rankLabel = 'ST';
+                        } else if (idx === 1) {
+                            rankClass = 'rank-sub-gold';
+                            rankLabel = 'D2';
+                        } else if (idx === 2) {
+                            rankClass = 'rank-sub-blue';
+                            rankLabel = 'D3';
+                        }
+                        
+                        return `
+                        <li class="player-item" draggable="${userRole==='admin'?'true':'false'}" ondragstart="handlePlayerDragStart(event, '${pos.id}', ${idx}, '${player.name}', '${player.num}')">
+                          <div class="player-info">
+                            <span class="rank-badge ${rankClass}">${rankLabel}</span>
+                            <span class="num-tag">#${player.num}</span>
+                            <span>${player.name}</span>
+                          </div>
+                          <button class="remove-btn admin-only" onclick="removePlayer('${pos.id}', ${idx}, event)">&times;</button>
+                        </li>
+                        `;
+                      }).join("");
+                      
+                      card.innerHTML = `
+                        <div class="position-header" draggable="${userRole === 'admin' ? 'true' : 'false'}" ondragstart="handlePosCardDragStart(event, '${form.id}', '${row.id}', '${pos.id}')">
+                          <span style="cursor:grab;" title="Drag to move position">⋮⋮ ${pos.name}</span>
+                          <div class="no-print admin-only" style="display:flex; gap:2px;">
+                             <button class="pos-hdr-btn" onclick="deletePosition('${form.id}', '${row.id}', '${pos.id}')">&times;</button>
+                             <span class="pos-count">${players.length}</span>
+                          </div>
+                        </div>
+                        <ul class="player-list">${playersHtml || '<div style="color:var(--text-muted); font-size:10px; padding:6px; text-align:center;">Drop Player</div>'}</ul>
+                      `;
+                      slotDiv.appendChild(card);
+                  }
+                  posRowEl.appendChild(slotDiv);
+                });
+
+                bodyDiv.appendChild(rowWrap);
+              });
+
+              container.appendChild(formDiv);
+          } catch(err) {
+              console.error("Error rendering formation:", err);
+          }
         });
       } catch(err) {
-        console.error("Error rendering boards:", err);
+        console.error("Error rendering boards container:", err);
       }
     }
 
@@ -1950,7 +1948,7 @@
           });
 
           validPosIds.forEach(posId => {
-            if (Array.isArray(depthChart[posId])) {
+            if (depthChart && Array.isArray(depthChart[posId])) {
               count += depthChart[posId].filter(p => p && String(p.num) === String(player.num)).length;
             }
           });
@@ -2289,9 +2287,13 @@
 
     function createFormationPrompt(unit) {
       if (userRole !== 'admin') return;
-      const name = prompt(`Enter new ${unit.toUpperCase()} formation name:`, "New Formation");
-      if(!name || name.trim() === "") return;
-      const subtitle = prompt("Enter subtitle/description:", "Personnel / Alignment details");
+      let name = prompt(`Enter new ${unit.toUpperCase()} formation name:`, "New Formation");
+      if(name === null) return;
+      if(name.trim() === "") name = "New Formation";
+
+      let subtitle = prompt("Enter subtitle/description:", "Personnel / Alignment details");
+      if(subtitle === null) subtitle = "";
+
       const forms = getWeekFormations(currentWeek);
       
       const formId = generateUniqueId("form");
@@ -2302,7 +2304,7 @@
         id: formId,
         unit: unit,
         name: name.trim(),
-        subtitle: (subtitle || "").trim(),
+        subtitle: subtitle.trim(),
         collapsed: false,
         rows: [
           { id: rowId, label: "Main Level", rowClass: "oline", slotCount: 7, positions: [
@@ -2313,7 +2315,7 @@
       
       forms.push(newForm);
       if(!depthChart) depthChart = getWeekDepthChart(currentWeek);
-      if (!depthChart[posId]) depthChart[posId] = [];
+      depthChart[posId] = [];
       
       triggerDebouncedSave();
       renderActiveBoards();
@@ -2352,8 +2354,10 @@
       const forms = getWeekFormations(currentWeek);
       const form = forms.find(f => f.id === formId);
       if(!form) return;
-      const label = prompt("Enter Row/Level Name (e.g., 'Linebackers', 'Backfield'):", "New Level");
-      if(!label || label.trim() === "") return;
+      
+      let label = prompt("Enter Row/Level Name (e.g., 'Linebackers', 'Backfield'):", "New Level");
+      if(label === null) return;
+      if(label.trim() === "") label = "New Level";
       
       const rowId = generateUniqueId("row");
       const posId = generateUniqueId("pos");
@@ -2371,7 +2375,7 @@
       });
       
       if(!depthChart) depthChart = getWeekDepthChart(currentWeek);
-      if (!depthChart[posId]) depthChart[posId] = [];
+      if(!depthChart[posId]) depthChart[posId] = [];
       
       triggerDebouncedSave();
       renderActiveBoards();
@@ -2424,14 +2428,14 @@
           return;
       }
 
-      const posName = prompt("Enter Position Name (e.g. 'LT', 'MIKE', 'SLOT'):", "POS");
-      if(!posName || posName.trim() === "") return;
+      let posName = prompt("Enter Position Name (e.g. 'LT', 'MIKE', 'SLOT'):", "POS");
+      if(posName === null) return;
+      if(posName.trim() === "") posName = "POS";
       
       const posId = generateUniqueId("pos");
       row.positions[emptyIndex] = { id: posId, name: posName.trim() };
       
-      if(!depthChart) depthChart = getWeekDepthChart(currentWeek);
-      if (!depthChart[posId]) depthChart[posId] = [];
+      if(!depthChart[posId]) depthChart[posId] = [];
       
       triggerDebouncedSave();
       renderActiveBoards();
@@ -2472,36 +2476,36 @@
         let starterPlan = [];
         if (templateType === 'offense') {
             starterPlan = [
-                { time: 25, category: "Pre Practice", format: "static", stations: [{ name: "GROUP 1: QB & Center Exchange", desc: "Under center and shotgun snap work.", coach: "TJ", focus: "Snap accuracy" }], coaches: [], key: "" },
-                { time: 30, category: "Warm-Up & Breaks", format: "static", stations: [{ name: "GROUP 1: Dynamic Warm-Up", desc: "High knees, karaoke, shuffling, short sprints.", coach: "TJ", focus: "Speed & posture" }], coaches: [], key: "" },
+                { time: 25, category: "Pre Practice", format: "static", stations: [{ name: "GROUP 1: QB & Center Exchange", desc: "Under center and shotgun snap work.", coach: "TJ", focus: "Snap accuracy" }] },
+                { time: 30, category: "Warm-Up & Breaks", format: "static", stations: [{ name: "GROUP 1: Dynamic Warm-Up", desc: "High knees, karaoke, shuffling, short sprints.", coach: "TJ", focus: "Speed & posture" }] },
                 { time: 45, category: "Individual Offense", format: "static", stations: [
                     { name: "O-Line Run Blocking", desc: "Power steps and drive blocking.", coach: "Brian", focus: "Pad level" },
                     { name: "WR Route Tree", desc: "Route running and on-air throws.", coach: "Ed", focus: "Clean breaks" }
-                ], coaches: [], key: "" },
-                { time: 50, category: "Team Offense", format: "static", stations: [{ name: "Full Team Run Install", desc: "Review assignments vs 4-4 defense.", coach: "Dan", focus: "Assignment execution" }], coaches: [], key: "" }
+                ] },
+                { time: 50, category: "Team Offense", format: "static", stations: [{ name: "Full Team Run Install", desc: "Review assignments vs 4-4 defense.", coach: "Dan", focus: "Assignment execution" }] }
             ];
         } else if (templateType === 'defense') {
             starterPlan = [
-                { time: 25, category: "Pre Practice", format: "static", stations: [{ name: "GROUP 1: Form Tackling", desc: "Breakdown, fit, and drive.", coach: "Joe", focus: "Hip explosion" }], coaches: [], key: "" },
+                { time: 25, category: "Pre Practice", format: "static", stations: [{ name: "GROUP 1: Form Tackling", desc: "Breakdown, fit, and drive.", coach: "Joe", focus: "Hip explosion" }] },
                 { time: 35, category: "Tackle Circuit", format: "rotating", stations: [
                     { name: "STATION 1: Form Fit & Drive", desc: "Shoulder fit and 3-step drive.", coach: "Dan", focus: "Wrap cloth" },
                     { name: "STATION 2: Angle Tackle", desc: "Inside-out angle pursuit.", coach: "Pete", focus: "Near hip" }
-                ], coaches: [], key: "" },
-                { time: 45, category: "Individual Defense", format: "static", stations: [{ name: "DL Gap Control & Rip", desc: "Read hat and execute rip move.", coach: "John", focus: "Violent hands" }], coaches: [], key: "" },
-                { time: 45, category: "Team Defense", format: "static", stations: [{ name: "Defensive Front Install", desc: "Walk through base front alignments.", coach: "Dan", focus: "Gap integrity" }], coaches: [], key: "" }
+                ] },
+                { time: 45, category: "Individual Defense", format: "static", stations: [{ name: "DL Gap Control & Rip", desc: "Read hat and execute rip move.", coach: "John", focus: "Violent hands" }] },
+                { time: 45, category: "Team Defense", format: "static", stations: [{ name: "Defensive Front Install", desc: "Walk through base front alignments.", coach: "Dan", focus: "Gap integrity" }] }
             ];
         } else {
             starterPlan = [
-                { time: 25, category: "Pre Practice", format: "static", stations: [{ name: "GROUP 1: Special Teams Setup", desc: "Kicking and holding mechanics.", coach: "TJ", focus: "Timing" }], coaches: [], key: "" },
+                { time: 25, category: "Pre Practice", format: "static", stations: [{ name: "GROUP 1: Special Teams Setup", desc: "Kicking and holding mechanics.", coach: "TJ", focus: "Timing" }] },
                 { time: 45, category: "Tackle Circuit", format: "rotating", stations: [
                     { name: "STATION 1: Tackling", desc: "Form fit and drive.", coach: "Joe", focus: "Hips" },
                     { name: "STATION 2: Block Defeat", desc: "Arm-over swim move.", coach: "Brian", focus: "Quick hands" }
-                ], coaches: [], key: "" },
+                ] },
                 { time: 40, category: "Individual Offense / Defense", format: "static", stations: [
                     { name: "Offense: RBs & QBs", desc: "Mesh and handoff reads.", coach: "Dan", focus: "Ball security" },
                     { name: "Defense: DB Backpedal", desc: "Drive on ball at 45 degree angle.", coach: "Ed", focus: "Low hips" }
-                ], coaches: [], key: "" },
-                { time: 40, category: "Team / Installs", format: "static", stations: [{ name: "Full Team Scrimmage / Walkthrough", desc: "Run plays full speed vs defense.", coach: "Dan", focus: "Execution" }], coaches: [], key: "" }
+                ] },
+                { time: 40, category: "Full Team/Installs", format: "static", stations: [{ name: "Full Team Scrimmage / Walkthrough", desc: "Run plays full speed vs defense.", coach: "Dan", focus: "Execution" }] }
             ];
         }
 
@@ -2977,7 +2981,7 @@
        let html = `
           <table style="width:100%; border-collapse: collapse; font-size:12px; background:#fff; border:1px solid var(--card-border);">
              <tr style="background:#f1f5f9; text-align:left;">
-                <th style="padding:8px 12px; border:1px solid var(--card-border);">Email / Name</th>
+                 <th style="padding:8px 12px; border:1px solid var(--card-border);">Email / Name</th>
                 <th style="padding:8px 12px; border:1px solid var(--card-border);">Role</th>
                 <th style="padding:8px 12px; border:1px solid var(--card-border);">Status</th>
                 <th class="admin-only" style="padding:8px 12px; border:1px solid var(--card-border);">Action</th>
