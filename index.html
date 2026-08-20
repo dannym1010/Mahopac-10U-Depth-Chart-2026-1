@@ -153,10 +153,9 @@
     .level-header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; border-bottom: 1px solid #e2e8f0; padding-bottom: 2px; }
     .level-label { font-size: 10px; font-weight: bold; color: var(--text-muted); text-transform: uppercase; }
 
-    /* 7-Slot Independent Grid Layout per Row (Aligned to Top) */
+    /* Dynamic Slot Grid Layout per Row (Aligned to Top) */
     .formation-row {
       display: grid;
-      grid-template-columns: repeat(7, 1fr);
       gap: 6px;
       min-height: 65px;
       padding: 6px;
@@ -873,13 +872,13 @@
       {
         id: "form_11", unit: "offense", name: "11 Offense", subtitle: "1 RB - 1 TE (Y1) - 3 WRs (X, W, Z)", collapsed: false,
         rows: [
-          { id: "row_11_ol", label: "Offensive Line & TE (Y1)", rowClass: "oline", positions: [
+          { id: "row_11_ol", label: "Offensive Line & TE (Y1)", rowClass: "oline", slotCount: 7, positions: [
             { id: "11-LT", name: "LT" }, { id: "11-LG", name: "LG" }, { id: "11-C", name: "C" }, { id: "11-RG", name: "RG" }, { id: "11-RT", name: "RT" }, { id: "11-Y1", name: "Y1" }, null
           ]},
-          { id: "row_11_wr", label: "Wide Receivers (X, W, Z)", rowClass: "receivers", positions: [
+          { id: "row_11_wr", label: "Wide Receivers (X, W, Z)", rowClass: "receivers", slotCount: 7, positions: [
             { id: "11-X", name: "X" }, null, null, null, { id: "11-W", name: "W" }, null, { id: "11-Z", name: "Z" }
           ]},
-          { id: "row_11_bk", label: "Backfield (1 - 4)", rowClass: "backfield", positions: [
+          { id: "row_11_bk", label: "Backfield (1 - 4)", rowClass: "backfield", slotCount: 7, positions: [
             null, null, { id: "11-1", name: "1 (QB)" }, null, { id: "11-4", name: "4 (RB)" }, null, null
           ]}
         ]
@@ -1257,8 +1256,9 @@
           const sRow = sForm.rows.find(r => r.id === sRowId);
           const tRow = tForm.rows.find(r => r.id === targetRowId);
           
-          while(sRow.positions.length < 7) sRow.positions.push(null);
-          while(tRow.positions.length < 7) tRow.positions.push(null);
+          let sCount = tRow.slotCount || 7;
+          while(sRow.positions.length < sCount) sRow.positions.push(null);
+          while(tRow.positions.length < sCount) tRow.positions.push(null);
 
           let movedObj = null;
           for(let i=0; i<sRow.positions.length; i++) {
@@ -1282,7 +1282,7 @@
           }
 
           tRow.positions = tRow.positions.filter(p => p !== null);
-          while(tRow.positions.length < 7) tRow.positions.push(null);
+          while(tRow.positions.length < sCount) tRow.positions.push(null);
           
           draggedData = null;
           triggerDebouncedSave();
@@ -1321,8 +1321,9 @@
         const sRow = sForm.rows.find(r => r.id === sRowId);
         const tRow = tForm.rows.find(r => r.id === targetRowId);
 
-        while(sRow.positions.length < 7) sRow.positions.push(null);
-        while(tRow.positions.length < 7) tRow.positions.push(null);
+        let sCount = tRow.slotCount || 7;
+        while(sRow.positions.length < sCount) sRow.positions.push(null);
+        while(tRow.positions.length < sCount) tRow.positions.push(null);
 
         let movedObj = null;
         for (let i = 0; i < sRow.positions.length; i++) {
@@ -1404,24 +1405,27 @@
 
           (form.rows || []).forEach(row => {
             if (!row) return;
+            const slotCount = row.slotCount || 7;
             const rowWrap = document.createElement("div");
             rowWrap.className = "row-container";
             
             rowWrap.innerHTML = `
               <div class="level-header-bar">
                 <span class="level-label" onclick="renameRow('${form.id}', '${row.id}')">${row.label || 'Row'} ✏️</span>
-                <div class="row-actions no-print admin-only">
+                <div class="row-actions no-print admin-only" style="display:flex; gap:4px; align-items:center;">
+                  <button class="row-action-btn" onclick="changeRowSlots('${form.id}', '${row.id}')" title="Change number of slots">⚙️ Slots (${slotCount})</button>
                   <button class="row-action-btn" onclick="addPositionToRow('${form.id}', '${row.id}')">+ Pos</button>
                   <button class="row-action-btn" style="color:#ef4444;" onclick="deleteRow('${form.id}', '${row.id}')">✕</button>
                 </div>
               </div>
-              <div class="formation-row ${row.rowClass || 'oline'}" id="row-grid-${row.id}"></div>
+              <div class="formation-row ${row.rowClass || 'oline'}" id="row-grid-${row.id}" style="grid-template-columns: repeat(${slotCount}, 1fr);"></div>
             `;
 
             const posRowEl = rowWrap.querySelector(".formation-row");
             
             if (!Array.isArray(row.positions)) row.positions = [];
-            while(row.positions.length < 7) row.positions.push(null);
+            while(row.positions.length < slotCount) row.positions.push(null);
+            if(row.positions.length > slotCount) row.positions = row.positions.slice(0, slotCount);
 
             row.positions.forEach((pos, slotIdx) => {
               const slotDiv = document.createElement("div");
@@ -1494,6 +1498,30 @@
         });
       } catch(err) {
         console.error("Error rendering boards:", err);
+      }
+    }
+
+    function changeRowSlots(formId, rowId) {
+      if (userRole !== 'admin') return;
+      const forms = getWeekFormations(currentWeek);
+      const form = forms.find(f => f.id === formId);
+      if(!form) return;
+      const row = form.rows.find(r => r.id === rowId);
+      if(!row) return;
+
+      const current = row.slotCount || 7;
+      const val = prompt("Enter number of slots for this row (1 to 12):", current);
+      if(val !== null) {
+          const num = parseInt(val);
+          if(!isNaN(num) && num >= 1 && num <= 12) {
+              row.slotCount = num;
+              while(row.positions.length < num) row.positions.push(null);
+              if(row.positions.length > num) row.positions = row.positions.slice(0, num);
+              triggerDebouncedSave();
+              renderActiveBoards();
+          } else {
+              alert("Please enter a valid number between 1 and 12.");
+          }
       }
     }
 
@@ -1903,7 +1931,7 @@
         subtitle: (subtitle || "").trim(),
         collapsed: false,
         rows: [
-          { id: rowId, label: "Main Level", rowClass: "oline", positions: [
+          { id: rowId, label: "Main Level", rowClass: "oline", slotCount: 7, positions: [
             { id: posId, name: "POS 1" }, null, null, null, null, null, null
           ]}
         ]
@@ -1960,6 +1988,7 @@
         id: rowId,
         label: label.trim(),
         rowClass: "oline",
+        slotCount: 7,
         positions: [
           { id: posId, name: "POS 1" }, null, null, null, null, null, null
         ]
@@ -2009,12 +2038,13 @@
       const row = form.rows.find(r => r.id === rowId);
       if(!row) return;
 
+      const slotCount = row.slotCount || 7;
       if (!Array.isArray(row.positions)) row.positions = [];
-      while(row.positions.length < 7) row.positions.push(null);
+      while(row.positions.length < slotCount) row.positions.push(null);
 
       const emptyIndex = row.positions.findIndex(p => p === null);
       if (emptyIndex === -1) {
-          alert("This row already has 7 positions (maximum capacity reached).");
+          alert(`This row is full (maximum ${slotCount} slots). Click '⚙️ Slots' to increase capacity.`);
           return;
       }
 
