@@ -83,7 +83,7 @@
     .auth-input { width: 100%; padding: 10px 12px; margin-bottom: 12px; border: 1px solid var(--card-border); border-radius: 6px; font-size: 13px; box-sizing: border-box; }
     .btn-primary { width: 100%; padding: 10px; background: var(--primary); color: #fff; border: none; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer; margin-bottom: 10px; }
     .btn-primary:hover { background: var(--accent); }
-    .btn-google { width: 100%; padding: 10px; background: #ffffff; color: #333333; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn-google { width: 100%; padding: 10px; background: #ffffff; color: #333333; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
 
     .auth-divider { display: flex; align-items: center; text-align: center; margin: 16px 0; color: var(--text-muted); font-size: 11px; }
     .auth-divider::before, .auth-divider::after { content: ''; flex: 1; border-bottom: 1px solid #e2e8f0; }
@@ -662,7 +662,7 @@
               <!-- Custom Folder Tree Dropdown -->
               <div style="position:relative; width: 250px; z-index: 9999;">
                 <div id="selected-practice-display" class="practice-tree-btn" style="pointer-events: auto !important;" onclick="togglePracticeTree(event)">Select Practice...</div>
-                <div id="practice-tree-dropdown" class="card-search-dropdown" onclick="event.stopPropagation()" style="display:none; width: 350px; max-height: 400px; text-align:left; padding:8px; border:2px solid var(--primary); pointer-events: auto !important; top: 100%; left: 0;">
+                <div id="practice-tree-dropdown" class="card-search-dropdown" onclick="event.stopPropagation()" style="display:none; width: 350px; max-height: 400px; overflow-y: auto; text-align:left; padding:8px; border:2px solid var(--primary); pointer-events: auto !important; top: 100%; left: 0;">
                    <!-- Populated by JS -->
                 </div>
               </div>
@@ -958,6 +958,7 @@
     let currentPracticeId = null;
     
     let weekSortOrder = safeJSONParse("footballWeekOrder", {});
+    if (Array.isArray(weekSortOrder)) { weekSortOrder = {}; }
 
     // --- DOM-SAFE MODAL SYSTEM ---
     function openGenericModal(title, fields, onConfirm) {
@@ -1007,7 +1008,6 @@
 
             newConfirmBtn.addEventListener('click', genericModalCallback);
 
-            // Allow 'Enter' key to submit
             inputs.forEach(input => {
                 input.addEventListener('keyup', (e) => {
                     if (e.key === 'Enter') {
@@ -1057,7 +1057,6 @@
     }
 
     // --- INSTANT STATE SAVING ---
-    // Replaces debounced saves for structural edits to avoid Firebase race conditions
     async function saveState() {
         localStorage.setItem("footballWeeklyData", JSON.stringify(weeklyData));
         localStorage.setItem("footballPracticeData", JSON.stringify(practiceData));
@@ -1103,7 +1102,7 @@
     }
 
     function importExternalPracticePlan(e) {
-        if (userRole !== 'admin') { alert("Admin only."); return; }
+        if (userRole !== 'admin') { openGenericModal("Access Denied", [{id:'info', label:"Admin only.", type:'hidden'}], ()=>{}); return; }
         const file = e.target.files[0];
         if (!file) return;
 
@@ -1132,8 +1131,8 @@
                 } else {
                     const lines = rawText.split('\n');
                     let title = file.name.replace(/\.[^/.]+$/, "");
-                    let yearStr = "2026";
-                    let weekFolder = "Week 3";
+                    let yearStr = new Date().getFullYear().toString();
+                    let weekFolder = "Week " + (currentWeek || "1");
                     let dayStr = "Wednesday";
                     let overallStartTime = "17:05";
                     let newPlanPeriods = [];
@@ -1380,7 +1379,7 @@
     }
 
     function copyWeekToPrompt() {
-        if (userRole !== 'admin') { alert("Admin only."); return; }
+        if (userRole !== 'admin') { openGenericModal("Access Denied", [{id:'info', label:"Admin only.", type:'hidden'}], ()=>{}); return; }
         
         openGenericModal("Copy Lineup Data", [
             { id: 'targetWeek', label: 'Enter the Week Number (0-8) to copy this lineup TO:', type: 'number', value: '' }
@@ -1478,8 +1477,8 @@
         practiceData = [{
           id: "prac_1",
           title: "Full Pads Install",
-          year: "2026",
-          week: "Week 3",
+          year: new Date().getFullYear().toString(),
+          week: "Week " + (currentWeek || "1"),
           day: "Wednesday",
           startTime: "17:05",
           endTime: "20:00",
@@ -1501,13 +1500,28 @@
         if (!p) return;
         if (!p.id) p.id = (Date.now() + pIdx).toString();
         if (!p.title) p.title = "Practice " + (pIdx + 1);
-        if (!p.year) p.year = "2026";
-        if (!p.week) p.week = "Week 3";
+
+        if (p.folder && !p.week) {
+            p.week = p.folder;
+        }
+        if (p.date && !p.year) {
+            p.year = p.date.substring(0, 4);
+        }
+        if (p.date && !p.day) {
+            p.day = "Monday"; 
+        }
+
+        if (!p.year) p.year = new Date().getFullYear().toString();
+        if (!p.week) p.week = "Week " + (currentWeek || "1");
         if (!p.day) p.day = "Wednesday";
+        
+        delete p.folder; 
+
         if (!p.startTime) p.startTime = "17:05";
         if (!p.endTime) p.endTime = "20:00";
         if (!p.lastEdited) p.lastEdited = Date.now();
         if (!Array.isArray(p.plan)) p.plan = [];
+        
         p.plan.forEach(row => {
             if (!Array.isArray(row.stations)) {
                 row.stations = [{
@@ -2414,7 +2428,7 @@
           if(!depthChart) depthChart = getWeekDepthChart(currentWeek);
           if(!depthChart[posId]) depthChart[posId] = [];
           
-          saveState(); // Instant save
+          saveState(); 
           renderActiveBoards();
           renderMasterRoster(); 
       });
@@ -2481,7 +2495,7 @@
           if(!depthChart) depthChart = getWeekDepthChart(currentWeek);
           if(!depthChart[posId]) depthChart[posId] = [];
           
-          saveState(); // Instant save
+          saveState(); 
           renderActiveBoards();
           renderMasterRoster();
       });
@@ -2550,7 +2564,7 @@
           if(!depthChart) depthChart = getWeekDepthChart(currentWeek);
           if(!depthChart[posId]) depthChart[posId] = [];
           
-          saveState(); // Instant save
+          saveState(); 
           renderActiveBoards();
           renderMasterRoster();
       });
