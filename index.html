@@ -83,7 +83,7 @@
     .auth-input { width: 100%; padding: 10px 12px; margin-bottom: 12px; border: 1px solid var(--card-border); border-radius: 6px; font-size: 13px; box-sizing: border-box; }
     .btn-primary { width: 100%; padding: 10px; background: var(--primary); color: #fff; border: none; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer; margin-bottom: 10px; }
     .btn-primary:hover { background: var(--accent); }
-    .btn-google { width: 100%; padding: 10px; background: #ffffff; color: #333333; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn-google { width: 100%; padding: 10px; background: #ffffff; color: #333333; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: display: flex; align-items: center; justify-content: center; gap: 8px; }
 
     .auth-divider { display: flex; align-items: center; text-align: center; margin: 16px 0; color: var(--text-muted); font-size: 11px; }
     .auth-divider::before, .auth-divider::after { content: ''; flex: 1; border-bottom: 1px solid #e2e8f0; }
@@ -877,7 +877,6 @@
     let currentUser = null;
     let userRole = 'admin';
     let isSignUpMode = false;
-    let saveTimeout = null;
 
     const masterRoster = [
       { num: "2", firstName: "Mohammed", lastName: "Ibrahim" },
@@ -960,41 +959,71 @@
     
     let weekSortOrder = safeJSONParse("footballWeekOrder", {});
 
-    // --- MODAL SYSTEM (REPLACES BROWSER PROMPTS AND CONFIRMS) ---
-    let genericModalCallback = null;
-    let confirmModalCallback = null;
-
+    // --- DOM-SAFE MODAL SYSTEM ---
     function openGenericModal(title, fields, onConfirm) {
-        document.getElementById('generic-modal-title').textContent = title;
-        const body = document.getElementById('generic-modal-body');
-        body.innerHTML = '';
-        
-        fields.forEach(f => {
-            const wrap = document.createElement('div');
-            wrap.style.marginBottom = '12px';
-            wrap.innerHTML = `<label style="font-size:12px; font-weight:bold; display:block; margin-bottom:4px; color:var(--primary);">${f.label}</label>
-                              <input type="${f.type || 'text'}" id="modal-input-${f.id}" class="prac-input" value="${f.value || ''}">`;
-            body.appendChild(wrap);
-        });
+        try {
+            document.getElementById('generic-modal-title').textContent = title;
+            const body = document.getElementById('generic-modal-body');
+            body.innerHTML = '';
+            
+            const inputs = [];
 
-        genericModalCallback = () => {
-            const results = {};
             fields.forEach(f => {
-                results[f.id] = document.getElementById(`modal-input-${f.id}`).value;
+                const wrap = document.createElement('div');
+                wrap.style.marginBottom = '12px';
+                
+                const lbl = document.createElement('label');
+                lbl.style.cssText = 'font-size:12px; font-weight:bold; display:block; margin-bottom:4px; color:var(--primary); text-align:left;';
+                lbl.textContent = f.label;
+                wrap.appendChild(lbl);
+                
+                if (f.type !== 'hidden') {
+                    const input = document.createElement('input');
+                    input.type = f.type || 'text';
+                    input.id = `modal-input-${f.id}`;
+                    input.className = 'prac-input';
+                    input.value = f.value || '';
+                    wrap.appendChild(input);
+                    inputs.push(input);
+                }
+                
+                body.appendChild(wrap);
             });
-            closeGenericModal();
-            onConfirm(results);
-        };
 
-        const confirmBtn = document.getElementById('generic-modal-confirm');
-        const newConfirmBtn = confirmBtn.cloneNode(true);
-        confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
-        newConfirmBtn.addEventListener('click', genericModalCallback);
+            const confirmBtn = document.getElementById('generic-modal-confirm');
+            const newConfirmBtn = confirmBtn.cloneNode(true);
+            confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
 
-        document.getElementById('generic-modal').classList.remove('hidden');
-        
-        if (fields.length > 0) {
-            setTimeout(() => document.getElementById(`modal-input-${fields[0].id}`).focus(), 100);
+            genericModalCallback = () => {
+                const results = {};
+                fields.forEach(f => {
+                    if (f.type !== 'hidden') {
+                        results[f.id] = document.getElementById(`modal-input-${f.id}`).value;
+                    }
+                });
+                closeGenericModal();
+                onConfirm(results);
+            };
+
+            newConfirmBtn.addEventListener('click', genericModalCallback);
+
+            // Allow 'Enter' key to submit
+            inputs.forEach(input => {
+                input.addEventListener('keyup', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        newConfirmBtn.click();
+                    }
+                });
+            });
+
+            document.getElementById('generic-modal').classList.remove('hidden');
+            
+            if (inputs.length > 0) {
+                setTimeout(() => inputs[0].focus(), 100);
+            }
+        } catch(e) {
+            alert("Modal Error: " + e.message);
         }
     }
 
@@ -1027,6 +1056,42 @@
         confirmModalCallback = null;
     }
 
+    // --- INSTANT STATE SAVING ---
+    // Replaces debounced saves for structural edits to avoid Firebase race conditions
+    async function saveState() {
+        localStorage.setItem("footballWeeklyData", JSON.stringify(weeklyData));
+        localStorage.setItem("footballPracticeData", JSON.stringify(practiceData));
+        localStorage.setItem("footballMasterPlays", JSON.stringify(masterPlayLibrary));
+        localStorage.setItem("footballDynamicDrills", JSON.stringify(dynamicDrills));
+        localStorage.setItem("footballSavedCoaches", JSON.stringify(savedCoaches));
+        localStorage.setItem("footballWeekOrder", JSON.stringify(weekSortOrder));
+
+        if (cloudEnabled && db && userRole === 'admin') {
+            try {
+                await db.collection("teamData").doc("depthChartData").set({
+                    weeklyData: weeklyData,
+                    practiceData: practiceData,
+                    masterPlayLibrary: masterPlayLibrary,
+                    dynamicDrills: dynamicDrills,
+                    savedCoaches: savedCoaches,
+                    weekSortOrder: weekSortOrder,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+            } catch (err) {
+                console.error("Firestore sync error:", err);
+            }
+        }
+    }
+
+    let saveTimeout = null;
+    function triggerDebouncedSave() {
+        if (saveTimeout) clearTimeout(saveTimeout);
+        saveTimeout = setTimeout(() => {
+            saveState();
+        }, 500);
+    }
+
+
     // --- ACCURATE PRACTICE PLAN PARSER (.DOCX & .TXT) ---
     function parseTimeString(str) {
         if (!str) return 0;
@@ -1038,7 +1103,7 @@
     }
 
     function importExternalPracticePlan(e) {
-        if (userRole !== 'admin') return;
+        if (userRole !== 'admin') { alert("Admin only."); return; }
         const file = e.target.files[0];
         if (!file) return;
 
@@ -1315,7 +1380,7 @@
     }
 
     function copyWeekToPrompt() {
-        if (userRole !== 'admin') return;
+        if (userRole !== 'admin') { alert("Admin only."); return; }
         
         openGenericModal("Copy Lineup Data", [
             { id: 'targetWeek', label: 'Enter the Week Number (0-8) to copy this lineup TO:', type: 'number', value: '' }
@@ -1324,7 +1389,7 @@
             if (target && target >= 0 && target <= 8 && target !== currentWeek) {
                 openConfirmModal("Confirm Overwrite", `Are you sure you want to overwrite Week ${target} with ALL data from Week ${currentWeek}?`, "Overwrite Week", () => {
                     weeklyData[target] = JSON.parse(JSON.stringify(weeklyData[currentWeek]));
-                    triggerDebouncedSave();
+                    saveState();
                     openGenericModal("Success", [{id:'info', label:`Successfully Copied to Week ${target}!`, type:'hidden'}], ()=>{});
                 });
             }
@@ -1343,41 +1408,6 @@
         renderScouting();
     }
 
-    // --- LIVE SYNC STORAGE FUNCTION ---
-    async function saveState() {
-        // Local fallback
-        localStorage.setItem("footballWeeklyData", JSON.stringify(weeklyData));
-        localStorage.setItem("footballPracticeData", JSON.stringify(practiceData));
-        localStorage.setItem("footballMasterPlays", JSON.stringify(masterPlayLibrary));
-        localStorage.setItem("footballDynamicDrills", JSON.stringify(dynamicDrills));
-        localStorage.setItem("footballSavedCoaches", JSON.stringify(savedCoaches));
-        localStorage.setItem("footballWeekOrder", JSON.stringify(weekSortOrder));
-
-        // Cloud sync if admin
-        if (cloudEnabled && db && userRole === 'admin') {
-            try {
-                await db.collection("teamData").doc("depthChartData").set({
-                    weeklyData: weeklyData,
-                    practiceData: practiceData,
-                    masterPlayLibrary: masterPlayLibrary,
-                    dynamicDrills: dynamicDrills,
-                    savedCoaches: savedCoaches,
-                    weekSortOrder: weekSortOrder,
-                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                }, { merge: true });
-                console.log("Live update pushed to Firestore.");
-            } catch (err) {
-                console.error("Firestore sync error:", err);
-            }
-        }
-    }
-
-    function triggerDebouncedSave() {
-        if (saveTimeout) clearTimeout(saveTimeout);
-        saveTimeout = setTimeout(() => {
-            saveState();
-        }, 500);
-    }
 
     function listenToLiveUpdates() {
         if (!cloudEnabled || !db) return;
@@ -1424,46 +1454,6 @@
         if(h === 0) h = 12;
         let mStr = m < 10 ? '0'+m : m;
         return `${h}:${mStr} ${ampm}`;
-    }
-
-    // --- IMPORT / EXPORT DATA ---
-    function exportData() {
-        const data = { weeklyData, practiceData, masterPlayLibrary, dynamicDrills, savedCoaches, weekSortOrder };
-        const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "football_manager_backup.json";
-        a.click();
-    }
-
-    function importData(e) {
-        const file = e.target.files[0];
-        if(!file) return;
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            try {
-                const parsed = JSON.parse(event.target.result);
-                if(parsed.weeklyData) weeklyData = parsed.weeklyData;
-                if(parsed.practiceData) practiceData = parsed.practiceData;
-                if(parsed.masterPlayLibrary) masterPlayLibrary = parsed.masterPlayLibrary;
-                if(parsed.dynamicDrills) dynamicDrills = parsed.dynamicDrills;
-                if(parsed.savedCoaches) savedCoaches = parsed.savedCoaches;
-                if(parsed.weekSortOrder) weekSortOrder = parsed.weekSortOrder;
-                saveState();
-                location.reload();
-            } catch(err) {
-                openGenericModal("Error", [{id:'info', label:"Invalid backup file.", type:'hidden'}], ()=>{});
-            }
-        };
-        reader.readAsText(file);
-    }
-
-    function resetDefault() {
-        openConfirmModal("Reset Application", "Are you sure? This will wipe all data and return to defaults locally.", "Reset App", () => {
-            localStorage.clear();
-            location.reload();
-        });
     }
 
     // --- CORE INITIALIZATION ---
@@ -1651,7 +1641,7 @@
             if (sIdx < finalIdx) finalIdx--; 
 
             forms.splice(finalIdx, 0, moved);
-            triggerDebouncedSave();
+            saveState();
             renderActiveBoards();
         }
         draggedData = null;
@@ -1708,7 +1698,7 @@
           while(tRow.positions.length < sCount) tRow.positions.push(null);
           
           draggedData = null;
-          triggerDebouncedSave();
+          saveState();
           renderActiveBoards();
           return;
       }
@@ -1748,7 +1738,7 @@
           }
           
           draggedData = null;
-          triggerDebouncedSave();
+          saveState();
           renderActiveBoards();
           renderMasterRoster();
       }
@@ -1792,7 +1782,7 @@
         tRow.positions[slotIndex] = movedObj;
 
         draggedData = null;
-        triggerDebouncedSave();
+        saveState();
         renderActiveBoards();
     }
 
@@ -1801,7 +1791,7 @@
       if (e) e.stopPropagation();
       if (depthChart[posId]) {
         depthChart[posId].splice(idx, 1);
-        triggerDebouncedSave();
+        saveState();
         renderActiveBoards();
         renderMasterRoster();
       }
@@ -1963,7 +1953,7 @@
     }
 
     function changeRowSlots(formId, rowId) {
-      if (userRole !== 'admin') return;
+      if (userRole !== 'admin') { alert("Admin only"); return; }
       const forms = getWeekFormations(currentWeek);
       const form = forms.find(f => f.id === formId);
       if(!form) return;
@@ -1993,7 +1983,7 @@
               }
 
               row.slotCount = newNum;
-              triggerDebouncedSave();
+              saveState();
               renderActiveBoards();
           }
       });
@@ -2142,7 +2132,7 @@
         if (play) {
             masterPlayLibrary.push(play);
             input.value = "";
-            triggerDebouncedSave();
+            saveState();
             renderPlayLibrary();
         }
     }
@@ -2150,7 +2140,7 @@
     function removePlayFromLibrary(idx) {
         openConfirmModal("Delete Play", "Delete this play from the library forever?", "Delete Play", () => {
             masterPlayLibrary.splice(idx, 1);
-            triggerDebouncedSave();
+            saveState();
             renderPlayLibrary();
         });
     }
@@ -2164,7 +2154,7 @@
         const playText = e.dataTransfer.getData("text/plain");
         if (playText) {
             weeklyData[currentWeek].wristbandData.columns[colIdx].plays[rowIdx].text = playText;
-            triggerDebouncedSave();
+            saveState();
             renderWristband();
         }
     }
@@ -2175,7 +2165,7 @@
       const wbData = weeklyData[currentWeek].wristbandData;
       wbData.rows += 1;
       wbData.columns.forEach(c => c.plays.push({ text: "", color: c.color }));
-      triggerDebouncedSave();
+      saveState();
       renderWristband();
     }
 
@@ -2186,7 +2176,7 @@
       if (wbData.rows > 1) {
          wbData.rows -= 1;
          wbData.columns.forEach(c => c.plays.pop());
-         triggerDebouncedSave();
+         saveState();
          renderWristband();
       }
     }
@@ -2304,12 +2294,12 @@
     }
 
     function addDrillCategory() {
-      if (userRole !== 'admin') return;
+      if (userRole !== 'admin') { alert("Admin only"); return; }
       openGenericModal("Add Drill Category", [{id: 'catName', label: "New Category Name:"}], (res) => {
           const cat = res.catName;
           if (cat && cat.trim() !== "" && !dynamicDrills[cat]) {
               dynamicDrills[cat.trim()] = [];
-              triggerDebouncedSave();
+              saveState();
               renderDrillsTab();
           }
       });
@@ -2327,7 +2317,7 @@
                  collapsedDrillCats[newCat.trim()] = collapsedDrillCats[oldCat];
                  delete collapsedDrillCats[oldCat];
               }
-              triggerDebouncedSave();
+              saveState();
               renderDrillsTab();
           }
       });
@@ -2339,7 +2329,7 @@
       openConfirmModal("Delete Category", `Are you sure you want to delete "${cat}" and all its drills?`, "Delete", () => {
           delete dynamicDrills[cat];
           delete collapsedDrillCats[cat];
-          triggerDebouncedSave();
+          saveState();
           renderDrillsTab();
       });
     }
@@ -2349,7 +2339,7 @@
       if (userRole !== 'admin') return;
       collapsedDrillCats[cat] = false; 
       dynamicDrills[cat].unshift({ name: "New Drill", desc: "", key: "" });
-      triggerDebouncedSave();
+      saveState();
       renderDrillsTab();
     }
 
@@ -2364,7 +2354,7 @@
       if (userRole !== 'admin') return;
       openConfirmModal("Delete Drill", "Delete this drill?", "Delete", () => {
          dynamicDrills[cat].splice(index, 1);
-         triggerDebouncedSave();
+         saveState();
          renderDrillsTab();
       });
     }
@@ -2392,7 +2382,7 @@
     }
 
     function createFormationPrompt(unit) {
-      if (userRole !== 'admin') return;
+      if (userRole !== 'admin') { alert("Admin only"); return; }
       
       openGenericModal(`Add ${unit.toUpperCase()} Formation`, [
           {id: 'formName', label: "Formation Name:", value: "New Formation"},
@@ -2424,7 +2414,7 @@
           if(!depthChart) depthChart = getWeekDepthChart(currentWeek);
           if(!depthChart[posId]) depthChart[posId] = [];
           
-          triggerDebouncedSave();
+          saveState(); // Instant save
           renderActiveBoards();
           renderMasterRoster(); 
       });
@@ -2443,7 +2433,7 @@
           if(res.formName.trim() !== "") {
             form.name = res.formName.trim();
             form.subtitle = res.formSub.trim();
-            triggerDebouncedSave();
+            saveState();
             renderActiveBoards();
           }
       });
@@ -2455,14 +2445,14 @@
       openConfirmModal("Delete Formation", "Are you sure you want to delete this entire formation?", "Delete", () => {
         weeklyData[currentWeek].formations = forms.filter(f => f.id !== formId);
         if (activeCountFormationId === formId) activeCountFormationId = null;
-        triggerDebouncedSave();
+        saveState();
         renderActiveBoards();
         renderMasterRoster(); 
       });
     }
 
     function addRowToFormation(formId) {
-      if (userRole !== 'admin') return;
+      if (userRole !== 'admin') { alert("Admin only"); return; }
       const forms = getWeekFormations(currentWeek);
       const form = forms.find(f => f.id === formId);
       if(!form) return;
@@ -2491,7 +2481,7 @@
           if(!depthChart) depthChart = getWeekDepthChart(currentWeek);
           if(!depthChart[posId]) depthChart[posId] = [];
           
-          triggerDebouncedSave();
+          saveState(); // Instant save
           renderActiveBoards();
           renderMasterRoster();
       });
@@ -2510,7 +2500,7 @@
       ], (res) => {
           if(res.rowName.trim() !== "") {
             row.label = res.rowName.trim();
-            triggerDebouncedSave();
+            saveState();
             renderActiveBoards();
           }
       });
@@ -2524,14 +2514,14 @@
       
       openConfirmModal("Delete Row", "Delete this row and its positions?", "Delete Row", () => {
         form.rows = form.rows.filter(r => r.id !== rowId);
-        triggerDebouncedSave();
+        saveState(); 
         renderActiveBoards();
         renderMasterRoster();
       });
     }
 
     function addPositionToRow(formId, rowId) {
-      if (userRole !== 'admin') return;
+      if (userRole !== 'admin') { alert("Admin only"); return; }
       const forms = getWeekFormations(currentWeek);
       const form = forms.find(f => f.id === formId);
       if(!form) return;
@@ -2557,9 +2547,10 @@
           const posId = generateUniqueId("pos");
           row.positions[emptyIndex] = { id: posId, name: posName };
           
+          if(!depthChart) depthChart = getWeekDepthChart(currentWeek);
           if(!depthChart[posId]) depthChart[posId] = [];
           
-          triggerDebouncedSave();
+          saveState(); // Instant save
           renderActiveBoards();
           renderMasterRoster();
       });
@@ -2576,7 +2567,7 @@
       openConfirmModal("Delete Card", "Delete this position card?", "Delete", () => {
         row.positions = row.positions.map(p => (p && p.id === posId) ? null : p);
         delete depthChart[posId];
-        triggerDebouncedSave();
+        saveState();
         renderActiveBoards();
         renderMasterRoster();
       });
@@ -2598,7 +2589,7 @@
                     const idx = weekSortOrder[year].indexOf(oldWeek);
                     if (idx > -1) weekSortOrder[year][idx] = newWeek.trim();
                 }
-                triggerDebouncedSave();
+                saveState();
                 populatePracticeDropdown();
                 renderPracticePlan();
             }
@@ -2622,7 +2613,7 @@
             if(res.year) prac.year = res.year;
 
             prac.lastEdited = Date.now();
-            triggerDebouncedSave();
+            saveState();
             populatePracticeDropdown();
             renderPracticePlan();
         });
@@ -2637,7 +2628,7 @@
         openConfirmModal("Delete Plan", "Are you sure you want to delete this entire practice plan?", "Delete Plan", () => {
             practiceData = practiceData.filter(p => p.id !== currentPracticeId);
             currentPracticeId = practiceData[0].id;
-            triggerDebouncedSave();
+            saveState();
             populatePracticeDropdown();
             renderPracticePlan();
         });
