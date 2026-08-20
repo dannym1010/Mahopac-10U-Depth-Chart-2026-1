@@ -206,7 +206,7 @@
       position: fixed; inset: 0; background: rgba(15,23,42,0.7); display: flex; align-items: center; justify-content: center; z-index: 20000;
     }
     .custom-modal-card { background: #fff; padding: 20px; border-radius: 8px; width: 340px; max-width: 90%; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
-    .custom-modal-card h3 { margin-top: 0; color: var(--primary); font-size: 16px; margin-bottom: 15px;}
+    .custom-modal-card h3 { margin-top: 0; color: var(--primary); font-size: 16px; }
 
     /* Wristband Builder */
     .wb-exact-table { width: 100%; border-collapse: collapse; border: 2px solid #000000; background: #ffffff; }
@@ -403,7 +403,7 @@
     @media print {
       @page { size: letter portrait; margin: 0.25in; }
       body { background-color: #ffffff; padding: 0; margin: 0; font-size: 13px !important; }
-      .toolbar, #sidebar-container, .remove-btn, .action-group, p.subtitle, .search-box, .card-search-container, .tab-navigation, .toggle-board-btn, .week-bar, .board-controls, .add-row-btn, .add-form-btn, .row-actions, .col-resizer, .practice-dashboard, #print-modal, #new-prac-modal, #generic-modal, #generic-confirm-modal { display: none !important; }
+      .toolbar, #sidebar-container, .remove-btn, .action-group, p.subtitle, .search-box, .card-search-container, .tab-navigation, .toggle-board-btn, .week-bar, .board-controls, .add-row-btn, .add-form-btn, .row-actions, .col-resizer, .practice-dashboard, #print-modal, #new-prac-modal { display: none !important; }
       .app-layout, .boards-container, .unit-panel:not(.hidden) { display: block !important; }
       .formation-container.print-hidden { display: none !important; }
       .formation-body.collapsed { display: block !important; }
@@ -662,7 +662,7 @@
               <!-- Custom Folder Tree Dropdown -->
               <div style="position:relative; width: 250px; z-index: 9999;">
                 <div id="selected-practice-display" class="practice-tree-btn" style="pointer-events: auto !important;" onclick="togglePracticeTree(event)">Select Practice...</div>
-                <div id="practice-tree-dropdown" class="card-search-dropdown" onclick="event.stopPropagation()" style="display:none; width: 350px; max-height: 400px; overflow-y: auto; text-align:left; padding:8px; border:2px solid var(--primary); pointer-events: auto !important; top: 100%; left: 0;">
+                <div id="practice-tree-dropdown" class="card-search-dropdown" onclick="event.stopPropagation()" style="display:none; width: 350px; max-height: 400px; text-align:left; padding:8px; border:2px solid var(--primary); pointer-events: auto !important; top: 100%; left: 0;">
                    <!-- Populated by JS -->
                 </div>
               </div>
@@ -754,30 +754,6 @@
           <ul class="full-roster-list" id="play-library-list"></ul>
         </div>
 
-    </div>
-  </div>
-
-  <!-- GENERIC INPUT MODAL (Replaces Prompt) -->
-  <div id="generic-modal" class="custom-modal hidden">
-    <div class="custom-modal-card">
-      <h3 id="generic-modal-title">Title</h3>
-      <div id="generic-modal-body"></div>
-      <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 15px;">
-        <button class="toggle-board-btn" onclick="closeGenericModal()">Cancel</button>
-        <button class="add-row-btn" style="margin:0;" id="generic-modal-confirm">Confirm</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- GENERIC CONFIRM MODAL (Replaces Confirm) -->
-  <div id="generic-confirm-modal" class="custom-modal hidden">
-    <div class="custom-modal-card">
-      <h3 id="generic-confirm-title">Confirm Action</h3>
-      <p id="generic-confirm-message" style="font-size:13px; margin-bottom:20px; color:var(--text); line-height:1.4;"></p>
-      <div style="display: flex; gap: 8px; justify-content: flex-end;">
-        <button class="toggle-board-btn" onclick="closeConfirmModal()">Cancel</button>
-        <button class="add-row-btn" style="margin:0; background:#ef4444;" id="generic-confirm-btn">Confirm Action</button>
-      </div>
     </div>
   </div>
 
@@ -877,6 +853,7 @@
     let currentUser = null;
     let userRole = 'admin';
     let isSignUpMode = false;
+    let saveTimeout = null;
 
     const masterRoster = [
       { num: "2", firstName: "Mohammed", lastName: "Ibrahim" },
@@ -958,138 +935,6 @@
     let currentPracticeId = null;
     
     let weekSortOrder = safeJSONParse("footballWeekOrder", {});
-    if (Array.isArray(weekSortOrder)) { weekSortOrder = {}; }
-
-    // --- DOM-SAFE MODAL SYSTEM ---
-    function openGenericModal(title, fields, onConfirm) {
-        try {
-            document.getElementById('generic-modal-title').textContent = title;
-            const body = document.getElementById('generic-modal-body');
-            body.innerHTML = '';
-            
-            const inputs = [];
-
-            fields.forEach(f => {
-                const wrap = document.createElement('div');
-                wrap.style.marginBottom = '12px';
-                
-                const lbl = document.createElement('label');
-                lbl.style.cssText = 'font-size:12px; font-weight:bold; display:block; margin-bottom:4px; color:var(--primary); text-align:left;';
-                lbl.textContent = f.label;
-                wrap.appendChild(lbl);
-                
-                if (f.type !== 'hidden') {
-                    const input = document.createElement('input');
-                    input.type = f.type || 'text';
-                    input.id = `modal-input-${f.id}`;
-                    input.className = 'prac-input';
-                    input.value = f.value || '';
-                    wrap.appendChild(input);
-                    inputs.push(input);
-                }
-                
-                body.appendChild(wrap);
-            });
-
-            const confirmBtn = document.getElementById('generic-modal-confirm');
-            const newConfirmBtn = confirmBtn.cloneNode(true);
-            confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
-
-            genericModalCallback = () => {
-                const results = {};
-                fields.forEach(f => {
-                    if (f.type !== 'hidden') {
-                        results[f.id] = document.getElementById(`modal-input-${f.id}`).value;
-                    }
-                });
-                closeGenericModal();
-                onConfirm(results);
-            };
-
-            newConfirmBtn.addEventListener('click', genericModalCallback);
-
-            inputs.forEach(input => {
-                input.addEventListener('keyup', (e) => {
-                    if (e.key === 'Enter') {
-                        e.preventDefault();
-                        newConfirmBtn.click();
-                    }
-                });
-            });
-
-            document.getElementById('generic-modal').classList.remove('hidden');
-            
-            if (inputs.length > 0) {
-                setTimeout(() => inputs[0].focus(), 100);
-            }
-        } catch(e) {
-            alert("Modal Error: " + e.message);
-        }
-    }
-
-    function closeGenericModal() {
-        document.getElementById('generic-modal').classList.add('hidden');
-        genericModalCallback = null;
-    }
-
-    function openConfirmModal(title, message, btnText, onConfirm) {
-        document.getElementById('generic-confirm-title').textContent = title;
-        document.getElementById('generic-confirm-message').textContent = message;
-        
-        const confirmBtn = document.getElementById('generic-confirm-btn');
-        confirmBtn.textContent = btnText || "Confirm";
-        
-        const newConfirmBtn = confirmBtn.cloneNode(true);
-        confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
-
-        confirmModalCallback = () => {
-            closeConfirmModal();
-            onConfirm();
-        };
-
-        newConfirmBtn.addEventListener('click', confirmModalCallback);
-        document.getElementById('generic-confirm-modal').classList.remove('hidden');
-    }
-
-    function closeConfirmModal() {
-        document.getElementById('generic-confirm-modal').classList.add('hidden');
-        confirmModalCallback = null;
-    }
-
-    // --- INSTANT STATE SAVING ---
-    async function saveState() {
-        localStorage.setItem("footballWeeklyData", JSON.stringify(weeklyData));
-        localStorage.setItem("footballPracticeData", JSON.stringify(practiceData));
-        localStorage.setItem("footballMasterPlays", JSON.stringify(masterPlayLibrary));
-        localStorage.setItem("footballDynamicDrills", JSON.stringify(dynamicDrills));
-        localStorage.setItem("footballSavedCoaches", JSON.stringify(savedCoaches));
-        localStorage.setItem("footballWeekOrder", JSON.stringify(weekSortOrder));
-
-        if (cloudEnabled && db && userRole === 'admin') {
-            try {
-                await db.collection("teamData").doc("depthChartData").set({
-                    weeklyData: weeklyData,
-                    practiceData: practiceData,
-                    masterPlayLibrary: masterPlayLibrary,
-                    dynamicDrills: dynamicDrills,
-                    savedCoaches: savedCoaches,
-                    weekSortOrder: weekSortOrder,
-                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                }, { merge: true });
-            } catch (err) {
-                console.error("Firestore sync error:", err);
-            }
-        }
-    }
-
-    let saveTimeout = null;
-    function triggerDebouncedSave() {
-        if (saveTimeout) clearTimeout(saveTimeout);
-        saveTimeout = setTimeout(() => {
-            saveState();
-        }, 500);
-    }
-
 
     // --- ACCURATE PRACTICE PLAN PARSER (.DOCX & .TXT) ---
     function parseTimeString(str) {
@@ -1102,7 +947,7 @@
     }
 
     function importExternalPracticePlan(e) {
-        if (userRole !== 'admin') { openGenericModal("Access Denied", [{id:'info', label:"Admin only.", type:'hidden'}], ()=>{}); return; }
+        if (userRole !== 'admin') return;
         const file = e.target.files[0];
         if (!file) return;
 
@@ -1131,8 +976,8 @@
                 } else {
                     const lines = rawText.split('\n');
                     let title = file.name.replace(/\.[^/.]+$/, "");
-                    let yearStr = new Date().getFullYear().toString();
-                    let weekFolder = "Week " + (currentWeek || "1");
+                    let yearStr = "2026";
+                    let weekFolder = "Week 3";
                     let dayStr = "Wednesday";
                     let overallStartTime = "17:05";
                     let newPlanPeriods = [];
@@ -1269,10 +1114,9 @@
                 saveState();
                 populatePracticeDropdown();
                 renderPracticePlan();
-                
-                openGenericModal("Import Success", [{id:'info', label:`Practice plan successfully imported into Year: ${yearStr} / ${weekFolder}!`, type:'hidden'}], ()=>{});
+                alert(`Practice plan successfully imported into Year: ${yearStr} / ${weekFolder}!`);
             } catch (err) {
-                openGenericModal("Error", [{id:'info', label:"Error importing file: "+err.message, type:'hidden'}], ()=>{});
+                alert("Error importing file: " + err.message);
             }
         };
 
@@ -1292,7 +1136,7 @@
 
        const forms = getWeekFormations(currentWeek).filter(f => f && f.unit === unitType);
        if (forms.length === 0) {
-           openGenericModal("No Boards", [{id:'info', label:"No boards available to print in this tab.", type:'hidden'}], ()=>{});
+           alert("No boards available to print in this tab.");
            return;
        }
 
@@ -1379,20 +1223,15 @@
     }
 
     function copyWeekToPrompt() {
-        if (userRole !== 'admin') { openGenericModal("Access Denied", [{id:'info', label:"Admin only.", type:'hidden'}], ()=>{}); return; }
-        
-        openGenericModal("Copy Lineup Data", [
-            { id: 'targetWeek', label: 'Enter the Week Number (0-8) to copy this lineup TO:', type: 'number', value: '' }
-        ], (res) => {
-            const target = res.targetWeek;
-            if (target && target >= 0 && target <= 8 && target !== currentWeek) {
-                openConfirmModal("Confirm Overwrite", `Are you sure you want to overwrite Week ${target} with ALL data from Week ${currentWeek}?`, "Overwrite Week", () => {
-                    weeklyData[target] = JSON.parse(JSON.stringify(weeklyData[currentWeek]));
-                    saveState();
-                    openGenericModal("Success", [{id:'info', label:`Successfully Copied to Week ${target}!`, type:'hidden'}], ()=>{});
-                });
+        if (userRole !== 'admin') return;
+        const target = prompt("Enter the Week Number (0-8) to copy this week's lineup and formations TO:");
+        if (target && target >= 0 && target <= 8 && target !== currentWeek) {
+            if (confirm(`Overwrite Week ${target} with ALL data from Week ${currentWeek}?`)) {
+                weeklyData[target] = JSON.parse(JSON.stringify(weeklyData[currentWeek]));
+                triggerDebouncedSave();
+                alert(`Successfully Copied to Week ${target}!`);
             }
-        });
+        }
     }
 
     function updateOpponentLabel(val) {
@@ -1407,6 +1246,41 @@
         renderScouting();
     }
 
+    // --- LIVE SYNC STORAGE FUNCTION ---
+    async function saveState() {
+        // Local fallback
+        localStorage.setItem("footballWeeklyData", JSON.stringify(weeklyData));
+        localStorage.setItem("footballPracticeData", JSON.stringify(practiceData));
+        localStorage.setItem("footballMasterPlays", JSON.stringify(masterPlayLibrary));
+        localStorage.setItem("footballDynamicDrills", JSON.stringify(dynamicDrills));
+        localStorage.setItem("footballSavedCoaches", JSON.stringify(savedCoaches));
+        localStorage.setItem("footballWeekOrder", JSON.stringify(weekSortOrder));
+
+        // Cloud sync if admin
+        if (cloudEnabled && db && userRole === 'admin') {
+            try {
+                await db.collection("teamData").doc("depthChartData").set({
+                    weeklyData: weeklyData,
+                    practiceData: practiceData,
+                    masterPlayLibrary: masterPlayLibrary,
+                    dynamicDrills: dynamicDrills,
+                    savedCoaches: savedCoaches,
+                    weekSortOrder: weekSortOrder,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+                console.log("Live update pushed to Firestore.");
+            } catch (err) {
+                console.error("Firestore sync error:", err);
+            }
+        }
+    }
+
+    function triggerDebouncedSave() {
+        if (saveTimeout) clearTimeout(saveTimeout);
+        saveTimeout = setTimeout(() => {
+            saveState();
+        }, 500);
+    }
 
     function listenToLiveUpdates() {
         if (!cloudEnabled || !db) return;
@@ -1455,6 +1329,46 @@
         return `${h}:${mStr} ${ampm}`;
     }
 
+    // --- IMPORT / EXPORT DATA ---
+    function exportData() {
+        const data = { weeklyData, practiceData, masterPlayLibrary, dynamicDrills, savedCoaches, weekSortOrder };
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "football_manager_backup.json";
+        a.click();
+    }
+
+    function importData(e) {
+        const file = e.target.files[0];
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                const parsed = JSON.parse(event.target.result);
+                if(parsed.weeklyData) weeklyData = parsed.weeklyData;
+                if(parsed.practiceData) practiceData = parsed.practiceData;
+                if(parsed.masterPlayLibrary) masterPlayLibrary = parsed.masterPlayLibrary;
+                if(parsed.dynamicDrills) dynamicDrills = parsed.dynamicDrills;
+                if(parsed.savedCoaches) savedCoaches = parsed.savedCoaches;
+                if(parsed.weekSortOrder) weekSortOrder = parsed.weekSortOrder;
+                saveState();
+                location.reload();
+            } catch(err) {
+                alert("Invalid backup file.");
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    function resetDefault() {
+        if(confirm("Are you sure? This will wipe all data and return to defaults.")) {
+            localStorage.clear();
+            location.reload();
+        }
+    }
+
     // --- CORE INITIALIZATION ---
     function getWeekFormations(week) {
       if (!weeklyData[week]) weeklyData[week] = { opponent: "" };
@@ -1477,8 +1391,8 @@
         practiceData = [{
           id: "prac_1",
           title: "Full Pads Install",
-          year: new Date().getFullYear().toString(),
-          week: "Week " + (currentWeek || "1"),
+          year: "2026",
+          week: "Week 3",
           day: "Wednesday",
           startTime: "17:05",
           endTime: "20:00",
@@ -1500,28 +1414,13 @@
         if (!p) return;
         if (!p.id) p.id = (Date.now() + pIdx).toString();
         if (!p.title) p.title = "Practice " + (pIdx + 1);
-
-        if (p.folder && !p.week) {
-            p.week = p.folder;
-        }
-        if (p.date && !p.year) {
-            p.year = p.date.substring(0, 4);
-        }
-        if (p.date && !p.day) {
-            p.day = "Monday"; 
-        }
-
-        if (!p.year) p.year = new Date().getFullYear().toString();
-        if (!p.week) p.week = "Week " + (currentWeek || "1");
+        if (!p.year) p.year = "2026";
+        if (!p.week) p.week = "Week 3";
         if (!p.day) p.day = "Wednesday";
-        
-        delete p.folder; 
-
         if (!p.startTime) p.startTime = "17:05";
         if (!p.endTime) p.endTime = "20:00";
         if (!p.lastEdited) p.lastEdited = Date.now();
         if (!Array.isArray(p.plan)) p.plan = [];
-        
         p.plan.forEach(row => {
             if (!Array.isArray(row.stations)) {
                 row.stations = [{
@@ -1655,7 +1554,7 @@
             if (sIdx < finalIdx) finalIdx--; 
 
             forms.splice(finalIdx, 0, moved);
-            saveState();
+            triggerDebouncedSave();
             renderActiveBoards();
         }
         draggedData = null;
@@ -1681,9 +1580,6 @@
           const tRow = tForm.rows.find(r => r.id === targetRowId);
           
           let sCount = tRow.slotCount || 7;
-          if (!Array.isArray(sRow.positions)) sRow.positions = [];
-          if (!Array.isArray(tRow.positions)) tRow.positions = [];
-
           while(sRow.positions.length < sCount) sRow.positions.push(null);
           while(tRow.positions.length < sCount) tRow.positions.push(null);
 
@@ -1712,7 +1608,7 @@
           while(tRow.positions.length < sCount) tRow.positions.push(null);
           
           draggedData = null;
-          saveState();
+          triggerDebouncedSave();
           renderActiveBoards();
           return;
       }
@@ -1752,7 +1648,7 @@
           }
           
           draggedData = null;
-          saveState();
+          triggerDebouncedSave();
           renderActiveBoards();
           renderMasterRoster();
       }
@@ -1775,9 +1671,6 @@
         const tRow = tForm.rows.find(r => r.id === targetRowId);
 
         let sCount = tRow.slotCount || 7;
-        if (!Array.isArray(sRow.positions)) sRow.positions = [];
-        if (!Array.isArray(tRow.positions)) tRow.positions = [];
-
         while(sRow.positions.length < sCount) sRow.positions.push(null);
         while(tRow.positions.length < sCount) tRow.positions.push(null);
 
@@ -1796,7 +1689,7 @@
         tRow.positions[slotIndex] = movedObj;
 
         draggedData = null;
-        saveState();
+        triggerDebouncedSave();
         renderActiveBoards();
     }
 
@@ -1805,7 +1698,7 @@
       if (e) e.stopPropagation();
       if (depthChart[posId]) {
         depthChart[posId].splice(idx, 1);
-        saveState();
+        triggerDebouncedSave();
         renderActiveBoards();
         renderMasterRoster();
       }
@@ -1832,142 +1725,138 @@
         }
 
         forms.forEach(form => {
-          try {
-              if (!form) return;
-              const formDiv = document.createElement("div");
-              formDiv.className = "formation-container" + (activeCountFormationId === form.id ? " counting-active" : "");
-              formDiv.id = "board_" + form.id;
-              
-              formDiv.onclick = (e) => {
-                  if (e.target.closest('button') || e.target.closest('input')) return;
-                  handleFormationClick(form.id);
-              };
+          if (!form) return;
+          const formDiv = document.createElement("div");
+          formDiv.className = "formation-container" + (activeCountFormationId === form.id ? " counting-active" : "");
+          formDiv.id = "board_" + form.id;
+          
+          formDiv.onclick = (e) => {
+              if (e.target.closest('button') || e.target.closest('input')) return;
+              handleFormationClick(form.id);
+          };
 
-              formDiv.innerHTML = `
-                <div class="board-title" draggable="${userRole === 'admin' ? 'true' : 'false'}" 
-                     ondragstart="handleFormationDragStart(event, '${form.id}')" 
-                     ondragover="event.preventDefault(); this.parentElement.classList.add('drag-over-board');" 
-                     ondragleave="this.parentElement.classList.remove('drag-over-board');" 
-                     ondrop="handleFormationDrop(event, '${form.id}')">
-                  <div style="cursor:grab; display:flex; align-items:center;">
-                    <span class="admin-only no-print" style="margin-right:8px; color:#94a3b8; font-size:16px;" title="Drag to reorder formation">↕</span>
-                    <span>${form.name}</span> 
-                    ${form.subtitle ? `<span style="font-size:11px; color:var(--text-muted); font-weight:normal; margin-left:8px;">${form.subtitle}</span>` : ''}
-                  </div>
-                  <div class="board-controls no-print">
-                    <button class="toggle-board-btn admin-only" onclick="renameFormation('${form.id}')">✏️ Rename</button>
-                    <button class="toggle-board-btn admin-only" onclick="addRowToFormation('${form.id}')">+ Add Row</button>
-                    <button class="toggle-board-btn admin-only" style="color:#ef4444;" onclick="deleteFormation('${form.id}')">🗑️</button>
-                  </div>
+          formDiv.innerHTML = `
+            <div class="board-title" draggable="${userRole === 'admin' ? 'true' : 'false'}" 
+                 ondragstart="handleFormationDragStart(event, '${form.id}')" 
+                 ondragover="event.preventDefault(); this.parentElement.classList.add('drag-over-board');" 
+                 ondragleave="this.parentElement.classList.remove('drag-over-board');" 
+                 ondrop="handleFormationDrop(event, '${form.id}')">
+              <div style="cursor:grab; display:flex; align-items:center;">
+                <span class="admin-only no-print" style="margin-right:8px; color:#94a3b8; font-size:16px;" title="Drag to reorder formation">↕</span>
+                <span>${form.name}</span> 
+                ${form.subtitle ? `<span style="font-size:11px; color:var(--text-muted); font-weight:normal; margin-left:8px;">${form.subtitle}</span>` : ''}
+              </div>
+              <div class="board-controls no-print">
+                <button class="toggle-board-btn admin-only" onclick="renameFormation('${form.id}')">✏️ Rename</button>
+                <button class="toggle-board-btn admin-only" onclick="addRowToFormation('${form.id}')">+ Add Row</button>
+                <button class="toggle-board-btn admin-only" style="color:#ef4444;" onclick="deleteFormation('${form.id}')">🗑️</button>
+              </div>
+            </div>
+            <div class="formation-body"></div>
+          `;
+
+          const bodyDiv = formDiv.querySelector(".formation-body");
+
+          (form.rows || []).forEach(row => {
+            if (!row) return;
+            const slotCount = row.slotCount || 7;
+            const rowWrap = document.createElement("div");
+            rowWrap.className = "row-container";
+            
+            rowWrap.innerHTML = `
+              <div class="level-header-bar">
+                <span class="level-label" onclick="renameRow('${form.id}', '${row.id}')">${row.label || 'Row'} ✏️</span>
+                <div class="row-actions no-print admin-only" style="display:flex; gap:4px; align-items:center;">
+                  <button class="row-action-btn" onclick="changeRowSlots('${form.id}', '${row.id}')" title="Change number of slots">⚙️ Slots (${slotCount})</button>
+                  <button class="row-action-btn" onclick="addPositionToRow('${form.id}', '${row.id}')">+ Pos</button>
+                  <button class="row-action-btn" style="color:#ef4444;" onclick="deleteRow('${form.id}', '${row.id}')">✕</button>
                 </div>
-                <div class="formation-body"></div>
-              `;
+              </div>
+              <div class="formation-row ${row.rowClass || 'oline'}" id="row-grid-${row.id}" style="grid-template-columns: repeat(${slotCount}, 1fr);"></div>
+            `;
 
-              const bodyDiv = formDiv.querySelector(".formation-body");
+            const posRowEl = rowWrap.querySelector(".formation-row");
+            
+            if (!Array.isArray(row.positions)) row.positions = [];
+            while(row.positions.length < slotCount) row.positions.push(null);
+            if(row.positions.length > slotCount) row.positions = row.positions.slice(0, slotCount);
 
-              (form.rows || []).forEach(row => {
-                if (!row) return;
-                const slotCount = row.slotCount || 7;
-                const rowWrap = document.createElement("div");
-                rowWrap.className = "row-container";
-                
-                rowWrap.innerHTML = `
-                  <div class="level-header-bar">
-                    <span class="level-label" onclick="renameRow('${form.id}', '${row.id}')">${row.label || 'Row'} ✏️</span>
-                    <div class="row-actions no-print admin-only" style="display:flex; gap:4px; align-items:center;">
-                      <button class="row-action-btn" onclick="changeRowSlots('${form.id}', '${row.id}')" title="Change number of slots">⚙️ Slots (${slotCount})</button>
-                      <button class="row-action-btn" onclick="addPositionToRow('${form.id}', '${row.id}')">+ Pos</button>
-                      <button class="row-action-btn" style="color:#ef4444;" onclick="deleteRow('${form.id}', '${row.id}')">✕</button>
-                    </div>
-                  </div>
-                  <div class="formation-row ${row.rowClass || 'oline'}" id="row-grid-${row.id}" style="grid-template-columns: repeat(${slotCount}, 1fr);"></div>
-                `;
+            row.positions.forEach((pos, slotIdx) => {
+              const slotDiv = document.createElement("div");
+              slotDiv.className = "row-slot";
+              if (userRole === 'admin') {
+                  slotDiv.ondragover = (e) => { e.preventDefault(); slotDiv.classList.add("drag-over"); };
+                  slotDiv.ondragleave = () => slotDiv.classList.remove("drag-over");
+                  slotDiv.ondrop = (e) => handleSlotDrop(e, form.id, row.id, slotIdx);
+              }
 
-                const posRowEl = rowWrap.querySelector(".formation-row");
-                
-                if (!Array.isArray(row.positions)) row.positions = [];
-                while(row.positions.length < slotCount) row.positions.push(null);
-                if(row.positions.length > slotCount) row.positions = row.positions.slice(0, slotCount);
+              if (pos) {
+                  const card = document.createElement("div");
+                  card.className = "position-card";
+                  card.id = `card-${pos.id}`;
 
-                row.positions.forEach((pos, slotIdx) => {
-                  const slotDiv = document.createElement("div");
-                  slotDiv.className = "row-slot";
                   if (userRole === 'admin') {
-                      slotDiv.ondragover = (e) => { e.preventDefault(); slotDiv.classList.add("drag-over"); };
-                      slotDiv.ondragleave = () => slotDiv.classList.remove("drag-over");
-                      slotDiv.ondrop = (e) => handleSlotDrop(e, form.id, row.id, slotIdx);
+                    card.ondragover = (e) => { e.preventDefault(); card.classList.add("drag-over"); e.stopPropagation(); };
+                    card.ondragleave = () => card.classList.remove("drag-over");
+                    card.ondrop = (e) => { handleCardDrop(e, form.id, row.id, pos.id); };
                   }
 
-                  if (pos) {
-                      const card = document.createElement("div");
-                      card.className = "position-card";
-                      card.id = `card-${pos.id}`;
+                  const players = Array.isArray(depthChart[pos.id]) ? depthChart[pos.id].filter(p => p) : [];
 
-                      if (userRole === 'admin') {
-                        card.ondragover = (e) => { e.preventDefault(); card.classList.add("drag-over"); e.stopPropagation(); };
-                        card.ondragleave = () => card.classList.remove("drag-over");
-                        card.ondrop = (e) => { handleCardDrop(e, form.id, row.id, pos.id); };
-                      }
+                  let playersHtml = players.map((player, idx) => {
+                    let rankClass = 'rank-sub-gray';
+                    let rankLabel = 'D' + (idx + 1);
 
-                      const players = (depthChart && Array.isArray(depthChart[pos.id])) ? depthChart[pos.id].filter(p => p) : [];
+                    if (idx === 0) {
+                        rankClass = 'rank-starter';
+                        rankLabel = 'ST';
+                    } else if (idx === 1) {
+                        rankClass = 'rank-sub-gold';
+                        rankLabel = 'D2';
+                    } else if (idx === 2) {
+                        rankClass = 'rank-sub-blue';
+                        rankLabel = 'D3';
+                    }
+                    
+                    return `
+                    <li class="player-item" draggable="${userRole==='admin'?'true':'false'}" ondragstart="handlePlayerDragStart(event, '${pos.id}', ${idx}, '${player.name}', '${player.num}')">
+                      <div class="player-info">
+                        <span class="rank-badge ${rankClass}">${rankLabel}</span>
+                        <span class="num-tag">#${player.num}</span>
+                        <span>${player.name}</span>
+                      </div>
+                      <button class="remove-btn admin-only" onclick="removePlayer('${pos.id}', ${idx}, event)">&times;</button>
+                    </li>
+                    `;
+                  }).join("");
+                  
+                  card.innerHTML = `
+                    <div class="position-header" draggable="${userRole === 'admin' ? 'true' : 'false'}" ondragstart="handlePosCardDragStart(event, '${form.id}', '${row.id}', '${pos.id}')">
+                      <span style="cursor:grab;" title="Drag to move position">⋮⋮ ${pos.name}</span>
+                      <div class="no-print admin-only" style="display:flex; gap:2px;">
+                         <button class="pos-hdr-btn" onclick="deletePosition('${form.id}', '${row.id}', '${pos.id}')">&times;</button>
+                         <span class="pos-count">${players.length}</span>
+                      </div>
+                    </div>
+                    <ul class="player-list">${playersHtml || '<div style="color:var(--text-muted); font-size:10px; padding:6px; text-align:center;">Drop Player</div>'}</ul>
+                  `;
+                  slotDiv.appendChild(card);
+              }
+              posRowEl.appendChild(slotDiv);
+            });
 
-                      let playersHtml = players.map((player, idx) => {
-                        let rankClass = 'rank-sub-gray';
-                        let rankLabel = 'D' + (idx + 1);
+            bodyDiv.appendChild(rowWrap);
+          });
 
-                        if (idx === 0) {
-                            rankClass = 'rank-starter';
-                            rankLabel = 'ST';
-                        } else if (idx === 1) {
-                            rankClass = 'rank-sub-gold';
-                            rankLabel = 'D2';
-                        } else if (idx === 2) {
-                            rankClass = 'rank-sub-blue';
-                            rankLabel = 'D3';
-                        }
-                        
-                        return `
-                        <li class="player-item" draggable="${userRole==='admin'?'true':'false'}" ondragstart="handlePlayerDragStart(event, '${pos.id}', ${idx}, '${player.name}', '${player.num}')">
-                          <div class="player-info">
-                            <span class="rank-badge ${rankClass}">${rankLabel}</span>
-                            <span class="num-tag">#${player.num}</span>
-                            <span>${player.name}</span>
-                          </div>
-                          <button class="remove-btn admin-only" onclick="removePlayer('${pos.id}', ${idx}, event)">&times;</button>
-                        </li>
-                        `;
-                      }).join("");
-                      
-                      card.innerHTML = `
-                        <div class="position-header" draggable="${userRole === 'admin' ? 'true' : 'false'}" ondragstart="handlePosCardDragStart(event, '${form.id}', '${row.id}', '${pos.id}')">
-                          <span style="cursor:grab;" title="Drag to move position">⋮⋮ ${pos.name}</span>
-                          <div class="no-print admin-only" style="display:flex; gap:2px;">
-                             <button class="pos-hdr-btn" onclick="deletePosition('${form.id}', '${row.id}', '${pos.id}')">&times;</button>
-                             <span class="pos-count">${players.length}</span>
-                          </div>
-                        </div>
-                        <ul class="player-list">${playersHtml || '<div style="color:var(--text-muted); font-size:10px; padding:6px; text-align:center;">Drop Player</div>'}</ul>
-                      `;
-                      slotDiv.appendChild(card);
-                  }
-                  posRowEl.appendChild(slotDiv);
-                });
-
-                bodyDiv.appendChild(rowWrap);
-              });
-
-              container.appendChild(formDiv);
-          } catch(err) {
-              console.error("Error rendering formation:", err);
-          }
+          container.appendChild(formDiv);
         });
       } catch(err) {
-        console.error("Error rendering boards container:", err);
+        console.error("Error rendering boards:", err);
       }
     }
 
     function changeRowSlots(formId, rowId) {
-      if (userRole !== 'admin') { alert("Admin only"); return; }
+      if (userRole !== 'admin') return;
       const forms = getWeekFormations(currentWeek);
       const form = forms.find(f => f.id === formId);
       if(!form) return;
@@ -1975,10 +1864,9 @@
       if(!row) return;
 
       const current = row.slotCount || 7;
-      openGenericModal("Change Row Size", [
-          {id: "slotCount", label: "Number of slots (1-12):", type: "number", value: current}
-      ], (res) => {
-          const newNum = parseInt(res.slotCount);
+      const val = prompt("Enter number of slots for this row (1 to 12):", current);
+      if(val !== null) {
+          const newNum = parseInt(val);
           if(!isNaN(newNum) && newNum >= 1 && newNum <= 12) {
               if (!Array.isArray(row.positions)) row.positions = [];
               while(row.positions.length < current) row.positions.push(null);
@@ -1997,10 +1885,12 @@
               }
 
               row.slotCount = newNum;
-              saveState();
+              triggerDebouncedSave();
               renderActiveBoards();
+          } else {
+              alert("Please enter a valid number between 1 and 12.");
           }
-      });
+      }
     }
 
     // --- Roster Logic ---
@@ -2054,7 +1944,7 @@
           });
 
           validPosIds.forEach(posId => {
-            if (depthChart && Array.isArray(depthChart[posId])) {
+            if (Array.isArray(depthChart[posId])) {
               count += depthChart[posId].filter(p => p && String(p.num) === String(player.num)).length;
             }
           });
@@ -2146,17 +2036,17 @@
         if (play) {
             masterPlayLibrary.push(play);
             input.value = "";
-            saveState();
+            triggerDebouncedSave();
             renderPlayLibrary();
         }
     }
 
     function removePlayFromLibrary(idx) {
-        openConfirmModal("Delete Play", "Delete this play from the library forever?", "Delete Play", () => {
+        if (confirm("Delete this play from the library forever?")) {
             masterPlayLibrary.splice(idx, 1);
-            saveState();
+            triggerDebouncedSave();
             renderPlayLibrary();
-        });
+        }
     }
 
     function dropPlayToWristband(e, colIdx, rowIdx) {
@@ -2168,7 +2058,7 @@
         const playText = e.dataTransfer.getData("text/plain");
         if (playText) {
             weeklyData[currentWeek].wristbandData.columns[colIdx].plays[rowIdx].text = playText;
-            saveState();
+            triggerDebouncedSave();
             renderWristband();
         }
     }
@@ -2179,7 +2069,7 @@
       const wbData = weeklyData[currentWeek].wristbandData;
       wbData.rows += 1;
       wbData.columns.forEach(c => c.plays.push({ text: "", color: c.color }));
-      saveState();
+      triggerDebouncedSave();
       renderWristband();
     }
 
@@ -2190,7 +2080,7 @@
       if (wbData.rows > 1) {
          wbData.rows -= 1;
          wbData.columns.forEach(c => c.plays.pop());
-         saveState();
+         triggerDebouncedSave();
          renderWristband();
       }
     }
@@ -2308,44 +2198,40 @@
     }
 
     function addDrillCategory() {
-      if (userRole !== 'admin') { alert("Admin only"); return; }
-      openGenericModal("Add Drill Category", [{id: 'catName', label: "New Category Name:"}], (res) => {
-          const cat = res.catName;
-          if (cat && cat.trim() !== "" && !dynamicDrills[cat]) {
-              dynamicDrills[cat.trim()] = [];
-              saveState();
-              renderDrillsTab();
-          }
-      });
+      if (userRole !== 'admin') return;
+      const cat = prompt("Enter new Drill Category Name:");
+      if (cat && cat.trim() !== "" && !dynamicDrills[cat]) {
+          dynamicDrills[cat.trim()] = [];
+          triggerDebouncedSave();
+          renderDrillsTab();
+      }
     }
 
     function renameDrillCategory(oldCat, e) {
       if (e) e.stopPropagation();
       if (userRole !== 'admin') return;
-      openGenericModal("Rename Category", [{id: 'catName', label: "Category Name:", value: oldCat}], (res) => {
-          const newCat = res.catName;
-          if (newCat && newCat.trim() !== "" && newCat !== oldCat && !dynamicDrills[newCat]) {
-              dynamicDrills[newCat.trim()] = dynamicDrills[oldCat];
-              delete dynamicDrills[oldCat];
-              if (collapsedDrillCats[oldCat] !== undefined) {
-                 collapsedDrillCats[newCat.trim()] = collapsedDrillCats[oldCat];
-                 delete collapsedDrillCats[oldCat];
-              }
-              saveState();
-              renderDrillsTab();
+      const newCat = prompt("Rename Category:", oldCat);
+      if (newCat && newCat.trim() !== "" && newCat !== oldCat && !dynamicDrills[newCat]) {
+          dynamicDrills[newCat.trim()] = dynamicDrills[oldCat];
+          delete dynamicDrills[oldCat];
+          if (collapsedDrillCats[oldCat] !== undefined) {
+             collapsedDrillCats[newCat.trim()] = collapsedDrillCats[oldCat];
+             delete collapsedDrillCats[oldCat];
           }
-      });
+          triggerDebouncedSave();
+          renderDrillsTab();
+      }
     }
 
     function deleteDrillCategory(cat, e) {
       if (e) e.stopPropagation();
       if (userRole !== 'admin') return;
-      openConfirmModal("Delete Category", `Are you sure you want to delete "${cat}" and all its drills?`, "Delete", () => {
+      if (confirm(`Are you sure you want to delete the category "${cat}" and all its drills?`)) {
           delete dynamicDrills[cat];
           delete collapsedDrillCats[cat];
-          saveState();
+          triggerDebouncedSave();
           renderDrillsTab();
-      });
+      }
     }
 
     function addDrillToCategory(cat, e) {
@@ -2353,7 +2239,7 @@
       if (userRole !== 'admin') return;
       collapsedDrillCats[cat] = false; 
       dynamicDrills[cat].unshift({ name: "New Drill", desc: "", key: "" });
-      saveState();
+      triggerDebouncedSave();
       renderDrillsTab();
     }
 
@@ -2366,11 +2252,11 @@
     function deleteDrillFromCategory(cat, index, e) {
       if (e) e.stopPropagation();
       if (userRole !== 'admin') return;
-      openConfirmModal("Delete Drill", "Delete this drill?", "Delete", () => {
+      if(confirm("Delete this drill?")) {
          dynamicDrills[cat].splice(index, 1);
-         saveState();
+         triggerDebouncedSave();
          renderDrillsTab();
-      });
+      }
     }
 
     // --- FORMATION UTILS ---
@@ -2396,42 +2282,36 @@
     }
 
     function createFormationPrompt(unit) {
-      if (userRole !== 'admin') { alert("Admin only"); return; }
+      if (userRole !== 'admin') return;
+      const name = prompt(`Enter new ${unit.toUpperCase()} formation name:`, "New Formation");
+      if(!name || name.trim() === "") return;
+      const subtitle = prompt("Enter subtitle/description:", "Personnel / Alignment details");
+      const forms = getWeekFormations(currentWeek);
       
-      openGenericModal(`Add ${unit.toUpperCase()} Formation`, [
-          {id: 'formName', label: "Formation Name:", value: "New Formation"},
-          {id: 'formSub', label: "Subtitle/Description:", value: "Personnel / Alignment details"}
-      ], (res) => {
-          let name = res.formName.trim();
-          if(!name) name = "New Formation";
-          let subtitle = res.formSub.trim();
+      const formId = generateUniqueId("form");
+      const rowId = generateUniqueId("row");
+      const posId = generateUniqueId("pos");
 
-          const forms = getWeekFormations(currentWeek);
-          const formId = generateUniqueId("form");
-          const rowId = generateUniqueId("row");
-          const posId = generateUniqueId("pos");
-
-          const newForm = {
-            id: formId,
-            unit: unit,
-            name: name,
-            subtitle: subtitle,
-            collapsed: false,
-            rows: [
-              { id: rowId, label: "Main Level", rowClass: "oline", slotCount: 7, positions: [
-                { id: posId, name: "POS 1" }, null, null, null, null, null, null
-              ]}
-            ]
-          };
-          
-          forms.push(newForm);
-          if(!depthChart) depthChart = getWeekDepthChart(currentWeek);
-          if(!depthChart[posId]) depthChart[posId] = [];
-          
-          saveState(); 
-          renderActiveBoards();
-          renderMasterRoster(); 
-      });
+      const newForm = {
+        id: formId,
+        unit: unit,
+        name: name.trim(),
+        subtitle: (subtitle || "").trim(),
+        collapsed: false,
+        rows: [
+          { id: rowId, label: "Main Level", rowClass: "oline", slotCount: 7, positions: [
+            { id: posId, name: "POS 1" }, null, null, null, null, null, null
+          ]}
+        ]
+      };
+      
+      forms.push(newForm);
+      if(!depthChart) depthChart = getWeekDepthChart(currentWeek);
+      depthChart[posId] = [];
+      
+      triggerDebouncedSave();
+      renderActiveBoards();
+      renderMasterRoster(); 
     }
 
     function renameFormation(formId) {
@@ -2439,66 +2319,55 @@
       const forms = getWeekFormations(currentWeek);
       const form = forms.find(f => f.id === formId);
       if(!form) return;
-      
-      openGenericModal("Edit Formation", [
-          {id: 'formName', label: "Formation Name:", value: form.name},
-          {id: 'formSub', label: "Subtitle:", value: form.subtitle || ""}
-      ], (res) => {
-          if(res.formName.trim() !== "") {
-            form.name = res.formName.trim();
-            form.subtitle = res.formSub.trim();
-            saveState();
-            renderActiveBoards();
-          }
-      });
+      const newName = prompt("Edit Formation Name:", form.name);
+      if(newName && newName.trim() !== "") {
+        form.name = newName.trim();
+        const newSub = prompt("Edit Subtitle:", form.subtitle || "");
+        if(newSub !== null) form.subtitle = newSub.trim();
+        triggerDebouncedSave();
+        renderActiveBoards();
+      }
     }
 
     function deleteFormation(formId) {
       if (userRole !== 'admin') return;
       const forms = getWeekFormations(currentWeek);
-      openConfirmModal("Delete Formation", "Are you sure you want to delete this entire formation?", "Delete", () => {
+      if(confirm("Are you sure you want to delete this entire formation?")) {
         weeklyData[currentWeek].formations = forms.filter(f => f.id !== formId);
         if (activeCountFormationId === formId) activeCountFormationId = null;
-        saveState();
+        triggerDebouncedSave();
         renderActiveBoards();
         renderMasterRoster(); 
-      });
+      }
     }
 
     function addRowToFormation(formId) {
-      if (userRole !== 'admin') { alert("Admin only"); return; }
+      if (userRole !== 'admin') return;
       const forms = getWeekFormations(currentWeek);
       const form = forms.find(f => f.id === formId);
       if(!form) return;
+      const label = prompt("Enter Row/Level Name (e.g., 'Linebackers', 'Backfield'):", "New Level");
+      if(!label || label.trim() === "") return;
       
-      openGenericModal("Add Row", [
-          {id: 'rowName', label: "Row/Level Name (e.g., 'Linebackers'):", value: "New Level"}
-      ], (res) => {
-          let label = res.rowName.trim();
-          if(!label) label = "New Level";
-          
-          const rowId = generateUniqueId("row");
-          const posId = generateUniqueId("pos");
+      const rowId = generateUniqueId("row");
+      const posId = generateUniqueId("pos");
 
-          if (!Array.isArray(form.rows)) form.rows = [];
-
-          form.rows.push({
-            id: rowId,
-            label: label,
-            rowClass: "oline",
-            slotCount: 7,
-            positions: [
-              { id: posId, name: "POS 1" }, null, null, null, null, null, null
-            ]
-          });
-          
-          if(!depthChart) depthChart = getWeekDepthChart(currentWeek);
-          if(!depthChart[posId]) depthChart[posId] = [];
-          
-          saveState(); 
-          renderActiveBoards();
-          renderMasterRoster();
+      form.rows.push({
+        id: rowId,
+        label: label.trim(),
+        rowClass: "oline",
+        slotCount: 7,
+        positions: [
+          { id: posId, name: "POS 1" }, null, null, null, null, null, null
+        ]
       });
+      
+      if(!depthChart) depthChart = getWeekDepthChart(currentWeek);
+      depthChart[posId] = [];
+      
+      triggerDebouncedSave();
+      renderActiveBoards();
+      renderMasterRoster();
     }
 
     function renameRow(formId, rowId) {
@@ -2508,16 +2377,12 @@
       if(!form) return;
       const row = form.rows.find(r => r.id === rowId);
       if(!row) return;
-      
-      openGenericModal("Edit Row Name", [
-          {id: 'rowName', label: "Row Name:", value: row.label}
-      ], (res) => {
-          if(res.rowName.trim() !== "") {
-            row.label = res.rowName.trim();
-            saveState();
-            renderActiveBoards();
-          }
-      });
+      const newLabel = prompt("Edit Row/Level Name:", row.label);
+      if(newLabel && newLabel.trim() !== "") {
+        row.label = newLabel.trim();
+        triggerDebouncedSave();
+        renderActiveBoards();
+      }
     }
 
     function deleteRow(formId, rowId) {
@@ -2525,17 +2390,16 @@
       const forms = getWeekFormations(currentWeek);
       const form = forms.find(f => f.id === formId);
       if(!form) return;
-      
-      openConfirmModal("Delete Row", "Delete this row and its positions?", "Delete Row", () => {
+      if(confirm("Delete this row and its positions?")) {
         form.rows = form.rows.filter(r => r.id !== rowId);
-        saveState(); 
+        triggerDebouncedSave();
         renderActiveBoards();
         renderMasterRoster();
-      });
+      }
     }
 
     function addPositionToRow(formId, rowId) {
-      if (userRole !== 'admin') { alert("Admin only"); return; }
+      if (userRole !== 'admin') return;
       const forms = getWeekFormations(currentWeek);
       const form = forms.find(f => f.id === formId);
       if(!form) return;
@@ -2548,26 +2412,21 @@
 
       const emptyIndex = row.positions.findIndex(p => p === null);
       if (emptyIndex === -1) {
-          openGenericModal("Row is Full", [{id:'info', label:`This row is full (maximum ${slotCount} slots). Click '⚙️ Slots' on the row header to increase capacity.`, type:'hidden'}], ()=>{});
+          alert(`This row is full (maximum ${slotCount} slots). Click '⚙️ Slots' to increase capacity.`);
           return;
       }
 
-      openGenericModal("Add Position", [
-          {id: 'posName', label: "Enter Position Name (e.g. 'LT', 'MIKE'):", value: "POS"}
-      ], (res) => {
-          let posName = res.posName.trim();
-          if(!posName) posName = "POS";
-          
-          const posId = generateUniqueId("pos");
-          row.positions[emptyIndex] = { id: posId, name: posName };
-          
-          if(!depthChart) depthChart = getWeekDepthChart(currentWeek);
-          if(!depthChart[posId]) depthChart[posId] = [];
-          
-          saveState(); 
-          renderActiveBoards();
-          renderMasterRoster();
-      });
+      const posName = prompt("Enter Position Name (e.g. 'LT', 'MIKE', 'SLOT'):", "POS");
+      if(!posName || posName.trim() === "") return;
+      
+      const posId = generateUniqueId("pos");
+      row.positions[emptyIndex] = { id: posId, name: posName.trim() };
+      
+      if(!depthChart[posId]) depthChart[posId] = [];
+      
+      triggerDebouncedSave();
+      renderActiveBoards();
+      renderMasterRoster();
     }
 
     function deletePosition(formId, rowId, posId) {
@@ -2578,75 +2437,526 @@
       const row = form.rows.find(r => r.id === rowId);
       if(!row) return;
 
-      openConfirmModal("Delete Card", "Delete this position card?", "Delete", () => {
+      if(confirm("Delete this position card?")) {
         row.positions = row.positions.map(p => (p && p.id === posId) ? null : p);
         delete depthChart[posId];
-        saveState();
+        triggerDebouncedSave();
         renderActiveBoards();
         renderMasterRoster();
-      });
+      }
+    }
+
+
+    // --- PRACTICE PLAN LOGIC ---
+    function openNewPracticeModal() {
+        if(userRole !== 'admin') return;
+        document.getElementById("new-prac-modal").classList.remove('hidden');
+    }
+
+    function executeCreateNewPractice() {
+        if(userRole !== 'admin') return;
+        const title = document.getElementById("modal-prac-title").value.trim() || "Practice Plan";
+        const templateType = document.getElementById("modal-prac-template").value;
+        const totalDuration = parseInt(document.getElementById("modal-prac-duration").value) || 150;
+        document.getElementById("new-prac-modal").classList.add('hidden');
+
+        let starterPlan = [];
+        if (templateType === 'offense') {
+            starterPlan = [
+                { time: 25, category: "Pre Practice", format: "static", stations: [{ name: "GROUP 1: QB & Center Exchange", desc: "Under center and shotgun snap work.", coach: "TJ", focus: "Snap accuracy" }], coaches: [], key: "" },
+                { time: 30, category: "Warm-Up & Breaks", format: "static", stations: [{ name: "GROUP 1: Dynamic Warm-Up", desc: "High knees, karaoke, shuffling, short sprints.", coach: "TJ", focus: "Speed & posture" }], coaches: [], key: "" },
+                { time: 45, category: "Individual Offense", format: "static", stations: [
+                    { name: "O-Line Run Blocking", desc: "Power steps and drive blocking.", coach: "Brian", focus: "Pad level" },
+                    { name: "WR Route Tree", desc: "Route running and on-air throws.", coach: "Ed", focus: "Clean breaks" }
+                ], coaches: [], key: "" },
+                { time: 50, category: "Team Offense", format: "static", stations: [{ name: "Full Team Run Install", desc: "Review assignments vs 4-4 defense.", coach: "Dan", focus: "Assignment execution" }], coaches: [], key: "" }
+            ];
+        } else if (templateType === 'defense') {
+            starterPlan = [
+                { time: 25, category: "Pre Practice", format: "static", stations: [{ name: "GROUP 1: Form Tackling", desc: "Breakdown, fit, and drive.", coach: "Joe", focus: "Hip explosion" }], coaches: [], key: "" },
+                { time: 35, category: "Tackle Circuit", format: "rotating", stations: [
+                    { name: "STATION 1: Form Fit & Drive", desc: "Shoulder fit and 3-step drive.", coach: "Dan", focus: "Wrap cloth" },
+                    { name: "STATION 2: Angle Tackle", desc: "Inside-out angle pursuit.", coach: "Pete", focus: "Near hip" }
+                ], coaches: [], key: "" },
+                { time: 45, category: "Individual Defense", format: "static", stations: [{ name: "DL Gap Control & Rip", desc: "Read hat and execute rip move.", coach: "John", focus: "Violent hands" }], coaches: [], key: "" },
+                { time: 45, category: "Team Defense", format: "static", stations: [{ name: "Defensive Front Install", desc: "Walk through base front alignments.", coach: "Dan", focus: "Gap integrity" }], coaches: [], key: "" }
+            ];
+        } else {
+            starterPlan = [
+                { time: 25, category: "Pre Practice", format: "static", stations: [{ name: "GROUP 1: Special Teams Setup", desc: "Kicking and holding mechanics.", coach: "TJ", focus: "Timing" }], coaches: [], key: "" },
+                { time: 45, category: "Tackle Circuit", format: "rotating", stations: [
+                    { name: "STATION 1: Tackling", desc: "Form fit and drive.", coach: "Joe", focus: "Hips" },
+                    { name: "STATION 2: Block Defeat", desc: "Arm-over swim move.", coach: "Brian", focus: "Quick hands" }
+                ], coaches: [], key: "" },
+                { time: 40, category: "Individual Offense / Defense", format: "static", stations: [
+                    { name: "Offense: RBs & QBs", desc: "Mesh and handoff reads.", coach: "Dan", focus: "Ball security" },
+                    { name: "Defense: DB Backpedal", desc: "Drive on ball at 45 degree angle.", coach: "Ed", focus: "Low hips" }
+                ], coaches: [], key: "" },
+                { time: 40, category: "Team / Installs", format: "static", stations: [{ name: "Full Team Scrimmage / Walkthrough", desc: "Run plays full speed vs defense.", coach: "Dan", focus: "Execution" }], coaches: [], key: "" }
+            ];
+        }
+
+        let newPrac = {
+            id: generateUniqueId('prac'),
+            title: title,
+            year: "2026",
+            week: "Week " + currentWeek,
+            day: "Wednesday",
+            startTime: "17:05",
+            endTime: "19:35",
+            lastEdited: Date.now(),
+            plan: starterPlan
+        };
+
+        practiceData.push(newPrac);
+        currentPracticeId = newPrac.id;
+        triggerDebouncedSave();
+        populatePracticeDropdown();
+        renderPracticePlan();
+    }
+
+    function handlePracticeDragStart(e, pracId) {
+        if (userRole !== 'admin') { e.preventDefault(); return; }
+        draggedData = { type: 'practice', id: pracId };
+        e.dataTransfer.setData("text/plain", pracId);
+    }
+    
+    function handleWeekDragStart(e, year, week) {
+        if (userRole !== 'admin') { e.preventDefault(); return; }
+        draggedData = { type: 'week', year, week };
+        e.dataTransfer.setData("text/plain", week);
+        e.stopPropagation();
+    }
+    
+    function handleFolderDrop(e, targetYear, targetWeek) {
+        e.preventDefault();
+        e.currentTarget.classList.remove('drag-over');
+        e.stopPropagation();
+        if (userRole !== 'admin' || !draggedData) return;
+        
+        if (draggedData.type === 'practice') {
+            const pracId = draggedData.id;
+            const prac = practiceData.find(p => p.id === pracId);
+            if (prac) {
+                prac.year = targetYear;
+                prac.week = targetWeek;
+                triggerDebouncedSave();
+                populatePracticeDropdown();
+                if (currentPracticeId === pracId) renderPracticePlan(); 
+            }
+        } else if (draggedData.type === 'week') {
+            const sYear = draggedData.year;
+            const sWeek = draggedData.week;
+            
+            if (sYear === targetYear && sWeek !== targetWeek) {
+                let orderArray = weekSortOrder[sYear];
+                const sIdx = orderArray.indexOf(sWeek);
+                const tIdx = orderArray.indexOf(targetWeek);
+                if (sIdx > -1 && tIdx > -1) {
+                    orderArray.splice(sIdx, 1);
+                    orderArray.splice(tIdx, 0, sWeek);
+                    triggerDebouncedSave();
+                    populatePracticeDropdown();
+                }
+            }
+        }
+        draggedData = null;
     }
 
     function renamePracticeWeek(year, oldWeek, e) {
         e.stopPropagation();
         if(userRole !== 'admin') return;
-        
-        openGenericModal("Rename Folder", [
-            {id: 'folderName', label: `Rename Folder '${oldWeek}':`, value: oldWeek}
-        ], (res) => {
-            const newWeek = res.folderName;
-            if(newWeek && newWeek.trim() !== "" && newWeek !== oldWeek) {
-                practiceData.forEach(p => {
-                    if(p.year === year && p.week === oldWeek) p.week = newWeek.trim();
-                });
-                if (weekSortOrder[year]) {
-                    const idx = weekSortOrder[year].indexOf(oldWeek);
-                    if (idx > -1) weekSortOrder[year][idx] = newWeek.trim();
-                }
-                saveState();
-                populatePracticeDropdown();
-                renderPracticePlan();
+        const newWeek = prompt(`Rename Folder '${oldWeek}':`, oldWeek);
+        if(newWeek && newWeek.trim() !== "" && newWeek !== oldWeek) {
+            practiceData.forEach(p => {
+                if(p.year === year && p.week === oldWeek) p.week = newWeek.trim();
+            });
+            if (weekSortOrder[year]) {
+                const idx = weekSortOrder[year].indexOf(oldWeek);
+                if (idx > -1) weekSortOrder[year][idx] = newWeek.trim();
             }
-        });
+            triggerDebouncedSave();
+            populatePracticeDropdown();
+            renderPracticePlan();
+        }
+    }
+
+    function populatePracticeDropdown() {
+      const dropdown = document.getElementById("practice-tree-dropdown");
+      const display = document.getElementById("selected-practice-display");
+      if (!dropdown || !display) return;
+
+      if (!practiceData || practiceData.length === 0) {
+          display.textContent = "Select Practice...";
+          dropdown.innerHTML = "<div style='padding:8px;'>No practices found.</div>";
+          return;
+      }
+
+      const current = practiceData.find(p => p.id === currentPracticeId);
+      if (current) {
+          display.textContent = `${current.title} (${current.day})`;
+      } else {
+          display.textContent = "Select Practice...";
+      }
+
+      let html = `<ul class="tree-root">`;
+      let groups = {};
+      practiceData.forEach(p => {
+          const y = p.year || "Unknown Year";
+          const w = p.week || "Unknown Week";
+          if (!groups[y]) groups[y] = {};
+          if (!groups[y][w]) groups[y][w] = [];
+          groups[y][w].push(p);
+      });
+
+      for (const y in groups) {
+          if (!weekSortOrder[y]) weekSortOrder[y] = Object.keys(groups[y]);
+          Object.keys(groups[y]).forEach(w => {
+              if (!weekSortOrder[y].includes(w)) weekSortOrder[y].push(w);
+          });
+          weekSortOrder[y] = weekSortOrder[y].filter(w => groups[y][w]);
+
+          html += `<li><span class="tree-caret" onclick="const sub = this.nextElementSibling; if(sub) sub.classList.toggle('hidden');">📁 ${y}</span><ul style="list-style:none; margin:0; padding-left:12px;">`;
+          
+          weekSortOrder[y].forEach(w => {
+              html += `<li>
+                  <div style="display:flex; align-items:center;">
+                      <span class="tree-caret week-drop-target" style="flex:1;"
+                            draggable="${userRole === 'admin' ? 'true' : 'false'}"
+                            ondragstart="handleWeekDragStart(event, '${y}', '${w}')"
+                            ondragover="event.preventDefault(); this.classList.add('drag-over');" 
+                            ondragleave="this.classList.remove('drag-over');" 
+                            ondrop="handleFolderDrop(event, '${y}', '${w}')" 
+                            onclick="const sub = this.parentElement.nextElementSibling; if(sub) sub.classList.toggle('hidden');">📂 ${w}</span>
+                      <button class="no-print admin-only" style="background:none; border:none; cursor:pointer; font-size:10px; margin-left:5px;" onclick="renamePracticeWeek('${y}', '${w}', event)" title="Rename Week Folder">✏️</button>
+                  </div>
+                  <ul style="list-style:none; margin:0; padding-left:12px;">`;
+              groups[y][w].forEach(p => {
+                  const sel = (p.id === currentPracticeId) ? "selected" : "";
+                  html += `<li class="tree-leaf ${sel}" draggable="${userRole === 'admin' ? 'true' : 'false'}" ondragstart="handlePracticeDragStart(event, '${p.id}')" onclick="loadPractice('${p.id}')">📝 ${p.title} (${p.day})</li>`;
+              });
+              html += `</ul></li>`;
+          });
+          html += `</ul></li>`;
+      }
+      html += `</ul>`;
+      dropdown.innerHTML = html;
+    }
+
+    function togglePracticeTree(event) {
+        if(event) event.stopPropagation();
+        const dropdown = document.getElementById("practice-tree-dropdown");
+        if(dropdown.style.display === "none" || dropdown.style.display === "") {
+            dropdown.style.display = "block";
+        } else {
+            dropdown.style.display = "none";
+        }
+    }
+
+    function loadPractice(id) {
+        currentPracticeId = id;
+        document.getElementById("practice-tree-dropdown").style.display = "none";
+        populatePracticeDropdown();
+        renderPracticePlan();
+    }
+
+    function renderPracticePlan() {
+      const tbody = document.getElementById("practice-rows");
+      const stats = document.getElementById("prac-stats");
+      const startEl = document.getElementById("prac-start");
+      const endEl = document.getElementById("prac-end");
+      const titleEl = document.getElementById("print-practice-title");
+      const dateEl = document.getElementById("print-practice-date");
+
+      if (!tbody) return;
+
+      const prac = practiceData.find(p => p.id === currentPracticeId);
+      if (!prac) {
+          tbody.innerHTML = "<tr><td colspan='6' style='text-align:center;'>No practice selected.</td></tr>";
+          return;
+      }
+
+      if(startEl) startEl.value = prac.startTime || "17:05";
+      if(endEl) endEl.value = prac.endTime || "20:00";
+      if(titleEl) titleEl.textContent = `Practice Plan: ${prac.title}`;
+      if(dateEl) dateEl.textContent = `${prac.day} | ${prac.week} | ${prac.year}`;
+
+      let totalMins = 0;
+      (prac.plan || []).forEach(row => {
+          if (row.category !== "Pre Practice") {
+              totalMins += parseInt(row.time || 0);
+          }
+      });
+      
+      let startMins = 0;
+      if (prac.startTime) {
+          let pts = prac.startTime.split(":");
+          startMins = parseInt(pts[0])*60 + parseInt(pts[1]);
+      }
+
+      if(stats) {
+          stats.innerHTML = `<span style="background:var(--primary); color:white; padding:4px 8px; border-radius:4px;">Total Active Time: ${totalMins} mins</span>`;
+      }
+
+      tbody.innerHTML = "";
+      let currentMins = startMins;
+
+      (prac.plan || []).forEach((row, idx) => {
+          let duration = parseInt(row.time || 15);
+          let endPeriodMins = currentMins + duration;
+          let stTimeStr = formatTime(currentMins);
+          let endTimeStr = formatTime(endPeriodMins);
+
+          let formatType = row.format || "static";
+          let stations = Array.isArray(row.stations) ? row.stations : [{ name: "Group 1", desc: "", coach: "", focus: "" }];
+          let rowSpan = stations.length;
+
+          let categoryOptions = `<option value="">-- Category --</option>`;
+          categoryOptions += `<option value="Pre Practice" ${row.category === 'Pre Practice' ? 'selected' : ''}>Pre Practice (Non-counted)</option>`;
+          Object.keys(dynamicDrills).forEach(c => {
+             if (c !== 'Pre Practice') {
+                 categoryOptions += `<option value="${c}" ${row.category === c ? 'selected' : ''}>${c}</option>`;
+             }
+          });
+
+          stations.forEach((st, sIdx) => {
+              let drillSelectOptions = `<option value="">-- Select Drill --</option>`;
+              if(row.category && dynamicDrills[row.category]) {
+                  dynamicDrills[row.category].forEach(d => {
+                      drillSelectOptions += `<option value="${d.name}" ${st.name.includes(d.name) ? 'selected' : ''}>${d.name}</option>`;
+                  });
+              }
+
+              let coachSelectOptions = `<option value="">+ Coach</option>`;
+              savedCoaches.forEach(c => {
+                 coachSelectOptions += `<option value="${c}" ${st.coach === c ? 'selected' : ''}>${c}</option>`;
+              });
+
+              let tr = document.createElement("tr");
+              let periodClass = (idx % 2 === 0) ? "period-odd" : "period-even";
+              tr.className = periodClass;
+
+              let timeCategoryAndRemoveTds = "";
+              if (sIdx === 0) {
+                  timeCategoryAndRemoveTds = `
+                      <td rowspan="${rowSpan}" style="vertical-align: top;">
+                          <input type="number" class="prac-input" value="${duration}" oninput="updatePracticeRow(${idx}, 'time', this.value)" style="width:45px; display:inline;"> Mins
+                          <div class="period-schedule-time">${stTimeStr} - ${endTimeStr}</div>
+                      </td>
+                      <td rowspan="${rowSpan}" style="vertical-align: top;">
+                          <select class="prac-select" onchange="updatePracticeCategory(${idx}, this.value)" style="font-weight:bold; margin-bottom:4px;">
+                             ${categoryOptions}
+                          </select>
+                          <select class="prac-select admin-only" onchange="updatePracticeFormat(${idx}, this.value)" style="margin-bottom:4px;">
+                              <option value="static" ${formatType === 'static' ? 'selected' : ''}>Static Circuit</option>
+                              <option value="rotating" ${formatType === 'rotating' ? 'selected' : ''}>Rotating Circuit</option>
+                          </select>
+                          <button class="add-row-btn admin-only" style="padding:3px 8px; font-size:10px; margin:0;" onclick="addStation(${idx})">+ Group / Station</button>
+                      </td>
+                  `;
+              }
+
+              let removeTd = "";
+              if (sIdx === 0) {
+                  removeTd = `
+                      <td rowspan="${rowSpan}" class="no-print admin-only" style="text-align:center; vertical-align:middle;">
+                          <button class="remove-btn" onclick="deletePracticeRow(${idx})">&times;</button>
+                      </td>
+                  `;
+              }
+
+              let bottomBorder = (sIdx < rowSpan - 1) ? '1px dashed #cbd5e1' : 'none';
+
+              tr.innerHTML = `
+                  ${timeCategoryAndRemoveTds}
+                  <td style="border-bottom: ${bottomBorder}; vertical-align: top;">
+                      <div style="display:flex; justify-content:space-between; align-items:center; gap:4px; margin-bottom:4px;">
+                        <input type="text" class="prac-input" value="${st.name || ''}" oninput="updateStationField(${idx}, ${sIdx}, 'name', this.value)" placeholder="Group / Station Name..." style="font-weight:bold; width:60%;">
+                        <select class="prac-select admin-only" onchange="updateStationDrill(${idx}, ${sIdx}, this.value)" style="font-size:10px; width:35%;">
+                            ${drillSelectOptions}
+                        </select>
+                        ${rowSpan > 1 ? `<button class="remove-btn admin-only" onclick="removeStation(${idx}, ${sIdx})" style="font-size:11px; padding:0 4px;">&times;</button>` : ''}
+                     </div>
+                     <textarea class="prac-textarea" oninput="autoResizeTextarea(this); updateStationField(${idx}, ${sIdx}, 'desc', this.value)" placeholder="Drill instructions & notes..." style="min-height:40px; margin-top:0;">${st.desc || ''}</textarea>
+                  </td>
+                  <td style="border-bottom: ${bottomBorder}; vertical-align: top;">
+                      <select class="prac-select admin-only" onchange="updateStationField(${idx}, ${sIdx}, 'coach', this.value); renderPracticePlan();" style="margin-bottom:4px;">
+                           ${coachSelectOptions}
+                      </select>
+                      <input type="text" class="prac-input" value="${st.coach || ''}" oninput="updateStationField(${idx}, ${sIdx}, 'coach', this.value)" placeholder="Coach(es)...">
+                  </td>
+                  <td style="border-bottom: ${bottomBorder}; vertical-align: top;">
+                      <input type="text" class="prac-input" value="${st.focus || ''}" oninput="updateStationField(${idx}, ${sIdx}, 'focus', this.value)" placeholder="Focus...">
+                  </td>
+                  ${removeTd}
+              `;
+              tbody.appendChild(tr);
+          });
+          currentMins = endPeriodMins;
+      });
+      document.querySelectorAll('#panel-practice .prac-textarea').forEach(ta => autoResizeTextarea(ta));
+    }
+
+    function updatePracticeRow(idx, field, val) {
+        if(userRole !== 'admin') return;
+        const prac = practiceData.find(p => p.id === currentPracticeId);
+        if(prac && prac.plan[idx]) {
+            prac.plan[idx][field] = val;
+            if(field === 'time') renderPracticePlan();
+            triggerDebouncedSave();
+        }
+    }
+
+    function updatePracticeCategory(idx, val) {
+        if(userRole !== 'admin') return;
+        const prac = practiceData.find(p => p.id === currentPracticeId);
+        if(prac && prac.plan[idx]) {
+            prac.plan[idx].category = val;
+            triggerDebouncedSave();
+            renderPracticePlan();
+        }
+    }
+
+    function updateStationField(pIdx, sIdx, field, val) {
+        if(userRole !== 'admin') return;
+        const prac = practiceData.find(p => p.id === currentPracticeId);
+        if(prac && prac.plan[pIdx] && prac.plan[pIdx].stations[sIdx]) {
+            prac.plan[pIdx].stations[sIdx][field] = val;
+            triggerDebouncedSave();
+        }
+    }
+
+    function updateStationDrill(pIdx, sIdx, drillName) {
+        if(userRole !== 'admin' || !drillName) return;
+        const prac = practiceData.find(p => p.id === currentPracticeId);
+        if(prac && prac.plan[pIdx]) {
+            const cat = prac.plan[pIdx].category;
+            if(cat && dynamicDrills[cat]) {
+                const found = dynamicDrills[cat].find(d => d.name === drillName);
+                if(found) {
+                    prac.plan[pIdx].stations[sIdx].name = found.name;
+                    prac.plan[pIdx].stations[sIdx].desc = found.desc || "";
+                    prac.plan[pIdx].stations[sIdx].focus = found.key || "";
+                    triggerDebouncedSave();
+                    renderPracticePlan();
+                }
+            }
+        }
+    }
+
+    function addStation(pIdx) {
+        if(userRole !== 'admin') return;
+        const prac = practiceData.find(p => p.id === currentPracticeId);
+        if(prac && prac.plan[pIdx]) {
+            if(!prac.plan[pIdx].stations) prac.plan[pIdx].stations = [];
+            prac.plan[pIdx].stations.push({ name: `GROUP ${prac.plan[pIdx].stations.length + 1}`, desc: "", coach: "", focus: "" });
+            triggerDebouncedSave();
+            renderPracticePlan();
+        }
+    }
+
+    function removeStation(pIdx, sIdx) {
+        if(userRole !== 'admin') return;
+        const prac = practiceData.find(p => p.id === currentPracticeId);
+        if(prac && prac.plan[pIdx] && prac.plan[pIdx].stations) {
+            prac.plan[pIdx].stations.splice(sIdx, 1);
+            if(prac.plan[pIdx].stations.length === 0) {
+                prac.plan[pIdx].stations.push({ name: "Group 1", desc: "", coach: "", focus: "" });
+            }
+            triggerDebouncedSave();
+            renderPracticePlan();
+        }
+    }
+
+    function updatePracticeFormat(idx, formatVal) {
+        if(userRole !== 'admin') return;
+        const prac = practiceData.find(p => p.id === currentPracticeId);
+        if(prac && prac.plan[idx]) {
+            prac.plan[idx].format = formatVal;
+            triggerDebouncedSave();
+            renderPracticePlan();
+        }
+    }
+
+    function deletePracticeRow(idx) {
+        if(userRole !== 'admin') return;
+        const prac = practiceData.find(p => p.id === currentPracticeId);
+        if(prac && confirm("Delete this period?")) {
+            prac.plan.splice(idx, 1);
+            triggerDebouncedSave();
+            renderPracticePlan();
+        }
+    }
+
+    function addPracticeRow() {
+        if(userRole !== 'admin') return;
+        const prac = practiceData.find(p => p.id === currentPracticeId);
+        if(prac) {
+            if(!prac.plan) prac.plan = [];
+            prac.plan.push({ 
+                time: 15, 
+                category: "Indy / Fundamentals", 
+                format: "static", 
+                stations: [{ name: "GROUP 1", desc: "Drill instructions...", coach: "", focus: "Focus" }]
+            });
+            triggerDebouncedSave();
+            renderPracticePlan();
+        }
+    }
+
+    function updatePracticeTimes(field, val) {
+        if(userRole !== 'admin') return;
+        const prac = practiceData.find(p => p.id === currentPracticeId);
+        if(prac) {
+            prac[field] = val;
+            triggerDebouncedSave();
+            renderPracticePlan();
+        }
     }
 
     function editPracticeDetails() {
         if(userRole !== 'admin') return;
         const prac = practiceData.find(p => p.id === currentPracticeId);
         if(!prac) return;
-        
-        openGenericModal("Edit Practice Details", [
-            {id: 'title', label: "Title:", value: prac.title},
-            {id: 'day', label: "Day (e.g. Wednesday):", value: prac.day},
-            {id: 'week', label: "Week (e.g. Week 3):", value: prac.week},
-            {id: 'year', label: "Year:", value: prac.year}
-        ], (res) => {
-            if(res.title) prac.title = res.title;
-            if(res.day) prac.day = res.day;
-            if(res.week) prac.week = res.week;
-            if(res.year) prac.year = res.year;
+        const newTitle = prompt("Edit Title:", prac.title);
+        if(newTitle) prac.title = newTitle;
+        const newDay = prompt("Edit Day (e.g. Wednesday):", prac.day);
+        if(newDay) prac.day = newDay;
+        const newWeek = prompt("Edit Week (e.g. Week 3):", prac.week);
+        if(newWeek) prac.week = newWeek;
+        const newYear = prompt("Edit Year:", prac.year);
+        if(newYear) prac.year = newYear;
 
-            prac.lastEdited = Date.now();
-            saveState();
-            populatePracticeDropdown();
-            renderPracticePlan();
-        });
+        prac.lastEdited = Date.now();
+        triggerDebouncedSave();
+        populatePracticeDropdown();
+        renderPracticePlan();
+    }
+
+    function saveAsTemplate() {
+        if(userRole !== 'admin') return;
+        const prac = practiceData.find(p => p.id === currentPracticeId);
+        if(!prac) return;
+        practiceTemplates.push(JSON.parse(JSON.stringify(prac)));
+        localStorage.setItem("footballPracticeTemplates", JSON.stringify(practiceTemplates));
+        alert("Practice saved as a template!");
     }
 
     function deletePractice() {
         if(userRole !== 'admin') return;
         if(practiceData.length <= 1) {
-            openGenericModal("Cannot Delete", [{id:'info', label:"Cannot delete the last remaining practice plan.", type:'hidden'}], ()=>{});
+            alert("Cannot delete the last remaining practice plan.");
             return;
         }
-        openConfirmModal("Delete Plan", "Are you sure you want to delete this entire practice plan?", "Delete Plan", () => {
+        if(confirm("Are you sure you want to delete this entire practice plan?")) {
             practiceData = practiceData.filter(p => p.id !== currentPracticeId);
             currentPracticeId = practiceData[0].id;
-            saveState();
+            triggerDebouncedSave();
             populatePracticeDropdown();
             renderPracticePlan();
-        });
+        }
     }
+
 
     // --- USERS LOGIC ---
     async function renderUsers() {
@@ -2722,7 +3032,7 @@
     }
 
     async function addFirebaseUser() {
-        if(!cloudEnabled || !db) return openGenericModal("Offline Mode", [{id:'info', label:"Firebase is not connected in Offline Mode.", type:'hidden'}], ()=>{});
+        if(!cloudEnabled || !db) return alert("Firebase is not connected in Offline Mode.");
         const email = document.getElementById('new-user-email').value.trim();
         const role = document.getElementById('new-user-role').value;
         if(!email) return;
@@ -2730,7 +3040,7 @@
             await db.collection('users').doc(email.toLowerCase()).set({ email: email.toLowerCase(), role: role, status: 'Active' });
             renderUsers();
         } catch(e) {
-            openGenericModal("Error", [{id:'info', label:"Error adding user: "+e.message, type:'hidden'}], ()=>{});
+            alert("Error adding user to database: " + e.message);
         }
     }
 
@@ -2740,7 +3050,7 @@
             await db.collection('users').doc(docId).update({ role: newRole });
             renderUsers();
         } catch(e) {
-            openGenericModal("Error", [{id:'info', label:"Error updating permissions: "+e.message, type:'hidden'}], ()=>{});
+            alert("Error updating permissions: " + e.message);
         }
     }
 
