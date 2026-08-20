@@ -298,28 +298,6 @@
       color: var(--accent);
       font-size: 10.5px;
     }
-    .rotation-timer {
-      color: #ef4444;
-      font-size: 9.5px;
-      font-weight: bold;
-      margin-top: 4px;
-    }
-
-    .col-resizer {
-      position: absolute;
-      top: 0;
-      right: -3px;
-      width: 6px;
-      cursor: col-resize;
-      user-select: none;
-      height: 100%;
-      background: transparent;
-      z-index: 10;
-    }
-
-    .col-resizer:hover, .col-resizer.resizing {
-      background: var(--accent);
-    }
 
     .prac-input, .prac-select, .prac-textarea {
       width: 100%;
@@ -346,21 +324,6 @@
       background: #ffffff;
       outline: none;
     }
-
-    .video-link-btn {
-      display: inline-block;
-      margin-top: 4px;
-      font-size: 10px;
-      color: #dc2626;
-      text-decoration: none;
-      font-weight: bold;
-      background: #fef2f2;
-      border: 1px solid #fecaca;
-      padding: 3px 6px;
-      border-radius: 4px;
-    }
-
-    .video-link-btn:hover { background: #fee2e2; }
 
     .add-row-btn {
       margin-top: 10px;
@@ -714,12 +677,11 @@
           <table class="practice-table" id="main-practice-table">
             <thead>
               <tr id="practice-header-row">
-                <th style="width: 10%;">Time / Period <div class="col-resizer admin-only"></div></th>
-                <th style="width: 14%;">Category & Format <div class="col-resizer admin-only"></div></th>
-                <th style="width: 25%;">Select Drill(s) <div class="col-resizer admin-only"></div></th>
-                <th style="width: 25%;">Drill Details & Instructions <div class="col-resizer admin-only"></div></th>
-                <th style="width: 10%;">Coach(es) <div class="col-resizer admin-only"></div></th>
-                <th style="width: 12%;">Coaching Focus <div class="col-resizer admin-only"></div></th>
+                <th style="width: 12%;">Time / Period</th>
+                <th style="width: 14%;">Category & Format</th>
+                <th style="width: 32%;">Groups & Stations / Drills</th>
+                <th style="width: 22%;">Coaches</th>
+                <th style="width: 16%;">Coaching Focus</th>
                 <th style="width: 4%; text-align:center;" class="no-print admin-only">❌</th>
               </tr>
             </thead>
@@ -913,7 +875,16 @@
     
     let weekSortOrder = safeJSONParse("footballWeekOrder", {});
 
-    // --- IMPORT PRACTICE PLAN FROM .DOCX, .TXT, .CSV, OR .JSON ---
+    // --- ACCURATE PRACTICE PLAN PARSER (.DOCX & .TXT) ---
+    function parseTimeString(str) {
+        if (!str) return 0;
+        let parts = str.trim().split(':');
+        if (parts.length === 2) {
+            return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+        }
+        return 0;
+    }
+
     function importExternalPracticePlan(e) {
         if (userRole !== 'admin') return;
         const file = e.target.files[0];
@@ -927,12 +898,10 @@
                 let rawText = "";
 
                 if (isDocx) {
-                    // Parse .docx using Mammoth.js
                     const arrayBuffer = event.target.result;
                     const result = await mammoth.extractRawText({ arrayBuffer });
                     rawText = result.value;
                 } else {
-                    // Read standard text/json/csv files
                     rawText = event.target.result;
                 }
 
@@ -944,26 +913,26 @@
                         practiceData.push(parsed);
                     }
                 } else {
-                    // Intelligent parsing of practice document layout
                     const lines = rawText.split('\n');
                     let title = file.name.replace(/\.[^/.]+$/, "");
                     let yearStr = "2026";
-                    let weekFolder = "Week 1";
-                    let dayStr = "Monday";
+                    let weekFolder = "Week 3";
+                    let dayStr = "Wednesday";
+                    let overallStartTime = "17:05";
                     let newPlanPeriods = [];
 
-                    let currentCategory = "Warm-Up";
-                    let currentDrill = "";
-                    let currentDesc = [];
-                    let currentDuration = 5;
+                    let parsedBlocks = [];
+                    let currentDrillName = "";
+                    let currentStartTime = "";
+                    let currentEndTime = "";
+                    let currentDescLines = [];
 
                     lines.forEach((line, idx) => {
                         let trimmed = line.trim();
                         if (!trimmed) return;
 
-                        if (idx === 0 || (idx < 3 && trimmed.includes("Practice"))) {
+                        if (idx === 0 || (idx < 3 && (trimmed.includes("Practice") || trimmed.includes("10U")))) {
                             title = trimmed;
-                            // Scan for dates like 8/10/26 or 2026 to automatically categorize year
                             let dateMatch = trimmed.match(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
                             if (dateMatch) {
                                 let yr = dateMatch[3];
@@ -973,50 +942,92 @@
                             return;
                         }
 
-                        let timeMatch = trimmed.match(/^(\d{1,2}:\d{2})\s*(?:[–-]\s*(\d{1,2}:\d{2}))?/);
-                        if (timeMatch) {
-                            if (currentDrill || currentDesc.length > 0) {
-                                newPlanPeriods.push({
-                                    time: currentDuration,
-                                    category: currentCategory,
-                                    drill: currentDrill || currentCategory,
-                                    desc: currentDesc.join('\n'),
-                                    key: "",
-                                    coaches: []
+                        let timeRangeMatch = trimmed.match(/^(\d{1,2}:\d{2})\s*[–-]\s*(\d{1,2}:\d{2})\s*(.*)/);
+                        let singleTimeMatch = !timeRangeMatch ? trimmed.match(/^(\d{1,2}:\d{2})\s*[–-]\s*(.*)/) : null;
+
+                        if (timeRangeMatch || singleTimeMatch) {
+                            if (currentDrillName) {
+                                parsedBlocks.push({
+                                    start: currentStartTime,
+                                    end: currentEndTime,
+                                    drill: currentDrillName,
+                                    desc: currentDescLines.join('\n')
                                 });
-                                currentDesc = [];
+                                currentDescLines = [];
                             }
 
-                            let textAfterTime = trimmed.replace(timeMatch[0], '').replace(/^[–-]\s*/, '').trim();
-                            currentDrill = textAfterTime;
-
-                            if (textAfterTime.toLowerCase().includes('water')) {
-                                currentCategory = "Water Break";
-                            } else if (textAfterTime.toLowerCase().includes('special teams')) {
-                                currentCategory = "Special Teams";
-                            } else if (textAfterTime.toLowerCase().includes('offense')) {
-                                currentCategory = "Team Offense";
-                            } else if (textAfterTime.toLowerCase().includes('breakouts')) {
-                                currentCategory = "Breakouts";
-                            } else if (textAfterTime.toLowerCase().includes('arrival') || textAfterTime.toLowerCase().includes('lap')) {
-                                currentCategory = "Warm-Up";
-                            } else {
-                                currentCategory = "Indy / Fundamentals";
+                            if (timeRangeMatch) {
+                                currentStartTime = timeRangeMatch[1];
+                                currentEndTime = timeRangeMatch[2];
+                                currentDrillName = timeRangeMatch[3].trim();
+                            } else if (singleTimeMatch) {
+                                currentStartTime = singleTimeMatch[1];
+                                currentEndTime = "";
+                                currentDrillName = singleTimeMatch[2].trim();
                             }
                         } else {
-                            currentDesc.push(trimmed);
+                            currentDescLines.push(trimmed);
                         }
                     });
 
-                    if (currentDrill || currentDesc.length > 0) {
-                        newPlanPeriods.push({
-                            time: currentDuration,
-                            category: currentCategory,
-                            drill: currentDrill || currentCategory,
-                            desc: currentDesc.join('\n'),
-                            key: "",
-                            coaches: []
+                    if (currentDrillName) {
+                        parsedBlocks.push({
+                            start: currentStartTime,
+                            end: currentEndTime,
+                            drill: currentDrillName,
+                            desc: currentDescLines.join('\n')
                         });
+                    }
+
+                    if (parsedBlocks.length > 0) {
+                        if (parsedBlocks[0].start) {
+                            overallStartTime = parsedBlocks[0].start;
+                        }
+
+                        for (let i = 0; i < parsedBlocks.length; i++) {
+                            let block = parsedBlocks[i];
+                            let duration = 15; 
+
+                            if (block.start && block.end) {
+                                let startMins = parseTimeString(block.start);
+                                let endMins = parseTimeString(block.end);
+                                if (endMins > startMins) {
+                                    duration = endMins - startMins;
+                                }
+                            } else if (i < parsedBlocks.length - 1 && block.start && parsedBlocks[i+1].start) {
+                                let startMins = parseTimeString(block.start);
+                                let nextStartMins = parseTimeString(parsedBlocks[i+1].start);
+                                if (nextStartMins > startMins) {
+                                    duration = nextStartMins - startMins;
+                                }
+                            }
+
+                            let category = "Indy / Fundamentals";
+                            let lowerDrill = block.drill.toLowerCase();
+                            let formatType = "static";
+                            let stationCount = 1;
+
+                            if (lowerDrill.includes('water')) category = "Warm-Up & Breaks";
+                            else if (lowerDrill.includes('special teams')) category = "Special Teams";
+                            else if (lowerDrill.includes('offense')) category = "Full Team/Installs";
+                            else if (lowerDrill.includes('circuit') || lowerDrill.includes('tackle circuit') || lowerDrill.includes('breakouts')) {
+                                category = "Tackle Circuit";
+                                formatType = "rotating";
+                                stationCount = 4;
+                            }
+
+                            newPlanPeriods.push({
+                                time: duration,
+                                category: category,
+                                format: formatType,
+                                stationCount: stationCount,
+                                stationTime: formatType === 'rotating' ? Math.round(duration / stationCount) : duration,
+                                drill: block.drill || category,
+                                desc: block.desc,
+                                key: "Key coaching focus",
+                                coaches: []
+                            });
+                        }
                     }
 
                     if (newPlanPeriods.length > 0) {
@@ -1026,7 +1037,7 @@
                             year: yearStr,
                             week: weekFolder,
                             day: dayStr,
-                            startTime: "17:15",
+                            startTime: overallStartTime.includes(':') ? (overallStartTime.length === 4 ? '0'+overallStartTime : overallStartTime) : "17:05",
                             endTime: "20:00",
                             lastEdited: Date.now(),
                             plan: newPlanPeriods
@@ -1039,7 +1050,7 @@
                 saveState();
                 populatePracticeDropdown();
                 renderPracticePlan();
-                alert(`Practice plan successfully imported and filed under Year: ${yearStr} / ${weekFolder}!`);
+                alert(`Practice plan successfully imported into Year: ${yearStr} / ${weekFolder}!`);
             } catch (err) {
                 alert("Error importing file: " + err.message);
             }
@@ -1050,7 +1061,6 @@
         } else {
             reader.readAsText(file);
         }
-        // Reset file input value so selecting the same file triggers onchange again if needed
         e.target.value = '';
     }
 
@@ -1272,14 +1282,14 @@
           id: "prac_1",
           title: "Full Pads Install",
           year: "2026",
-          week: "Week 1",
-          day: "Monday",
-          startTime: "15:00",
-          endTime: "17:00",
+          week: "Week 3",
+          day: "Wednesday",
+          startTime: "17:05",
+          endTime: "20:00",
           lastEdited: Date.now(),
           plan: [
-            { time: 15, category: "Warm-Up", periodType: "normal", drill: "Dynamic Stretch", desc: "Full team stretch and agility.", key: "Hustle", coaches: [] },
-            { time: 20, category: "Indy Offense", periodType: "circuit", drill: "Mesh Drill", desc: "QB/RB exchange.", key: "Secure ball", coaches: [] }
+            { time: 25, category: "Pre Practice", format: "static", stationCount: 2, stationTime: 25, drill: "QB & Center Exchange", desc: "Centers and QBs pair up to practice under-center and shotgun snaps.", key: "100% snap accuracy", coaches: ["TJ"] },
+            { time: 20, category: "Warm-Up & Breaks", format: "static", stationCount: 1, stationTime: 20, drill: "Dynamic Warm-Up", desc: "Full team cadence and short sprints.", key: "Full speed", coaches: ["TJ", "ED"] }
           ]
         }];
       }
@@ -1288,13 +1298,11 @@
         if (!p) return;
         if (!p.id) p.id = (Date.now() + pIdx).toString();
         if (!p.title) p.title = "Practice " + (pIdx + 1);
-        if (!p.year) p.year = (p.date ? p.date.substring(0,4) : new Date().getFullYear().toString());
-        if (!p.week) p.week = p.folder || "Week 1";
-        if (!p.day) p.day = p.date || "Monday";
-        delete p.folder; 
-        if (!p.date) p.date = new Date().toISOString().split('T')[0];
-        if (!p.startTime) p.startTime = "15:00";
-        if (!p.endTime) p.endTime = "17:00";
+        if (!p.year) p.year = "2026";
+        if (!p.week) p.week = "Week 3";
+        if (!p.day) p.day = "Wednesday";
+        if (!p.startTime) p.startTime = "17:05";
+        if (!p.endTime) p.endTime = "20:00";
         if (!p.lastEdited) p.lastEdited = Date.now();
         if (!Array.isArray(p.plan)) p.plan = [];
       });
@@ -2397,12 +2405,12 @@
 
       const prac = practiceData.find(p => p.id === currentPracticeId);
       if (!prac) {
-          tbody.innerHTML = "<tr><td colspan='7' style='text-align:center;'>No practice selected.</td></tr>";
+          tbody.innerHTML = "<tr><td colspan='6' style='text-align:center;'>No practice selected.</td></tr>";
           return;
       }
 
-      if(startEl) startEl.value = prac.startTime || "15:00";
-      if(endEl) endEl.value = prac.endTime || "17:00";
+      if(startEl) startEl.value = prac.startTime || "17:05";
+      if(endEl) endEl.value = prac.endTime || "20:00";
       if(titleEl) titleEl.textContent = `Practice Plan: ${prac.title}`;
       if(dateEl) dateEl.textContent = `${prac.day} | ${prac.week} | ${prac.year}`;
 
@@ -2423,56 +2431,54 @@
       let currentMins = startMins;
 
       (prac.plan || []).forEach((row, idx) => {
-          let endPeriodMins = currentMins + parseInt(row.time || 0);
+          let duration = parseInt(row.time || 15);
+          let endPeriodMins = currentMins + duration;
           let stTimeStr = formatTime(currentMins);
           let endTimeStr = formatTime(endPeriodMins);
-          
-          let categoryOptions = `<option value="">-- Category --</option>`;
-          Object.keys(dynamicDrills).forEach(c => {
-             categoryOptions += `<option value="${c}" ${row.category === c ? 'selected' : ''}>${c}</option>`;
-          });
-          
-          let drillOptions = `<option value="">-- Drill --</option>`;
-          if(row.category && dynamicDrills[row.category]) {
-             dynamicDrills[row.category].forEach(d => {
-                drillOptions += `<option value="${d.name}" ${row.drill === d.name ? 'selected' : ''}>${d.name}</option>`;
-             });
-          }
-          
-          let coachOptions = `<option value="">+ Add Coach</option>`;
-          savedCoaches.forEach(c => {
-             coachOptions += `<option value="${c}">${c}</option>`;
-          });
-          coachOptions += `<option value="NEW_COACH" style="font-weight:bold; color:var(--primary);">-- Create New Coach --</option>`;
-          
+
+          let formatType = row.format || "static";
+          let stationCount = row.stationCount || 2;
+          let stationTime = row.stationTime || Math.round(duration / stationCount);
+
           const tr = document.createElement("tr");
           tr.innerHTML = `
             <td>
-                <input type="number" class="prac-input" value="${row.time || 5}" oninput="updatePracticeRow(${idx}, 'time', this.value)" style="width:50px; display:inline;"> mins
+                <input type="number" class="prac-input" value="${duration}" oninput="updatePracticeRow(${idx}, 'time', this.value)" style="width:45px; display:inline;"> Mins
                 <div class="period-schedule-time">${stTimeStr} - ${endTimeStr}</div>
             </td>
             <td>
-                <select class="prac-select" onchange="updatePracticeCategory(${idx}, this.value)">
-                   ${categoryOptions}
+                <input type="text" class="prac-input" value="${row.category || ''}" oninput="updatePracticeRow(${idx}, 'category', this.value)" placeholder="Category name..." style="font-weight:bold; margin-bottom:4px;">
+                <select class="prac-select admin-only" onchange="updatePracticeFormat(${idx}, this.value)">
+                    <option value="static" ${formatType === 'static' ? 'selected' : ''}>Static Circuit</option>
+                    <option value="rotating" ${formatType === 'rotating' ? 'selected' : ''}>Rotating Circuit</option>
                 </select>
-                ${row.category && !dynamicDrills[row.category] ? `<div style="font-size:9px; color:var(--text-muted); margin-top:2px;">Custom: ${row.category}</div>` : ''}
+                ${formatType === 'rotating' ? `
+                    <div style="font-size:10px; margin-top:4px; color:var(--text-muted);" class="admin-only">
+                        Stations: <input type="number" value="${stationCount}" min="1" max="8" style="width:35px;" oninput="updateRotatingParams(${idx}, 'stationCount', this.value)"> 
+                        Min/Sta: <input type="number" value="${stationTime}" min="1" max="60" style="width:35px;" oninput="updateRotatingParams(${idx}, 'stationTime', this.value)">
+                    </div>
+                ` : ''}
             </td>
             <td>
-                <select class="prac-select" onchange="updatePracticeDrill(${idx}, this.value)">
-                   ${drillOptions}
-                </select>
-                ${row.drill && (!row.category || !dynamicDrills[row.category] || !dynamicDrills[row.category].find(d=>d.name===row.drill)) ? `<div style="font-size:9px; color:var(--text-muted); margin-top:2px;">Custom: ${row.drill}</div>` : ''}
+                <input type="text" class="prac-input" value="${row.drill || ''}" oninput="updatePracticeRow(${idx}, 'drill', this.value)" placeholder="Drill / Group Name..." style="font-weight:bold; margin-bottom:4px;">
+                <textarea class="prac-textarea" oninput="autoResizeTextarea(this); updatePracticeRow(${idx}, 'desc', this.value)" placeholder="Drill instructions & notes...">${row.desc || ''}</textarea>
             </td>
-            <td><textarea class="prac-textarea" oninput="autoResizeTextarea(this); updatePracticeRow(${idx}, 'desc', this.value)">${row.desc || ''}</textarea></td>
             <td>
                 <div style="display:flex; flex-wrap:wrap; gap:2px; margin-bottom:4px;">
                     ${(row.coaches || []).map((c, cIdx) => `<span class="coach-badge" onclick="removeCoachFromRow(${idx}, ${cIdx})" title="Click to remove">${c} &times;</span>`).join('')}
                 </div>
                 <select class="prac-select admin-only" onchange="addCoachToRow(${idx}, this.value); this.value='';">
-                   ${coachOptions}
+                   <option value="">+ Coach</option>
+                   <option value="TJ">TJ</option>
+                   <option value="Brian">Brian</option>
+                   <option value="John">John</option>
+                   <option value="Ed">Ed</option>
+                   <option value="Pete">Pete</option>
+                   <option value="Dan">Dan</option>
+                   <option value="Joe">Joe</option>
                 </select>
             </td>
-            <td><input type="text" class="prac-input" value="${row.key || ''}" oninput="updatePracticeRow(${idx}, 'key', this.value)"></td>
+            <td><input type="text" class="prac-input" value="${row.key || ''}" oninput="updatePracticeRow(${idx}, 'key', this.value)" placeholder="Coaching focus..."></td>
             <td class="no-print admin-only" style="text-align:center;">
                 <button class="remove-btn" onclick="deletePracticeRow(${idx})">&times;</button>
             </td>
@@ -2495,28 +2501,30 @@
         }
     }
 
-    function updatePracticeCategory(idx, val) {
+    function updatePracticeFormat(idx, formatVal) {
         if(userRole !== 'admin') return;
         const prac = practiceData.find(p => p.id === currentPracticeId);
         if(prac && prac.plan[idx]) {
-            prac.plan[idx].category = val;
-            prac.plan[idx].drill = ""; 
+            prac.plan[idx].format = formatVal;
+            if(formatVal === 'rotating') {
+                prac.plan[idx].stationCount = 4;
+                prac.plan[idx].stationTime = Math.round((prac.plan[idx].time || 20) / 4);
+            }
             triggerDebouncedSave();
             renderPracticePlan();
         }
     }
 
-    function updatePracticeDrill(idx, val) {
+    function updateRotatingParams(idx, param, val) {
         if(userRole !== 'admin') return;
         const prac = practiceData.find(p => p.id === currentPracticeId);
         if(prac && prac.plan[idx]) {
-            prac.plan[idx].drill = val;
-            const cat = prac.plan[idx].category;
-            if(cat && dynamicDrills[cat]) {
-                const drillObj = dynamicDrills[cat].find(d => d.name === val);
-                if(drillObj) {
-                    prac.plan[idx].desc = drillObj.desc || "";
-                    prac.plan[idx].key = drillObj.key || "";
+            prac.plan[idx][param] = parseInt(val) || 1;
+            if(param === 'stationCount' || param === 'stationTime') {
+                if (param === 'stationCount') {
+                    prac.plan[idx].time = prac.plan[idx].stationCount * (prac.plan[idx].stationTime || 5);
+                } else {
+                    prac.plan[idx].time = (prac.plan[idx].stationCount || 4) * prac.plan[idx].stationTime;
                 }
             }
             triggerDebouncedSave();
@@ -2526,23 +2534,11 @@
 
     function addCoachToRow(idx, val) {
         if(userRole !== 'admin' || !val) return;
-        
-        let coachName = val;
-        if(val === "NEW_COACH") {
-            coachName = prompt("Enter new coach name:");
-            if(!coachName || coachName.trim() === "") return;
-            coachName = coachName.trim();
-            if(!savedCoaches.includes(coachName)) {
-                savedCoaches.push(coachName);
-                localStorage.setItem("footballSavedCoaches", JSON.stringify(savedCoaches));
-            }
-        }
-
         const prac = practiceData.find(p => p.id === currentPracticeId);
         if(prac && prac.plan[idx]) {
             if(!prac.plan[idx].coaches) prac.plan[idx].coaches = [];
-            if(!prac.plan[idx].coaches.includes(coachName)) {
-                prac.plan[idx].coaches.push(coachName);
+            if(!prac.plan[idx].coaches.includes(val)) {
+                prac.plan[idx].coaches.push(val);
                 triggerDebouncedSave();
                 renderPracticePlan();
             }
@@ -2574,7 +2570,7 @@
         const prac = practiceData.find(p => p.id === currentPracticeId);
         if(prac) {
             if(!prac.plan) prac.plan = [];
-            prac.plan.push({ time: 5, category: "", periodType: "normal", drill: "", desc: "", key: "", coaches: [] });
+            prac.plan.push({ time: 15, category: "New Period", format: "static", stationCount: 1, stationTime: 15, drill: "Drill Name", desc: "Instructions...", key: "Focus", coaches: [] });
             triggerDebouncedSave();
             renderPracticePlan();
         }
@@ -2600,11 +2596,11 @@
             year: new Date().getFullYear().toString(),
             week: "Week " + currentWeek,
             day: "Monday",
-            startTime: "15:00",
-            endTime: "17:00",
+            startTime: "17:05",
+            endTime: "20:00",
             lastEdited: Date.now(),
             plan: [
-                { time: 10, category: "", drill: "", desc: "", key: "", coaches: [] }
+                { time: 15, category: "Warm-Up", format: "static", stationCount: 1, stationTime: 15, drill: "Stretch", desc: "Warmup routine", key: "Hustle", coaches: [] }
             ]
         };
         practiceData.push(newPrac);
@@ -2620,9 +2616,9 @@
         if(!prac) return;
         const newTitle = prompt("Edit Title:", prac.title);
         if(newTitle) prac.title = newTitle;
-        const newDay = prompt("Edit Day (e.g. Monday):", prac.day);
+        const newDay = prompt("Edit Day (e.g. Wednesday):", prac.day);
         if(newDay) prac.day = newDay;
-        const newWeek = prompt("Edit Week:", prac.week);
+        const newWeek = prompt("Edit Week (e.g. Week 3):", prac.week);
         if(newWeek) prac.week = newWeek;
         const newYear = prompt("Edit Year:", prac.year);
         if(newYear) prac.year = newYear;
