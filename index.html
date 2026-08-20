@@ -187,7 +187,7 @@
     .player-list { list-style: none; padding: 4px; margin: 0; min-height: 45px; }
     .player-item { background: #f8fafc; border: 1px solid var(--card-border); padding: 4px 6px; margin-bottom: 4px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; cursor: grab; font-size: 11px; user-select: none; z-index:100; position:relative; }
     .player-info { display: flex; gap: 4px; align-items: center; pointer-events: none; }
-    .num-tag { font-weight: bold; }
+    .num-tag { font-weight: bold; display: inline-block; min-width: 26px; }
     
     .rank-badge { font-size: 8px; font-weight: bold; padding: 2px 4px; border-radius: 3px; text-transform: uppercase; }
     .rank-starter { background: #000000; color: #ffffff; }
@@ -289,14 +289,30 @@
       user-select: none;
     }
 
-    .practice-table tbody tr:nth-child(odd) { background-color: #ffffff; }
-    .practice-table tbody tr:nth-child(even) { background-color: #f4f6f9; }
+    .practice-table tbody tr.period-odd td { background-color: #ffffff; }
+    .practice-table tbody tr.period-even td { background-color: #f4f6f9; }
 
     .period-schedule-time {
       margin-top: 4px;
       font-weight: bold;
       color: var(--accent);
       font-size: 10.5px;
+    }
+
+    .col-resizer {
+      position: absolute;
+      top: 0;
+      right: -3px;
+      width: 6px;
+      cursor: col-resize;
+      user-select: none;
+      height: 100%;
+      background: transparent;
+      z-index: 10;
+    }
+
+    .col-resizer:hover, .col-resizer.resizing {
+      background: var(--accent);
     }
 
     .prac-input, .prac-select, .prac-textarea {
@@ -339,34 +355,17 @@
 
     .add-row-btn:hover { background: var(--accent); }
 
-    .station-block {
-      margin-bottom: 6px;
-      padding-bottom: 6px;
-      border-bottom: 1px dashed var(--card-border);
-    }
-
-    .station-block:last-child {
-      margin-bottom: 0;
-      padding-bottom: 0;
-      border-bottom: none;
-    }
-
-    .coach-badge {
-      display: inline-block;
-      background: #e2e8f0;
-      color: var(--primary);
-      padding: 2px 5px;
-      border-radius: 4px;
-      font-size: 9px;
-      margin: 0 4px 4px 0;
-      cursor: pointer;
-      font-weight: bold;
-    }
-
-    .coach-badge:hover {
-      background: #ef4444;
-      color: white;
-    }
+    /* Sidebar Wrapper & Panels */
+    #sidebar-container { flex: 1; min-width: 220px; max-width: 280px; position: sticky; top: 15px; max-height: calc(100vh - 30px); display: flex; flex-direction: column; }
+    .sidebar { background: var(--card-bg); border-radius: 8px; padding: 12px; border: 1px solid var(--card-border); display: flex; flex-direction: column; box-shadow: 0 1px 3px rgba(0,0,0,0.05); flex-grow: 1; max-height: 100%; }
+    @media (max-width: 900px) { #sidebar-container { position: static; max-width: 100%; max-height: 600px; } }
+    .sidebar h2 { font-size: 14px; margin: 0 0 8px 0; color: var(--primary); border-bottom: 1px solid var(--card-border); padding-bottom: 6px; }
+    .search-box { width: 100%; padding: 8px 10px; border: 1px solid var(--card-border); border-radius: 6px; font-size: 12px; margin-bottom: 10px; box-sizing: border-box; outline: none; }
+    .search-box:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2); }
+    .full-roster-list { list-style: none; padding: 0; margin: 0; overflow-y: auto; flex-grow: 1; min-height: 200px; }
+    .full-roster-item { padding: 6px 8px; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; justify-content: space-between; font-size: 11px; cursor: grab; background: #f8fafc; margin-bottom: 4px; border-radius: 4px; border: 1px solid var(--card-border); user-select: none; }
+    .full-roster-item:hover { border-color: var(--accent); background: #eff6ff; }
+    .multi-badge { font-size: 9px; background: #e2e8f0; color: #475569; padding: 1px 5px; border-radius: 10px; font-weight: bold; }
 
     /* PRINT STYLES WITH LARGER FONTS */
     @media print {
@@ -388,6 +387,9 @@
       .practice-table { font-size: 12px !important; border: 2px solid #000 !important; }
       .practice-table th { font-size: 13px !important; background: #e2e8f0 !important; color: #000 !important; }
       .practice-table td { font-size: 12px !important; border: 1px solid #000 !important; padding: 8px !important; }
+      .practice-table tbody tr.period-odd td { background-color: #ffffff !important; }
+      .practice-table tbody tr.period-even td { background-color: #f4f6f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
       .period-schedule-time { font-size: 12px !important; color: #000 !important; }
       .prac-input, .prac-select, .prac-textarea { font-size: 12px !important; border: none !important; background: transparent !important; padding: 0 !important; color: #000 !important; }
 
@@ -665,11 +667,12 @@
           <table class="practice-table" id="main-practice-table">
             <thead>
               <tr id="practice-header-row">
-                <th style="width: 12%;">Time / Period</th>
-                <th style="width: 18%;">Category & Format</th>
-                <th style="width: 38%;">Groups & Stations / Drills</th>
-                <th style="width: 16%;">Coach (es)</th>
-                <th style="width: 12%;">Coaching Focus</th>
+                <th style="width: 10%;">Time / Period <div class="col-resizer admin-only"></div></th>
+                <th style="width: 14%;">Category & Format <div class="col-resizer admin-only"></div></th>
+                <th style="width: 25%;">Select Drill(s) <div class="col-resizer admin-only"></div></th>
+                <th style="width: 25%;">Drill Details & Instructions <div class="col-resizer admin-only"></div></th>
+                <th style="width: 12%;">Coach(es) <div class="col-resizer admin-only"></div></th>
+                <th style="width: 10%;">Coaching Focus <div class="col-resizer admin-only"></div></th>
                 <th style="width: 4%; text-align:center;" class="no-print admin-only">❌</th>
               </tr>
             </thead>
@@ -868,11 +871,23 @@
     ];
 
     const defaultDynamicDrills = {
-      "Warm-Up": [
-        { name: "Dynamic Stretch", desc: "Full team lines, high knees, butt kicks, lunges.", key: "Hustle and form" }
+      "Warm-Up & Breaks": [
+        { name: "Dynamic Warm-Up", desc: "High knees, karaoke, shuffling, short sprints.", key: "Speed & posture" },
+        { name: "Mandatory Water Break", desc: "Fast hydration and hustle.", key: "Hydrate" }
       ],
-      "Indy Offense": [
-        { name: "Mesh Drill", desc: "QB/RB exchange. Focus on read and ride.", key: "Secure the ball" }
+      "Pre Practice": [
+        { name: "QB & Center Exchange", desc: "Under center and shotgun snaps.", key: "Snap accuracy" }
+      ],
+      "Individual Offense": [
+        { name: "O-Line Run Blocking", desc: "Power steps and drive blocking.", key: "Pad level" },
+        { name: "WR Route Tree", desc: "Route running and on-air throws.", key: "Clean breaks" }
+      ],
+      "Tackle Circuit": [
+        { name: "Form Fit & Drive", desc: "Shoulder fit and 3-step drive.", key: "Wrap cloth" },
+        { name: "Angle Tackle", desc: "Inside-out angle pursuit.", key: "Near hip" }
+      ],
+      "Team Offense": [
+        { name: "Full Team Run Install", desc: "Review assignments vs defense.", key: "Assignment execution" }
       ]
     };
 
@@ -1021,7 +1036,8 @@
                             let lowerGrp = block.group.toLowerCase();
                             let formatType = "static";
 
-                            if (lowerGrp.includes('water') || lowerGrp.includes('warm')) category = "Warm-Up & Breaks";
+                            if (lowerGrp.includes('arrival') || lowerGrp.includes('pre practice')) category = "Pre Practice";
+                            else if (lowerGrp.includes('water') || lowerGrp.includes('warm')) category = "Warm-Up & Breaks";
                             else if (lowerGrp.includes('special teams')) category = "Special Teams";
                             else if (lowerGrp.includes('offense') || lowerGrp.includes('team')) category = "Full Team/Installs";
                             else if (lowerGrp.includes('circuit') || lowerGrp.includes('breakouts')) {
@@ -1791,7 +1807,7 @@
 
           li.innerHTML = `
             <div>
-              <span class="num-tag" style="min-width:26px; color:var(--primary);">${player.num ? '#' + player.num : ''}</span> 
+              <span class="num-tag" style="display:inline-block; min-width:26px; color:var(--primary);">${player.num ? '#' + player.num : ''}</span> 
               <span>${player.firstName || ''} ${player.lastName || ''}</span>
             </div>
             ${count > 0 ? `<span class="multi-badge">${count} Spot${count > 1 ? 's' : ''}</span>` : ''}
@@ -2296,36 +2312,36 @@
         let starterPlan = [];
         if (templateType === 'offense') {
             starterPlan = [
-                { time: 25, category: "Pre Practice", format: "static", stations: [{ name: "GROUP 1: QB & Center Exchange", desc: "Under center and shotgun snap work.", coach: "TJ", focus: "Snap accuracy" }], coaches: [], key: "" },
-                { time: 30, category: "Warm-Up & Breaks", format: "static", stations: [{ name: "GROUP 1: Dynamic Warm-Up", desc: "High knees, karaoke, shuffling, short sprints.", coach: "TJ", focus: "Speed & posture" }], coaches: [], key: "" },
+                { time: 25, category: "Pre Practice", format: "static", stations: [{ name: "GROUP 1", desc: "Under center and shotgun snap work.", coach: "TJ", focus: "Snap accuracy" }] },
+                { time: 30, category: "Warm-Up & Breaks", format: "static", stations: [{ name: "GROUP 1", desc: "High knees, karaoke, shuffling, short sprints.", coach: "TJ", focus: "Speed & posture" }] },
                 { time: 45, category: "Individual Offense", format: "static", stations: [
-                    { name: "O-Line Run Blocking", desc: "Power steps and drive blocking.", coach: "Brian", focus: "Pad level" },
-                    { name: "WR Route Tree", desc: "Route running and on-air throws.", coach: "Ed", focus: "Clean breaks" }
-                ], coaches: [], key: "" },
-                { time: 50, category: "Team Offense", format: "static", stations: [{ name: "Full Team Run Install", desc: "Review assignments vs 4-4 defense.", coach: "Dan", focus: "Assignment execution" }], coaches: [], key: "" }
+                    { name: "O-Line", desc: "Power steps and drive blocking.", coach: "Brian", focus: "Pad level" },
+                    { name: "WRs", desc: "Route running and on-air throws.", coach: "Ed", focus: "Clean breaks" }
+                ] },
+                { time: 50, category: "Team Offense", format: "static", stations: [{ name: "Full Team", desc: "Review assignments vs 4-4 defense.", coach: "Dan", focus: "Assignment execution" }] }
             ];
         } else if (templateType === 'defense') {
             starterPlan = [
-                { time: 25, category: "Pre Practice", format: "static", stations: [{ name: "GROUP 1: Form Tackling", desc: "Breakdown, fit, and drive.", coach: "Joe", focus: "Hip explosion" }], coaches: [], key: "" },
+                { time: 25, category: "Pre Practice", format: "static", stations: [{ name: "GROUP 1", desc: "Breakdown, fit, and drive.", coach: "Joe", focus: "Hip explosion" }] },
                 { time: 35, category: "Tackle Circuit", format: "rotating", stations: [
-                    { name: "STATION 1: Form Fit & Drive", desc: "Shoulder fit and 3-step drive.", coach: "Dan", focus: "Wrap cloth" },
-                    { name: "STATION 2: Angle Tackle", desc: "Inside-out angle pursuit.", coach: "Pete", focus: "Near hip" }
-                ], coaches: [], key: "" },
-                { time: 45, category: "Individual Defense", format: "static", stations: [{ name: "DL Gap Control & Rip", desc: "Read hat and execute rip move.", coach: "John", focus: "Violent hands" }], coaches: [], key: "" },
-                { time: 45, category: "Team Defense", format: "static", stations: [{ name: "Defensive Front Install", desc: "Walk through base front alignments.", coach: "Dan", focus: "Gap integrity" }], coaches: [], key: "" }
+                    { name: "STATION 1", desc: "Shoulder fit and 3-step drive.", coach: "Dan", focus: "Wrap cloth" },
+                    { name: "STATION 2", desc: "Inside-out angle pursuit.", coach: "Pete", focus: "Near hip" }
+                ] },
+                { time: 45, category: "Individual Defense", format: "static", stations: [{ name: "D-Line", desc: "Read hat and execute rip move.", coach: "John", focus: "Violent hands" }] },
+                { time: 45, category: "Team Defense", format: "static", stations: [{ name: "Defensive Front", desc: "Walk through base front alignments.", coach: "Dan", focus: "Gap integrity" }] }
             ];
         } else {
             starterPlan = [
-                { time: 25, category: "Pre Practice", format: "static", stations: [{ name: "GROUP 1: Special Teams Setup", desc: "Kicking and holding mechanics.", coach: "TJ", focus: "Timing" }], coaches: [], key: "" },
+                { time: 25, category: "Pre Practice", format: "static", stations: [{ name: "GROUP 1", desc: "Kicking and holding mechanics.", coach: "TJ", focus: "Timing" }] },
                 { time: 45, category: "Tackle Circuit", format: "rotating", stations: [
-                    { name: "STATION 1: Tackling", desc: "Form fit and drive.", coach: "Joe", focus: "Hips" },
-                    { name: "STATION 2: Block Defeat", desc: "Arm-over swim move.", coach: "Brian", focus: "Quick hands" }
-                ], coaches: [], key: "" },
-                { time: 40, category: "Individual Offense / Defense", format: "static", stations: [
-                    { name: "Offense: RBs & QBs", desc: "Mesh and handoff reads.", coach: "Dan", focus: "Ball security" },
-                    { name: "Defense: DB Backpedal", desc: "Drive on ball at 45 degree angle.", coach: "Ed", focus: "Low hips" }
-                ], coaches: [], key: "" },
-                { time: 40, category: "Team / Installs", format: "static", stations: [{ name: "Full Team Scrimmage / Walkthrough", desc: "Run plays full speed vs defense.", coach: "Dan", focus: "Execution" }], coaches: [], key: "" }
+                    { name: "STATION 1", desc: "Form fit and drive.", coach: "Joe", focus: "Hips" },
+                    { name: "STATION 2", desc: "Arm-over swim move.", coach: "Brian", focus: "Quick hands" }
+                ] },
+                { time: 40, category: "Indy / Fundamentals", format: "static", stations: [
+                    { name: "RBs & QBs", desc: "Mesh and handoff reads.", coach: "Dan", focus: "Ball security" },
+                    { name: "DBs", desc: "Drive on ball at 45 degree angle.", coach: "Ed", focus: "Low hips" }
+                ] },
+                { time: 40, category: "Full Team/Installs", format: "static", stations: [{ name: "Full Team", desc: "Run plays full speed vs defense.", coach: "Dan", focus: "Execution" }] }
             ];
         }
 
@@ -2515,7 +2531,11 @@
       if(dateEl) dateEl.textContent = `${prac.day} | ${prac.week} | ${prac.year}`;
 
       let totalMins = 0;
-      (prac.plan || []).forEach(row => totalMins += parseInt(row.time || 0));
+      (prac.plan || []).forEach(row => {
+          if (row.category !== "Pre Practice") {
+              totalMins += parseInt(row.time || 0);
+          }
+      });
       
       let startMins = 0;
       if (prac.startTime) {
@@ -2524,7 +2544,7 @@
       }
 
       if(stats) {
-          stats.innerHTML = `<span style="background:var(--primary); color:white; padding:4px 8px; border-radius:4px;">Total Time: ${totalMins} mins</span>`;
+          stats.innerHTML = `<span style="background:var(--primary); color:white; padding:4px 8px; border-radius:4px;">Total Active Time: ${totalMins} mins</span>`;
       }
 
       tbody.innerHTML = "";
@@ -2538,59 +2558,89 @@
 
           let formatType = row.format || "static";
           let stations = Array.isArray(row.stations) ? row.stations : [{ name: "Group 1", desc: "", coach: "", focus: "" }];
+          let rowSpan = stations.length;
 
-          let stationsHtml = "";
-          let coachesHtml = "";
-          let focusHtml = "";
-
-          stations.forEach((st, sIdx) => {
-              let borderStyle = sIdx > 0 ? 'margin-top:8px; border-top:1px dashed #cbd5e1; padding-top:8px;' : '';
-              
-              stationsHtml += `
-                <div class="station-block" style="${borderStyle}">
-                   <div style="display:flex; justify-content:space-between; align-items:center;">
-                      <input type="text" class="prac-input" value="${st.name || ''}" oninput="updateStationField(${idx}, ${sIdx}, 'name', this.value)" placeholder="Group / Station Name..." style="font-weight:bold; width:75%;">
-                      <button class="remove-btn admin-only" onclick="removeStation(${idx}, ${sIdx})" style="font-size:11px;">&times; Remove</button>
-                   </div>
-                   <textarea class="prac-textarea" oninput="autoResizeTextarea(this); updateStationField(${idx}, ${sIdx}, 'desc', this.value)" placeholder="Drill instructions...">${st.desc || ''}</textarea>
-                </div>
-              `;
-
-              coachesHtml += `
-                 <div style="${borderStyle}">
-                     <input type="text" class="prac-input" value="${st.coach || ''}" oninput="updateStationField(${idx}, ${sIdx}, 'coach', this.value)" placeholder="Coach(es)..." style="font-weight:bold;">
-                 </div>
-              `;
-
-              focusHtml += `
-                 <div style="${borderStyle}">
-                     <input type="text" class="prac-input" value="${st.focus || ''}" oninput="updateStationField(${idx}, ${sIdx}, 'focus', this.value)" placeholder="Focus...">
-                 </div>
-              `;
+          let categoryOptions = `<option value="">-- Category --</option>`;
+          categoryOptions += `<option value="Pre Practice" ${row.category === 'Pre Practice' ? 'selected' : ''}>Pre Practice (Non-counted)</option>`;
+          Object.keys(dynamicDrills).forEach(c => {
+             if (c !== 'Pre Practice') {
+                 categoryOptions += `<option value="${c}" ${row.category === c ? 'selected' : ''}>${c}</option>`;
+             }
           });
 
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td>
-                <input type="number" class="prac-input" value="${duration}" oninput="updatePracticeRow(${idx}, 'time', this.value)" style="width:45px; display:inline;"> Mins
-                <div class="period-schedule-time">${stTimeStr} - ${endTimeStr}</div>
-            </td>
-            <td>
-                <input type="text" class="prac-input" value="${row.category || ''}" oninput="updatePracticeRow(${idx}, 'category', this.value)" placeholder="Category..." style="font-weight:bold; margin-bottom:4px;">
-                <select class="prac-select admin-only" onchange="updatePracticeFormat(${idx}, this.value)" style="margin-bottom:4px;">
-                    <option value="static" ${formatType === 'static' ? 'selected' : ''}>Static Circuit</option>
-                    <option value="rotating" ${formatType === 'rotating' ? 'selected' : ''}>Rotating Circuit</option>
-                </select>
-                <button class="add-row-btn admin-only" style="padding:3px 8px; font-size:10px; margin:0;" onclick="addStation(${idx})">+ Group / Station</button>
-            </td>
-            <td>${stationsHtml}</td>
-            <td>${coachesHtml}</td>
-            <td>${focusHtml}</td>
-            <td class="no-print admin-only" style="text-align:center;">
-                <button class="remove-btn" onclick="deletePracticeRow(${idx})">&times;</button>
-            </td>
-          `;
-          tbody.appendChild(tr);
+          stations.forEach((st, sIdx) => {
+              let drillSelectOptions = `<option value="">-- Select Drill --</option>`;
+              if(row.category && dynamicDrills[row.category]) {
+                  dynamicDrills[row.category].forEach(d => {
+                      drillSelectOptions += `<option value="${d.name}" ${st.name.includes(d.name) ? 'selected' : ''}>${d.name}</option>`;
+                  });
+              }
+
+              let coachSelectOptions = `<option value="">+ Coach</option>`;
+              savedCoaches.forEach(c => {
+                 coachSelectOptions += `<option value="${c}" ${st.coach === c ? 'selected' : ''}>${c}</option>`;
+              });
+
+              let tr = document.createElement("tr");
+              let periodClass = (idx % 2 === 0) ? "period-odd" : "period-even";
+              tr.className = periodClass;
+
+              let timeCategoryAndRemoveTds = "";
+              if (sIdx === 0) {
+                  timeCategoryAndRemoveTds = `
+                      <td rowspan="${rowSpan}" style="vertical-align: top;">
+                          <input type="number" class="prac-input" value="${duration}" oninput="updatePracticeRow(${idx}, 'time', this.value)" style="width:45px; display:inline;"> Mins
+                          <div class="period-schedule-time">${stTimeStr} - ${endTimeStr}</div>
+                      </td>
+                      <td rowspan="${rowSpan}" style="vertical-align: top;">
+                          <select class="prac-select" onchange="updatePracticeCategory(${idx}, this.value)" style="font-weight:bold; margin-bottom:4px;">
+                             ${categoryOptions}
+                          </select>
+                          <select class="prac-select admin-only" onchange="updatePracticeFormat(${idx}, this.value)" style="margin-bottom:4px;">
+                              <option value="static" ${formatType === 'static' ? 'selected' : ''}>Static Circuit</option>
+                              <option value="rotating" ${formatType === 'rotating' ? 'selected' : ''}>Rotating Circuit</option>
+                          </select>
+                          <button class="add-row-btn admin-only" style="padding:3px 8px; font-size:10px; margin:0;" onclick="addStation(${idx})">+ Group / Station</button>
+                      </td>
+                  `;
+              }
+
+              let removeTd = "";
+              if (sIdx === 0) {
+                  removeTd = `
+                      <td rowspan="${rowSpan}" class="no-print admin-only" style="text-align:center; vertical-align:middle;">
+                          <button class="remove-btn" onclick="deletePracticeRow(${idx})">&times;</button>
+                      </td>
+                  `;
+              }
+
+              let bottomBorder = (sIdx < rowSpan - 1) ? '1px dashed #cbd5e1' : 'none';
+
+              tr.innerHTML = `
+                  ${timeCategoryAndRemoveTds}
+                  <td style="border-bottom: ${bottomBorder}; vertical-align: top;">
+                      <div style="display:flex; justify-content:space-between; align-items:center; gap:4px; margin-bottom:4px;">
+                        <input type="text" class="prac-input" value="${st.name || ''}" oninput="updateStationField(${idx}, ${sIdx}, 'name', this.value)" placeholder="Group / Station Name..." style="font-weight:bold; width:60%;">
+                        <select class="prac-select admin-only" onchange="updateStationDrill(${idx}, ${sIdx}, this.value)" style="font-size:10px; width:35%;">
+                            ${drillSelectOptions}
+                        </select>
+                        ${rowSpan > 1 ? `<button class="remove-btn admin-only" onclick="removeStation(${idx}, ${sIdx})" style="font-size:11px; padding:0 4px;">&times;</button>` : ''}
+                     </div>
+                     <textarea class="prac-textarea" oninput="autoResizeTextarea(this); updateStationField(${idx}, ${sIdx}, 'desc', this.value)" placeholder="Drill instructions & notes..." style="min-height:40px; margin-top:0;">${st.desc || ''}</textarea>
+                  </td>
+                  <td style="border-bottom: ${bottomBorder}; vertical-align: top;">
+                      <select class="prac-select admin-only" onchange="updateStationField(${idx}, ${sIdx}, 'coach', this.value); renderPracticePlan();" style="margin-bottom:4px;">
+                           ${coachSelectOptions}
+                      </select>
+                      <input type="text" class="prac-input" value="${st.coach || ''}" oninput="updateStationField(${idx}, ${sIdx}, 'coach', this.value)" placeholder="Coach(es)...">
+                  </td>
+                  <td style="border-bottom: ${bottomBorder}; vertical-align: top;">
+                      <input type="text" class="prac-input" value="${st.focus || ''}" oninput="updateStationField(${idx}, ${sIdx}, 'focus', this.value)" placeholder="Focus...">
+                  </td>
+                  ${removeTd}
+              `;
+              tbody.appendChild(tr);
+          });
           currentMins = endPeriodMins;
       });
       document.querySelectorAll('#panel-practice .prac-textarea').forEach(ta => autoResizeTextarea(ta));
@@ -2606,12 +2656,40 @@
         }
     }
 
+    function updatePracticeCategory(idx, val) {
+        if(userRole !== 'admin') return;
+        const prac = practiceData.find(p => p.id === currentPracticeId);
+        if(prac && prac.plan[idx]) {
+            prac.plan[idx].category = val;
+            triggerDebouncedSave();
+            renderPracticePlan();
+        }
+    }
+
     function updateStationField(pIdx, sIdx, field, val) {
         if(userRole !== 'admin') return;
         const prac = practiceData.find(p => p.id === currentPracticeId);
         if(prac && prac.plan[pIdx] && prac.plan[pIdx].stations[sIdx]) {
             prac.plan[pIdx].stations[sIdx][field] = val;
             triggerDebouncedSave();
+        }
+    }
+
+    function updateStationDrill(pIdx, sIdx, drillName) {
+        if(userRole !== 'admin' || !drillName) return;
+        const prac = practiceData.find(p => p.id === currentPracticeId);
+        if(prac && prac.plan[pIdx]) {
+            const cat = prac.plan[pIdx].category;
+            if(cat && dynamicDrills[cat]) {
+                const found = dynamicDrills[cat].find(d => d.name === drillName);
+                if(found) {
+                    prac.plan[pIdx].stations[sIdx].name = found.name;
+                    prac.plan[pIdx].stations[sIdx].desc = found.desc || "";
+                    prac.plan[pIdx].stations[sIdx].focus = found.key || "";
+                    triggerDebouncedSave();
+                    renderPracticePlan();
+                }
+            }
         }
     }
 
@@ -2666,11 +2744,9 @@
             if(!prac.plan) prac.plan = [];
             prac.plan.push({ 
                 time: 15, 
-                category: "New Period", 
+                category: "Indy / Fundamentals", 
                 format: "static", 
-                stations: [{ name: "GROUP 1", desc: "Drill instructions...", coach: "", focus: "Focus" }],
-                coaches: [], 
-                key: "" 
+                stations: [{ name: "GROUP 1", desc: "Drill instructions...", coach: "", focus: "Focus" }]
             });
             triggerDebouncedSave();
             renderPracticePlan();
