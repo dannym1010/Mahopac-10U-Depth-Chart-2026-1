@@ -1190,8 +1190,15 @@
           const sIndex = sRow.positions.findIndex(p => p.id === sPosId);
           const [movedPos] = sRow.positions.splice(sIndex, 1);
           
-          const tIndex = tRow.positions.findIndex(p => p.id === targetPosId);
-          tRow.positions.splice(tIndex, 0, movedPos);
+          const cardEl = document.getElementById(`card-${targetPosId}`);
+          let insertIndex = tRow.positions.findIndex(p => p.id === targetPosId);
+          if (cardEl) {
+              const rect = cardEl.getBoundingClientRect();
+              if (e.clientX > rect.left + rect.width / 2) {
+                  insertIndex += 1;
+              }
+          }
+          tRow.positions.splice(insertIndex, 0, movedPos);
           
           draggedData = null;
           triggerDebouncedSave();
@@ -1233,14 +1240,23 @@
         const sIndex = sRow.positions.findIndex(p => p.id === sPosId);
         const [movedPos] = sRow.positions.splice(sIndex, 1);
 
-        // Calculate drop coordinates relative to row width to determine if dropped on far left or far right
-        const rowRect = e.currentTarget.getBoundingClientRect();
-        const dropX = e.clientX - rowRect.left;
-        
-        if (dropX < rowRect.width / 2) {
-            tRow.positions.unshift(movedPos); // Move all the way to the left
-        } else {
-            tRow.positions.push(movedPos);    // Move all the way to the right
+        // Find closest position card in this row to drop next to it precisely where dropped
+        const posCards = Array.from(e.currentTarget.querySelectorAll('.position-card'));
+        let inserted = false;
+
+        for (let cardEl of posCards) {
+            const rect = cardEl.getBoundingClientRect();
+            if (e.clientX < rect.left + rect.width / 2) {
+                const targetId = cardEl.id.replace('card-', '');
+                const tIdx = tRow.positions.findIndex(p => p.id === targetId);
+                tRow.positions.splice(tIdx, 0, movedPos);
+                inserted = true;
+                break;
+            }
+        }
+
+        if (!inserted) {
+            tRow.positions.push(movedPos);
         }
         
         draggedData = null;
@@ -2040,7 +2056,7 @@
           });
           weekSortOrder[y] = weekSortOrder[y].filter(w => groups[y][w]);
 
-          html += `<li><span class="tree-caret" onclick="this.parentElement.querySelector('.nested').classList.toggle('hidden')">📁 ${y}</span><ul class="nested">`;
+          html += `<li><span class="tree-caret" onclick="const sub = this.nextElementSibling; if(sub) sub.classList.toggle('hidden');">📁 ${y}</span><ul style="list-style:none; margin:0; padding-left:12px;" class="hidden">`;
           
           weekSortOrder[y].forEach(w => {
               html += `<li>
@@ -2051,10 +2067,10 @@
                             ondragover="event.preventDefault(); this.classList.add('drag-over');" 
                             ondragleave="this.classList.remove('drag-over');" 
                             ondrop="handleFolderDrop(event, '${y}', '${w}')" 
-                            onclick="this.parentElement.querySelector('.nested').classList.toggle('hidden')">📂 ${w}</span>
+                            onclick="const sub = this.parentElement.nextElementSibling; if(sub) sub.classList.toggle('hidden');">📂 ${w}</span>
                       <button class="no-print admin-only" style="background:none; border:none; cursor:pointer; font-size:10px; margin-left:5px;" onclick="renamePracticeWeek('${y}', '${w}', event)" title="Rename Week Folder">✏️</button>
                   </div>
-                  <ul class="nested hidden">`;
+                  <ul style="list-style:none; margin:0; padding-left:12px;" class="hidden">`;
               groups[y][w].forEach(p => {
                   const sel = (p.id === currentPracticeId) ? "selected" : "";
                   html += `<li class="tree-leaf ${sel}" draggable="${userRole === 'admin' ? 'true' : 'false'}" ondragstart="handlePracticeDragStart(event, '${p.id}')" onclick="loadPractice('${p.id}')">📝 ${p.title} (${p.day})</li>`;
