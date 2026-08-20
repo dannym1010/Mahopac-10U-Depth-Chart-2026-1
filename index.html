@@ -1237,8 +1237,8 @@
                     <button class="toggle-board-btn admin-only" style="color:#ef4444;" onclick="deleteGuideCategory('${activeGuidePos}')">🗑️ Delete</button>
                 </div>
                 <div class="admin-only" style="display:flex; gap:6px;">
-                    <input type="file" id="pdf-upload-guide" accept="application/pdf" style="display:none;" onchange="handlePdfUpload(event, '${activeGuidePos}')">
-                    <button class="add-row-btn" style="margin:0;" onclick="document.getElementById('pdf-upload-guide').click()">📄 Upload PDF</button>
+                    <input type="file" id="pdf-upload-guide-${activeGuidePos.replace(/[^a-zA-Z0-9]/g, '_')}" accept="application/pdf" style="display:none;" onchange="handlePdfUpload(event, '${activeGuidePos}')">
+                    <button class="add-row-btn" style="margin:0;" onclick="document.getElementById('pdf-upload-guide-${activeGuidePos.replace(/[^a-zA-Z0-9]/g, '_')}').click()">📄 Upload PDF</button>
                     ${currentPdf ? `<button class="toggle-board-btn" style="color:#ef4444;" onclick="deletePdfGuide('${activeGuidePos}')">🗑️ Remove PDF</button>` : ''}
                 </div>
             </div>
@@ -2888,25 +2888,24 @@
                  const docRef = db.collection('users').doc(userEmail);
                  const doc = await docRef.get();
                  
-                 if (doc.exists) {
+                 // Force Admin for your specific email
+                 if (userEmail === 'dannym1010@gmail.com') {
+                     roleAssigned = 'admin';
+                     await docRef.set({ email: userEmail, role: 'admin', status: 'Active' }, { merge: true });
+                 } else if (doc.exists) {
                      roleAssigned = doc.data().role || 'viewer';
                  } else {
-                     if (userEmail === 'dannym1010@gmail.com') {
-                         roleAssigned = 'admin'; 
-                     } else {
-                         roleAssigned = 'viewer'; 
-                     }
-                     
-                     await docRef.set({ 
-                         email: userEmail, 
-                         role: roleAssigned, 
-                         status: 'Active' 
-                     });
+                     roleAssigned = 'viewer';
+                     await docRef.set({ email: userEmail, role: 'viewer', status: 'Active' });
                  }
              } catch(e) { 
                  console.error("Database access error:", e); 
+                 if (user.email.toLowerCase() === 'dannym1010@gmail.com') roleAssigned = 'admin';
              }
+          } else {
+              if (user.email.toLowerCase() === 'dannym1010@gmail.com') roleAssigned = 'admin';
           }
+          
           applyRole(roleAssigned);
           listenToLiveUpdates();
           
