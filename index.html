@@ -135,7 +135,6 @@
       border-radius: 10px;
       padding: 12px;
       position: relative;
-      cursor: pointer;
       transition: all 0.2s ease;
       overflow: visible;
     }
@@ -144,6 +143,11 @@
       border-color: var(--accent) !important;
       background-color: #eff6ff !important;
       box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2) !important;
+    }
+    .formation-container.drag-over-board {
+      border-color: var(--accent) !important;
+      background-color: #eff6ff !important;
+      transform: scale(1.01);
     }
 
     .board-title { font-size: 14px; font-weight: bold; color: var(--primary); margin-bottom: 10px; border-bottom: 2px solid var(--primary); padding-bottom: 4px; display: flex; justify-content: space-between; align-items: center; }
@@ -340,21 +344,6 @@
       background: #ffffff;
       outline: none;
     }
-
-    .video-link-btn {
-      display: inline-block;
-      margin-top: 4px;
-      font-size: 10px;
-      color: #dc2626;
-      text-decoration: none;
-      font-weight: bold;
-      background: #fef2f2;
-      border: 1px solid #fecaca;
-      padding: 3px 6px;
-      border-radius: 4px;
-    }
-
-    .video-link-btn:hover { background: #fee2e2; }
 
     .add-row-btn {
       margin-top: 10px;
@@ -1528,6 +1517,49 @@
       e.stopPropagation();
     }
 
+    function handleFormationDragStart(e, formId) {
+        if (userRole !== 'admin') return;
+        draggedData = { type: 'formation', formId: formId };
+        e.dataTransfer.setData("text/plain", formId);
+        e.stopPropagation();
+    }
+
+    function handleFormationDrop(e, targetFormId) {
+        if (userRole !== 'admin' || !draggedData || draggedData.type !== 'formation') return;
+        e.preventDefault();
+        e.stopPropagation();
+        document.querySelectorAll('.formation-container').forEach(c => c.classList.remove('drag-over-board'));
+
+        if (draggedData.formId === targetFormId) {
+            draggedData = null;
+            return;
+        }
+
+        const forms = weeklyData[currentWeek].formations;
+        const sIdx = forms.findIndex(f => f.id === draggedData.formId);
+        const tIdx = forms.findIndex(f => f.id === targetFormId);
+
+        if (sIdx > -1 && tIdx > -1) {
+            const [moved] = forms.splice(sIdx, 1);
+            
+            const targetEl = document.getElementById(`board_${targetFormId}`);
+            let finalIdx = tIdx;
+            if (targetEl) {
+                const rect = targetEl.getBoundingClientRect();
+                if (e.clientY > rect.top + rect.height / 2) {
+                    finalIdx += 1;
+                }
+            }
+            
+            if (sIdx < finalIdx) finalIdx--; 
+
+            forms.splice(finalIdx, 0, moved);
+            triggerDebouncedSave();
+            renderActiveBoards();
+        }
+        draggedData = null;
+    }
+
     function handleCardDrop(e, targetFormId, targetRowId, targetPosId) {
       if (userRole !== 'admin') return;
       e.preventDefault();
@@ -1581,19 +1613,45 @@
           return;
       }
 
-      if (!depthChart[targetPosId]) depthChart[targetPosId] = [];
+      if (draggedData.type === "position" || draggedData.type === "roster") {
+          if (!depthChart[targetPosId]) depthChart[targetPosId] = [];
 
-      if (draggedData.type === "position") {
-        if (draggedData.sourcePos === targetPosId) { draggedData = null; return; }
-        if (depthChart[draggedData.sourcePos]) {
-          depthChart[draggedData.sourcePos].splice(draggedData.sourceIndex, 1);
-        }
+          let movedPlayer = null;
+          
+          if (draggedData.type === "position") {
+              movedPlayer = depthChart[draggedData.sourcePos][draggedData.sourceIndex];
+              depthChart[draggedData.sourcePos].splice(draggedData.sourceIndex, 1);
+          } else if (draggedData.type === "roster") {
+              movedPlayer = { name: draggedData.name, num: draggedData.num };
+          }
+
+          if (movedPlayer) {
+              const cardEl = document.getElementById(`card-${targetPosId}`);
+              let insertIdx = depthChart[targetPosId].length; 
+              
+              if (cardEl) {
+                  const listItems = Array.from(cardEl.querySelectorAll('.player-item'));
+                  for (let i = 0; i < listItems.length; i++) {
+                      const rect = listItems[i].getBoundingClientRect();
+                      if (e.clientY < rect.top + rect.height / 2) {
+                          insertIdx = i;
+                          break;
+                      }
+                  }
+              }
+
+              if (draggedData.type === "position" && draggedData.sourcePos === targetPosId && insertIdx > draggedData.sourceIndex) {
+                  insertIdx--;
+              }
+
+              depthChart[targetPosId].splice(insertIdx, 0, movedPlayer);
+          }
+          
+          draggedData = null;
+          triggerDebouncedSave();
+          renderActiveBoards();
+          renderMasterRoster();
       }
-      depthChart[targetPosId].push({ name: draggedData.name, num: draggedData.num });
-      draggedData = null;
-      triggerDebouncedSave();
-      renderActiveBoards();
-      renderMasterRoster();
     }
     
     function handleSlotDrop(e, targetFormId, targetRowId, slotIndex) {
@@ -1678,8 +1736,13 @@
           };
 
           formDiv.innerHTML = `
-            <div class="board-title">
-              <div>
+            <div class="board-title" draggable="${userRole === 'admin' ? 'true' : 'false'}" 
+                 ondragstart="handleFormationDragStart(event, '${form.id}')" 
+                 ondragover="event.preventDefault(); this.parentElement.classList.add('drag-over-board');" 
+                 ondragleave="this.parentElement.classList.remove('drag-over-board');" 
+                 ondrop="handleFormationDrop(event, '${form.id}')">
+              <div style="cursor:grab; display:flex; align-items:center;">
+                <span class="admin-only no-print" style="margin-right:8px; color:#94a3b8; font-size:16px;" title="Drag to reorder formation">↕</span>
                 <span>${form.name}</span> 
                 ${form.subtitle ? `<span style="font-size:11px; color:var(--text-muted); font-weight:normal; margin-left:8px;">${form.subtitle}</span>` : ''}
               </div>
@@ -2382,6 +2445,518 @@
         renderMasterRoster();
       }
     }
+
+
+    // --- PRACTICE PLAN LOGIC ---
+    function openNewPracticeModal() {
+        if(userRole !== 'admin') return;
+        document.getElementById("new-prac-modal").classList.remove('hidden');
+    }
+
+    function executeCreateNewPractice() {
+        if(userRole !== 'admin') return;
+        const title = document.getElementById("modal-prac-title").value.trim() || "Practice Plan";
+        const templateType = document.getElementById("modal-prac-template").value;
+        const totalDuration = parseInt(document.getElementById("modal-prac-duration").value) || 150;
+        document.getElementById("new-prac-modal").classList.add('hidden');
+
+        let starterPlan = [];
+        if (templateType === 'offense') {
+            starterPlan = [
+                { time: 25, category: "Pre Practice", format: "static", stations: [{ name: "GROUP 1: QB & Center Exchange", desc: "Under center and shotgun snap work.", coach: "TJ", focus: "Snap accuracy" }], coaches: [], key: "" },
+                { time: 30, category: "Warm-Up & Breaks", format: "static", stations: [{ name: "GROUP 1: Dynamic Warm-Up", desc: "High knees, karaoke, shuffling, short sprints.", coach: "TJ", focus: "Speed & posture" }], coaches: [], key: "" },
+                { time: 45, category: "Individual Offense", format: "static", stations: [
+                    { name: "O-Line Run Blocking", desc: "Power steps and drive blocking.", coach: "Brian", focus: "Pad level" },
+                    { name: "WR Route Tree", desc: "Route running and on-air throws.", coach: "Ed", focus: "Clean breaks" }
+                ], coaches: [], key: "" },
+                { time: 50, category: "Team Offense", format: "static", stations: [{ name: "Full Team Run Install", desc: "Review assignments vs 4-4 defense.", coach: "Dan", focus: "Assignment execution" }], coaches: [], key: "" }
+            ];
+        } else if (templateType === 'defense') {
+            starterPlan = [
+                { time: 25, category: "Pre Practice", format: "static", stations: [{ name: "GROUP 1: Form Tackling", desc: "Breakdown, fit, and drive.", coach: "Joe", focus: "Hip explosion" }], coaches: [], key: "" },
+                { time: 35, category: "Tackle Circuit", format: "rotating", stations: [
+                    { name: "STATION 1: Form Fit & Drive", desc: "Shoulder fit and 3-step drive.", coach: "Dan", focus: "Wrap cloth" },
+                    { name: "STATION 2: Angle Tackle", desc: "Inside-out angle pursuit.", coach: "Pete", focus: "Near hip" }
+                ], coaches: [], key: "" },
+                { time: 45, category: "Individual Defense", format: "static", stations: [{ name: "DL Gap Control & Rip", desc: "Read hat and execute rip move.", coach: "John", focus: "Violent hands" }], coaches: [], key: "" },
+                { time: 45, category: "Team Defense", format: "static", stations: [{ name: "Defensive Front Install", desc: "Walk through base front alignments.", coach: "Dan", focus: "Gap integrity" }], coaches: [], key: "" }
+            ];
+        } else {
+            starterPlan = [
+                { time: 25, category: "Pre Practice", format: "static", stations: [{ name: "GROUP 1: Special Teams Setup", desc: "Kicking and holding mechanics.", coach: "TJ", focus: "Timing" }], coaches: [], key: "" },
+                { time: 45, category: "Tackle Circuit", format: "rotating", stations: [
+                    { name: "STATION 1: Tackling", desc: "Form fit and drive.", coach: "Joe", focus: "Hips" },
+                    { name: "STATION 2: Block Defeat", desc: "Arm-over swim move.", coach: "Brian", focus: "Quick hands" }
+                ], coaches: [], key: "" },
+                { time: 40, category: "Individual Offense / Defense", format: "static", stations: [
+                    { name: "Offense: RBs & QBs", desc: "Mesh and handoff reads.", coach: "Dan", focus: "Ball security" },
+                    { name: "Defense: DB Backpedal", desc: "Drive on ball at 45 degree angle.", coach: "Ed", focus: "Low hips" }
+                ], coaches: [], key: "" },
+                { time: 40, category: "Team / Installs", format: "static", stations: [{ name: "Full Team Scrimmage / Walkthrough", desc: "Run plays full speed vs defense.", coach: "Dan", focus: "Execution" }], coaches: [], key: "" }
+            ];
+        }
+
+        let newPrac = {
+            id: generateUniqueId('prac'),
+            title: title,
+            year: "2026",
+            week: "Week " + currentWeek,
+            day: "Wednesday",
+            startTime: "17:05",
+            endTime: "19:35",
+            lastEdited: Date.now(),
+            plan: starterPlan
+        };
+
+        practiceData.push(newPrac);
+        currentPracticeId = newPrac.id;
+        triggerDebouncedSave();
+        populatePracticeDropdown();
+        renderPracticePlan();
+    }
+
+    function handlePracticeDragStart(e, pracId) {
+        if (userRole !== 'admin') { e.preventDefault(); return; }
+        draggedData = { type: 'practice', id: pracId };
+        e.dataTransfer.setData("text/plain", pracId);
+    }
+    
+    function handleWeekDragStart(e, year, week) {
+        if (userRole !== 'admin') { e.preventDefault(); return; }
+        draggedData = { type: 'week', year, week };
+        e.dataTransfer.setData("text/plain", week);
+        e.stopPropagation();
+    }
+    
+    function handleFolderDrop(e, targetYear, targetWeek) {
+        e.preventDefault();
+        e.currentTarget.classList.remove('drag-over');
+        e.stopPropagation();
+        if (userRole !== 'admin' || !draggedData) return;
+        
+        if (draggedData.type === 'practice') {
+            const pracId = draggedData.id;
+            const prac = practiceData.find(p => p.id === pracId);
+            if (prac) {
+                prac.year = targetYear;
+                prac.week = targetWeek;
+                triggerDebouncedSave();
+                populatePracticeDropdown();
+                if (currentPracticeId === pracId) renderPracticePlan(); 
+            }
+        } else if (draggedData.type === 'week') {
+            const sYear = draggedData.year;
+            const sWeek = draggedData.week;
+            
+            if (sYear === targetYear && sWeek !== targetWeek) {
+                let orderArray = weekSortOrder[sYear];
+                const sIdx = orderArray.indexOf(sWeek);
+                const tIdx = orderArray.indexOf(targetWeek);
+                if (sIdx > -1 && tIdx > -1) {
+                    orderArray.splice(sIdx, 1);
+                    orderArray.splice(tIdx, 0, sWeek);
+                    triggerDebouncedSave();
+                    populatePracticeDropdown();
+                }
+            }
+        }
+        draggedData = null;
+    }
+
+    function renamePracticeWeek(year, oldWeek, e) {
+        e.stopPropagation();
+        if(userRole !== 'admin') return;
+        const newWeek = prompt(`Rename Folder '${oldWeek}':`, oldWeek);
+        if(newWeek && newWeek.trim() !== "" && newWeek !== oldWeek) {
+            practiceData.forEach(p => {
+                if(p.year === year && p.week === oldWeek) p.week = newWeek.trim();
+            });
+            if (weekSortOrder[year]) {
+                const idx = weekSortOrder[year].indexOf(oldWeek);
+                if (idx > -1) weekSortOrder[year][idx] = newWeek.trim();
+            }
+            triggerDebouncedSave();
+            populatePracticeDropdown();
+            renderPracticePlan();
+        }
+    }
+
+    function populatePracticeDropdown() {
+      const dropdown = document.getElementById("practice-tree-dropdown");
+      const display = document.getElementById("selected-practice-display");
+      if (!dropdown || !display) return;
+
+      if (!practiceData || practiceData.length === 0) {
+          display.textContent = "Select Practice...";
+          dropdown.innerHTML = "<div style='padding:8px;'>No practices found.</div>";
+          return;
+      }
+
+      const current = practiceData.find(p => p.id === currentPracticeId);
+      if (current) {
+          display.textContent = `${current.title} (${current.day})`;
+      } else {
+          display.textContent = "Select Practice...";
+      }
+
+      let html = `<ul class="tree-root">`;
+      let groups = {};
+      practiceData.forEach(p => {
+          const y = p.year || "Unknown Year";
+          const w = p.week || "Unknown Week";
+          if (!groups[y]) groups[y] = {};
+          if (!groups[y][w]) groups[y][w] = [];
+          groups[y][w].push(p);
+      });
+
+      for (const y in groups) {
+          if (!weekSortOrder[y]) weekSortOrder[y] = Object.keys(groups[y]);
+          Object.keys(groups[y]).forEach(w => {
+              if (!weekSortOrder[y].includes(w)) weekSortOrder[y].push(w);
+          });
+          weekSortOrder[y] = weekSortOrder[y].filter(w => groups[y][w]);
+
+          html += `<li><span class="tree-caret" onclick="const sub = this.nextElementSibling; if(sub) sub.classList.toggle('hidden');">📁 ${y}</span><ul style="list-style:none; margin:0; padding-left:12px;">`;
+          
+          weekSortOrder[y].forEach(w => {
+              html += `<li>
+                  <div style="display:flex; align-items:center;">
+                      <span class="tree-caret week-drop-target" style="flex:1;"
+                            draggable="${userRole === 'admin' ? 'true' : 'false'}"
+                            ondragstart="handleWeekDragStart(event, '${y}', '${w}')"
+                            ondragover="event.preventDefault(); this.classList.add('drag-over');" 
+                            ondragleave="this.classList.remove('drag-over');" 
+                            ondrop="handleFolderDrop(event, '${y}', '${w}')" 
+                            onclick="const sub = this.parentElement.nextElementSibling; if(sub) sub.classList.toggle('hidden');">📂 ${w}</span>
+                      <button class="no-print admin-only" style="background:none; border:none; cursor:pointer; font-size:10px; margin-left:5px;" onclick="renamePracticeWeek('${y}', '${w}', event)" title="Rename Week Folder">✏️</button>
+                  </div>
+                  <ul style="list-style:none; margin:0; padding-left:12px;">`;
+              groups[y][w].forEach(p => {
+                  const sel = (p.id === currentPracticeId) ? "selected" : "";
+                  html += `<li class="tree-leaf ${sel}" draggable="${userRole === 'admin' ? 'true' : 'false'}" ondragstart="handlePracticeDragStart(event, '${p.id}')" onclick="loadPractice('${p.id}')">📝 ${p.title} (${p.day})</li>`;
+              });
+              html += `</ul></li>`;
+          });
+          html += `</ul></li>`;
+      }
+      html += `</ul>`;
+      dropdown.innerHTML = html;
+    }
+
+    function togglePracticeTree(event) {
+        if(event) event.stopPropagation();
+        const dropdown = document.getElementById("practice-tree-dropdown");
+        if(dropdown.style.display === "none" || dropdown.style.display === "") {
+            dropdown.style.display = "block";
+        } else {
+            dropdown.style.display = "none";
+        }
+    }
+
+    function loadPractice(id) {
+        currentPracticeId = id;
+        document.getElementById("practice-tree-dropdown").style.display = "none";
+        populatePracticeDropdown();
+        renderPracticePlan();
+    }
+
+    function renderPracticePlan() {
+      const tbody = document.getElementById("practice-rows");
+      const stats = document.getElementById("prac-stats");
+      const startEl = document.getElementById("prac-start");
+      const endEl = document.getElementById("prac-end");
+      const titleEl = document.getElementById("print-practice-title");
+      const dateEl = document.getElementById("print-practice-date");
+
+      if (!tbody) return;
+
+      const prac = practiceData.find(p => p.id === currentPracticeId);
+      if (!prac) {
+          tbody.innerHTML = "<tr><td colspan='6' style='text-align:center;'>No practice selected.</td></tr>";
+          return;
+      }
+
+      if(startEl) startEl.value = prac.startTime || "17:05";
+      if(endEl) endEl.value = prac.endTime || "20:00";
+      if(titleEl) titleEl.textContent = `Practice Plan: ${prac.title}`;
+      if(dateEl) dateEl.textContent = `${prac.day} | ${prac.week} | ${prac.year}`;
+
+      let totalMins = 0;
+      (prac.plan || []).forEach(row => {
+          if (row.category !== "Pre Practice") {
+              totalMins += parseInt(row.time || 0);
+          }
+      });
+      
+      let startMins = 0;
+      if (prac.startTime) {
+          let pts = prac.startTime.split(":");
+          startMins = parseInt(pts[0])*60 + parseInt(pts[1]);
+      }
+
+      if(stats) {
+          stats.innerHTML = `<span style="background:var(--primary); color:white; padding:4px 8px; border-radius:4px;">Total Active Time: ${totalMins} mins</span>`;
+      }
+
+      tbody.innerHTML = "";
+      let currentMins = startMins;
+
+      (prac.plan || []).forEach((row, idx) => {
+          let duration = parseInt(row.time || 15);
+          let endPeriodMins = currentMins + duration;
+          let stTimeStr = formatTime(currentMins);
+          let endTimeStr = formatTime(endPeriodMins);
+
+          let formatType = row.format || "static";
+          let stations = Array.isArray(row.stations) ? row.stations : [{ name: "Group 1", desc: "", coach: "", focus: "" }];
+          let rowSpan = stations.length;
+
+          let categoryOptions = `<option value="">-- Category --</option>`;
+          categoryOptions += `<option value="Pre Practice" ${row.category === 'Pre Practice' ? 'selected' : ''}>Pre Practice (Non-counted)</option>`;
+          Object.keys(dynamicDrills).forEach(c => {
+             if (c !== 'Pre Practice') {
+                 categoryOptions += `<option value="${c}" ${row.category === c ? 'selected' : ''}>${c}</option>`;
+             }
+          });
+
+          stations.forEach((st, sIdx) => {
+              let drillSelectOptions = `<option value="">-- Select Drill --</option>`;
+              if(row.category && dynamicDrills[row.category]) {
+                  dynamicDrills[row.category].forEach(d => {
+                      drillSelectOptions += `<option value="${d.name}" ${st.name.includes(d.name) ? 'selected' : ''}>${d.name}</option>`;
+                  });
+              }
+
+              let coachSelectOptions = `<option value="">+ Coach</option>`;
+              savedCoaches.forEach(c => {
+                 coachSelectOptions += `<option value="${c}" ${st.coach === c ? 'selected' : ''}>${c}</option>`;
+              });
+
+              let tr = document.createElement("tr");
+              let periodClass = (idx % 2 === 0) ? "period-odd" : "period-even";
+              tr.className = periodClass;
+
+              let timeCategoryAndRemoveTds = "";
+              if (sIdx === 0) {
+                  timeCategoryAndRemoveTds = `
+                      <td rowspan="${rowSpan}" style="vertical-align: top;">
+                          <input type="number" class="prac-input" value="${duration}" oninput="updatePracticeRow(${idx}, 'time', this.value)" style="width:45px; display:inline;"> Mins
+                          <div class="period-schedule-time">${stTimeStr} - ${endTimeStr}</div>
+                      </td>
+                      <td rowspan="${rowSpan}" style="vertical-align: top;">
+                          <select class="prac-select" onchange="updatePracticeCategory(${idx}, this.value)" style="font-weight:bold; margin-bottom:4px;">
+                             ${categoryOptions}
+                          </select>
+                          <select class="prac-select admin-only" onchange="updatePracticeFormat(${idx}, this.value)" style="margin-bottom:4px;">
+                              <option value="static" ${formatType === 'static' ? 'selected' : ''}>Static Circuit</option>
+                              <option value="rotating" ${formatType === 'rotating' ? 'selected' : ''}>Rotating Circuit</option>
+                          </select>
+                          <button class="add-row-btn admin-only" style="padding:3px 8px; font-size:10px; margin:0;" onclick="addStation(${idx})">+ Group / Station</button>
+                      </td>
+                  `;
+              }
+
+              let removeTd = "";
+              if (sIdx === 0) {
+                  removeTd = `
+                      <td rowspan="${rowSpan}" class="no-print admin-only" style="text-align:center; vertical-align:middle;">
+                          <button class="remove-btn" onclick="deletePracticeRow(${idx})">&times;</button>
+                      </td>
+                  `;
+              }
+
+              let bottomBorder = (sIdx < rowSpan - 1) ? '1px dashed #cbd5e1' : 'none';
+
+              tr.innerHTML = `
+                  ${timeCategoryAndRemoveTds}
+                  <td style="border-bottom: ${bottomBorder}; vertical-align: top;">
+                      <div style="display:flex; justify-content:space-between; align-items:center; gap:4px; margin-bottom:4px;">
+                        <input type="text" class="prac-input" value="${st.name || ''}" oninput="updateStationField(${idx}, ${sIdx}, 'name', this.value)" placeholder="Group / Station Name..." style="font-weight:bold; width:60%;">
+                        <select class="prac-select admin-only" onchange="updateStationDrill(${idx}, ${sIdx}, this.value)" style="font-size:10px; width:35%;">
+                            ${drillSelectOptions}
+                        </select>
+                        ${rowSpan > 1 ? `<button class="remove-btn admin-only" onclick="removeStation(${idx}, ${sIdx})" style="font-size:11px; padding:0 4px;">&times;</button>` : ''}
+                     </div>
+                     <textarea class="prac-textarea" oninput="autoResizeTextarea(this); updateStationField(${idx}, ${sIdx}, 'desc', this.value)" placeholder="Drill instructions & notes..." style="min-height:40px; margin-top:0;">${st.desc || ''}</textarea>
+                  </td>
+                  <td style="border-bottom: ${bottomBorder}; vertical-align: top;">
+                      <select class="prac-select admin-only" onchange="updateStationField(${idx}, ${sIdx}, 'coach', this.value); renderPracticePlan();" style="margin-bottom:4px;">
+                           ${coachSelectOptions}
+                      </select>
+                      <input type="text" class="prac-input" value="${st.coach || ''}" oninput="updateStationField(${idx}, ${sIdx}, 'coach', this.value)" placeholder="Coach(es)...">
+                  </td>
+                  <td style="border-bottom: ${bottomBorder}; vertical-align: top;">
+                      <input type="text" class="prac-input" value="${st.focus || ''}" oninput="updateStationField(${idx}, ${sIdx}, 'focus', this.value)" placeholder="Focus...">
+                  </td>
+                  ${removeTd}
+              `;
+              tbody.appendChild(tr);
+          });
+          currentMins = endPeriodMins;
+      });
+      document.querySelectorAll('#panel-practice .prac-textarea').forEach(ta => autoResizeTextarea(ta));
+    }
+
+    function updatePracticeRow(idx, field, val) {
+        if(userRole !== 'admin') return;
+        const prac = practiceData.find(p => p.id === currentPracticeId);
+        if(prac && prac.plan[idx]) {
+            prac.plan[idx][field] = val;
+            if(field === 'time') renderPracticePlan();
+            triggerDebouncedSave();
+        }
+    }
+
+    function updatePracticeCategory(idx, val) {
+        if(userRole !== 'admin') return;
+        const prac = practiceData.find(p => p.id === currentPracticeId);
+        if(prac && prac.plan[idx]) {
+            prac.plan[idx].category = val;
+            triggerDebouncedSave();
+            renderPracticePlan();
+        }
+    }
+
+    function updateStationField(pIdx, sIdx, field, val) {
+        if(userRole !== 'admin') return;
+        const prac = practiceData.find(p => p.id === currentPracticeId);
+        if(prac && prac.plan[pIdx] && prac.plan[pIdx].stations[sIdx]) {
+            prac.plan[pIdx].stations[sIdx][field] = val;
+            triggerDebouncedSave();
+        }
+    }
+
+    function updateStationDrill(pIdx, sIdx, drillName) {
+        if(userRole !== 'admin' || !drillName) return;
+        const prac = practiceData.find(p => p.id === currentPracticeId);
+        if(prac && prac.plan[pIdx]) {
+            const cat = prac.plan[pIdx].category;
+            if(cat && dynamicDrills[cat]) {
+                const found = dynamicDrills[cat].find(d => d.name === drillName);
+                if(found) {
+                    prac.plan[pIdx].stations[sIdx].name = found.name;
+                    prac.plan[pIdx].stations[sIdx].desc = found.desc || "";
+                    prac.plan[pIdx].stations[sIdx].focus = found.key || "";
+                    triggerDebouncedSave();
+                    renderPracticePlan();
+                }
+            }
+        }
+    }
+
+    function addStation(pIdx) {
+        if(userRole !== 'admin') return;
+        const prac = practiceData.find(p => p.id === currentPracticeId);
+        if(prac && prac.plan[pIdx]) {
+            if(!prac.plan[pIdx].stations) prac.plan[pIdx].stations = [];
+            prac.plan[pIdx].stations.push({ name: `GROUP ${prac.plan[pIdx].stations.length + 1}`, desc: "", coach: "", focus: "" });
+            triggerDebouncedSave();
+            renderPracticePlan();
+        }
+    }
+
+    function removeStation(pIdx, sIdx) {
+        if(userRole !== 'admin') return;
+        const prac = practiceData.find(p => p.id === currentPracticeId);
+        if(prac && prac.plan[pIdx] && prac.plan[pIdx].stations) {
+            prac.plan[pIdx].stations.splice(sIdx, 1);
+            if(prac.plan[pIdx].stations.length === 0) {
+                prac.plan[pIdx].stations.push({ name: "Group 1", desc: "", coach: "", focus: "" });
+            }
+            triggerDebouncedSave();
+            renderPracticePlan();
+        }
+    }
+
+    function updatePracticeFormat(idx, formatVal) {
+        if(userRole !== 'admin') return;
+        const prac = practiceData.find(p => p.id === currentPracticeId);
+        if(prac && prac.plan[idx]) {
+            prac.plan[idx].format = formatVal;
+            triggerDebouncedSave();
+            renderPracticePlan();
+        }
+    }
+
+    function deletePracticeRow(idx) {
+        if(userRole !== 'admin') return;
+        const prac = practiceData.find(p => p.id === currentPracticeId);
+        if(prac && confirm("Delete this period?")) {
+            prac.plan.splice(idx, 1);
+            triggerDebouncedSave();
+            renderPracticePlan();
+        }
+    }
+
+    function addPracticeRow() {
+        if(userRole !== 'admin') return;
+        const prac = practiceData.find(p => p.id === currentPracticeId);
+        if(prac) {
+            if(!prac.plan) prac.plan = [];
+            prac.plan.push({ 
+                time: 15, 
+                category: "Indy / Fundamentals", 
+                format: "static", 
+                stations: [{ name: "GROUP 1", desc: "Drill instructions...", coach: "", focus: "Focus" }]
+            });
+            triggerDebouncedSave();
+            renderPracticePlan();
+        }
+    }
+
+    function updatePracticeTimes(field, val) {
+        if(userRole !== 'admin') return;
+        const prac = practiceData.find(p => p.id === currentPracticeId);
+        if(prac) {
+            prac[field] = val;
+            triggerDebouncedSave();
+            renderPracticePlan();
+        }
+    }
+
+    function editPracticeDetails() {
+        if(userRole !== 'admin') return;
+        const prac = practiceData.find(p => p.id === currentPracticeId);
+        if(!prac) return;
+        const newTitle = prompt("Edit Title:", prac.title);
+        if(newTitle) prac.title = newTitle;
+        const newDay = prompt("Edit Day (e.g. Wednesday):", prac.day);
+        if(newDay) prac.day = newDay;
+        const newWeek = prompt("Edit Week (e.g. Week 3):", prac.week);
+        if(newWeek) prac.week = newWeek;
+        const newYear = prompt("Edit Year:", prac.year);
+        if(newYear) prac.year = newYear;
+
+        prac.lastEdited = Date.now();
+        triggerDebouncedSave();
+        populatePracticeDropdown();
+        renderPracticePlan();
+    }
+
+    function saveAsTemplate() {
+        if(userRole !== 'admin') return;
+        const prac = practiceData.find(p => p.id === currentPracticeId);
+        if(!prac) return;
+        practiceTemplates.push(JSON.parse(JSON.stringify(prac)));
+        localStorage.setItem("footballPracticeTemplates", JSON.stringify(practiceTemplates));
+        alert("Practice saved as a template!");
+    }
+
+    function deletePractice() {
+        if(userRole !== 'admin') return;
+        if(practiceData.length <= 1) {
+            alert("Cannot delete the last remaining practice plan.");
+            return;
+        }
+        if(confirm("Are you sure you want to delete this entire practice plan?")) {
+            practiceData = practiceData.filter(p => p.id !== currentPracticeId);
+            currentPracticeId = practiceData[0].id;
+            triggerDebouncedSave();
+            populatePracticeDropdown();
+            renderPracticePlan();
+        }
+    }
+
 
     // --- USERS LOGIC ---
     async function renderUsers() {
