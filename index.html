@@ -197,12 +197,12 @@
 
     .remove-btn { background: none; border: none; color: #ef4444; font-weight: bold; cursor: pointer; font-size: 13px; }
 
-    /* Print Modal */
-    #print-modal {
+    /* Modals */
+    .custom-modal {
       position: fixed; inset: 0; background: rgba(15,23,42,0.7); display: flex; align-items: center; justify-content: center; z-index: 20000;
     }
-    .print-modal-card { background: #fff; padding: 20px; border-radius: 8px; width: 320px; max-width: 90%; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
-    .print-modal-card h3 { margin-top: 0; color: var(--primary); font-size: 16px; }
+    .custom-modal-card { background: #fff; padding: 20px; border-radius: 8px; width: 340px; max-width: 90%; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+    .custom-modal-card h3 { margin-top: 0; color: var(--primary); font-size: 16px; }
 
     /* Wristband Builder */
     .wb-exact-table { width: 100%; border-collapse: collapse; border: 2px solid #000000; background: #ffffff; }
@@ -351,14 +351,6 @@
       border-bottom: none;
     }
 
-    .station-title {
-      font-size: 9px;
-      font-weight: bold;
-      color: var(--primary);
-      margin-bottom: 2px;
-      text-transform: uppercase;
-    }
-
     .coach-badge {
       display: inline-block;
       background: #e2e8f0;
@@ -376,37 +368,33 @@
       color: white;
     }
 
-    /* Sidebar Wrapper & Panels */
-    #sidebar-container { flex: 1; min-width: 220px; max-width: 280px; position: sticky; top: 15px; max-height: calc(100vh - 30px); display: flex; flex-direction: column; }
-    .sidebar { background: var(--card-bg); border-radius: 8px; padding: 12px; border: 1px solid var(--card-border); display: flex; flex-direction: column; box-shadow: 0 1px 3px rgba(0,0,0,0.05); flex-grow: 1; max-height: 100%; }
-    @media (max-width: 900px) { #sidebar-container { position: static; max-width: 100%; max-height: 600px; } }
-    .sidebar h2 { font-size: 14px; margin: 0 0 8px 0; color: var(--primary); border-bottom: 1px solid var(--card-border); padding-bottom: 6px; }
-    .search-box { width: 100%; padding: 8px 10px; border: 1px solid var(--card-border); border-radius: 6px; font-size: 12px; margin-bottom: 10px; box-sizing: border-box; outline: none; }
-    .search-box:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2); }
-    .full-roster-list { list-style: none; padding: 0; margin: 0; overflow-y: auto; flex-grow: 1; min-height: 200px; }
-    .full-roster-item { padding: 6px 8px; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; justify-content: space-between; font-size: 11px; cursor: grab; background: #f8fafc; margin-bottom: 4px; border-radius: 4px; border: 1px solid var(--card-border); user-select: none; }
-    .full-roster-item:hover { border-color: var(--accent); background: #eff6ff; }
-    .multi-badge { font-size: 9px; background: #e2e8f0; color: #475569; padding: 1px 5px; border-radius: 10px; font-weight: bold; }
-
-    /* PRINT STYLES */
+    /* PRINT STYLES WITH LARGER FONTS */
     @media print {
       @page { size: letter portrait; margin: 0.25in; }
-      body { background-color: #ffffff; padding: 0; margin: 0; font-size: 10px; }
-      .toolbar, #sidebar-container, .remove-btn, .action-group, p.subtitle, .search-box, .card-search-container, .tab-navigation, .toggle-board-btn, .week-bar, .board-controls, .add-row-btn, .add-form-btn, .row-actions, .col-resizer, .practice-dashboard, #print-modal { display: none !important; }
+      body { background-color: #ffffff; padding: 0; margin: 0; font-size: 13px !important; }
+      .toolbar, #sidebar-container, .remove-btn, .action-group, p.subtitle, .search-box, .card-search-container, .tab-navigation, .toggle-board-btn, .week-bar, .board-controls, .add-row-btn, .add-form-btn, .row-actions, .col-resizer, .practice-dashboard, #print-modal, #new-prac-modal { display: none !important; }
       .app-layout, .boards-container, .unit-panel:not(.hidden) { display: block !important; }
       .formation-container.print-hidden { display: none !important; }
       .formation-body.collapsed { display: block !important; }
-      .formation-container { border: 1px solid #000000 !important; box-shadow: none !important; padding: 4px; page-break-inside: auto !important; margin-bottom: 4px; background: #ffffff !important; }
+      .formation-container { border: 2px solid #000000 !important; box-shadow: none !important; padding: 6px; page-break-inside: auto !important; margin-bottom: 8px; background: #ffffff !important; }
       .formation-row { min-width: 100% !important; page-break-inside: avoid; align-items: start !important; }
       .row-slot { align-items: flex-start !important; border: none !important; background: transparent !important; min-height: auto !important; }
-      .position-card { border: 1px solid #000000 !important; box-shadow: none !important; min-width: 65px; background: #ffffff !important; }
-      .position-header { background: #e2e8f0 !important; color: #000000 !important; border-bottom: 1px solid #000000 !important; font-size: 8px; padding: 2px 3px; }
-      .player-item { border: 1px solid #cbd5e1 !important; font-size: 7.5px; padding: 2px 3px; margin-bottom: 2px; }
-      h1 { margin-top: 0; font-size: 12px; color: #000000; text-align: center; }
+      .position-card { border: 2px solid #000000 !important; box-shadow: none !important; min-width: 75px; background: #ffffff !important; }
+      .position-header { background: #e2e8f0 !important; color: #000000 !important; border-bottom: 2px solid #000000 !important; font-size: 11px !important; padding: 4px 6px; font-weight: bold; }
+      .player-item { border: 1px solid #000000 !important; font-size: 11px !important; padding: 4px 6px !important; margin-bottom: 3px; background: #fff !important; }
+      h1 { margin-top: 0; font-size: 16px; color: #000000; text-align: center; }
+      
+      /* Larger Practice Plan Print Fonts */
+      .practice-table { font-size: 12px !important; border: 2px solid #000 !important; }
+      .practice-table th { font-size: 13px !important; background: #e2e8f0 !important; color: #000 !important; }
+      .practice-table td { font-size: 12px !important; border: 1px solid #000 !important; padding: 8px !important; }
+      .period-schedule-time { font-size: 12px !important; color: #000 !important; }
+      .prac-input, .prac-select, .prac-textarea { font-size: 12px !important; border: none !important; background: transparent !important; padding: 0 !important; color: #000 !important; }
+
       .no-print { display: none !important; }
-      .print-only-header { display: block !important; text-align: center; margin-bottom: 4px; }
-      .print-only-header h2 { margin: 0 0 2px 0; font-size: 14px; }
-      .print-only-header p { margin: 0; font-size: 11px; color: #333; }
+      .print-only-header { display: block !important; text-align: center; margin-bottom: 6px; }
+      .print-only-header h2 { margin: 0 0 2px 0; font-size: 16px; }
+      .print-only-header p { margin: 0; font-size: 12px; color: #333; }
     }
   </style>
 </head>
@@ -645,7 +633,7 @@
                 </div>
               </div>
 
-              <button class="toggle-board-btn admin-only" onclick="createNewPractice()">+ New</button>
+              <button class="toggle-board-btn admin-only" onclick="openNewPracticeModal()">+ New</button>
               <button class="toggle-board-btn admin-only" onclick="editPracticeDetails()">✏️ Edit Details</button>
               <button class="toggle-board-btn admin-only" onclick="saveAsTemplate()">💾 Save Template</button>
               <button class="toggle-board-btn admin-only" onclick="deletePractice()" style="color:#ef4444;">🗑️ Delete</button>
@@ -735,8 +723,35 @@
     </div>
   </div>
 
+  <!-- NEW PRACTICE TEMPLATE MODAL -->
+  <div id="new-prac-modal" class="custom-modal hidden">
+    <div class="custom-modal-card">
+       <h3>Create New Practice Plan</h3>
+       <label style="font-size:12px; font-weight:bold; display:block; margin-bottom:6px;">Practice Title:</label>
+       <input type="text" id="modal-prac-title" class="prac-input" value="Full Pads Install" style="margin-bottom:12px;">
+
+       <label style="font-size:12px; font-weight:bold; display:block; margin-bottom:6px;">Starter Template Focus:</label>
+       <select id="modal-prac-template" class="prac-select" style="margin-bottom:12px;">
+           <option value="offense">Offensive Day (Pass, Run, O-Line Install)</option>
+           <option value="defense">Defensive Day (Tackling Circuit, Fronts, DBs)</option>
+           <option value="combined">Offense / Defense Combined</option>
+       </select>
+
+       <label style="font-size:12px; font-weight:bold; display:block; margin-bottom:6px;">Total Duration:</label>
+       <select id="modal-prac-duration" class="prac-select" style="margin-bottom:20px;">
+           <option value="120">2 Hours (120 Mins)</option>
+           <option value="150" selected>2.5 Hours (150 Mins)</option>
+       </select>
+
+       <div style="display: flex; gap: 8px; justify-content: flex-end;">
+          <button class="toggle-board-btn" onclick="document.getElementById('new-prac-modal').classList.add('hidden')">Cancel</button>
+          <button class="add-row-btn" style="margin:0;" onclick="executeCreateNewPractice()">Create Plan</button>
+       </div>
+    </div>
+  </div>
+
   <!-- PRINT SELECTION MODAL -->
-  <div id="print-modal" class="hidden">
+  <div id="print-modal" class="custom-modal hidden">
     <div class="print-modal-card">
        <h3>Select Boards to Print</h3>
        <div id="print-modal-list" style="max-height: 200px; overflow-y: auto; margin-bottom: 15px; text-align: left; font-size: 12px; display: flex; flex-direction: column; gap: 6px;"></div>
@@ -2266,6 +2281,73 @@
 
 
     // --- PRACTICE PLAN LOGIC ---
+    function openNewPracticeModal() {
+        if(userRole !== 'admin') return;
+        document.getElementById("new-prac-modal").classList.remove('hidden');
+    }
+
+    function executeCreateNewPractice() {
+        if(userRole !== 'admin') return;
+        const title = document.getElementById("modal-prac-title").value.trim() || "Practice Plan";
+        const templateType = document.getElementById("modal-prac-template").value;
+        const totalDuration = parseInt(document.getElementById("modal-prac-duration").value) || 150;
+        document.getElementById("new-prac-modal").classList.add('hidden');
+
+        let starterPlan = [];
+        if (templateType === 'offense') {
+            starterPlan = [
+                { time: 25, category: "Pre Practice", format: "static", stations: [{ name: "GROUP 1: QB & Center Exchange", desc: "Under center and shotgun snap work.", coach: "TJ", focus: "Snap accuracy" }], coaches: [], key: "" },
+                { time: 30, category: "Warm-Up & Breaks", format: "static", stations: [{ name: "GROUP 1: Dynamic Warm-Up", desc: "High knees, karaoke, shuffling, short sprints.", coach: "TJ", focus: "Speed & posture" }], coaches: [], key: "" },
+                { time: 45, category: "Individual Offense", format: "static", stations: [
+                    { name: "O-Line Run Blocking", desc: "Power steps and drive blocking.", coach: "Brian", focus: "Pad level" },
+                    { name: "WR Route Tree", desc: "Route running and on-air throws.", coach: "Ed", focus: "Clean breaks" }
+                ], coaches: [], key: "" },
+                { time: 50, category: "Team Offense", format: "static", stations: [{ name: "Full Team Run Install", desc: "Review assignments vs 4-4 defense.", coach: "Dan", focus: "Assignment execution" }], coaches: [], key: "" }
+            ];
+        } else if (templateType === 'defense') {
+            starterPlan = [
+                { time: 25, category: "Pre Practice", format: "static", stations: [{ name: "GROUP 1: Form Tackling", desc: "Breakdown, fit, and drive.", coach: "Joe", focus: "Hip explosion" }], coaches: [], key: "" },
+                { time: 35, category: "Tackle Circuit", format: "rotating", stations: [
+                    { name: "STATION 1: Form Fit & Drive", desc: "Shoulder fit and 3-step drive.", coach: "Dan", focus: "Wrap cloth" },
+                    { name: "STATION 2: Angle Tackle", desc: "Inside-out angle pursuit.", coach: "Pete", focus: "Near hip" }
+                ], coaches: [], key: "" },
+                { time: 45, category: "Individual Defense", format: "static", stations: [{ name: "DL Gap Control & Rip", desc: "Read hat and execute rip move.", coach: "John", focus: "Violent hands" }], coaches: [], key: "" },
+                { time: 45, category: "Team Defense", format: "static", stations: [{ name: "Defensive Front Install", desc: "Walk through base front alignments.", coach: "Dan", focus: "Gap integrity" }], coaches: [], key: "" }
+            ];
+        } else {
+            starterPlan = [
+                { time: 25, category: "Pre Practice", format: "static", stations: [{ name: "GROUP 1: Special Teams Setup", desc: "Kicking and holding mechanics.", coach: "TJ", focus: "Timing" }], coaches: [], key: "" },
+                { time: 45, category: "Tackle Circuit", format: "rotating", stations: [
+                    { name: "STATION 1: Tackling", desc: "Form fit and drive.", coach: "Joe", focus: "Hips" },
+                    { name: "STATION 2: Block Defeat", desc: "Arm-over swim move.", coach: "Brian", focus: "Quick hands" }
+                ], coaches: [], key: "" },
+                { time: 40, category: "Individual Offense / Defense", format: "static", stations: [
+                    { name: "Offense: RBs & QBs", desc: "Mesh and handoff reads.", coach: "Dan", focus: "Ball security" },
+                    { name: "Defense: DB Backpedal", desc: "Drive on ball at 45 degree angle.", coach: "Ed", focus: "Low hips" }
+                ], coaches: [], key: "" },
+                { time: 40, category: "Team / Installs", format: "static", stations: [{ name: "Full Team Scrimmage / Walkthrough", desc: "Run plays full speed vs defense.", coach: "Dan", focus: "Execution" }], coaches: [], key: "" }
+            ];
+        }
+
+        let newPrac = {
+            id: generateUniqueId('prac'),
+            title: title,
+            year: "2026",
+            week: "Week " + currentWeek,
+            day: "Wednesday",
+            startTime: "17:05",
+            endTime: "19:35",
+            lastEdited: Date.now(),
+            plan: starterPlan
+        };
+
+        practiceData.push(newPrac);
+        currentPracticeId = newPrac.id;
+        triggerDebouncedSave();
+        populatePracticeDropdown();
+        renderPracticePlan();
+    }
+
     function handlePracticeDragStart(e, pracId) {
         if (userRole !== 'admin') { e.preventDefault(); return; }
         draggedData = { type: 'practice', id: pracId };
@@ -2458,33 +2540,31 @@
           let stations = Array.isArray(row.stations) ? row.stations : [{ name: "Group 1", desc: "", coach: "", focus: "" }];
 
           let stationsHtml = "";
+          let coachesHtml = "";
+          let focusHtml = "";
+
           stations.forEach((st, sIdx) => {
+              let borderStyle = sIdx > 0 ? 'margin-top:8px; border-top:1px dashed #cbd5e1; padding-top:8px;' : '';
+              
               stationsHtml += `
-                <div class="station-block" style="${sIdx > 0 ? 'margin-top:6px; border-top:1px dashed #cbd5e1; padding-top:6px;' : ''}">
+                <div class="station-block" style="${borderStyle}">
                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                      <input type="text" class="prac-input" value="${st.name || ''}" oninput="updateStationField(${idx}, ${sIdx}, 'name', this.value)" placeholder="Group / Station Name..." style="font-weight:bold; width:70%;">
+                      <input type="text" class="prac-input" value="${st.name || ''}" oninput="updateStationField(${idx}, ${sIdx}, 'name', this.value)" placeholder="Group / Station Name..." style="font-weight:bold; width:75%;">
                       <button class="remove-btn admin-only" onclick="removeStation(${idx}, ${sIdx})" style="font-size:11px;">&times; Remove</button>
                    </div>
                    <textarea class="prac-textarea" oninput="autoResizeTextarea(this); updateStationField(${idx}, ${sIdx}, 'desc', this.value)" placeholder="Drill instructions...">${st.desc || ''}</textarea>
                 </div>
               `;
-          });
 
-          let coachesHtml = "";
-          stations.forEach((st, sIdx) => {
               coachesHtml += `
-                 <div style="margin-bottom:4px; font-size:10.5px;">
-                     <b>${st.name.split(':')[0]}:</b> 
-                     <input type="text" class="prac-input" value="${st.coach || ''}" oninput="updateStationField(${idx}, ${sIdx}, 'coach', this.value)" placeholder="Coach..." style="width:100px; display:inline;">
+                 <div style="${borderStyle}">
+                     <input type="text" class="prac-input" value="${st.coach || ''}" oninput="updateStationField(${idx}, ${sIdx}, 'coach', this.value)" placeholder="Coach(es)..." style="font-weight:bold;">
                  </div>
               `;
-          });
 
-          let focusHtml = "";
-          stations.forEach((st, sIdx) => {
               focusHtml += `
-                 <div style="margin-bottom:4px; font-size:10.5px;">
-                     <input type="text" class="prac-input" value="${st.focus || ''}" oninput="updateStationField(${idx}, ${sIdx}, 'focus', this.value)" placeholder="Focus..." style="width:100px; display:inline;">
+                 <div style="${borderStyle}">
+                     <input type="text" class="prac-input" value="${st.focus || ''}" oninput="updateStationField(${idx}, ${sIdx}, 'focus', this.value)" placeholder="Focus...">
                  </div>
               `;
           });
@@ -2501,7 +2581,7 @@
                     <option value="static" ${formatType === 'static' ? 'selected' : ''}>Static Circuit</option>
                     <option value="rotating" ${formatType === 'rotating' ? 'selected' : ''}>Rotating Circuit</option>
                 </select>
-                <button class="add-row-btn admin-only" style="padding:2px 6px; font-size:9.5px; margin:0;" onclick="addStation(${idx})">+ Add Group/Station</button>
+                <button class="add-row-btn admin-only" style="padding:3px 8px; font-size:10px; margin:0;" onclick="addStation(${idx})">+ Group / Station</button>
             </td>
             <td>${stationsHtml}</td>
             <td>${coachesHtml}</td>
@@ -2605,30 +2685,6 @@
             triggerDebouncedSave();
             renderPracticePlan();
         }
-    }
-
-    function createNewPractice() {
-        if(userRole !== 'admin') return;
-        const title = prompt("Enter Practice Title (e.g. Full Pads Install):", "New Practice");
-        if(!title) return;
-        const newPrac = {
-            id: generateUniqueId('prac'),
-            title: title,
-            year: "2026",
-            week: "Week 3",
-            day: "Wednesday",
-            startTime: "17:05",
-            endTime: "20:00",
-            lastEdited: Date.now(),
-            plan: [
-                { time: 15, category: "Warm-Up", format: "static", stations: [{ name: "GROUP 1", desc: "Warmup routine", coach: "", focus: "Hustle" }], coaches: [], key: "" }
-            ]
-        };
-        practiceData.push(newPrac);
-        currentPracticeId = newPrac.id;
-        triggerDebouncedSave();
-        populatePracticeDropdown();
-        renderPracticePlan();
     }
 
     function editPracticeDetails() {
