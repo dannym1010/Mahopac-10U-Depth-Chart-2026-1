@@ -153,10 +153,11 @@
     .level-header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; border-bottom: 1px solid #e2e8f0; padding-bottom: 2px; }
     .level-label { font-size: 10px; font-weight: bold; color: var(--text-muted); text-transform: uppercase; }
 
-    .formation-row { display: flex; gap: 6px; flex-wrap: wrap; min-width: 100%; justify-content: center; }
+    .formation-row { display: flex; gap: 6px; flex-wrap: wrap; min-width: 100%; justify-content: center; min-height: 50px; padding-bottom: 10px; }
+    .formation-row.drag-over { background-color: #f1f5f9; border-radius: 8px; border: 2px dashed #94a3b8; }
 
-    .position-card { background: var(--card-bg); border-radius: 6px; border: 2px solid var(--card-border); min-width: 110px; max-width: 150px; flex: 1; position: relative; }
-    .position-card.drag-over { border-color: var(--accent) !important; background: #eff6ff !important; }
+    .position-card { background: var(--card-bg); border-radius: 6px; border: 2px solid var(--card-border); min-width: 110px; max-width: 150px; flex: 1; position: relative; transition: transform 0.1s; }
+    .position-card.drag-over { border-color: var(--accent) !important; background: #eff6ff !important; transform: scale(1.02); }
     .position-header { background: #f1f5f9; padding: 3px 6px; font-weight: bold; font-size: 11px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border); color: var(--primary); }
 
     .player-list { list-style: none; padding: 4px; margin: 0; min-height: 45px; }
@@ -193,7 +194,8 @@
     .tree-leaf { cursor: pointer; font-size: 11px; padding: 4px 0 4px 18px; color: var(--text); border-radius: 3px; margin-bottom: 2px;}
     .tree-leaf:hover { background-color: #eff6ff; color: var(--accent); font-weight: bold; }
     .tree-leaf.selected { background-color: #dbeafe; font-weight: bold; border-left: 2px solid var(--accent); }
-    .week-drop-target.drag-over { background-color: #fef08a; padding: 2px 4px; border-radius: 4px; }
+    .week-drop-target { border-radius: 4px; padding: 2px 4px; margin-left:-4px;}
+    .week-drop-target.drag-over { background-color: #fef08a; border: 1px dashed #ca8a04; }
     .practice-tree-btn { padding: 4px 8px; border: 1px solid var(--card-border); border-radius: 4px; font-weight: bold; cursor: pointer; background: #fff; height: 28px; line-height: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
     .card-search-dropdown { position: absolute; background: #ffffff; border: 1px solid var(--card-border); border-radius: 6px; box-shadow: 0 4px 6px rgba(0,0,0,0.15); }
@@ -879,7 +881,7 @@
     let depthChart = null;
     let currentPracticeId = null;
 
-    // --- TAB SWITCHING LOGIC ---
+    // --- TAB & WEEK LOGIC ---
     function switchUnitTab(unit) {
       activeUnit = unit;
       
@@ -917,6 +919,53 @@
         renderActiveBoards();
         renderMasterRoster();
       }
+    }
+
+    // This handles swapping all the data bound to the selected week!
+    function changeWeek(val) {
+        currentWeek = val;
+        
+        // Refresh Depth Chart Pointer
+        depthChart = getWeekDepthChart(currentWeek);
+        
+        // Refresh Opponent Field
+        const oppInput = document.getElementById("opponent-input");
+        if(oppInput) oppInput.value = weeklyData[currentWeek] ? (weeklyData[currentWeek].opponent || "") : "";
+        
+        // Re-render ALL visible components dependent on Week data
+        renderActiveBoards();
+        renderWristband();
+        renderScouting();
+        renderMasterRoster();
+        
+        // Ensure UI select stays in sync (if called via script)
+        const weekSelect = document.getElementById("week-select");
+        if (weekSelect && weekSelect.value !== val) weekSelect.value = val;
+    }
+
+    function copyWeekToPrompt() {
+        if (userRole !== 'admin') return;
+        const target = prompt("Enter the Week Number (0-8) to copy this week's lineup and formations TO:");
+        if (target && target >= 0 && target <= 8 && target !== currentWeek) {
+            if (confirm(`Overwrite Week ${target} with ALL data from Week ${currentWeek}?`)) {
+                weeklyData[target] = JSON.parse(JSON.stringify(weeklyData[currentWeek]));
+                triggerDebouncedSave();
+                alert(`Successfully Copied to Week ${target}!`);
+            }
+        }
+    }
+
+    function updateOpponentLabel(val) {
+        if(userRole !== 'admin') return;
+        if (!weeklyData[currentWeek]) weeklyData[currentWeek] = {};
+        weeklyData[currentWeek].opponent = val;
+        
+        // Keep scouting in sync too
+        if(!weeklyData[currentWeek].scouting) weeklyData[currentWeek].scouting = {};
+        weeklyData[currentWeek].scouting.opponent = val;
+        
+        triggerDebouncedSave();
+        renderScouting();
     }
 
     // --- UTILITIES ---
@@ -1085,6 +1134,11 @@
     function initializeApp() {
       try {
         sanitizePracticeData();
+        
+        // Read week selector on load to ensure sync
+        const weekSelect = document.getElementById("week-select");
+        if(weekSelect) currentWeek = weekSelect.value;
+        
         initWristbandData();
         depthChart = getWeekDepthChart(currentWeek);
         
@@ -1100,7 +1154,7 @@
       }
     }
 
-    // --- Drag & Drop Mechanics ---
+    // --- Drag & Drop Mechanics (Roster & Position Cards) ---
     function handleRosterDragStart(e, name, num) {
       if (userRole !== 'admin') { e.preventDefault(); return; }
       draggedData = { type: "roster", name, num };
@@ -1114,26 +1168,90 @@
       e.dataTransfer.setData("text/plain", name);
       e.dataTransfer.effectAllowed = "move";
     }
+    
+    // NEW: Handle moving the whole position card
+    function handlePosCardDragStart(e, formId, rowId, posId) {
+      if (userRole !== 'admin') { e.preventDefault(); return; }
+      draggedData = { type: "position_card", formId, rowId, posId };
+      e.dataTransfer.setData("text/plain", posId);
+      e.dataTransfer.effectAllowed = "move";
+    }
 
-    function handleCardDrop(e, targetPos) {
+    function handleCardDrop(e, targetFormId, targetRowId, targetPosId) {
       if (userRole !== 'admin') return;
       e.preventDefault();
       document.querySelectorAll(".position-card").forEach(c => c.classList.remove("drag-over"));
       if (!draggedData) return;
+      
+      // If we are dropping a whole position card onto another position card
+      if (draggedData.type === "position_card") {
+          const sFormId = draggedData.formId;
+          const sRowId = draggedData.rowId;
+          const sPosId = draggedData.posId;
+          if (sPosId === targetPosId) { draggedData = null; return; } // Dropped on self
+          
+          const forms = getWeekFormations(currentWeek);
+          const sForm = forms.find(f => f.id === sFormId);
+          const tForm = forms.find(f => f.id === targetFormId);
+          const sRow = sForm.rows.find(r => r.id === sRowId);
+          const tRow = tForm.rows.find(r => r.id === targetRowId);
+          
+          const sIndex = sRow.positions.findIndex(p => p.id === sPosId);
+          const tIndex = tRow.positions.findIndex(p => p.id === targetPosId);
+          
+          // Remove from source row, splice into target row
+          const [movedPos] = sRow.positions.splice(sIndex, 1);
+          tRow.positions.splice(tIndex, 0, movedPos);
+          
+          draggedData = null;
+          triggerDebouncedSave();
+          renderActiveBoards();
+          return;
+      }
 
-      if (!depthChart[targetPos]) depthChart[targetPos] = [];
+      // If we are dropping a single player onto a position
+      if (!depthChart[targetPosId]) depthChart[targetPosId] = [];
 
       if (draggedData.type === "position") {
-        if (draggedData.sourcePos === targetPos) { draggedData = null; return; }
+        if (draggedData.sourcePos === targetPosId) { draggedData = null; return; }
         if (depthChart[draggedData.sourcePos]) {
           depthChart[draggedData.sourcePos].splice(draggedData.sourceIndex, 1);
         }
       }
-      depthChart[targetPos].push({ name: draggedData.name, num: draggedData.num });
+      depthChart[targetPosId].push({ name: draggedData.name, num: draggedData.num });
       draggedData = null;
       triggerDebouncedSave();
       renderActiveBoards();
       renderMasterRoster();
+    }
+    
+    // NEW: Handle dropping a position card into an empty row or at the end of a row
+    function handleRowDrop(e, targetFormId, targetRowId) {
+        if (userRole !== 'admin' || !draggedData || draggedData.type !== 'position_card') return;
+        if (e.target.closest('.position-card')) return; // Let the card drop handle it
+        
+        e.preventDefault();
+        e.currentTarget.classList.remove('drag-over');
+        
+        const sFormId = draggedData.formId;
+        const sRowId = draggedData.rowId;
+        const sPosId = draggedData.posId;
+        
+        const forms = getWeekFormations(currentWeek);
+        const sForm = forms.find(f => f.id === sFormId);
+        const tForm = forms.find(f => f.id === targetFormId);
+        const sRow = sForm.rows.find(r => r.id === sRowId);
+        const tRow = tForm.rows.find(r => r.id === targetRowId);
+        
+        if (sRowId === targetRowId) return; // Already in this row, handled by card drop if reordering
+        
+        const sIndex = sRow.positions.findIndex(p => p.id === sPosId);
+        const [movedPos] = sRow.positions.splice(sIndex, 1);
+        tRow.positions.push(movedPos); // Appends to the end of the new row
+        
+        draggedData = null;
+        triggerDebouncedSave();
+        renderActiveBoards();
     }
 
     function removePlayer(posId, idx, e) {
@@ -1211,7 +1329,10 @@
                   <button class="row-action-btn" style="color:#ef4444;" onclick="deleteRow('${form.id}', '${row.id}')">✕</button>
                 </div>
               </div>
-              <div class="formation-row ${row.rowClass || 'oline'}"></div>
+              <div class="formation-row ${row.rowClass || 'oline'}" 
+                   ondragover="event.preventDefault(); if(draggedData && draggedData.type==='position_card') this.classList.add('drag-over');" 
+                   ondragleave="this.classList.remove('drag-over');" 
+                   ondrop="handleRowDrop(event, '${form.id}', '${row.id}')"></div>
             `;
 
             const posRowEl = rowWrap.querySelector(".formation-row");
@@ -1225,7 +1346,7 @@
               if (userRole === 'admin') {
                 card.ondragover = (e) => { e.preventDefault(); card.classList.add("drag-over"); };
                 card.ondragleave = () => card.classList.remove("drag-over");
-                card.ondrop = (e) => handleCardDrop(e, pos.id);
+                card.ondrop = (e) => { e.stopPropagation(); handleCardDrop(e, form.id, row.id, pos.id); };
               }
 
               const players = Array.isArray(depthChart[pos.id]) ? depthChart[pos.id].filter(p => p) : [];
@@ -1256,10 +1377,11 @@
                 </li>
                 `;
               }).join("");
-
+              
+              // NEW: Added Draggable Position Header
               card.innerHTML = `
-                <div class="position-header">
-                  <span>${pos.name}</span>
+                <div class="position-header" draggable="${userRole === 'admin' ? 'true' : 'false'}" ondragstart="handlePosCardDragStart(event, '${form.id}', '${row.id}', '${pos.id}')">
+                  <span style="cursor:grab;" title="Drag to move position">⋮⋮ ${pos.name}</span>
                   <div class="no-print admin-only" style="display:flex; gap:2px;">
                      <button class="pos-hdr-btn" onclick="deletePosition('${form.id}', '${row.id}', '${pos.id}')">&times;</button>
                      <span class="pos-count">${players.length}</span>
@@ -1827,6 +1949,32 @@
 
 
     // --- PRACTICE PLAN LOGIC ---
+    // NEW: Handle dragging a practice plan from the list to a week folder
+    function handlePracticeDragStart(e, pracId) {
+        if (userRole !== 'admin') { e.preventDefault(); return; }
+        draggedData = { type: 'practice', id: pracId };
+        e.dataTransfer.setData("text/plain", pracId);
+    }
+    
+    function handlePracticeDrop(e, year, week) {
+        e.preventDefault();
+        e.currentTarget.classList.remove('drag-over');
+        if (userRole !== 'admin' || !draggedData || draggedData.type !== 'practice') return;
+        
+        const pracId = draggedData.id;
+        const prac = practiceData.find(p => p.id === pracId);
+        if (prac) {
+            prac.year = year;
+            prac.week = week;
+            triggerDebouncedSave();
+            populatePracticeDropdown();
+            if (currentPracticeId === pracId) {
+                renderPracticePlan(); 
+            }
+        }
+        draggedData = null;
+    }
+
     function populatePracticeDropdown() {
       const dropdown = document.getElementById("practice-tree-dropdown");
       const display = document.getElementById("selected-practice-display");
@@ -1858,10 +2006,18 @@
       for (const y in groups) {
           html += `<li><span class="tree-caret" onclick="this.parentElement.querySelector('.nested').classList.toggle('hidden')">📁 ${y}</span><ul class="nested">`;
           for (const w in groups[y]) {
-              html += `<li><span class="tree-caret" onclick="this.parentElement.querySelector('.nested').classList.toggle('hidden')">📂 ${w}</span><ul class="nested hidden">`;
+              // NEW: Added Drag-over and Drop hooks to the Week folder
+              html += `<li>
+                  <span class="tree-caret week-drop-target" 
+                        ondragover="event.preventDefault(); this.classList.add('drag-over');" 
+                        ondragleave="this.classList.remove('drag-over');" 
+                        ondrop="handlePracticeDrop(event, '${y}', '${w}')" 
+                        onclick="this.parentElement.querySelector('.nested').classList.toggle('hidden')">📂 ${w}</span>
+                  <ul class="nested hidden">`;
               groups[y][w].forEach(p => {
                   const sel = (p.id === currentPracticeId) ? "selected" : "";
-                  html += `<li class="tree-leaf ${sel}" onclick="loadPractice('${p.id}')">📝 ${p.title} (${p.day})</li>`;
+                  // NEW: Made the leaf draggable
+                  html += `<li class="tree-leaf ${sel}" draggable="${userRole === 'admin' ? 'true' : 'false'}" ondragstart="handlePracticeDragStart(event, '${p.id}')" onclick="loadPractice('${p.id}')">📝 ${p.title} (${p.day})</li>`;
               });
               html += `</ul></li>`;
           }
@@ -2106,7 +2262,7 @@
             id: generateUniqueId('prac'),
             title: title,
             year: new Date().getFullYear().toString(),
-            week: "Week " + currentWeek,
+            week: "Week " + currentWeek, // Defaults to the current active main week
             day: "Monday",
             startTime: "15:00",
             endTime: "17:00",
