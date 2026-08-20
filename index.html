@@ -511,7 +511,7 @@
     <button class="nav-tab" id="tab-btn-groups" onclick="switchUnitTab('groups')">Depth Chart</button>
     <button class="nav-tab" id="tab-btn-wristband" onclick="switchUnitTab('wristband')">Wristband</button>
     <button class="nav-tab" id="tab-btn-scouting" onclick="switchUnitTab('scouting')">Scouting</button>
-    <button class="nav-tab" id="tab-btn-guide" onclick="switchUnitTab('guide')">Positional Guide</button>
+    <button class="nav-tab" id="tab-btn-guide" onclick="switchUnitTab('guide')">Playbooks & Guides</button>
     <button class="nav-tab" id="tab-btn-drills" onclick="switchUnitTab('drills')">Drills</button>
     <button class="nav-tab" id="tab-btn-practice" onclick="switchUnitTab('practice')">Practice Plan</button>
     <button class="nav-tab admin-only" id="tab-btn-users" onclick="switchUnitTab('users')">👥 Manage Users</button>
@@ -631,15 +631,15 @@
         </div>
       </div>
 
-      <!-- POSITIONAL GUIDE PANEL -->
+      <!-- PLAYBOOKS & POSITIONAL GUIDES PANEL -->
       <div class="unit-panel hidden" id="panel-guide">
         <div class="formation-container">
           <div class="board-title no-print">
-            <span>🛡️ Defensive Positional Guides</span>
+            <span>📋 Playbooks & Positional Guides</span>
+            <button class="add-row-btn admin-only" style="margin:0;" onclick="addGuideCategory()">+ Add Category</button>
           </div>
-          <div style="display:flex; gap:8px; margin-bottom:15px; flex-wrap:wrap; border-bottom: 2px solid var(--card-border); padding-bottom: 10px;">
-             <button class="nav-tab active" id="guide-tab-53" onclick="switchGuidePos('53')">53 Defense</button>
-             <button class="nav-tab" id="guide-tab-44" onclick="switchGuidePos('44')">44 Defense</button>
+          <div id="guide-tabs-container" style="display:flex; gap:8px; margin-bottom:15px; flex-wrap:wrap; border-bottom: 2px solid var(--card-border); padding-bottom: 10px;">
+             <!-- Injected via JS -->
           </div>
           <div id="guide-content-area" style="min-height: 500px; display:flex; flex-direction:column; gap: 10px;">
              <!-- Injected via JS -->
@@ -877,9 +877,9 @@
     let userRole = 'admin';
     let isSignUpMode = false;
 
-    // Positional Guide variables updated to 53 and 44
-    let activeGuidePos = '53';
-    let pdfGuides = safeJSONParse("footballPdfGuides", { "53": "", "44": "" });
+    // Playbooks & Guides dynamic object (seeded with defaults if blank)
+    let pdfGuides = safeJSONParse("footballPdfGuides", { "Offense": "", "53 Defense": "", "44 Defense": "" });
+    let activeGuidePos = Object.keys(pdfGuides).length > 0 ? Object.keys(pdfGuides)[0] : null;
 
     const masterRoster = [
       { num: "2", firstName: "Mohammed", lastName: "Ibrahim" },
@@ -1208,26 +1208,36 @@
        }
     }
 
-    // --- POSITIONAL GUIDE LOGIC ---
-    function switchGuidePos(pos) {
-        activeGuidePos = pos;
-        document.querySelectorAll('[id^="guide-tab-"]').forEach(btn => btn.classList.remove('active'));
-        document.getElementById('guide-tab-' + pos).classList.add('active');
-        renderGuideTab();
-    }
-
+    // --- DYNAMIC PLAYBOOK & GUIDE LOGIC ---
     function renderGuideTab() {
+        const tabsContainer = document.getElementById('guide-tabs-container');
         const contentArea = document.getElementById('guide-content-area');
-        if (!contentArea) return;
+        if (!tabsContainer || !contentArea) return;
+
+        let tabsHtml = '';
+        Object.keys(pdfGuides).forEach(cat => {
+            const isActive = (cat === activeGuidePos) ? 'active' : '';
+            tabsHtml += `<button class="nav-tab ${isActive}" onclick="switchGuidePos('${cat}')">${cat}</button>`;
+        });
+        tabsContainer.innerHTML = tabsHtml;
+
+        if (!activeGuidePos || !pdfGuides.hasOwnProperty(activeGuidePos)) {
+            contentArea.innerHTML = `<div style="text-align:center; padding:20px; color:var(--text-muted);">No categories available. Add one above.</div>`;
+            return;
+        }
 
         const currentPdf = pdfGuides[activeGuidePos];
 
         let html = `
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                <h3 style="margin:0; color:var(--primary); font-size:16px;">${activeGuidePos} Defense Guide</h3>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <h3 style="margin:0; color:var(--primary); font-size:16px;">${activeGuidePos}</h3>
+                    <button class="toggle-board-btn admin-only" onclick="renameGuideCategory('${activeGuidePos}')">✏️ Rename</button>
+                    <button class="toggle-board-btn admin-only" style="color:#ef4444;" onclick="deleteGuideCategory('${activeGuidePos}')">🗑️ Delete</button>
+                </div>
                 <div class="admin-only" style="display:flex; gap:6px;">
-                    <input type="file" id="pdf-upload-${activeGuidePos}" accept="application/pdf" style="display:none;" onchange="handlePdfUpload(event, '${activeGuidePos}')">
-                    <button class="add-row-btn" style="margin:0;" onclick="document.getElementById('pdf-upload-${activeGuidePos}').click()">📄 Upload PDF</button>
+                    <input type="file" id="pdf-upload-guide" accept="application/pdf" style="display:none;" onchange="handlePdfUpload(event, '${activeGuidePos}')">
+                    <button class="add-row-btn" style="margin:0;" onclick="document.getElementById('pdf-upload-guide').click()">📄 Upload PDF</button>
                     ${currentPdf ? `<button class="toggle-board-btn" style="color:#ef4444;" onclick="deletePdfGuide('${activeGuidePos}')">🗑️ Remove PDF</button>` : ''}
                 </div>
             </div>
@@ -1236,10 +1246,59 @@
         if (currentPdf) {
             html += `<iframe src="${currentPdf}" style="width:100%; flex-grow:1; min-height:600px; border:none; border-radius:6px; background:#fff;"></iframe>`;
         } else {
-            html += `<div style="flex-grow:1; display:flex; align-items:center; justify-content:center; color:var(--text-muted); font-style:italic;">No PDF guide has been uploaded for the ${activeGuidePos} defense. (Head Coach can upload one above).</div>`;
+            html += `<div style="flex-grow:1; display:flex; align-items:center; justify-content:center; color:var(--text-muted); font-style:italic; background:#f8fafc; border-radius:6px; border:1px dashed #cbd5e1;">No PDF uploaded for ${activeGuidePos}. (Head Coach can upload one above).</div>`;
         }
 
         contentArea.innerHTML = html;
+    }
+
+    function switchGuidePos(pos) {
+        activeGuidePos = pos;
+        renderGuideTab();
+    }
+
+    function addGuideCategory() {
+        if (userRole !== 'admin') return;
+        let cat = prompt("Enter new Guide Category Name (e.g., 'Offensive Playbook'):");
+        if (cat && cat.trim() !== "") {
+            cat = cat.trim();
+            if (pdfGuides[cat] !== undefined) {
+                alert("A category with this name already exists.");
+                return;
+            }
+            pdfGuides[cat] = "";
+            activeGuidePos = cat;
+            saveState();
+            renderGuideTab();
+        }
+    }
+
+    function renameGuideCategory(oldCat) {
+        if (userRole !== 'admin') return;
+        let newCat = prompt("Rename Category:", oldCat);
+        if (newCat && newCat.trim() !== "" && newCat !== oldCat) {
+            newCat = newCat.trim();
+            if (pdfGuides[newCat] !== undefined) {
+                alert("A category with this name already exists.");
+                return;
+            }
+            pdfGuides[newCat] = pdfGuides[oldCat];
+            delete pdfGuides[oldCat];
+            if (activeGuidePos === oldCat) activeGuidePos = newCat;
+            saveState();
+            renderGuideTab();
+        }
+    }
+
+    function deleteGuideCategory(cat) {
+        if (userRole !== 'admin') return;
+        if (confirm(`Are you sure you want to delete the "${cat}" category entirely?`)) {
+            delete pdfGuides[cat];
+            const remaining = Object.keys(pdfGuides);
+            activeGuidePos = remaining.length > 0 ? remaining[0] : null;
+            saveState();
+            renderGuideTab();
+        }
     }
 
     async function handlePdfUpload(e, pos) {
@@ -1247,17 +1306,28 @@
         const file = e.target.files[0];
         if (!file) return;
 
+        const uploadBtn = e.target.nextElementSibling;
+        const originalText = uploadBtn.textContent;
+        uploadBtn.textContent = "⏳ Uploading to Cloud... (Please wait)";
+        uploadBtn.style.pointerEvents = "none";
+        uploadBtn.style.opacity = "0.7";
+
         if (cloudEnabled && storage) {
             try {
-                alert("Uploading PDF to Firebase... Please wait.");
-                const storageRef = storage.ref(`guides/${pos}_guide_${Date.now()}.pdf`);
+                const storageRef = storage.ref(`guides/${pos.replace(/[^a-zA-Z0-9]/g, '_')}_guide_${Date.now()}.pdf`);
                 const snapshot = await storageRef.put(file);
                 const downloadURL = await snapshot.ref.getDownloadURL();
+                
                 pdfGuides[pos] = downloadURL;
                 saveState();
                 renderGuideTab();
             } catch (err) {
-                alert("Upload failed. Make sure Firebase Storage rules allow writing. " + err.message);
+                console.error("Firebase Storage Error:", err);
+                alert("Upload failed. Ensure Firebase Storage Rules are set to 'allow write' and CORS is configured. Error: " + err.message);
+                
+                uploadBtn.textContent = originalText;
+                uploadBtn.style.pointerEvents = "auto";
+                uploadBtn.style.opacity = "1";
             }
         } else {
             // Offline fallback using Base64
@@ -1272,11 +1342,12 @@
             };
             reader.readAsDataURL(file);
         }
+        e.target.value = ''; // Reset input
     }
 
     function deletePdfGuide(pos) {
         if (userRole !== 'admin') return;
-        if (confirm(`Remove the PDF guide for the ${pos} defense?`)) {
+        if (confirm(`Remove the PDF guide for ${pos}?`)) {
             pdfGuides[pos] = "";
             saveState();
             renderGuideTab();
@@ -1383,7 +1454,13 @@
               if (data.dynamicDrills) dynamicDrills = data.dynamicDrills;
               if (data.savedCoaches) savedCoaches = data.savedCoaches;
               if (data.weekSortOrder) weekSortOrder = data.weekSortOrder;
-              if (data.pdfGuides) pdfGuides = data.pdfGuides;
+              if (data.pdfGuides) {
+                  pdfGuides = data.pdfGuides;
+                  // If active guide was deleted remotely, default to the first one available
+                  if (!pdfGuides[activeGuidePos] && Object.keys(pdfGuides).length > 0) {
+                      activeGuidePos = Object.keys(pdfGuides)[0];
+                  }
+              }
 
               // Re-render UI to reflect the newest live changes
               depthChart = getWeekDepthChart(currentWeek);
