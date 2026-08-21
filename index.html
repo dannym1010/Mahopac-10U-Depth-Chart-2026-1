@@ -414,7 +414,7 @@
     @media print {
       @page { size: letter portrait; margin: 0.25in; }
       body { background-color: #ffffff; padding: 0; margin: 0; font-size: 13px !important; }
-      .toolbar, #sidebar-container, .remove-btn, .action-group, p.subtitle, .search-box, .card-search-container, .tab-navigation, .toggle-board-btn, .week-bar, .board-controls, .add-row-btn, .add-form-btn, .row-actions, .col-resizer, .practice-dashboard, #print-modal, #new-prac-modal, #scrimmage-print-modal { display: none !important; }
+      .toolbar, #sidebar-container, .remove-btn, .action-group, p.subtitle, .search-box, .card-search-container, .tab-navigation, .toggle-board-btn, .week-bar, .board-controls, .add-row-btn, .add-form-btn, .row-actions, .col-resizer, .practice-dashboard, #print-modal, #new-prac-modal, #scrimmage-print-modal, #scrimmage-filter-modal { display: none !important; }
       .app-layout, .boards-container, .unit-panel:not(.hidden) { display: block !important; }
       .formation-container.print-hidden { display: none !important; }
       .formation-body.collapsed { display: block !important; }
@@ -570,9 +570,12 @@
 
       <!-- PRACTICE / SCRIMMAGE PANEL (Offense & Defense combined, subs only) -->
       <div class="unit-panel hidden" id="panel-scrimmage">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
            <h3 style="margin:0; color:var(--primary);">⚔️ Practice / Scrimmage Rotation (Gold & Blue Subs Only)</h3>
-           <button class="toggle-board-btn no-print" onclick="openScrimmagePrintModal()" style="padding:6px 12px; background:var(--primary); color:#fff;">🖨️ Print Scrimmage Sheet</button>
+           <div style="display:flex; gap:6px;">
+              <button class="toggle-board-btn no-print" onclick="openScrimmageFilterModal()" style="background:#f1f5f9; color:var(--primary);">⚙️ Filter Boards</button>
+              <button class="toggle-board-btn no-print" onclick="openScrimmagePrintModal()" style="background:var(--primary); color:#fff;">🖨️ Print Scrimmage Sheet</button>
+           </div>
         </div>
         <div id="boards-scrimmage"></div>
       </div>
@@ -845,6 +848,18 @@
        <div style="display: flex; gap: 8px; justify-content: flex-end;">
           <button class="toggle-board-btn" onclick="document.getElementById('scrimmage-print-modal').classList.add('hidden')">Cancel</button>
           <button class="add-row-btn" style="margin:0;" onclick="executeScrimmagePrint()">Print Selected</button>
+       </div>
+    </div>
+  </div>
+
+  <!-- SCRIMMAGE FILTER SELECTION MODAL -->
+  <div id="scrimmage-filter-modal" class="custom-modal hidden">
+    <div class="custom-modal-card">
+       <h3>Select Boards to Include in Scrimmage View</h3>
+       <div id="scrimmage-filter-list" style="max-height: 250px; overflow-y: auto; margin-bottom: 15px; text-align: left; font-size: 12px; display: flex; flex-direction: column; gap: 8px;"></div>
+       <div style="display: flex; gap: 8px; justify-content: flex-end;">
+          <button class="toggle-board-btn" onclick="document.getElementById('scrimmage-filter-modal').classList.add('hidden')">Cancel</button>
+          <button class="add-row-btn" style="margin:0;" onclick="saveScrimmageFilters()">Save Selection</button>
        </div>
     </div>
   </div>
@@ -1242,17 +1257,20 @@
     }
 
     function openScrimmagePrintModal() {
+        const scrimmageFilters = weeklyData[currentWeek] && weeklyData[currentWeek].scrimmageFilters ? weeklyData[currentWeek].scrimmageFilters : null;
         const forms = getWeekFormations(currentWeek).filter(f => f && (f.unit === 'offense' || f.unit === 'defense'));
+        const activeForms = scrimmageFilters ? forms.filter(f => scrimmageFilters.includes(f.id)) : forms;
+
         const listContainer = document.getElementById('scrimmage-print-list');
         if (!listContainer) return;
 
-        if (forms.length === 0) {
-            alert("No formations available to print.");
+        if (activeForms.length === 0) {
+            alert("No formations selected for scrimmage. Click 'Filter Boards' to select some.");
             return;
         }
 
         let html = '';
-        forms.forEach(form => {
+        activeForms.forEach(form => {
             html += `
               <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
                  <input type="checkbox" class="scrimmage-print-chk" value="${form.id}" checked>
@@ -1272,8 +1290,11 @@
 
         const renderedContainers = document.querySelectorAll('#boards-scrimmage .formation-container');
         renderedContainers.forEach((el, idx) => {
+            const scrimmageFilters = weeklyData[currentWeek] && weeklyData[currentWeek].scrimmageFilters ? weeklyData[currentWeek].scrimmageFilters : null;
             const forms = getWeekFormations(currentWeek).filter(f => f && (f.unit === 'offense' || f.unit === 'defense'));
-            if (forms[idx] && selectedIds.includes(forms[idx].id)) {
+            const activeForms = scrimmageFilters ? forms.filter(f => scrimmageFilters.includes(f.id)) : forms;
+
+            if (activeForms[idx] && selectedIds.includes(activeForms[idx].id)) {
                 el.classList.remove('print-hidden');
             } else {
                 el.classList.add('print-hidden');
@@ -1282,6 +1303,39 @@
 
         if(document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur();
         setTimeout(() => window.print(), 100);
+    }
+
+    function openScrimmageFilterModal() {
+        const forms = getWeekFormations(currentWeek).filter(f => f && (f.unit === 'offense' || f.unit === 'defense'));
+        const listContainer = document.getElementById('scrimmage-filter-list');
+        if (!listContainer) return;
+
+        const currentFilters = weeklyData[currentWeek] && weeklyData[currentWeek].scrimmageFilters ? weeklyData[currentWeek].scrimmageFilters : forms.map(f => f.id);
+
+        let html = '';
+        forms.forEach(form => {
+            const isChecked = currentFilters.includes(form.id) ? 'checked' : '';
+            html += `
+              <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                 <input type="checkbox" class="scrimmage-filter-chk" value="${form.id}" ${isChecked}>
+                 <strong>[${form.unit.toUpperCase()}]</strong> ${form.name}
+              </label>
+            `;
+        });
+        listContainer.innerHTML = html;
+        document.getElementById('scrimmage-filter-modal').classList.remove('hidden');
+    }
+
+    function saveScrimmageFilters() {
+        const checkboxes = document.querySelectorAll('.scrimmage-filter-chk');
+        const selectedIds = Array.from(checkboxes).filter(chk => chk.checked).map(chk => chk.value);
+
+        if (!weeklyData[currentWeek]) weeklyData[currentWeek] = {};
+        weeklyData[currentWeek].scrimmageFilters = selectedIds;
+        saveState();
+
+        document.getElementById('scrimmage-filter-modal').classList.add('hidden');
+        renderScrimmageTab();
     }
 
     // --- DYNAMIC PLAYBOOK & GUIDE LOGIC (PDF.JS MOBILE CANVAS RENDERER) ---
@@ -2156,10 +2210,12 @@
       if (!container) return;
       container.innerHTML = "";
 
-      const forms = getWeekFormations(currentWeek).filter(f => f && (f.unit === 'offense' || f.unit === 'defense'));
+      const scrimmageFilters = weeklyData[currentWeek] && weeklyData[currentWeek].scrimmageFilters ? weeklyData[currentWeek].scrimmageFilters : null;
+      const allForms = getWeekFormations(currentWeek).filter(f => f && (f.unit === 'offense' || f.unit === 'defense'));
+      const forms = scrimmageFilters ? allForms.filter(f => scrimmageFilters.includes(f.id)) : allForms;
       
       if (forms.length === 0) {
-          container.innerHTML = `<div style="padding:30px; text-align:center; color:var(--text-muted);">No offensive or defensive formations found.</div>`;
+          container.innerHTML = `<div style="padding:30px; text-align:center; color:var(--text-muted);">No formations selected for scrimmage. Click '⚙️ Filter Boards' above to choose which offense/defense boards to include.</div>`;
           return;
       }
 
@@ -2268,7 +2324,7 @@
       }
     }
 
-    // --- Roster Logic ---
+    // --- Roster Logic with Detailed Position & Color Highlighting ---
     function renderMasterRoster() {
       try {
         const rosterContainer = document.getElementById("master-roster-list");
@@ -2301,27 +2357,35 @@
           const matches = !searchTerm || fName.includes(searchTerm) || lName.includes(searchTerm) || pNum.includes(searchTerm);
           if (!matches) return;
 
-          let count = 0;
+          let placements = [];
           let targetForms = getWeekFormations(currentWeek).filter(f => f && f.unit === activeUnit);
           if (activeCountFormationId) {
              const matched = targetForms.filter(f => f.id === activeCountFormationId);
              if (matched.length > 0) targetForms = matched;
           }
 
-          const validPosIds = new Set();
           targetForms.forEach(form => {
             (form.rows || []).forEach(row => {
               if(!row) return;
               (row.positions || []).forEach(pos => {
-                if (pos && pos.id) validPosIds.add(pos.id);
+                if (pos && pos.id && depthChart && Array.isArray(depthChart[pos.id])) {
+                  depthChart[pos.id].forEach((p, idx) => {
+                    if (p && String(p.num) === String(player.num)) {
+                      let colorStyle = "background:#64748b; color:#fff;"; // default gray
+                      if (idx === 0) colorStyle = "background:#000000; color:#ffffff;"; // Black starter
+                      else if (idx === 1) colorStyle = "background:#eab308; color:#000000;"; // Gold sub
+                      else if (idx === 2) colorStyle = "background:#1d4ed8; color:#ffffff;"; // Blue sub
+
+                      placements.push({
+                        posName: pos.name,
+                        style: colorStyle,
+                        tier: idx === 0 ? 'ST' : 'D' + idx
+                      });
+                    }
+                  });
+                }
               });
             });
-          });
-
-          validPosIds.forEach(posId => {
-            if (depthChart && Array.isArray(depthChart[posId])) {
-              count += depthChart[posId].filter(p => p && String(p.num) === String(player.num)).length;
-            }
           });
 
           const li = document.createElement("li");
@@ -2331,12 +2395,22 @@
             li.ondragstart = (e) => handleRosterDragStart(e, player.lastName || player.firstName, player.num || "");
           }
 
+          let badgesHtml = placements.map(pl => `
+             <span style="font-size:9px; font-weight:bold; padding:2px 5px; border-radius:3px; ${pl.style}; margin-left:2px;" title="${pl.posName}">
+               ${pl.posName}
+             </span>
+          `).join("");
+
           li.innerHTML = `
-            <div>
-              <span class="num-tag" style="display:inline-block; min-width:26px; color:var(--primary);">${player.num ? '#' + player.num : ''}</span> 
-              <span>${player.firstName || ''} ${player.lastName || ''}</span>
+            <div style="display:flex; align-items:center; justify-content:space-between; width:100%;">
+              <div>
+                <span class="num-tag" style="display:inline-block; min-width:24px; color:var(--primary);">${player.num ? '#' + player.num : ''}</span> 
+                <span>${player.firstName || ''} ${player.lastName || ''}</span>
+              </div>
+              <div style="display:flex; flex-wrap:wrap; gap:2px; justify-content:flex-end; max-width:130px;">
+                ${badgesHtml}
+              </div>
             </div>
-            ${count > 0 ? `<span class="multi-badge">${count} Spot${count > 1 ? 's' : ''}</span>` : ''}
           `;
           rosterContainer.appendChild(li);
         });
