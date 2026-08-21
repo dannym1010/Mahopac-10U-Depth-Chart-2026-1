@@ -32,6 +32,7 @@
       margin: 0;
       padding: 10px;
       -webkit-tap-highlight-color: transparent;
+      overflow-x: hidden;
     }
 
     h1 {
@@ -124,7 +125,10 @@
 
     /* Layout */
     .app-layout { display: flex; gap: 12px; max-width: 1400px; margin: 0 auto; flex-direction: row; align-items: flex-start; }
-    @media (max-width: 900px) { .app-layout { flex-direction: column; } }
+    @media (max-width: 900px) { 
+      .app-layout { flex-direction: column !important; display: block !important; } 
+      .boards-container { width: 100% !important; overflow-x: auto !important; }
+    }
 
     .boards-container { flex: 3; min-width: 0; display: flex; flex-direction: column; gap: 15px; width: 100%; overflow: visible; }
     .unit-panel { display: flex; flex-direction: column; gap: 20px; width: 100%; overflow: visible; }
@@ -509,6 +513,7 @@
     <button class="nav-tab" id="tab-btn-defense" onclick="switchUnitTab('defense')">Defense</button>
     <button class="nav-tab" id="tab-btn-st" onclick="switchUnitTab('st')">Special Teams</button>
     <button class="nav-tab" id="tab-btn-groups" onclick="switchUnitTab('groups')">Depth Chart</button>
+    <button class="nav-tab" id="tab-btn-scrimmage" onclick="switchUnitTab('scrimmage')">⚔️ Practice / Scrimmage</button>
     <button class="nav-tab" id="tab-btn-wristband" onclick="switchUnitTab('wristband')">Wristband</button>
     <button class="nav-tab" id="tab-btn-scouting" onclick="switchUnitTab('scouting')">Scouting</button>
     <button class="nav-tab" id="tab-btn-guide" onclick="switchUnitTab('guide')">Playbooks & Guides</button>
@@ -555,6 +560,15 @@
            <button class="toggle-board-btn no-print" onclick="openPrintModal('groups')" style="padding:6px 12px; background:var(--primary); color:#fff;">🖨️ Print Boards</button>
         </div>
         <div id="boards-groups"></div>
+      </div>
+
+      <!-- PRACTICE / SCRIMMAGE PANEL (Offense & Defense combined, subs only) -->
+      <div class="unit-panel hidden" id="panel-scrimmage">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+           <h3 style="margin:0; color:var(--primary);">⚔️ Practice / Scrimmage Rotation (Gold & Blue Subs Only)</h3>
+           <button class="toggle-board-btn no-print" onclick="window.print()" style="padding:6px 12px; background:var(--primary); color:#fff;">🖨️ Print Scrimmage Sheet</button>
+        </div>
+        <div id="boards-scrimmage"></div>
       </div>
 
       <!-- WRISTBAND BUILDER PANEL -->
@@ -1245,9 +1259,26 @@
         `;
 
         if (currentPdf) {
-            html += `<iframe src="${currentPdf}" style="width:100%; flex-grow:1; min-height:600px; border:none; border-radius:6px; background:#fff;"></iframe>`;
+            html += `
+                <div style="background:#f8fafc; border:1px solid var(--card-border); border-radius:8px; padding:12px; display:flex; flex-direction:column; gap:10px; flex-grow:1;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; background:#eff6ff; padding:10px 14px; border-radius:6px; border:1px solid #bae6fd;">
+                        <div>
+                            <strong style="font-size:12px; color:var(--primary); display:block;">📄 ${activeGuidePos} Document Ready</strong>
+                            <span style="font-size:10.5px; color:var(--text-muted);">View inline below or tap to open full screen on mobile/tablet.</span>
+                        </div>
+                        <a href="${currentPdf}" target="_blank" class="add-row-btn" style="margin:0; text-decoration:none; background:var(--accent); padding:6px 14px; text-align:center;">Open / Download PDF ↗</a>
+                    </div>
+                    
+                    <object data="${currentPdf}" type="application/pdf" style="width:100%; flex-grow:1; min-height:650px; border:1px solid var(--card-border); border-radius:6px; background:#fff;">
+                        <div style="padding:40px; text-align:center; color:var(--text-muted);">
+                            <p>Your mobile browser does not support inline PDF previews.</p>
+                            <a href="${currentPdf}" target="_blank" class="add-row-btn" style="text-decoration:none; display:inline-block; margin-top:10px;">Tap Here to Open Playbook PDF</a>
+                        </div>
+                    </object>
+                </div>
+            `;
         } else {
-            html += `<div style="flex-grow:1; display:flex; align-items:center; justify-content:center; color:var(--text-muted); font-style:italic; background:#f8fafc; border-radius:6px; border:1px dashed #cbd5e1;">No PDF uploaded for ${activeGuidePos}. (Head Coach can upload one above).</div>`;
+            html += `<div style="flex-grow:1; display:flex; align-items:center; justify-content:center; color:var(--text-muted); font-style:italic; background:#f8fafc; border-radius:6px; border:1px dashed #cbd5e1; min-height:300px;">No PDF uploaded for ${activeGuidePos}. (Head Coach can upload one above).</div>`;
         }
 
         contentArea.innerHTML = html;
@@ -1331,7 +1362,6 @@
                 uploadBtn.style.opacity = "1";
             }
         } else {
-            // Offline fallback using Base64
             if (file.size > 800 * 1024) { 
                 alert("File is too large for offline local storage mode (Max ~800KB recommended). It may cause saving issues.");
             }
@@ -1343,7 +1373,7 @@
             };
             reader.readAsDataURL(file);
         }
-        e.target.value = ''; // Reset input
+        e.target.value = '';
     }
 
     function deletePdfGuide(pos) {
@@ -1392,6 +1422,8 @@
         renderUsers();
       } else if (unit === 'guide') {
         renderGuideTab();
+      } else if (unit === 'scrimmage') {
+        renderScrimmageTab();
       } else {
         renderActiveBoards();
         renderMasterRoster();
@@ -1407,6 +1439,7 @@
         renderWristband();
         renderScouting();
         renderMasterRoster();
+        if (activeUnit === 'scrimmage') renderScrimmageTab();
         const weekSelect = document.getElementById("week-select");
         if (weekSelect && weekSelect.value !== val) weekSelect.value = val;
     }
@@ -1448,7 +1481,6 @@
             if (doc.exists) {
               const data = doc.data();
 
-              // Update in-memory data with cloud changes
               if (data.weeklyData) weeklyData = data.weeklyData;
               if (data.practiceData) practiceData = data.practiceData;
               if (data.masterPlayLibrary) masterPlayLibrary = data.masterPlayLibrary;
@@ -1457,13 +1489,11 @@
               if (data.weekSortOrder) weekSortOrder = data.weekSortOrder;
               if (data.pdfGuides) {
                   pdfGuides = data.pdfGuides;
-                  // If active guide was deleted remotely, default to the first one available
                   if (!pdfGuides[activeGuidePos] && Object.keys(pdfGuides).length > 0) {
                       activeGuidePos = Object.keys(pdfGuides)[0];
                   }
               }
 
-              // Re-render UI to reflect the newest live changes
               depthChart = getWeekDepthChart(currentWeek);
               renderActiveBoards();
               renderMasterRoster();
@@ -1472,6 +1502,7 @@
               if (activeUnit === 'wristband') renderWristband();
               if (activeUnit === 'scouting') renderScouting();
               if (activeUnit === 'guide') renderGuideTab();
+              if (activeUnit === 'scrimmage') renderScrimmageTab();
 
               console.log("Live changes synced from cloud.");
             }
@@ -1851,6 +1882,16 @@
       }
     }
 
+    function toggleBoardCollapse(formId) {
+        const forms = getWeekFormations(currentWeek);
+        const form = forms.find(f => f.id === formId);
+        if (form) {
+            form.collapsed = !form.collapsed;
+            saveState();
+            renderActiveBoards();
+        }
+    }
+
     // --- Boards Rendering ---
     function renderActiveBoards() {
       try {
@@ -1874,6 +1915,7 @@
         forms.forEach(form => {
           try {
               if (!form) return;
+              const isCollapsed = form.collapsed || false;
               const formDiv = document.createElement("div");
               formDiv.className = "formation-container" + (activeCountFormationId === form.id ? " counting-active" : "");
               formDiv.id = "board_" + form.id;
@@ -1895,12 +1937,13 @@
                     ${form.subtitle ? `<span style="font-size:11px; color:var(--text-muted); font-weight:normal; margin-left:8px;">${form.subtitle}</span>` : ''}
                   </div>
                   <div class="board-controls no-print">
+                    <button class="toggle-board-btn" onclick="toggleBoardCollapse('${form.id}')">${isCollapsed ? 'Show 👁️' : 'Hide 🙈'}</button>
                     <button class="toggle-board-btn admin-only" onclick="renameFormation('${form.id}')">✏️ Rename</button>
                     <button class="toggle-board-btn admin-only" onclick="addRowToFormation('${form.id}')">+ Add Row</button>
                     <button class="toggle-board-btn admin-only" style="color:#ef4444;" onclick="deleteFormation('${form.id}')">🗑️</button>
                   </div>
                 </div>
-                <div class="formation-body"></div>
+                <div class="formation-body ${isCollapsed ? 'collapsed' : ''}"></div>
               `;
 
               const bodyDiv = formDiv.querySelector(".formation-body");
@@ -2004,6 +2047,87 @@
       } catch(err) {
         console.error("Error rendering boards container:", err);
       }
+    }
+
+    // --- PRACTICE / SCRIMMAGE TAB RENDERING (Gold & Blue Subs Only, Offense & Defense) ---
+    function renderScrimmageTab() {
+      const container = document.getElementById("boards-scrimmage");
+      if (!container) return;
+      container.innerHTML = "";
+
+      const forms = getWeekFormations(currentWeek).filter(f => f && (f.unit === 'offense' || f.unit === 'defense'));
+      
+      if (forms.length === 0) {
+          container.innerHTML = `<div style="padding:30px; text-align:center; color:var(--text-muted);">No offensive or defensive formations found.</div>`;
+          return;
+      }
+
+      forms.forEach(form => {
+          const formDiv = document.createElement("div");
+          formDiv.className = "formation-container";
+          formDiv.style.marginBottom = "15px";
+
+          let rowsHtml = "";
+          (form.rows || []).forEach(row => {
+              const slotCount = row.slotCount || 7;
+              let slotsHtml = "";
+              
+              (row.positions || []).forEach(pos => {
+                  if (!pos) {
+                      slotsHtml += `<div class="row-slot" style="background:#f8fafc; border:none;"></div>`;
+                      return;
+                  }
+
+                  const allPlayers = (depthChart && Array.isArray(depthChart[pos.id])) ? depthChart[pos.id].filter(p => p) : [];
+                  // Filter out index 0 (Starter / Black), keeping only index 1+ (Gold and Blue Subs)
+                  const subPlayers = allPlayers.slice(1);
+
+                  let playersHtml = subPlayers.map((player, sIdx) => {
+                      const actualIdx = sIdx + 1;
+                      let rankClass = (actualIdx === 1) ? 'rank-sub-gold' : 'rank-sub-blue';
+                      let rankLabel = (actualIdx === 1) ? 'Gold' : 'Blue';
+
+                      return `
+                      <li class="player-item" style="cursor:default;">
+                        <div class="player-info">
+                          <span class="rank-badge ${rankClass}">${rankLabel}</span>
+                          <span class="num-tag">#${player.num}</span>
+                          <span>${player.name}</span>
+                        </div>
+                      </li>
+                      `;
+                  }).join("");
+
+                  slotsHtml += `
+                    <div class="row-slot" style="min-height:55px;">
+                      <div class="position-card" style="width:100%;">
+                        <div class="position-header" style="background:#e0f2fe; color:#0369a1;">
+                          <span>${pos.name}</span>
+                          <span style="font-size:9px;">Subs</span>
+                        </div>
+                        <ul class="player-list">${playersHtml || '<div style="color:var(--text-muted); font-size:9px; padding:4px; text-align:center;">No Subs Assigned</div>'}</ul>
+                      </div>
+                    </div>
+                  `;
+              });
+
+              rowsHtml += `
+                <div class="row-container">
+                  <div class="level-header-bar"><span class="level-label">${row.label || 'Row'} (Gold & Blue Squads)</span></div>
+                  <div class="formation-row" style="grid-template-columns: repeat(${slotCount}, 1fr);">${slotsHtml}</div>
+                </div>
+              `;
+          });
+
+          formDiv.innerHTML = `
+            <div class="board-title">
+               <span>[${form.unit.toUpperCase()}] ${form.name}</span>
+               <span style="font-size:11px; color:var(--text-muted); font-weight:normal;">Scrimmage Rotation View</span>
+            </div>
+            ${rowsHtml}
+          `;
+          container.appendChild(formDiv);
+      });
     }
 
     function changeRowSlots(formId, rowId) {
@@ -2888,7 +3012,6 @@
                  const docRef = db.collection('users').doc(userEmail);
                  const doc = await docRef.get();
                  
-                 // Force Admin for your specific email
                  if (userEmail === 'dannym1010@gmail.com') {
                      roleAssigned = 'admin';
                      await docRef.set({ email: userEmail, role: 'admin', status: 'Active' }, { merge: true });
@@ -2926,9 +3049,7 @@
       }, 1500);
     }
 
-    // ----------------------------------------------------------------------------------
-    // MISSING UTILITY & EXPORT FUNCTIONS
-    // ----------------------------------------------------------------------------------
+    // --- UTILITIES ---
     function generateUniqueId(prefix) {
         return prefix + '_' + Math.random().toString(36).substr(2, 9);
     }
@@ -2954,9 +3075,7 @@
         window.print();
     }
 
-    // ----------------------------------------------------------------------------------
-    // MISSING PRACTICE PLAN FUNCTIONS
-    // ----------------------------------------------------------------------------------
+    // --- PRACTICE PLAN FUNCTIONS ---
     function populatePracticeDropdown() {
         const dropdown = document.getElementById("practice-tree-dropdown");
         const display = document.getElementById("selected-practice-display");
