@@ -157,11 +157,6 @@
       background-color: #f8fafc !important;
       box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2) !important;
     }
-    .formation-container.drag-over-board {
-      border-color: var(--accent) !important;
-      background-color: #eff6ff !important;
-      transform: scale(1.01);
-    }
 
     .board-title { font-size: 14px; font-weight: bold; color: var(--primary); margin-bottom: 10px; border-bottom: 2px solid var(--primary); padding-bottom: 4px; display: flex; justify-content: space-between; align-items: center; }
     .board-controls { display: flex; align-items: center; gap: 4px; }
@@ -209,7 +204,6 @@
     .rank-starter { background: #000000; color: #ffffff; }
     .rank-sub-gold { background: #eab308; color: #000000; }
     .rank-sub-blue { background: #1d4ed8; color: #ffffff; }
-    .rank-sub-gray { background: #64748b; color: #ffffff; }
 
     .remove-btn { background: none; border: none; color: #ef4444; font-weight: bold; cursor: pointer; font-size: 13px; }
 
@@ -225,13 +219,7 @@
     .wb-exact-table td, .wb-exact-table th { border: 1px solid #000000; padding: 0; height: 24px; vertical-align: middle; }
     .wb-sub-idx { width: 28px; text-align: center; font-size: 10px; font-weight: bold; border-right: 1px solid #000 !important; }
     .wb-play-cell { padding-left: 4px; font-family: "Times New Roman", Times, serif; font-size: 14px; text-transform: uppercase; position: relative; }
-    .wb-play-cell.drag-over { background-color: #c8e6c9 !important; border: 2px dashed #2e7d32 !important; }
     .wb-play-input { width: calc(100% - 20px); height: 100%; border: none; background: transparent; font-family: inherit; font-size: inherit; outline: none; font-weight: bold; color: #000; }
-    
-    .wb-sub-blue { background-color: #00b0f0 !important; color: #000 !important; }
-    .wb-body-blue { background-color: #cce5ff !important; } 
-    .wb-sub-yellow { background-color: #ffff00 !important; color: #000 !important; }
-    .wb-body-yellow { background-color: #ffffff !important; } 
 
     /* Practice Plan Dropdown Tree */
     .tree-root { list-style: none; margin: 0; padding: 0; }
@@ -439,7 +427,8 @@
         <button class="toggle-board-btn" onclick="signOutUser()">🚪 Sign Out</button>
       </div>
     </div>
-    <div style="display:flex; gap:6px;">
+    <div style="display:flex; gap:6px; flex-wrap:wrap;">
+      <button onclick="toggleFullScreen()">⛶ Full Screen</button>
       <button class="admin-only" onclick="exportData()">Backup</button>
       <button class="admin-only" onclick="document.getElementById('import-file').click()">Import</button>
       <button class="admin-only" onclick="resetDefault()" style="color:#ef4444;">Reset</button>
@@ -458,7 +447,6 @@
         <option value="6">Week 6</option><option value="7">Week 7</option>
         <option value="8">Week 8</option>
       </select>
-      <button class="copy-week-btn admin-only" onclick="copyWeekToPrompt()">📋 Copy Lineup To...</button>
     </div>
     <div class="week-controls">
       <span class="week-label">Opponent / Label:</span>
@@ -534,18 +522,13 @@
 
       <!-- WRISTBAND BUILDER PANEL -->
       <div class="unit-panel hidden" id="panel-wristband">
-        <div class="print-only-header">
-           <h2 id="print-wb-title">Weekly Play Wristband</h2>
-        </div>
         <div class="formation-container" style="padding: 4px; overflow: hidden;">
           <div class="board-title no-print" style="padding: 8px; margin-bottom:0;">
-            <div style="display:flex; align-items:center; gap:12px;">
-              <span>Wristband Builder</span>
-            </div>
+            <span>Wristband Builder</span>
             <div style="display:flex; gap:4px; flex-wrap:wrap;">
               <button class="add-row-btn admin-only" onclick="addWbRow()">+ Row</button>
               <button class="add-row-btn admin-only" onclick="removeWbRow()">- Row</button>
-              <button class="toolbar button" onclick="if(document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur(); setTimeout(()=>window.print(), 100);" style="padding:4px 10px; margin-left:6px;">🖨️ Print Wristband</button>
+              <button class="toolbar button" onclick="window.print()" style="padding:4px 10px; margin-left:6px;">🖨️ Print Wristband</button>
             </div>
           </div>
           <div id="wristband-grid" style="overflow-x: auto; padding: 4px; display:flex; justify-content:center;"></div>
@@ -554,17 +537,10 @@
 
       <!-- SCOUTING REPORT PANEL -->
       <div class="unit-panel hidden" id="panel-scouting">
-        <div class="print-only-header">
-           <h2 id="print-scout-title">Scouting Report</h2>
-        </div>
         <div class="formation-container">
           <div class="board-title no-print">
-            <div style="display:flex; align-items:center; gap:12px;">
-              <span>Scouting Report</span>
-            </div>
-            <div style="display:flex; gap:4px; flex-wrap:wrap;">
-              <button class="toolbar button" onclick="if(document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur(); setTimeout(()=>window.print(), 100);" style="padding:4px 10px; margin-left:6px;">🖨️ Print Report</button>
-            </div>
+            <span>Scouting Report</span>
+            <button class="toolbar button" onclick="window.print()" style="padding:4px 10px;">🖨️ Print Report</button>
           </div>
           <div class="scouting-grid">
              <div class="station-block no-print" style="grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 15px; background: #f8fafc; padding: 12px; border-radius: 6px; border: 1px solid var(--card-border);">
@@ -586,18 +562,6 @@
                 <div class="station-title">Key Players to Watch</div>
                 <textarea id="scout-keyPlayers" class="prac-textarea scout-textarea" oninput="autoResizeTextarea(this); updateScouting('keyPlayers', this.value)" placeholder="#X Name - Notes..."></textarea>
              </div>
-             <div class="station-block">
-                <div class="station-title">Offensive Tendencies</div>
-                <textarea id="scout-offenseTendencies" class="prac-textarea scout-textarea" oninput="autoResizeTextarea(this); updateScouting('offenseTendencies', this.value)" placeholder="Formations, favorite plays, run/pass ratio..."></textarea>
-             </div>
-             <div class="station-block">
-                <div class="station-title">Defensive Tendencies</div>
-                <textarea id="scout-defenseTendencies" class="prac-textarea scout-textarea" oninput="autoResizeTextarea(this); updateScouting('defenseTendencies', this.value)" placeholder="Base front, coverages, blitz tendencies..."></textarea>
-             </div>
-             <div class="station-block" style="grid-column: 1 / -1;">
-                <div class="station-title">Special Teams & Other Notes</div>
-                <textarea id="scout-specialTeams" class="prac-textarea scout-textarea" oninput="autoResizeTextarea(this); updateScouting('specialTeams', this.value)" placeholder="Kicker strength, returners, fake threats..."></textarea>
-             </div>
           </div>
         </div>
       </div>
@@ -616,9 +580,6 @@
 
       <!-- MASTER DRILLS PANEL -->
       <div class="unit-panel hidden" id="panel-drills">
-         <div class="print-only-header">
-            <h2>Master Drill Library</h2>
-         </div>
          <div class="formation-container" style="background:transparent; border:none; padding:0; box-shadow:none;">
             <div class="board-title no-print" style="background:#fff; border:1px solid var(--card-border); border-radius:8px; padding:10px; margin-bottom:10px;">
                <span>Master Drill Library</span>
@@ -630,11 +591,6 @@
 
       <!-- PRACTICE PLAN GENERATOR PANEL -->
       <div class="unit-panel hidden" id="panel-practice">
-        <div class="print-only-header">
-           <h2 id="print-practice-title">Practice Plan</h2>
-           <p id="print-practice-date"></p>
-        </div>
-
         <div class="formation-container" style="overflow: visible;">
           <div class="board-title no-print">
             <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
@@ -643,36 +599,19 @@
                 <div id="selected-practice-display" class="practice-tree-btn" style="pointer-events: auto !important;" onclick="document.getElementById('practice-tree-dropdown').classList.toggle('hidden')">Select Practice...</div>
                 <div id="practice-tree-dropdown" class="card-search-dropdown hidden" onclick="event.stopPropagation()" style="width: 350px; max-height: 400px; overflow-y: auto; text-align:left; padding:8px; border:2px solid var(--primary); pointer-events: auto !important; top: 100%; left: 0;"></div>
               </div>
-
               <button class="toggle-board-btn admin-only" onclick="openNewPracticeModal()">+ New</button>
-              <button class="toggle-board-btn admin-only" onclick="editPracticeDetails()">✏️ Edit Details</button>
-              <button class="toggle-board-btn admin-only" onclick="deletePractice()" style="color:#ef4444;">🗑️ Delete</button>
+              <button class="toggle-board-btn admin-only" onclick="editPracticeDetails()">✏️ Edit</button>
+              <button class="toggle-board-btn admin-only" onclick="deletePractice()" style="color:#ef4444;">🗑️</button>
             </div>
             <div style="display:flex; gap:6px; align-items:center;">
-              <button class="add-row-btn admin-only" style="margin:0; background:#0284c7;" onclick="document.getElementById('import-prac-file').click()">📥 Import Plan (.docx/.txt)</button>
-              <input type="file" id="import-prac-file" style="display:none;" onchange="importExternalPracticePlan(event)" accept=".txt,.docx,.csv,.json" />
               <button class="add-row-btn admin-only" onclick="addPracticeRow()">+ Add Period</button>
-              <button class="toolbar button" onclick="if(document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur(); setTimeout(()=>window.print(), 100);" style="padding:4px 10px; margin-left:6px;">🖨️ Print Plan</button>
+              <button class="toolbar button" onclick="window.print()" style="padding:4px 10px;">🖨️ Print Plan</button>
             </div>
-          </div>
-
-          <!-- TIME CALCULATOR DASHBOARD -->
-          <div class="practice-dashboard no-print">
-            <div style="display:flex; gap:10px; align-items:center;">
-              <label style="font-size:11px; font-weight:bold; color:var(--primary);">Start Time: 
-                <input type="time" id="prac-start" class="prac-input" style="width:auto; display:inline-block; font-weight:bold;" onchange="updatePracticeTimes('startTime', this.value)">
-              </label>
-              <label style="font-size:11px; font-weight:bold; color:var(--primary);">End Time: 
-                <input type="time" id="prac-end" class="prac-input" style="width:auto; display:inline-block; font-weight:bold;" onchange="updatePracticeTimes('endTime', this.value)">
-              </label>
-            </div>
-            <div style="flex:1;"></div>
-            <div id="prac-stats" style="font-size:11px; font-weight:bold; display:flex; gap:15px; align-items:center;"></div>
           </div>
           
           <table class="practice-table" id="main-practice-table">
             <thead>
-              <tr id="practice-header-row">
+              <tr>
                 <th style="width: 12%;">Time / Period</th>
                 <th style="width: 18%;">Category & Format</th>
                 <th style="width: 38%;">Groups & Stations / Drills</th>
@@ -689,9 +628,7 @@
       <!-- USER MANAGEMENT PANEL -->
       <div class="unit-panel hidden" id="panel-users">
         <div class="formation-container">
-          <div class="board-title">
-            <span>👥 Staff & User Permissions</span>
-          </div>
+          <div class="board-title"><span>👥 Staff & User Permissions</span></div>
           <div id="users-table-container" style="overflow-x: auto;"></div>
         </div>
       </div>
@@ -712,27 +649,17 @@
 
         <div class="sidebar hidden" id="plays-sidebar-panel">
           <h2>Play Library</h2>
-          <p style="font-size:10px; color:var(--text-muted); margin-top:-5px; margin-bottom:10px;">Drag plays onto your wristband</p>
-          <div style="display:flex; gap:4px; margin-bottom:10px;" class="admin-only">
-            <input type="text" id="new-play-input" class="search-box" style="margin:0; padding:6px;" placeholder="New play name..." onkeypress="if(event.key === 'Enter') addPlayToLibrary()">
-            <button class="add-row-btn" style="margin:0; padding:6px 10px;" onclick="addPlayToLibrary()">Add</button>
-          </div>
           <input type="text" id="play-search-input" class="search-box" placeholder="Search saved plays..." oninput="renderPlayLibrary()" />
           <ul class="full-roster-list" id="play-library-list"></ul>
         </div>
     </div>
   </div>
 
-  <!-- NEW PRACTICE MODAL -->
+  <!-- MODALS -->
   <div id="new-prac-modal" class="custom-modal hidden">
     <div class="custom-modal-card">
        <h3>Create New Practice Plan</h3>
-       <label style="font-size:12px; font-weight:bold; display:block; margin-bottom:6px; text-align:left;">Practice Title:</label>
        <input type="text" id="modal-prac-title" class="prac-input" value="Full Pads Install" style="margin-bottom:12px;">
-
-       <label style="font-size:12px; font-weight:bold; display:block; margin-bottom:6px; text-align:left;">Folder / Week:</label>
-       <input type="text" id="modal-prac-folder" class="prac-input" value="Week 1" style="margin-bottom:12px;">
-
        <div style="display: flex; gap: 8px; justify-content: flex-end;">
           <button class="toggle-board-btn" onclick="document.getElementById('new-prac-modal').classList.add('hidden')">Cancel</button>
           <button class="add-row-btn" style="margin:0;" onclick="executeCreateNewPractice()">Create Plan</button>
@@ -740,7 +667,6 @@
     </div>
   </div>
 
-  <!-- PRINT SELECTION MODAL -->
   <div id="print-modal" class="custom-modal hidden">
     <div class="print-modal-card">
        <h3>Select Boards to Print</h3>
@@ -752,7 +678,6 @@
     </div>
   </div>
 
-  <!-- SCRIMMAGE PRINT SELECTION MODAL -->
   <div id="scrimmage-print-modal" class="custom-modal hidden">
     <div class="print-modal-card">
        <h3>Select Scrimmage Boards to Print</h3>
@@ -764,7 +689,6 @@
     </div>
   </div>
 
-  <!-- SCRIMMAGE FILTER SELECTION MODAL -->
   <div id="scrimmage-filter-modal" class="custom-modal hidden">
     <div class="custom-modal-card">
        <h3>Select Boards to Include in Scrimmage View</h3>
@@ -802,6 +726,18 @@
       } catch (err) { console.warn("Firebase offline mode.", err); }
     }
     initFirebase();
+
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+          alert("Error attempting to enable full-screen mode: " + err.message);
+        });
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+    }
 
     function closeAllDropdowns(event) {
       const dropdown = document.getElementById("practice-tree-dropdown");
@@ -855,15 +791,15 @@
 
     const defaultFormations = [
       {
-        id: "form_11", unit: "offense", name: "11 Offense", subtitle: "1 RB - 1 TE (Y1) - 3 WRs (X, W, Z)", collapsed: false,
+        id: "form_11", unit: "offense", name: "11 Offense", collapsed: false,
         rows: [
-          { id: "row_11_ol", label: "Offensive Line & TE (Y1)", rowClass: "oline", slotCount: 7, positions: [
+          { id: "row_11_ol", label: "Offensive Line & TE (Y1)", slotCount: 7, positions: [
             { id: "11-LT", name: "LT" }, { id: "11-LG", name: "LG" }, { id: "11-C", name: "C" }, { id: "11-RG", name: "RG" }, { id: "11-RT", name: "RT" }, { id: "11-Y1", name: "Y1" }, null
           ]},
-          { id: "row_11_wr", label: "Wide Receivers (X, W, Z)", rowClass: "receivers", slotCount: 7, positions: [
+          { id: "row_11_wr", label: "Wide Receivers (X, W, Z)", slotCount: 7, positions: [
             { id: "11-X", name: "X" }, null, null, null, { id: "11-W", name: "W" }, null, { id: "11-Z", name: "Z" }
           ]},
-          { id: "row_11_bk", label: "Backfield (1 - 4)", rowClass: "backfield", slotCount: 7, positions: [
+          { id: "row_11_bk", label: "Backfield (1 - 4)", slotCount: 7, positions: [
             null, null, { id: "11-1", name: "1 (QB)" }, null, { id: "11-4", name: "4 (RB)" }, null, null
           ]}
         ]
@@ -873,83 +809,21 @@
     const defaultDynamicDrills = {
       "Warm-Ups & General Conditioning": [
         { name: "Dynamic Warm-Up", desc: "High knees, karaoke, shuffling, and short acceleration sprints.", key: "Speed & posture" },
-        { name: "QB & Center Exchange", desc: "Under-center and shotgun snaps focusing on clean exchange and lace grip.", key: "Clean exchange" },
-        { name: "11-Man 'Liz' Pursuit Drill", desc: "Full 11-man defense executes run fits and inside-out pursuit angles on perimeter sweep. Every player must touch runner.", key: "Never follow same color jersey" }
-      ],
-      "Offensive Position: Quarterback (QB)": [
-        { name: "Dropback & Footwork Mechanics", desc: "3-step and 5-step drops from under center and shotgun. Set feet instantly on hitch step.", key: "Balanced base & ready arm" },
-        { name: "Play Action & Bootleg Mesh", desc: "Execute handoff fake to running back with eyes locked on crashing defensive end before rolling out.", key: "Sell the run fake" },
-        { name: "On-Run & Off-Platform Throws", desc: "Rolling right and left throwing on the run while squaring shoulders to target.", key: "Torque hips to target" }
-      ],
-      "Offensive Position: Running Back (RB)": [
-        { name: "Handoff & Ball Security Circuit", desc: "Receive handoff with high and tight ball security (four points of pressure: fingers, palm, forearm, bicep).", key: "Secure ball through traffic" },
-        { name: "Read & Cut (A/B/C Gap Press)", desc: "Attack inside hip of lead blocker, press downhill, and plant foot to cut off blocker's hip.", key: "Press the hole, make one cut" },
-        { name: "Pass Protection & Blitz Pickup", desc: "Step up into A/B gap, square shoulders, strike oncoming linebacker in the chest plate, and anchor.", key: "Base up, punch chest plate" }
-      ],
-      "Offensive Position: Offensive Line (O-Line)": [
-        { name: "6-Inch Power Step & Board Fit", desc: "O-Linemen align in 3-point stance straddling board with blocker shield. Fire out 6-inch power step, strike chest plate with thumbs up.", key: "Eliminate false steps" },
-        { name: "Drive Blocking & Chute Drills", desc: "Explosion steps staying under the chute. Keep thumbs up, elbows tight, and legs driving through contact.", key: "Low pad level & leg drive" },
-        { name: "Pulling Guard & Trap Technique", desc: "Execute flat pulling footwork across formation, locate kicking target (DE/LB), and deliver blow with inside shoulder.", key: "Flat pull, accelerate through contact" }
-      ],
-      "Offensive Position: Wide Receiver (WR)": [
-        { name: "Stance & Release Package", desc: "Speed release and square cut release off the line of scrimmage against press coverage.", key: "Vary your speed and stem" },
-        { name: "Route Tree Landmarks (X, W, Z)", desc: "Run precise depth routes (Slants at 5 yds, Outs at 10 yds, Curls at 12 yds) planting on correct foot.", key: "Precise depth & hard cuts" },
-        { name: "Stalk Block & Perimeter Shield", desc: "Attack DB outside shoulder on screen/sweep plays, keep outside arm free, and guide defender wide.", key: "Inside leverage, block through whistle" }
-      ],
-      "Offensive Position: Tight End (TE)": [
-        { name: "Inline Drive Block & Seal", desc: "Engage Defensive End with tight base, drive helmet across bow, and seal B-gap on inside runs.", key: "Forehead across the numbers" },
-        { name: "Seam Release & Reroute Read", desc: "Release vertical up the seam past outside linebacker while reading zone coverage dropping underneath.", key: "Split the zone safeties" }
-      ],
-      "Defensive Line Position: Defensive Tackle (DT / NG)": [
-        { name: "Nose Guard Bull & 2-Gap Strike", desc: "NG aligns 0-Tech opposite Center with pad. Fire low, strike breastplate, lock out arms, peek into A-gap of ball flow, and shed.", key: "Pad level is king" },
-        { name: "Defensive Tackle Shed & Spill", desc: "DT vs offensive guard with shield attempting base block. Strike with violent hands, drop hips, rip through outside arm into B-gap.", key: "Create separation instantly" },
-        { name: "Down-Block Squeeze & Spill", desc: "OT, OG, and DL (T1/T3). OT down-blocks on DL while OG pulls. DL reads down-block, presses into OT hip to squeeze hole, spills play wide.", key: "Never get reached" }
-      ],
-      "Defensive Line Position: Defensive End (DE / E5 / E9)": [
-        { name: "Hard Edge Contain (Force Drill)", desc: "DE aligned 5/9 tech vs TE/OT blocker with shield and sweep runner. Strike outside shoulder, keep outside arm free, turn runner in.", key: "Never get hooked inside" },
-        { name: "Squeeze & Check Boot/Reverse", desc: "Backside DE squeezes down LOS to depth of QB on flow away, keeping outside arm free to nail bootlegs and reverses.", key: "Hold cutback and boot leverage" }
-      ],
-      "Linebacker Position: Inside Linebacker (ILB / Mike & Will)": [
-        { name: "Downhill Shuffle & Fill (Triangle Fit)", desc: "ILBs aligned 4 yards back read guard-center-back of triangle key. Fire downhill to fit hole inside-out on low hat run flow.", key: "Meet them in the hallway" },
-        { name: "Backside Scrape & Cutback Vice", desc: "Playside LB pushes wide; Backside LB takes controlled shuffle steps, reads pulling guard, and mirrors inside hip leverage to execute vice tackle.", key: "Wide base to plant and drive" },
-        { name: "45-Degree Drop & Robot Crosser Match", desc: "Open hips at 45° on high hat read to Hook-to-Curl zone (8-10 yds). Match crossing receivers and pass off ('In! / Out!').", key: "Eyes on QB front shoulder" }
-      ],
-      "Linebacker Position: Outside Linebacker (OLB / Sam & Rover)": [
-        { name: "Setting Hard Edge (Force Drill)", desc: "OLB aligned 2x2 vs lead blocker with shield and sweep runner. Attack downhill outside-in, strike outside shoulder, keep outside arm free.", key: "Keep shoulders square to sideline" },
-        { name: "Seam Reroute & Curl-to-Flat Drop", desc: "Physically collision and reroute slot receiver releasing vertical up seam before expanding to Curl-to-Flat zone (10-12 yds).", key: "Jam slot receiver first" }
-      ],
-      "Secondary Position: Cornerback (CB)": [
-        { name: "W-Drill (Backpedal & Drive)", desc: "5 cones in W shape 5 yards apart. Backpedal with chest over toes to Cone 1, plant outside foot, drive 45° forward to Cone 2.", key: "Low center of gravity" },
-        { name: "Deep 1/3 Cushion & Route Bail", desc: "Corner aligned 6 yds off WR running vertical. Open 45° in side-shuffle bail keeping 3 yds vertical cushion over receiver.", key: "Keep the roof on" },
-        { name: "Sideline Contain & Stalk Shed", desc: "CB attacks WR outside shoulder with violent hands on toss play, keeping outside arm free to squeeze runner to sideline.", key: "Maintain outside leverage" }
-      ],
-      "Secondary Position: Free Safety (FS)": [
-        { name: "Fast Alley Trigger & Breakdown", desc: "FS at 12 yds depth vs sweep. Take 2 downhill read steps, inside-out pursuit angle, chop feet at 3 yds, clamp near hip.", key: "Never cross near hip" },
-        { name: "Single-High Post / Seam Range", desc: "FS in center field vs deep post/seam. Plant outside foot, drive 90° across hashes, beat WR to catch point for interception.", key: "Jump throwing lane early" }
+        { name: "QB & Center Exchange", desc: "Under-center and shotgun snaps focusing on clean exchange and lace grip.", key: "Clean exchange" }
       ],
       "Tackle Circuit": [
-        { name: "Open-Field Angle Tackle", desc: "Ball carrier runs at 45-degree angle vs defender in 10x10 yard grid. Defender breaks down, takes proper angle, aims for near hip, and drives through legs.", key: "Break down feet & aim for near hip" },
-        { name: "Thigh-And-Drive Open-Field Tackle", desc: "Defender sprints 5 yards to ball carrier, squares shoulders, drops hips, and delivers shoulder strike to thigh numbers while wrapping numbers.", key: "Wrap, squeeze, and drive feet" },
-        { name: "Sideline Pin-And-Squeeze Tackle", desc: "Runner attempts to turn corner down sideline. Defender uses sideline as 12th defender, attacks outside shoulder, and forces runner out of bounds.", key: "Keep outside leverage, squeeze to line" },
-        { name: "Leverage Form Tackle (Ring Drill)", desc: "Two lines facing each other 5 yards apart. Ball carrier jogs in place; tackler steps up, establishes inside leverage, and lifts through hips.", key: "Head across bows, drive through contact" }
+        { name: "Open-Field Angle Tackle", desc: "Ball carrier runs at 45-degree angle vs defender in 10x10 yard grid.", key: "Break down feet & aim for near hip" },
+        { name: "Thigh-And-Drive Open-Field Tackle", desc: "Defender sprints 5 yards to ball carrier, squares shoulders, drops hips.", key: "Wrap, squeeze, and drive feet" }
       ],
       "Full Team Drills & Install": [
-        { name: "Chalk Talk & Play-Calling Walk-Through", desc: "Coaches review weekly game plan, formations, audibles, and opponent defensive/offensive tendencies on whiteboard before walking through cards.", key: "Mental clarity & alignment" },
-        { name: "Full Offensive Install & Skelly", desc: "Install weekly run scheme and passing concepts against scout team defense in 7-on-7 and 11-on-11 jog-throughs.", key: "Timing, reads, and execution tempo" },
-        { name: "Full Defensive Install & Run Fits", desc: "Install base 4-4/5-3 fronts, gap assignments, stunt checks, and secondary coverages against scout offense.", key: "Alignment, gap integrity, and communication" },
-        { name: "11-on-11 Live Scrimmage Script", desc: "Full speed situational scrimmage periods (Goal Line, Red Zone, Two-Minute Drill) utilizing Gold and Blue sub rotations.", key: "Live execution under game speed" }
-      ],
-      "Stunts, Blitz Packages & Team Scheme": [
-        { name: "Stunt: Slant Liz & Cross Liz", desc: "Front-four DL slants one gap to Liz side or interior tackles execute scissor-cross through A-gaps to disrupt blocking.", key: "Gap exchange integrity" },
-        { name: "Stunt: Fan Liz & Pinch Rip", desc: "DTs fan outward into B-gaps while DEs contain edge, or all 4 DL pinch hard inside to stop interior dive and sneak.", key: "Contain and squeeze" },
-        { name: "Blitz: Double Dog 0 Liz", desc: "Both ILBs fire downhill on snap through A and B gaps right to the quarterback in Cover 0 man coverage.", key: "Immediate rush pressure" },
-        { name: "Blitz: Blow Sting Liz (You/Me)", desc: "Edge calls ('You'/'Me') coordinating DE crash and OLB blitz pressure with man coverage assignments across the board.", key: "Communicate edge assignments" }
+        { name: "Chalk Talk & Play-Calling Walk-Through", desc: "Coaches review weekly game plan on whiteboard before walking through cards.", key: "Mental clarity & alignment" },
+        { name: "Full Offensive Install & Skelly", desc: "Install weekly run scheme and passing concepts against scout team defense.", key: "Timing and reads" }
       ]
     };
 
     let weeklyData = safeJSONParse("footballWeeklyData", {});
     let practiceData = safeJSONParse("footballPracticeData", []);
-    let masterPlayLibrary = safeJSONParse("footballMasterPlays", ["24 Dive", "25 Trap", "Sweep Right", "Bootleg Pass", "Screen Pass"]);
+    let masterPlayLibrary = safeJSONParse("footballMasterPlays", ["24 Dive", "25 Trap", "Sweep Right", "Bootleg Pass"]);
     let collapsedDrillCats = safeJSONParse('footballCollapsedDrills', {});
     let dynamicDrills = safeJSONParse("footballDynamicDrills", defaultDynamicDrills);
     let depthChart = null, currentPracticeId = null;
@@ -1019,7 +893,7 @@
       return weeklyData[week].scrimmageChart;
     }
 
-    // --- DRILL LIBRARY COLLAPSE & CONTROLS ---
+    // --- DRILL LIBRARY ---
     function toggleDrillCat(cat, e) {
         if (e) e.stopPropagation();
         collapsedDrillCats[cat] = !collapsedDrillCats[cat];
@@ -1072,10 +946,8 @@
                   `;
                });
            }
-           
            html += `</div></div>`;
        });
-       
        html += `</div>`;
        wrapper.innerHTML = html;
        document.querySelectorAll('#panel-drills .prac-textarea').forEach(ta => autoResizeTextarea(ta));
@@ -1133,54 +1005,41 @@
       }
     }
 
-    // --- FULL PRACTICE PLAN RENDERING WITH MULTI-STATION SUPPORT ---
+    // --- PRACTICE PLAN ---
     function renderPracticePlan() {
         const prac = practiceData.find(p => p.id === currentPracticeId);
         if (!prac) return;
-
-        document.getElementById('prac-start').value = prac.startTime || "17:05";
-        document.getElementById('prac-end').value = prac.endTime || "20:00";
-
-        const printTitle = document.getElementById('print-practice-title');
-        const printDate = document.getElementById('print-practice-date');
-        if (printTitle) printTitle.textContent = prac.title;
-        if (printDate) printDate.textContent = `${prac.day || ''} | ${prac.week || ''} ${prac.year || ''}`;
-
         const tbody = document.getElementById('practice-rows');
         if (!tbody) return;
         tbody.innerHTML = '';
 
         let currentTimeMin = parseTimeString(prac.startTime || "17:05");
-        let totalMins = 0;
-
         (prac.plan || []).forEach((row, idx) => {
             const rowTime = parseInt(row.time || 0);
-            totalMins += rowTime;
-            const isEven = idx % 2 === 0;
             let endTimeMin = currentTimeMin + rowTime;
             let timeStr = `${formatTime(currentTimeMin)} - ${formatTime(endTimeMin)}`;
             
             let stationsHtml = (row.stations || []).map((st, sIdx) => `
                 <div class="station-block">
                     <input type="text" class="prac-input" value="${st.name || ''}" oninput="updatePracStation(${idx}, ${sIdx}, 'name', this.value)" placeholder="Group / Drill Name">
-                    <textarea class="prac-textarea" oninput="autoResizeTextarea(this); updatePracStation(${idx}, ${sIdx}, 'desc', this.value)" placeholder="Drill details...">${st.desc || ''}</textarea>
+                    <textarea class="prac-textarea" oninput="autoResizeTextarea(this); updatePracStation(${idx}, ${sIdx}, 'desc', this.value)" placeholder="Details...">${st.desc || ''}</textarea>
                 </div>
             `).join('');
 
             let coachesHtml = (row.stations || []).map((st, sIdx) => `
                 <div class="station-block" style="min-height:50px;">
-                    <input type="text" class="prac-input" value="${st.coach || ''}" oninput="updatePracStation(${idx}, ${sIdx}, 'coach', this.value)" placeholder="Coach Name(s)">
+                    <input type="text" class="prac-input" value="${st.coach || ''}" oninput="updatePracStation(${idx}, ${sIdx}, 'coach', this.value)" placeholder="Coach">
                 </div>
             `).join('');
 
             let focusHtml = (row.stations || []).map((st, sIdx) => `
                 <div class="station-block" style="min-height:50px;">
-                    <input type="text" class="prac-input" value="${st.focus || ''}" oninput="updatePracStation(${idx}, ${sIdx}, 'focus', this.value)" placeholder="Key Coaching Point">
+                    <input type="text" class="prac-input" value="${st.focus || ''}" oninput="updatePracStation(${idx}, ${sIdx}, 'focus', this.value)" placeholder="Focus">
                 </div>
             `).join('');
 
             const tr = document.createElement('tr');
-            tr.className = isEven ? 'period-even' : 'period-odd';
+            tr.className = idx % 2 === 0 ? 'period-even' : 'period-odd';
             tr.innerHTML = `
                 <td>
                     <div style="font-weight:bold; font-size:12px;">Period ${idx + 1}</div>
@@ -1190,19 +1049,10 @@
                 <td>
                     <select class="prac-select" onchange="updatePracRow(${idx}, 'category', this.value)">
                         <option value="Pre Practice" ${row.category === 'Pre Practice' ? 'selected' : ''}>Pre Practice</option>
-                        <option value="Warm-Up & Breaks" ${row.category === 'Warm-Up & Breaks' ? 'selected' : ''}>Warm-Up & Breaks</option>
                         <option value="Indy / Fundamentals" ${row.category === 'Indy / Fundamentals' ? 'selected' : ''}>Indy / Fundamentals</option>
                         <option value="Tackle Circuit" ${row.category === 'Tackle Circuit' ? 'selected' : ''}>Tackle Circuit</option>
                         <option value="Full Team/Installs" ${row.category === 'Full Team/Installs' ? 'selected' : ''}>Full Team/Installs</option>
-                        <option value="Special Teams" ${row.category === 'Special Teams' ? 'selected' : ''}>Special Teams</option>
                     </select>
-                    <select class="prac-select" style="margin-top:4px;" onchange="updatePracRow(${idx}, 'format', this.value)">
-                        <option value="static" ${row.format === 'static' ? 'selected' : ''}>Static (Whole Group)</option>
-                        <option value="rotating" ${row.format === 'rotating' ? 'selected' : ''}>Rotating Stations</option>
-                    </select>
-                    <div class="admin-only" style="margin-top:4px;">
-                        <button class="add-row-btn" style="padding:2px 6px; font-size:9px;" onclick="addStationToPracRow(${idx})">+ Station</button>
-                    </div>
                 </td>
                 <td>${stationsHtml}</td>
                 <td>${coachesHtml}</td>
@@ -1214,11 +1064,7 @@
             tbody.appendChild(tr);
             currentTimeMin = endTimeMin;
         });
-
         document.querySelectorAll('#main-practice-table .prac-textarea').forEach(ta => autoResizeTextarea(ta));
-
-        const stats = document.getElementById('prac-stats');
-        if (stats) stats.innerHTML = `Total Planned Time: ${totalMins} mins`;
     }
 
     function updatePracRow(rIdx, field, val) {
@@ -1226,10 +1072,6 @@
         if (prac && prac.plan[rIdx]) {
             prac.plan[rIdx][field] = val;
             triggerDebouncedSave();
-            if (field === 'time') {
-                const isTyping = document.activeElement && document.activeElement.closest('#main-practice-table');
-                if (!isTyping) renderPracticePlan();
-            }
         }
     }
 
@@ -1244,34 +1086,15 @@
     function addPracticeRow() {
         const prac = practiceData.find(p => p.id === currentPracticeId);
         if (prac) {
-            prac.plan.push({
-                time: 10, category: "Indy / Fundamentals", format: "static",
-                stations: [{ name: "New Group", desc: "", coach: "", focus: "" }]
-            });
-            saveState(); renderPracticePlan();
-        }
-    }
-
-    function addStationToPracRow(rIdx) {
-        const prac = practiceData.find(p => p.id === currentPracticeId);
-        if (prac && prac.plan[rIdx]) {
-            prac.plan[rIdx].stations.push({ name: "", desc: "", coach: "", focus: "" });
+            prac.plan.push({ time: 10, category: "Indy / Fundamentals", format: "static", stations: [{ name: "New Group", desc: "", coach: "", focus: "" }] });
             saveState(); renderPracticePlan();
         }
     }
 
     function removePracticeRow(rIdx) {
         const prac = practiceData.find(p => p.id === currentPracticeId);
-        if (prac && confirm("Remove this period?")) {
+        if (prac && confirm("Remove period?")) {
             prac.plan.splice(rIdx, 1);
-            saveState(); renderPracticePlan();
-        }
-    }
-
-    function updatePracticeTimes(field, val) {
-        const prac = practiceData.find(p => p.id === currentPracticeId);
-        if (prac) {
-            prac[field] = val;
             saveState(); renderPracticePlan();
         }
     }
@@ -1280,27 +1103,12 @@
         const dropdown = document.getElementById("practice-tree-dropdown");
         const display = document.getElementById("selected-practice-display");
         if (!dropdown || !display) return;
-
         let html = '<ul class="tree-root">';
-        let folders = {};
-        
         practiceData.forEach(p => {
-            let folder = p.week || "Uncategorized";
-            if (!folders[folder]) folders[folder] = [];
-            folders[folder].push(p);
+            let isSelected = p.id === currentPracticeId;
+            if (isSelected) display.textContent = p.title;
+            html += `<li class="tree-leaf ${isSelected ? 'selected' : ''}" onclick="selectPractice('${p.id}')">📄 ${p.title}</li>`;
         });
-
-        for (let folder in folders) {
-            html += `<li>
-                <span class="tree-caret" onclick="this.nextElementSibling.classList.toggle('hidden')">📁 ${folder}</span>
-                <ul class="hidden">`;
-            folders[folder].forEach(p => {
-                let isSelected = p.id === currentPracticeId;
-                if (isSelected) display.textContent = `${folder} - ${p.title}`;
-                html += `<li class="tree-leaf ${isSelected ? 'selected' : ''}" onclick="selectPractice('${p.id}')">📄 ${p.title}</li>`;
-            });
-            html += `</ul></li>`;
-        }
         dropdown.innerHTML = html + '</ul>';
     }
 
@@ -1313,11 +1121,10 @@
     function openNewPracticeModal() { document.getElementById('new-prac-modal').classList.remove('hidden'); }
     function executeCreateNewPractice() {
         const title = document.getElementById('modal-prac-title').value || "New Practice";
-        const folder = document.getElementById('modal-prac-folder').value || "Week 1";
         const newPrac = {
             id: 'prac_' + Date.now(), title: title, year: new Date().getFullYear().toString(),
-            week: folder, day: "Wednesday", startTime: "17:05", endTime: "20:00", lastEdited: Date.now(),
-            plan: [{ time: 10, category: "Warm-Up & Breaks", format: "static", stations: [{ name: "Warmup", desc: "Dynamic stretch", coach: "", focus: "" }] }]
+            week: "Week 1", day: "Wednesday", startTime: "17:05", endTime: "20:00", lastEdited: Date.now(),
+            plan: [{ time: 10, category: "Warm-Up", format: "static", stations: [{ name: "Warmup", desc: "", coach: "", focus: "" }] }]
         };
         practiceData.push(newPrac);
         currentPracticeId = newPrac.id;
@@ -1334,15 +1141,15 @@
     }
 
     function deletePractice() {
-        if (practiceData.length <= 1) return alert("Cannot delete the last plan.");
-        if (confirm("Delete this practice plan?")) {
+        if (practiceData.length <= 1) return alert("Cannot delete last plan.");
+        if (confirm("Delete plan?")) {
             practiceData = practiceData.filter(p => p.id !== currentPracticeId);
             currentPracticeId = practiceData[0].id;
             saveState(); populatePracticeDropdown(); renderPracticePlan();
         }
     }
 
-    // --- FOCUS-PROTECTED LIVE SNAPSHOT LISTENER ---
+    // --- CLOUD LISTENER (EXCLUDES GUIDE TAB TO PREVENT REFRESH LOOPS) ---
     function listenToLiveUpdates() {
         if (!cloudEnabled || !db) return;
         db.collection("teamData").doc("depthChartData")
@@ -1366,13 +1173,12 @@
               }
               if (activeUnit === 'wristband') renderWristband();
               if (activeUnit === 'scouting') renderScouting();
-              if (activeUnit === 'guide') renderGuideTab();
+              if (activeUnit === 'drills') renderDrillsTab();
               if (activeUnit === 'scrimmage') renderScrimmageTab();
             }
           });
     }
 
-    // --- SELECT FORMATION FOR MASTER ROSTER FILTERING ---
     function selectFormationForRoster(formId) {
         selectedFormationFilterId = formId;
         document.querySelectorAll('.formation-container').forEach(c => c.classList.remove('active-selected'));
@@ -1381,7 +1187,6 @@
         renderMasterRoster();
     }
 
-    // --- RENDER BOARDS & SCRIMMAGE ROTATION ---
     function renderActiveBoards() {
       const container = document.getElementById("boards-" + activeUnit);
       if (!container) return;
@@ -1418,8 +1223,6 @@
             if (pos) {
               const card = document.createElement("div");
               card.className = "position-card";
-              card.id = `card-${pos.id}`;
-
               if (userRole === 'admin') {
                 card.ondragover = (e) => { e.preventDefault(); card.classList.add("drag-over"); };
                 card.ondragleave = () => card.classList.remove("drag-over");
@@ -1460,7 +1263,7 @@
       const forms = allForms.filter(f => !scrimmageFilters || scrimmageFilters.includes(f.id));
 
       if (forms.length === 0) {
-          container.innerHTML = `<div style="padding:40px; text-align:center; color:var(--text-muted);">No scrimmage boards selected. Click "Filter Boards" to choose.</div>`;
+          container.innerHTML = `<div style="padding:40px; text-align:center; color:var(--text-muted);">No scrimmage boards selected.</div>`;
           renderMasterRoster();
           return;
       }
@@ -1515,23 +1318,12 @@
     function renderMasterRoster() {
       const rosterContainer = document.getElementById("master-roster-list");
       if (!rosterContainer) return;
-
       const searchEl = document.getElementById("search-input");
       const searchTerm = (searchEl ? searchEl.value : "").toLowerCase().trim();
       rosterContainer.innerHTML = "";
 
       const isScrimmageTab = (activeUnit === 'scrimmage');
       const activeChart = isScrimmageTab ? getWeekScrimmageChart(currentWeek) : depthChart;
-
-      const countLabel = document.getElementById("roster-count-label");
-      const instructionLabel = document.getElementById("roster-instruction-label");
-      if (isScrimmageTab) {
-          if (countLabel) countLabel.textContent = "Counting: All Filtered Scrimmage Boards";
-          if (instructionLabel) instructionLabel.textContent = "Showing all filtered scrimmage assignments";
-      } else {
-          if (countLabel) countLabel.textContent = "Counting: Selected Formation Only";
-          if (instructionLabel) instructionLabel.textContent = "Click a formation card to filter roster";
-      }
 
       masterRoster.forEach(player => {
         const fName = (player.firstName || "").toLowerCase();
@@ -1599,7 +1391,6 @@
       });
     }
 
-    // --- SCRIMMAGE FILTER MODAL FUNCTIONS ---
     function openScrimmageFilterModal() {
         const listDiv = document.getElementById("scrimmage-filter-list");
         if (!listDiv) return;
@@ -1644,20 +1435,7 @@
         let selectedIds = [];
         cbs.forEach(cb => { if (cb.checked) selectedIds.push(cb.value); });
         document.getElementById("scrimmage-print-modal").classList.add("hidden");
-
-        const allContainers = document.querySelectorAll("#boards-scrimmage .formation-container");
-        allContainers.forEach((container, idx) => {
-            const forms = getWeekFormations(currentWeek).filter(f => f && (f.unit === 'offense' || f.unit === 'defense'));
-            const activeForms = forms.filter(f => !scrimmageFilters || scrimmageFilters.includes(f.id));
-            if (activeForms[idx] && !selectedIds.includes(activeForms[idx].id)) {
-                container.style.display = 'none';
-            }
-        });
-
-        setTimeout(() => {
-            window.print();
-            allContainers.forEach(c => c.style.display = '');
-        }, 300);
+        setTimeout(() => { window.print(); }, 300);
     }
 
     function openPrintModal(unit) {
@@ -1674,28 +1452,10 @@
     }
 
     function executeCustomPrint() {
-        const cbs = document.querySelectorAll(".print-cb");
-        let selectedIds = [];
-        cbs.forEach(cb => { if (cb.checked) selectedIds.push(cb.value); });
         document.getElementById("print-modal").classList.add("hidden");
-
-        const containerId = "boards-" + activeUnit;
-        const allContainers = document.querySelectorAll(`#${containerId} .formation-container`);
-        const forms = getWeekFormations(currentWeek).filter(f => f && f.unit === activeUnit);
-
-        allContainers.forEach((container, idx) => {
-            if (forms[idx] && !selectedIds.includes(forms[idx].id)) {
-                container.style.display = 'none';
-            }
-        });
-
-        setTimeout(() => {
-            window.print();
-            allContainers.forEach(c => c.style.display = '');
-        }, 300);
+        setTimeout(() => { window.print(); }, 300);
     }
 
-    // --- DRAG & DROP & POSITIONS ---
     function handleRosterDragStart(e, name, num) {
       if (userRole !== 'admin') { e.preventDefault(); return; }
       draggedData = { type: "roster", name, num };
@@ -1745,7 +1505,6 @@
       }
     }
 
-    // --- TAB SWITCHING ---
     function switchUnitTab(unit) {
       activeUnit = unit;
       document.querySelectorAll('.nav-tab').forEach(btn => btn.classList.remove('active'));
@@ -1805,7 +1564,7 @@
 
     function renderScouting() {
       const scout = weeklyData[currentWeek]?.scouting || {};
-      ["year", "week", "opponent", "teamOverview", "keyPlayers", "offenseTendencies", "defenseTendencies"].forEach(field => {
+      ["year", "week", "opponent", "teamOverview", "keyPlayers"].forEach(field => {
         const el = document.getElementById("scout-" + field);
         if (el) el.value = scout[field] || "";
       });
@@ -1825,13 +1584,7 @@
       tabsContainer.innerHTML = Object.keys(pdfGuides).map(cat => `<button class="nav-tab ${cat === activeGuidePos ? 'active' : ''}" onclick="switchGuidePos('${cat}')">${cat}</button>`).join('');
       
       let guideVal = pdfGuides[activeGuidePos] || "";
-      let displayHtml = "";
-      
-      if (guideVal.startsWith("http")) {
-          displayHtml = `<iframe src="${guideVal}" style="width:100%; height:600px; border:none;" title="Playbook Guide"></iframe>`;
-      } else {
-          displayHtml = `<div style="padding:20px; text-align:center; color:var(--text-muted);">No document uploaded for this category yet.</div>`;
-      }
+      let displayHtml = guideVal.startsWith("http") ? `<iframe src="${guideVal}" style="width:100%; height:600px; border:none;" title="Playbook Guide"></iframe>` : `<div style="padding:20px; text-align:center; color:var(--text-muted);">No document uploaded for this category yet.</div>`;
 
       contentArea.innerHTML = `
         <div class="admin-only" style="padding: 10px; background: #f8fafc; border: 1px solid var(--card-border); border-radius: 6px; margin-bottom: 10px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
@@ -1847,20 +1600,16 @@
     async function uploadGuideFile(e) {
         const file = e.target.files[0];
         if (!file || !activeGuidePos) return;
-        if (!storage) { alert("Cloud storage is offline. Cannot upload file."); return; }
-        
+        if (!storage) { alert("Cloud storage is offline."); return; }
         try {
             const storageRef = storage.ref(`playbook_guides/${Date.now()}_${file.name}`);
             const snapshot = await storageRef.put(file);
             const downloadUrl = await snapshot.ref.getDownloadURL();
-            
             pdfGuides[activeGuidePos] = downloadUrl;
             saveState();
             renderGuideTab();
-            alert("Guide uploaded and saved to cloud successfully!");
-        } catch (err) {
-            alert("Upload failed: " + err.message);
-        }
+            alert("Guide uploaded successfully!");
+        } catch (err) { alert("Upload failed: " + err.message); }
     }
 
     function switchGuidePos(cat) { activeGuidePos = cat; renderGuideTab(); }
@@ -1879,11 +1628,6 @@
     function renderPlayLibrary() {
       const container = document.getElementById("play-library-list");
       if (container) container.innerHTML = masterPlayLibrary.map(p => `<li class="full-roster-item"><span>${p}</span></li>`).join('');
-    }
-
-    function addPlayToLibrary() {
-      const input = document.getElementById("new-play-input");
-      if (input && input.value.trim()) { masterPlayLibrary.push(input.value.trim()); input.value = ""; saveState(); renderPlayLibrary(); }
     }
 
     function createFormationPrompt(unit) {
@@ -1934,8 +1678,7 @@
     }
 
     function bypassLogin() {
-      const overlay = document.getElementById("auth-overlay");
-      if (overlay) overlay.style.display = "none";
+      document.getElementById("auth-overlay").style.display = "none";
       applyRole('admin');
       document.getElementById("user-display-email").textContent = "Offline Coach";
       initializeApp();
@@ -1993,7 +1736,7 @@
         practiceData = [{
           id: "prac_1", title: "Full Pads Install", year: new Date().getFullYear().toString(),
           week: "Week 1", day: "Wednesday", startTime: "17:05", endTime: "20:00", lastEdited: Date.now(),
-          plan: [{ time: 25, category: "Pre Practice", format: "static", stations: [{ name: "GROUP 1: QB & Center Exchange", desc: "Centers and QBs pair up to practice snaps.", coach: "TJ", focus: "Snap accuracy" }] }]
+          plan: [{ time: 25, category: "Pre Practice", format: "static", stations: [{ name: "GROUP 1: QB & Center", desc: "", coach: "", focus: "" }] }]
         }];
       }
     }
