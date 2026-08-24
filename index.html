@@ -581,9 +581,12 @@
       <!-- MASTER DRILLS PANEL -->
       <div class="unit-panel hidden" id="panel-drills">
          <div class="formation-container" style="background:transparent; border:none; padding:0; box-shadow:none;">
-            <div class="board-title no-print" style="background:#fff; border:1px solid var(--card-border); border-radius:8px; padding:10px; margin-bottom:10px;">
+            <div class="board-title no-print" style="background:#fff; border:1px solid var(--card-border); border-radius:8px; padding:10px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
                <span>Master Drill Library</span>
-               <button class="add-row-btn admin-only" style="margin:0;" onclick="addDrillCategory()">+ Add New Category</button>
+               <div style="display:flex; gap:6px;">
+                  <button class="toggle-board-btn admin-only" style="background:#0284c7; color:#fff;" onclick="forceResetDefaultDrills()">🔄 Load Default & Tackle Circuit Drills</button>
+                  <button class="add-row-btn admin-only" style="margin:0;" onclick="addDrillCategory()">+ Add New Category</button>
+               </div>
             </div>
             <div id="drills-wrapper"></div>
          </div>
@@ -809,15 +812,77 @@
     const defaultDynamicDrills = {
       "Warm-Ups & General Conditioning": [
         { name: "Dynamic Warm-Up", desc: "High knees, karaoke, shuffling, and short acceleration sprints.", key: "Speed & posture" },
-        { name: "QB & Center Exchange", desc: "Under-center and shotgun snaps focusing on clean exchange and lace grip.", key: "Clean exchange" }
+        { name: "QB & Center Exchange", desc: "Under-center and shotgun snaps focusing on clean exchange and lace grip.", key: "Clean exchange" },
+        { name: "11-Man 'Liz' Pursuit Drill", desc: "Full 11-man defense executes run fits and inside-out pursuit angles on perimeter sweep. Every player must touch runner.", key: "Never follow same color jersey" }
+      ],
+      "Offensive Position: Quarterback (QB)": [
+        { name: "Dropback & Footwork Mechanics", desc: "3-step and 5-step drops from under center and shotgun. Set feet instantly on hitch step.", key: "Balanced base & ready arm" },
+        { name: "Play Action & Bootleg Mesh", desc: "Execute handoff fake to running back with eyes locked on crashing defensive end before rolling out.", key: "Sell the run fake" },
+        { name: "On-Run & Off-Platform Throws", desc: "Rolling right and left throwing on the run while squaring shoulders to target.", key: "Torque hips to target" }
+      ],
+      "Offensive Position: Running Back (RB)": [
+        { name: "Handoff & Ball Security Circuit", desc: "Receive handoff with high and tight ball security (four points of pressure: fingers, palm, forearm, bicep).", key: "Secure ball through traffic" },
+        { name: "Read & Cut (A/B/C Gap Press)", desc: "Attack inside hip of lead blocker, press downhill, and plant foot to cut off blocker's hip.", key: "Press the hole, make one cut" },
+        { name: "Pass Protection & Blitz Pickup", desc: "Step up into A/B gap, square shoulders, strike oncoming linebacker in the chest plate, and anchor.", key: "Base up, punch chest plate" }
+      ],
+      "Offensive Position: Offensive Line (O-Line)": [
+        { name: "6-Inch Power Step & Board Fit", desc: "O-Linemen align in 3-point stance straddling board with blocker shield. Fire out 6-inch power step, strike chest plate with thumbs up.", key: "Eliminate false steps" },
+        { name: "Drive Blocking & Chute Drills", desc: "Explosion steps staying under the chute. Keep thumbs up, elbows tight, and legs driving through contact.", key: "Low pad level & leg drive" },
+        { name: "Pulling Guard & Trap Technique", desc: "Execute flat pulling footwork across formation, locate kicking target (DE/LB), and deliver blow with inside shoulder.", key: "Flat pull, accelerate through contact" }
+      ],
+      "Offensive Position: Wide Receiver (WR)": [
+        { name: "Stance & Release Package", desc: "Speed release and square cut release off the line of scrimmage against press coverage.", key: "Vary your speed and stem" },
+        { name: "Route Tree Landmarks (X, W, Z)", desc: "Run precise depth routes (Slants at 5 yds, Outs at 10 yds, Curls at 12 yds) planting on correct foot.", key: "Precise depth & hard cuts" },
+        { name: "Stalk Block & Perimeter Shield", desc: "Attack DB outside shoulder on screen/sweep plays, keep outside arm free, and guide defender wide.", key: "Inside leverage, block through whistle" }
+      ],
+      "Offensive Position: Tight End (TE)": [
+        { name: "Inline Drive Block & Seal", desc: "Engage Defensive End with tight base, drive helmet across bow, and seal B-gap on inside runs.", key: "Forehead across the numbers" },
+        { name: "Seam Release & Reroute Read", desc: "Release vertical up the seam past outside linebacker while reading zone coverage dropping underneath.", key: "Split the zone safeties" }
+      ],
+      "Defensive Line Position: Defensive Tackle (DT / NG)": [
+        { name: "Nose Guard Bull & 2-Gap Strike", desc: "NG aligns 0-Tech opposite Center with pad. Fire low, strike breastplate, lock out arms, peek into A-gap of ball flow, and shed.", key: "Pad level is king" },
+        { name: "Defensive Tackle Shed & Spill", desc: "DT vs offensive guard with shield attempting base block. Strike with violent hands, drop hips, rip through outside arm into B-gap.", key: "Create separation instantly" },
+        { name: "Down-Block Squeeze & Spill", desc: "OT, OG, and DL (T1/T3). OT down-blocks on DL while OG pulls. DL reads down-block, presses into OT hip to squeeze hole, spills play wide.", key: "Never get reached" }
+      ],
+      "Defensive Line Position: Defensive End (DE / E5 / E9)": [
+        { name: "Hard Edge Contain (Force Drill)", desc: "DE aligned 5/9 tech vs TE/OT blocker with shield and sweep runner. Strike outside shoulder, keep outside arm free, turn runner in.", key: "Never get hooked inside" },
+        { name: "Squeeze & Check Boot/Reverse", desc: "Backside DE squeezes down LOS to depth of QB on flow away, keeping outside arm free to nail bootlegs and reverses.", key: "Hold cutback and boot leverage" }
+      ],
+      "Linebacker Position: Inside Linebacker (ILB / Mike & Will)": [
+        { name: "Downhill Shuffle & Fill (Triangle Fit)", desc: "ILBs aligned 4 yards back read guard-center-back of triangle key. Fire downhill to fit hole inside-out on low hat run flow.", key: "Meet them in the hallway" },
+        { name: "Backside Scrape & Cutback Vice", desc: "Playside LB pushes wide; Backside LB takes controlled shuffle steps, reads pulling guard, and mirrors inside hip leverage to execute vice tackle.", key: "Wide base to plant and drive" },
+        { name: "45-Degree Drop & Robot Crosser Match", desc: "Open hips at 45° on high hat read to Hook-to-Curl zone (8-10 yds). Match crossing receivers and pass off ('In! / Out!').", key: "Eyes on QB front shoulder" }
+      ],
+      "Linebacker Position: Outside Linebacker (OLB / Sam & Rover)": [
+        { name: "Setting Hard Edge (Force Drill)", desc: "OLB aligned 2x2 vs lead blocker with shield and sweep runner. Attack downhill outside-in, strike outside shoulder, keep outside arm free.", key: "Keep shoulders square to sideline" },
+        { name: "Seam Reroute & Curl-to-Flat Drop", desc: "Physically collision and reroute slot receiver releasing vertical up seam before expanding to Curl-to-Flat zone (10-12 yds).", key: "Jam slot receiver first" }
+      ],
+      "Secondary Position: Cornerback (CB)": [
+        { name: "W-Drill (Backpedal & Drive)", desc: "5 cones in W shape 5 yards apart. Backpedal with chest over toes to Cone 1, plant outside foot, drive 45° forward to Cone 2.", key: "Low center of gravity" },
+        { name: "Deep 1/3 Cushion & Route Bail", desc: "Corner aligned 6 yds off WR running vertical. Open 45° in side-shuffle bail keeping 3 yds vertical cushion over receiver.", key: "Keep the roof on" },
+        { name: "Sideline Contain & Stalk Shed", desc: "CB attacks WR outside shoulder with violent hands on toss play, keeping outside arm free to squeeze runner to sideline.", key: "Maintain outside leverage" }
+      ],
+      "Secondary Position: Free Safety (FS)": [
+        { name: "Fast Alley Trigger & Breakdown", desc: "FS at 12 yds depth vs sweep. Take 2 downhill read steps, inside-out pursuit angle, chop feet at 3 yds, clamp near hip.", key: "Never cross near hip" },
+        { name: "Single-High Post / Seam Range", desc: "FS in center field vs deep post/seam. Plant outside foot, drive 90° across hashes, beat WR to catch point for interception.", key: "Jump throwing lane early" }
       ],
       "Tackle Circuit": [
-        { name: "Open-Field Angle Tackle", desc: "Ball carrier runs at 45-degree angle vs defender in 10x10 yard grid.", key: "Break down feet & aim for near hip" },
-        { name: "Thigh-And-Drive Open-Field Tackle", desc: "Defender sprints 5 yards to ball carrier, squares shoulders, drops hips.", key: "Wrap, squeeze, and drive feet" }
+        { name: "Open-Field Angle Tackle", desc: "Ball carrier runs at 45-degree angle vs defender in 10x10 yard grid. Defender breaks down, takes proper angle, aims for near hip, and drives through legs.", key: "Break down feet & aim for near hip" },
+        { name: "Thigh-And-Drive Open-Field Tackle", desc: "Defender sprints 5 yards to ball carrier, squares shoulders, drops hips, and delivers shoulder strike to thigh numbers while wrapping numbers.", key: "Wrap, squeeze, and drive feet" },
+        { name: "Sideline Pin-And-Squeeze Tackle", desc: "Runner attempts to turn corner down sideline. Defender uses sideline as 12th defender, attacks outside shoulder, and forces runner out of bounds.", key: "Keep outside leverage, squeeze to line" },
+        { name: "Leverage Form Tackle (Ring Drill)", desc: "Two lines facing each other 5 yards apart. Ball carrier jogs in place; tackler steps up, establishes inside leverage, and lifts through hips.", key: "Head across bows, drive through contact" }
       ],
       "Full Team Drills & Install": [
-        { name: "Chalk Talk & Play-Calling Walk-Through", desc: "Coaches review weekly game plan on whiteboard before walking through cards.", key: "Mental clarity & alignment" },
-        { name: "Full Offensive Install & Skelly", desc: "Install weekly run scheme and passing concepts against scout team defense.", key: "Timing and reads" }
+        { name: "Chalk Talk & Play-Calling Walk-Through", desc: "Coaches review weekly game plan, formations, audibles, and opponent defensive/offensive tendencies on whiteboard before walking through cards.", key: "Mental clarity & alignment" },
+        { name: "Full Offensive Install & Skelly", desc: "Install weekly run scheme and passing concepts against scout team defense in 7-on-7 and 11-on-11 jog-throughs.", key: "Timing, reads, and execution tempo" },
+        { name: "Full Defensive Install & Run Fits", desc: "Install base 4-4/5-3 fronts, gap assignments, stunt checks, and secondary coverages against scout offense.", key: "Alignment, gap integrity, and communication" },
+        { name: "11-on-11 Live Scrimmage Script", desc: "Full speed situational scrimmage periods (Goal Line, Red Zone, Two-Minute Drill) utilizing Gold and Blue sub rotations.", key: "Live execution under game speed" }
+      ],
+      "Stunts, Blitz Packages & Team Scheme": [
+        { name: "Stunt: Slant Liz & Cross Liz", desc: "Front-four DL slants one gap to Liz side or interior tackles execute scissor-cross through A-gaps to disrupt blocking.", key: "Gap exchange integrity" },
+        { name: "Stunt: Fan Liz & Pinch Rip", desc: "DTs fan outward into B-gaps while DEs contain edge, or all 4 DL pinch hard inside to stop interior dive and sneak.", key: "Contain and squeeze" },
+        { name: "Blitz: Double Dog 0 Liz", desc: "Both ILBs fire downhill on snap through A and B gaps right to the quarterback in Cover 0 man coverage.", key: "Immediate rush pressure" },
+        { name: "Blitz: Blow Sting Liz (You/Me)", desc: "Edge calls ('You'/'Me') coordinating DE crash and OLB blitz pressure with man coverage assignments across the board.", key: "Communicate edge assignments" }
       ]
     };
 
@@ -899,6 +964,15 @@
         collapsedDrillCats[cat] = !collapsedDrillCats[cat];
         localStorage.setItem('footballCollapsedDrills', JSON.stringify(collapsedDrillCats));
         renderDrillsTab();
+    }
+
+    function forceResetDefaultDrills() {
+        if (confirm("Reset drill library to default comprehensive drill set (including Tackle Circuit & Full Team Drills)?")) {
+            dynamicDrills = JSON.parse(JSON.stringify(defaultDynamicDrills));
+            saveState();
+            renderDrillsTab();
+            alert("Drills reset and synced successfully!");
+        }
     }
 
     function renderDrillsTab() {
@@ -1149,7 +1223,7 @@
         }
     }
 
-    // --- CLOUD LISTENER (EXCLUDES GUIDE TAB TO PREVENT REFRESH LOOPS) ---
+    // --- CLOUD LISTENER ---
     function listenToLiveUpdates() {
         if (!cloudEnabled || !db) return;
         db.collection("teamData").doc("depthChartData")
@@ -1657,7 +1731,9 @@
                 if (parsed.masterPlayLibrary) masterPlayLibrary = parsed.masterPlayLibrary;
                 if (parsed.dynamicDrills) dynamicDrills = parsed.dynamicDrills;
                 if (parsed.pdfGuides) pdfGuides = parsed.pdfGuides;
-                saveState(); location.reload();
+                saveState(); 
+                alert("Data and drills imported successfully!");
+                location.reload();
             } catch (err) { alert("Invalid backup file."); }
         };
         reader.readAsText(file);
