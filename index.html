@@ -623,11 +623,12 @@
       <div class="unit-panel hidden" id="panel-drills">
          <div class="formation-container" style="background:transparent; border:none; padding:0; box-shadow:none;">
             <div class="board-title no-print" style="background:#fff; border:1px solid var(--card-border); border-radius:8px; padding:10px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-               <span>Master Drill Library (Move Selector & Drag-Drop)</span>
+               <span>Master Drill Library (Folder Reordering & JSON Backup)</span>
                <div style="display:flex; gap:6px; flex-wrap:wrap;">
-                  <button class="toggle-board-btn" style="background:#16a34a; color:#fff;" onclick="exportDrillsCSV()" title="Export Drills to CSV">📤 Export CSV</button>
-                  <button class="toggle-board-btn admin-only" style="background:#0284c7; color:#fff;" onclick="document.getElementById('import-drills-file').click()" title="Import Drills CSV">📥 Import CSV</button>
-                  <input type="file" id="import-drills-file" style="display:none;" onchange="importDrillsCSV(event)" accept=".csv,.txt" />
+                  <button class="toggle-board-btn" style="background:#8b5cf6; color:#fff;" onclick="exportDrillsJSON()" title="Export Drill Folders JSON">📁 Export Folders JSON</button>
+                  <button class="toggle-board-btn admin-only" style="background:#0284c7; color:#fff;" onclick="document.getElementById('import-drills-json-file').click()" title="Import Drill Folders JSON">📂 Import Folders JSON</button>
+                  <input type="file" id="import-drills-json-file" style="display:none;" onchange="importDrillsJSON(event)" accept=".json" />
+                  <button class="toggle-board-btn" style="background:#2563eb; color:#fff;" onclick="forceSyncCloud()" title="Force Push to Live Cloud">☁️ Sync to Live</button>
                   <button class="toggle-board-btn admin-only" style="background:#475569; color:#fff;" onclick="forceResetDefaultDrills()">🔄 Reset Defaults</button>
                   <button class="add-row-btn admin-only" style="margin:0;" onclick="addRootDrillFolder()">+ Add Top Folder</button>
                </div>
@@ -692,8 +693,8 @@
             <thead>
               <tr>
                 <th style="width: 12%;">Time / Period</th>
-                <th style="width: 18%;">Category & Format</th>
-                <th style="width: 70%;">Stations / Drills, Coaches & Focus</th>
+                <th style="width: 22%;">Category (Linked to Drill Folders)</th>
+                <th style="width: 66%;">Stations / Drills, Coaches & Focus</th>
                 <th style="width: 6%; text-align:center;" class="no-print admin-only">Actions</th>
               </tr>
             </thead>
@@ -818,6 +819,21 @@
     }
     initFirebase();
 
+    function forceSyncCloud() {
+        if (!cloudEnabled || !db) {
+            alert("Cloud sync is not active (running offline mode).");
+            return;
+        }
+        db.collection("teamData").doc("depthChartData").set({
+            weeklyData, practiceData, masterPlayLibrary, cascadingDrills, pdfGuides, collapsedFolders, savedCoachesList,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true }).then(() => {
+            alert("Successfully forced all local drill folders and data to live cloud database!");
+        }).catch(err => {
+            alert("Cloud sync error: " + err.message);
+        });
+    }
+
     function toggleFullScreen() {
       if (!document.fullscreenElement) {
         document.documentElement.requestFullscreen().catch(err => {
@@ -925,15 +941,16 @@
             name: "Quarterbacks (QB)",
             subfolders: [],
             drills: [
-              { name: "Dropback & Footwork Mechanics", desc: "3-step and 5-step drops from under center and shotgun. Set feet instantly on hitch step.", key: "Balanced base & ready arm" },
-              { name: "Play Action & Bootleg Mesh", desc: "Execute handoff fake to running back with eyes locked on crashing defensive end before rolling out.", key: "Sell the run fake" }
+              { name: "3-Step & 5-Step Drop Mechanics", desc: "QB takes rhythmic drops from under center or shotgun, setting feet instantly on the hitch step to deliver on time.", key: "Balanced base & ready arm" },
+              { name: "Play Action & Bootleg Mesh", desc: "QB executes run fake handoff to running back with eyes locked on crashing defensive end before rolling out to perimeter.", key: "Sell the run fake" }
             ]
           },
           {
             name: "Running Backs (RB)",
             subfolders: [],
             drills: [
-              { name: "Handoff & Ball Security Circuit", desc: "Receive handoff with high and tight ball security (four points of pressure).", key: "Secure ball through traffic" }
+              { name: "Handoff & Ball Security Circuit", desc: "RBs receive handoffs at full speed, securing ball tightly with four points of pressure through traffic.", key: "Secure ball through traffic" },
+              { name: "Pass Protection & Blitz Pickup", desc: "Backs step up in protection square-up to block blitzing linebackers with active hands and low base.", key: "Low center of gravity & punch" }
             ]
           }
         ],
@@ -946,7 +963,8 @@
             name: "Linebackers & DBs",
             subfolders: [],
             drills: [
-              { name: "11-Man 'Liz' Pursuit Drill", desc: "Full 11-man defense executes run fits and inside-out pursuit angles on perimeter sweep. Every player must touch runner.", key: "Never follow same color jersey" }
+              { name: "11-Man 'Liz' Pursuit & Fit Drill", desc: "Full defense executes run fits and inside-out pursuit angles on perimeter sweep. Every player must touch runner.", key: "Never follow same color jersey" },
+              { name: "Open Field Form Tackling", desc: "Defenders breakdown 2 yards before ballcarrier, sink hips, wrap thighs, and drive through numbers.", key: "Head across bows & drive legs" }
             ]
           }
         ],
@@ -956,8 +974,8 @@
         name: "⚡ Warm-Ups & Conditioning",
         subfolders: [],
         drills: [
-          { name: "Dynamic Warm-Up", desc: "High knees, karaoke, shuffling, and short acceleration sprints.", key: "Speed & posture" },
-          { name: "QB & Center Exchange", desc: "Under-center and shotgun snaps focusing on clean exchange and lace grip.", key: "Clean exchange" }
+          { name: "Dynamic Warm-Up & Agility", desc: "High knees, karaoke, lateral shuffles, and short acceleration sprints across width of field.", key: "Speed & posture" },
+          { name: "Center-QB Snap Exchange", desc: "Under-center and shotgun snaps focusing on clean grip, laces, and immediate handoff pocket placement.", key: "Clean exchange" }
         ]
       }
     ];
@@ -1035,85 +1053,37 @@
       return weeklyData[week].scrimmageChart;
     }
 
-    // --- CASCADING DRILLS EXPORT / IMPORT CSV ---
-    function collectAllDrills(nodeList, list = []) {
-        (nodeList || []).forEach(node => {
-            if (node.drills) node.drills.forEach(d => list.push(d));
-            if (node.subfolders) collectAllDrills(node.subfolders, list);
-        });
-        return list;
+    // --- CASCADING DRILLS JSON EXPORT / IMPORT ---
+    function exportDrillsJSON() {
+        let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(cascadingDrills, null, 2));
+        let dl = document.createElement('a'); 
+        dl.setAttribute("href", dataStr); 
+        dl.setAttribute("download", `drill_folders_structure.json`); 
+        dl.click();
     }
 
-    function exportDrillsCSV() {
-        let csv = ['"Drill Name","Setup & Instructions","Coaching Focus"'];
-        let allDrills = collectAllDrills(cascadingDrills);
-        allDrills.forEach(d => {
-            let name = (d.name || "").replace(/"/g, '""');
-            let desc = (d.desc || "").replace(/"/g, '""');
-            let key = (d.key || "").replace(/"/g, '""');
-            csv.push(`"${name}","${desc}","${key}"`);
-        });
-
-        let blob = new Blob([csv.join('\n')], { type: 'text/csv;charset=utf-8;' });
-        let link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = "master_drills_export.csv";
-        link.style.display = "none";
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }
-
-    function importDrillsCSV(e) {
+    function importDrillsJSON(e) {
         const file = e.target.files[0];
         if (!file) return;
         const reader = new FileReader();
         reader.onload = function(evt) {
             try {
-                let text = evt.target.result;
-                let lines = text.split('\n');
-                let count = 0;
-                let startIndex = 0;
-                if (lines[0].toLowerCase().includes('drill name')) startIndex = 1;
-
-                if (cascadingDrills.length === 0) {
-                    cascadingDrills.push({ name: "Imported Drills", subfolders: [], drills: [] });
+                let parsed = JSON.parse(evt.target.result);
+                if (Array.isArray(parsed)) {
+                    cascadingDrills = parsed;
+                    saveState();
+                    renderDrillsTab();
+                    alert("Drill folders structure imported successfully!");
+                } else {
+                    alert("Invalid drill folders JSON file format.");
                 }
-                let targetFolder = cascadingDrills[0];
-
-                for (let i = startIndex; i < lines.length; i++) {
-                    let line = lines[i].trim();
-                    if (!line) continue;
-                    let row = [];
-                    let inQuote = false;
-                    let val = '';
-                    for (let char of line) {
-                        if (char === '"') inQuote = !inQuote;
-                        else if (char === ',' && !inQuote) { row.push(val.trim()); val = ''; }
-                        else val += char;
-                    }
-                    row.push(val.trim());
-
-                    if (row.length >= 3) {
-                        let name = row[0].replace(/^"|"$/g, '').trim();
-                        let desc = row[1].replace(/^"|"$/g, '').trim();
-                        let key = row[2].replace(/^"|"$/g, '').trim();
-                        if (name) {
-                            targetFolder.drills.push({ name, desc, key });
-                            count++;
-                        }
-                    }
-                }
-                saveState();
-                renderDrillsTab();
-                alert(`Successfully imported ${count} drills into top folder!`);
-            } catch (err) { alert("Error parsing CSV: " + err.message); }
+            } catch (err) { alert("Error parsing JSON: " + err.message); }
             e.target.value = '';
         };
         reader.readAsText(file);
     }
 
-    // --- CASCADING DRILL LIBRARY MANAGEMENT & MOVE SELECTOR ---
+    // --- CASCADING DRILL LIBRARY MANAGEMENT & REORDERING ---
     function toggleDrillFolder(folderId, e) {
         if (e) e.stopPropagation();
         collapsedFolders[folderId] = !collapsedFolders[folderId];
@@ -1186,6 +1156,38 @@
             removeFolderByPath(cascadingDrills, pathKey);
             saveState(); renderDrillsTab();
         }
+    }
+
+    function moveFolderUp(pathKey, e) {
+        if (e) e.stopPropagation();
+        if (userRole !== 'admin') return;
+        moveFolderPosition(pathKey, -1);
+    }
+
+    function moveFolderDown(pathKey, e) {
+        if (e) e.stopPropagation();
+        if (userRole !== 'admin') return;
+        moveFolderPosition(pathKey, 1);
+    }
+
+    function moveFolderPosition(pathKey, direction) {
+        let parts = pathKey.split('_');
+        let idx = parseInt(parts.pop());
+        let parentPath = parts.join('_');
+
+        let list = cascadingDrills;
+        if (parentPath !== '') {
+            let parentFolder = findFolderByPath(cascadingDrills, parentPath);
+            if (parentFolder && parentFolder.subfolders) list = parentFolder.subfolders;
+        }
+
+        let newIdx = idx + direction;
+        if (newIdx < 0 || newIdx >= list.length) return;
+
+        let [moved] = list.splice(idx, 1);
+        list.splice(newIdx, 0, moved);
+        saveState();
+        renderDrillsTab();
     }
 
     function updateDrillInPath(pathKey, index, field, val) {
@@ -1318,8 +1320,10 @@
                         ondrop="handleFolderDrop(event, '${pathKey}')"
                         onclick="toggleDrillFolder('${pathKey}', event)">
                       <span style="user-select:none;">${icon} ${folder.name}</span>
-                      <div class="admin-only" style="display:flex; gap:4px;">
-                         <button onclick="addSubfolderToPath('${pathKey}', event)" class="toggle-board-btn" title="Add Subfolder">+ Subfolder</button>
+                      <div class="admin-only" style="display:flex; gap:4px; align-items:center;">
+                         <button onclick="moveFolderUp('${pathKey}', event)" class="toggle-board-btn" title="Move Up">▲</button>
+                         <button onclick="moveFolderDown('${pathKey}', event)" class="toggle-board-btn" title="Move Down">▼</button>
+                         <button onclick="addSubfolderToPath('${pathKey}', event)" class="toggle-board-btn" title="Add Subfolder">+ Sub</button>
                          <button onclick="addDrillToPath('${pathKey}', event)" class="toggle-board-btn" title="Add Drill">+ Drill</button>
                          <button onclick="renameFolderAtPath('${pathKey}', event)" class="toggle-board-btn" title="Rename Folder">✏️</button>
                          <button onclick="deleteFolderAtPath('${pathKey}', event)" class="toggle-board-btn" style="color:red;" title="Delete Folder">🗑️</button>
@@ -1381,6 +1385,19 @@
             if (node.drills) node.drills.forEach(d => list.push(d));
             if (node.subfolders) collectAllDrillsFlat(node.subfolders, list);
         });
+        return list;
+    }
+
+    function collectDrillsFromFolder(folder) {
+        let list = [];
+        if (folder.drills) {
+            folder.drills.forEach(d => list.push(d));
+        }
+        if (folder.subfolders) {
+            folder.subfolders.forEach(sub => {
+                list = list.concat(collectDrillsFromFolder(sub));
+            });
+        }
         return list;
     }
 
@@ -1446,12 +1463,6 @@
         if (!tbody) return;
         tbody.innerHTML = '';
 
-        const allDrills = collectAllDrillsFlat(cascadingDrills);
-        let drillOptionsHtml = `<option value="">-- Select Drill from Library --</option>`;
-        allDrills.forEach(d => {
-            drillOptionsHtml += `<option value="${d.name}">${d.name}</option>`;
-        });
-
         let coachDatalistOptions = savedCoachesList.map(c => `<option value="${c}">`).join('');
 
         let currentTimeMin = parseTimeString(prac.startTime || "17:05");
@@ -1460,6 +1471,19 @@
             let endTimeMin = currentTimeMin + rowTime;
             let timeStr = `${formatTime(currentTimeMin)} - ${formatTime(endTimeMin)}`;
             
+            let categoryDrills = [];
+            let matchingFolder = cascadingDrills.find(f => f.name === row.category);
+            if (matchingFolder) {
+                categoryDrills = collectDrillsFromFolder(matchingFolder);
+            } else {
+                categoryDrills = collectAllDrillsFlat(cascadingDrills);
+            }
+
+            let drillOptionsHtml = `<option value="">-- Select Drill from ${row.category || 'Library'} --</option>`;
+            categoryDrills.forEach(d => {
+                drillOptionsHtml += `<option value="${d.name}">${d.name}</option>`;
+            });
+
             let stationsHtml = (row.stations || []).map((st, sIdx) => {
                 let datalistId = `coach_list_${idx}_${sIdx}`;
 
@@ -1489,6 +1513,17 @@
             `;
             }).join('');
 
+            let currentCat = row.category || "";
+            let categorySelectHtml = `<select class="prac-select" onchange="updatePracRowCategory(${idx}, this.value)">`;
+            cascadingDrills.forEach(folder => {
+                let cName = folder.name;
+                categorySelectHtml += `<option value="${cName}" ${currentCat === cName ? 'selected' : ''}>${cName}</option>`;
+            });
+            if (!cascadingDrills.some(f => f.name === currentCat) && currentCat) {
+                categorySelectHtml += `<option value="${currentCat}" selected>${currentCat}</option>`;
+            }
+            categorySelectHtml += `</select>`;
+
             const tr = document.createElement('tr');
             tr.className = idx % 2 === 0 ? 'period-even' : 'period-odd';
             tr.innerHTML = `
@@ -1498,12 +1533,7 @@
                     <div class="period-schedule-time">${timeStr}</div>
                 </td>
                 <td>
-                    <select class="prac-select" onchange="updatePracRow(${idx}, 'category', this.value)">
-                        <option value="Pre Practice" ${row.category === 'Pre Practice' ? 'selected' : ''}>Pre Practice</option>
-                        <option value="Indy / Fundamentals" ${row.category === 'Indy / Fundamentals' ? 'selected' : ''}>Indy / Fundamentals</option>
-                        <option value="Tackle Circuit" ${row.category === 'Tackle Circuit' ? 'selected' : ''}>Tackle Circuit</option>
-                        <option value="Full Team/Installs" ${row.category === 'Full Team/Installs' ? 'selected' : ''}>Full Team/Installs</option>
-                    </select>
+                    ${categorySelectHtml}
                 </td>
                 <td>${stationsHtml}</td>
                 <td class="admin-only" style="text-align:center;">
@@ -1552,6 +1582,15 @@
         }
     }
 
+    function updatePracRowCategory(rIdx, val) {
+        const prac = practiceData.find(p => p.id === currentPracticeId);
+        if (prac && prac.plan[rIdx]) {
+            prac.plan[rIdx].category = val;
+            saveState();
+            renderPracticePlan();
+        }
+    }
+
     function updatePracStation(rIdx, sIdx, field, val) {
         const prac = practiceData.find(p => p.id === currentPracticeId);
         if (prac && prac.plan[rIdx] && prac.plan[rIdx].stations[sIdx]) {
@@ -1563,7 +1602,8 @@
     function addPracticeRow() {
         const prac = practiceData.find(p => p.id === currentPracticeId);
         if (prac) {
-            prac.plan.push({ time: 10, category: "Indy / Fundamentals", format: "static", stations: [{ name: "New Group", desc: "", coach: "", focus: "" }] });
+            let defaultCat = cascadingDrills.length > 0 ? cascadingDrills[0].name : "General";
+            prac.plan.push({ time: 10, category: defaultCat, format: "static", stations: [{ name: "New Group", desc: "", coach: "", focus: "" }] });
             saveState(); renderPracticePlan();
         }
     }
@@ -1630,10 +1670,11 @@
         const weekInput = document.getElementById('modal-prac-week').value || "Week 1";
         const titleInput = document.getElementById('modal-prac-title').value || "Practice #1";
 
+        let defaultCat = cascadingDrills.length > 0 ? cascadingDrills[0].name : "General";
         const newPrac = {
             id: 'prac_' + Date.now(), year: yearInput, weekFolder: weekInput, title: titleInput, 
             date: new Date().toISOString().split('T')[0], day: "Wednesday", startTime: "17:05", endTime: "20:00", lastEdited: Date.now(),
-            plan: [{ time: 15, category: "Pre Practice", format: "static", stations: [{ name: "Warm-Up", desc: "", coach: "", focus: "" }] }]
+            plan: [{ time: 15, category: defaultCat, format: "static", stations: [{ name: "Warm-Up", desc: "", coach: "", focus: "" }] }]
         };
         practiceData.push(newPrac);
         currentPracticeId = newPrac.id;
@@ -2286,10 +2327,11 @@
 
     function sanitizePracticeData() {
       if (!Array.isArray(practiceData) || practiceData.length === 0) {
+        let defaultCat = cascadingDrills.length > 0 ? cascadingDrills[0].name : "General";
         practiceData = [{
           id: "prac_1", year: "2026", weekFolder: "Week 1", title: "Practice #1", date: new Date().toISOString().split('T')[0],
           day: "Wednesday", startTime: "17:05", endTime: "20:00", lastEdited: Date.now(),
-          plan: [{ time: 25, category: "Pre Practice", format: "static", stations: [{ name: "GROUP 1: QB & Center", desc: "", coach: "", focus: "" }] }]
+          plan: [{ time: 25, category: defaultCat, format: "static", stations: [{ name: "GROUP 1: QB & Center", desc: "", coach: "", focus: "" }] }]
         }];
       } else {
         practiceData.forEach(p => {
