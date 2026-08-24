@@ -214,6 +214,33 @@
     .custom-modal-card, .print-modal-card { background: #fff; padding: 20px; border-radius: 8px; width: 340px; max-width: 90%; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
     .custom-modal-card h3, .print-modal-card h3 { margin-top: 0; color: var(--primary); font-size: 16px; margin-bottom: 15px;}
 
+    /* Fullscreen PDF Modal Overlay */
+    #pdf-fullscreen-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.95);
+      z-index: 999999;
+      display: flex;
+      flex-direction: column;
+      padding: 15px;
+      box-sizing: border-box;
+    }
+    #pdf-fullscreen-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      color: #fff;
+    }
+    #pdf-fullscreen-content {
+      flex-grow: 1;
+      width: 100%;
+      height: calc(100vh - 60px);
+      background: #ffffff;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
     /* Wristband Builder */
     .wb-exact-table { width: 100%; border-collapse: collapse; border: 2px solid #000000; background: #ffffff; }
     .wb-exact-table td, .wb-exact-table th { border: 1px solid #000000; padding: 0; height: 24px; vertical-align: middle; }
@@ -656,9 +683,7 @@
               <tr>
                 <th style="width: 12%;">Time / Period</th>
                 <th style="width: 18%;">Category & Format</th>
-                <th style="width: 38%;">Groups & Stations / Drills</th>
-                <th style="width: 16%;">Coach (es)</th>
-                <th style="width: 12%;">Coaching Focus</th>
+                <th style="width: 70%;">Stations / Drills, Coaches & Focus</th>
                 <th style="width: 6%; text-align:center;" class="no-print admin-only">Actions</th>
               </tr>
             </thead>
@@ -737,7 +762,7 @@
   </div>
 
   <div id="scrimmage-filter-modal" class="custom-modal hidden">
-    <div class="custom-modal-card">
+    <div class="print-modal-card">
        <h3>Select Boards to Include in Scrimmage View</h3>
        <div id="scrimmage-filter-list" style="max-height: 250px; overflow-y: auto; margin-bottom: 15px; text-align: left; font-size: 12px; display: flex; flex-direction: column; gap: 8px;"></div>
        <div style="display: flex; gap: 8px; justify-content: flex-end;">
@@ -745,6 +770,15 @@
           <button class="add-row-btn" style="margin:0;" onclick="saveScrimmageFilters()">Save Selection</button>
        </div>
     </div>
+  </div>
+
+  <!-- FULLSCREEN PDF MODAL OVERLAY -->
+  <div id="pdf-fullscreen-modal" class="hidden">
+    <div id="pdf-fullscreen-header">
+      <span id="pdf-fullscreen-title" style="font-weight:bold; font-size:14px;">Playbook Document Full Screen</span>
+      <button class="toggle-board-btn" style="background:#ef4444; color:#fff;" onclick="closeGuideFullScreen()">✕ Close Full Screen</button>
+    </div>
+    <div id="pdf-fullscreen-content"></div>
   </div>
 
   <script>
@@ -786,18 +820,21 @@
       }
     }
 
-    function toggleGuideFullScreen() {
-      const container = document.getElementById("guide-viewer-container");
-      if (!container) return;
-      if (!document.fullscreenElement) {
-        container.requestFullscreen().catch(err => {
-          alert("Error attempting to enable full-screen mode: " + err.message);
-        });
-      } else {
-        if (document.exitFullscreen) {
-          document.exitFullscreen();
-        }
-      }
+    function openGuideFullScreen() {
+      const modal = document.getElementById("pdf-fullscreen-modal");
+      const container = document.getElementById("pdf-fullscreen-content");
+      const guideVal = pdfGuides[activeGuidePos] || "";
+      if (!guideVal) { alert("No document selected."); return; }
+
+      container.innerHTML = `<iframe src="${guideVal}" style="width:100%; height:100%; border:none;" title="Playbook Guide Full Screen"></iframe>`;
+      modal.classList.remove("hidden");
+    }
+
+    function closeGuideFullScreen() {
+      const modal = document.getElementById("pdf-fullscreen-modal");
+      const container = document.getElementById("pdf-fullscreen-content");
+      container.innerHTML = "";
+      modal.classList.add("hidden");
     }
 
     function closeAllDropdowns(event) {
@@ -818,6 +855,7 @@
     let currentUser = null, userRole = 'admin', isSignUpMode = false;
     let scrimmageFilters = safeJSONParse("footballScrimmageFilters", null);
     let collapsedFolders = safeJSONParse("footballCollapsedFolders", {});
+    let savedCoachesList = safeJSONParse("footballSavedCoaches", ["Coach Smith", "Coach Davis", "Coach Miller", "Coach Johnson"]);
 
     let pdfGuides = safeJSONParse("footballPdfGuides", { "Offense": "", "53 Defense": "", "44 Defense": "" });
     let activeGuidePos = Object.keys(pdfGuides).length > 0 ? Object.keys(pdfGuides)[0] : null;
@@ -959,10 +997,11 @@
         localStorage.setItem("footballDynamicDrills", JSON.stringify(dynamicDrills));
         localStorage.setItem("footballPdfGuides", JSON.stringify(pdfGuides));
         localStorage.setItem("footballCollapsedFolders", JSON.stringify(collapsedFolders));
+        localStorage.setItem("footballSavedCoaches", JSON.stringify(savedCoachesList));
 
         if (cloudEnabled && db && userRole === 'admin') {
             db.collection("teamData").doc("depthChartData").set({
-                weeklyData, practiceData, masterPlayLibrary, dynamicDrills, pdfGuides, collapsedFolders,
+                weeklyData, practiceData, masterPlayLibrary, dynamicDrills, pdfGuides, collapsedFolders, savedCoachesList,
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             }, { merge: true }).catch(err => console.error("Firestore sync error:", err));
         }
@@ -1185,6 +1224,16 @@
         }
     }
 
+    function updateCoachInput(rIdx, sIdx, val) {
+        updatePracStation(rIdx, sIdx, 'coach', val);
+        const trimmed = val.trim();
+        if (trimmed && !savedCoachesList.includes(trimmed)) {
+            savedCoachesList.push(trimmed);
+            savedCoachesList.sort();
+            saveState();
+        }
+    }
+
     function renderPracticePlan() {
         const prac = practiceData.find(p => p.id === currentPracticeId);
         if (!prac) return;
@@ -1206,6 +1255,7 @@
         tbody.innerHTML = '';
 
         const allCategories = Object.keys(dynamicDrills);
+        let coachDatalistOptions = savedCoachesList.map(c => `<option value="${c}">`).join('');
 
         let currentTimeMin = parseTimeString(prac.startTime || "17:05");
         (prac.plan || []).forEach((row, idx) => {
@@ -1226,33 +1276,36 @@
                     drillOptionsHtml += `<option value="${d.name}" ${d.name === st.name ? 'selected' : ''}>${d.name}</option>`;
                 });
 
+                let datalistId = `coach_list_${idx}_${sIdx}`;
+
                 return `
-                <div class="station-block">
-                    <div style="display:flex; gap:4px; margin-bottom:4px;" class="no-print">
-                        <select class="prac-select" style="font-size:10px; color:var(--primary);" onchange="onCategoryFilterSelected(${idx}, ${sIdx}, this)">
-                            ${catOptionsHtml}
-                        </select>
-                        <select class="prac-select" style="font-weight:bold; color:var(--primary);" onchange="onDrillSelected(${idx}, ${sIdx}, this)">
-                            ${drillOptionsHtml}
-                        </select>
+                <div class="station-block" style="display:grid; grid-template-columns: 1fr 200px 180px; gap:8px; align-items:start;">
+                    <div>
+                        <div style="display:flex; gap:4px; margin-bottom:4px;" class="no-print">
+                            <select class="prac-select" style="font-size:10px; color:var(--primary);" onchange="onCategoryFilterSelected(${idx}, ${sIdx}, this)">
+                                ${catOptionsHtml}
+                            </select>
+                            <select class="prac-select" style="font-weight:bold; color:var(--primary);" onchange="onDrillSelected(${idx}, ${sIdx}, this)">
+                                ${drillOptionsHtml}
+                            </select>
+                        </div>
+                        <input type="text" class="prac-input" value="${st.name || ''}" oninput="updatePracStation(${idx}, ${sIdx}, 'name', this.value)" placeholder="Group / Drill Name">
+                        <textarea class="prac-textarea" oninput="autoResizeTextarea(this); updatePracStation(${idx}, ${sIdx}, 'desc', this.value)" placeholder="Details...">${st.desc || ''}</textarea>
                     </div>
-                    <input type="text" class="prac-input" value="${st.name || ''}" oninput="updatePracStation(${idx}, ${sIdx}, 'name', this.value)" placeholder="Group / Drill Name">
-                    <textarea class="prac-textarea" oninput="autoResizeTextarea(this); updatePracStation(${idx}, ${sIdx}, 'desc', this.value)" placeholder="Details...">${st.desc || ''}</textarea>
+                    <div>
+                        <label style="font-size:9.5px; font-weight:bold; color:var(--text-muted); display:block; margin-bottom:2px;" class="no-print">Coach:</label>
+                        <input type="text" class="prac-input" list="${datalistId}" value="${st.coach || ''}" oninput="updateCoachInput(${idx}, ${sIdx}, this.value)" placeholder="Coach Name">
+                        <datalist id="${datalistId}">
+                            ${coachDatalistOptions}
+                        </datalist>
+                    </div>
+                    <div>
+                        <label style="font-size:9.5px; font-weight:bold; color:var(--text-muted); display:block; margin-bottom:2px;" class="no-print">Coaching Focus:</label>
+                        <input type="text" class="prac-input" value="${st.focus || ''}" oninput="updatePracStation(${idx}, ${sIdx}, 'focus', this.value)" placeholder="Key focus...">
+                    </div>
                 </div>
             `;
             }).join('');
-
-            let coachesHtml = (row.stations || []).map((st, sIdx) => `
-                <div class="station-block" style="min-height:50px;">
-                    <input type="text" class="prac-input" value="${st.coach || ''}" oninput="updatePracStation(${idx}, ${sIdx}, 'coach', this.value)" placeholder="Coach">
-                </div>
-            `).join('');
-
-            let focusHtml = (row.stations || []).map((st, sIdx) => `
-                <div class="station-block" style="min-height:50px;">
-                    <input type="text" class="prac-input" value="${st.focus || ''}" oninput="updatePracStation(${idx}, ${sIdx}, 'focus', this.value)" placeholder="Focus">
-                </div>
-            `).join('');
 
             const tr = document.createElement('tr');
             tr.className = idx % 2 === 0 ? 'period-even' : 'period-odd';
@@ -1271,8 +1324,6 @@
                     </select>
                 </td>
                 <td>${stationsHtml}</td>
-                <td>${coachesHtml}</td>
-                <td>${focusHtml}</td>
                 <td class="admin-only" style="text-align:center;">
                     <div style="display:flex; flex-direction:column; gap:2px; align-items:center;">
                       <div style="display:flex; gap:2px;">
@@ -1458,6 +1509,7 @@
               if (data.dynamicDrills) dynamicDrills = data.dynamicDrills;
               if (data.pdfGuides) pdfGuides = data.pdfGuides;
               if (data.collapsedFolders) collapsedFolders = data.collapsedFolders;
+              if (data.savedCoachesList) savedCoachesList = data.savedCoachesList;
 
               depthChart = getWeekDepthChart(currentWeek);
               renderActiveBoards();
@@ -1890,10 +1942,10 @@
              <input type="file" id="guide-file-input" accept=".pdf,.doc,.docx" onchange="uploadGuideFile(event)" />
            </div>
            <div>
-             <button class="toggle-board-btn" style="background:var(--primary); color:#fff;" onclick="toggleGuideFullScreen()">⛶ Full Screen PDF</button>
+             <button class="toggle-board-btn" style="background:var(--primary); color:#fff;" onclick="openGuideFullScreen()">⛶ Full Screen PDF</button>
            </div>
         </div>
-        <div id="guide-viewer-container" style="flex-grow:1; background:#fff; border:1px solid var(--card-border); border-radius:6px; overflow:hidden; min-height:600px; display:flex; flex-direction:column;">
+        <div style="flex-grow:1; background:#fff; border:1px solid var(--card-border); border-radius:6px; overflow:hidden; min-height:600px; display:flex; flex-direction:column;">
            ${displayHtml}
         </div>
       `;
@@ -1960,6 +2012,7 @@
                 if (parsed.dynamicDrills) dynamicDrills = parsed.dynamicDrills;
                 if (parsed.pdfGuides) pdfGuides = parsed.pdfGuides;
                 if (parsed.collapsedFolders) collapsedFolders = parsed.collapsedFolders;
+                if (parsed.savedCoachesList) savedCoachesList = parsed.savedCoachesList;
                 saveState(); 
                 alert("Data and drills imported successfully!");
                 location.reload();
