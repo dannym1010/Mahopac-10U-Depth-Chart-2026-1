@@ -152,9 +152,9 @@
       overflow: visible;
     }
     .formation-container:hover { border-color: var(--primary); }
-    .formation-container.counting-active {
+    .formation-container.active-selected {
       border-color: var(--accent) !important;
-      background-color: #eff6ff !important;
+      background-color: #f8fafc !important;
       box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2) !important;
     }
     .formation-container.drag-over-board {
@@ -197,7 +197,6 @@
     .row-slot.drag-over { background-color: #dbeafe; border-color: var(--accent); }
 
     .position-card { background: var(--card-bg); border-radius: 6px; border: 2px solid var(--card-border); width: 100%; position: relative; transition: transform 0.1s; cursor: pointer; }
-    .position-card.active-selected { border-color: var(--accent) !important; box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.3); background-color: #f8fafc; }
     .position-card.drag-over { border-color: var(--accent) !important; background: #eff6ff !important; transform: scale(1.02); }
     .position-header { background: #f1f5f9; padding: 3px 6px; font-weight: bold; font-size: 11px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border); color: var(--primary); }
 
@@ -818,7 +817,7 @@
 
     let draggedData = null;
     let activeUnit = "offense", currentWeek = "0";
-    let selectedFormationFilterId = null; // Tracks clicked formation for master roster filtering
+    let selectedFormationFilterId = null;
     let currentUser = null, userRole = 'admin', isSignUpMode = false;
     let scrimmageFilters = safeJSONParse("footballScrimmageFilters", null);
 
@@ -1376,7 +1375,6 @@
     // --- SELECT FORMATION FOR MASTER ROSTER FILTERING ---
     function selectFormationForRoster(formId) {
         selectedFormationFilterId = formId;
-        // Highlight active container
         document.querySelectorAll('.formation-container').forEach(c => c.classList.remove('active-selected'));
         const container = document.getElementById("board_" + formId);
         if (container) container.classList.add('active-selected');
@@ -1395,7 +1393,6 @@
           return;
       }
 
-      // Default selection to first form if none selected or invalid
       if (!selectedFormationFilterId || !forms.some(f => f.id === selectedFormationFilterId)) {
           selectedFormationFilterId = forms[0].id;
       }
@@ -1526,7 +1523,6 @@
       const isScrimmageTab = (activeUnit === 'scrimmage');
       const activeChart = isScrimmageTab ? getWeekScrimmageChart(currentWeek) : depthChart;
 
-      // Update instructions label
       const countLabel = document.getElementById("roster-count-label");
       const instructionLabel = document.getElementById("roster-instruction-label");
       if (isScrimmageTab) {
@@ -1564,7 +1560,6 @@
               });
             });
         } else {
-            // Only scan the single selected formation
             const selectedForm = allForms.find(f => f.id === selectedFormationFilterId && f.unit === activeUnit);
             if (selectedForm) {
               (selectedForm.rows || []).forEach(row => {
@@ -1826,8 +1821,46 @@
       const tabsContainer = document.getElementById('guide-tabs-container');
       const contentArea = document.getElementById('guide-content-area');
       if (!tabsContainer || !contentArea) return;
+      
       tabsContainer.innerHTML = Object.keys(pdfGuides).map(cat => `<button class="nav-tab ${cat === activeGuidePos ? 'active' : ''}" onclick="switchGuidePos('${cat}')">${cat}</button>`).join('');
-      contentArea.innerHTML = `<div style="padding:20px; text-align:center;">Viewing Playbook Guide: <strong>${activeGuidePos || 'None'}</strong></div>`;
+      
+      let guideVal = pdfGuides[activeGuidePos] || "";
+      let displayHtml = "";
+      
+      if (guideVal.startsWith("http")) {
+          displayHtml = `<iframe src="${guideVal}" style="width:100%; height:600px; border:none;" title="Playbook Guide"></iframe>`;
+      } else {
+          displayHtml = `<div style="padding:20px; text-align:center; color:var(--text-muted);">No document uploaded for this category yet.</div>`;
+      }
+
+      contentArea.innerHTML = `
+        <div class="admin-only" style="padding: 10px; background: #f8fafc; border: 1px solid var(--card-border); border-radius: 6px; margin-bottom: 10px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+           <label style="font-size:12px; font-weight:bold; color:var(--primary);">Upload PDF / Document for [${activeGuidePos}]:</label>
+           <input type="file" id="guide-file-input" accept=".pdf,.doc,.docx" onchange="uploadGuideFile(event)" />
+        </div>
+        <div style="flex-grow:1; background:#fff; border:1px solid var(--card-border); border-radius:6px; overflow:hidden; min-height:600px;">
+           ${displayHtml}
+        </div>
+      `;
+    }
+
+    async function uploadGuideFile(e) {
+        const file = e.target.files[0];
+        if (!file || !activeGuidePos) return;
+        if (!storage) { alert("Cloud storage is offline. Cannot upload file."); return; }
+        
+        try {
+            const storageRef = storage.ref(`playbook_guides/${Date.now()}_${file.name}`);
+            const snapshot = await storageRef.put(file);
+            const downloadUrl = await snapshot.ref.getDownloadURL();
+            
+            pdfGuides[activeGuidePos] = downloadUrl;
+            saveState();
+            renderGuideTab();
+            alert("Guide uploaded and saved to cloud successfully!");
+        } catch (err) {
+            alert("Upload failed: " + err.message);
+        }
     }
 
     function switchGuidePos(cat) { activeGuidePos = cat; renderGuideTab(); }
@@ -1865,7 +1898,7 @@
     }
 
     function exportData() {
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({weeklyData, practiceData, masterPlayLibrary, dynamicDrills}));
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({weeklyData, practiceData, masterPlayLibrary, dynamicDrills, pdfGuides}));
         const dl = document.createElement('a'); dl.setAttribute("href", dataStr); dl.setAttribute("download", `football_backup.json`); dl.click();
     }
 
@@ -1877,6 +1910,9 @@
                 const parsed = JSON.parse(evt.target.result);
                 if (parsed.weeklyData) weeklyData = parsed.weeklyData;
                 if (parsed.practiceData) practiceData = parsed.practiceData;
+                if (parsed.masterPlayLibrary) masterPlayLibrary = parsed.masterPlayLibrary;
+                if (parsed.dynamicDrills) dynamicDrills = parsed.dynamicDrills;
+                if (parsed.pdfGuides) pdfGuides = parsed.pdfGuides;
                 saveState(); location.reload();
             } catch (err) { alert("Invalid backup file."); }
         };
