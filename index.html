@@ -158,7 +158,7 @@
       box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2) !important;
     }
 
-    .board-title { font-size: 14px; font-weight: bold; color: var(--primary); margin-bottom: 10px; border-bottom: 2px solid var(--primary); padding-bottom: 4px; display: flex; justify-content: space-between; align-items: center; }
+    .board-title { font-size: 14px; font-weight: bold; color: var(--primary); margin-bottom: 10px; border-bottom: 2px solid var(--primary); padding-bottom: 4px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
     .board-controls { display: flex; align-items: center; gap: 4px; }
     .toggle-board-btn, .add-pos-btn, .add-form-btn, .row-action-btn, .pos-hdr-btn { background: #f1f5f9; border: 1px solid var(--card-border); color: var(--primary); font-size: 11px; font-weight: bold; padding: 3px 8px; border-radius: 4px; cursor: pointer; }
     .add-form-btn { background: var(--primary); color: #ffffff; padding: 6px 12px; margin-bottom: 5px; align-self: flex-start; }
@@ -221,17 +221,17 @@
     .wb-play-cell { padding-left: 4px; font-family: "Times New Roman", Times, serif; font-size: 14px; text-transform: uppercase; position: relative; }
     .wb-play-input { width: calc(100% - 20px); height: 100%; border: none; background: transparent; font-family: inherit; font-size: inherit; outline: none; font-weight: bold; color: #000; }
 
-    /* Practice Plan Dropdown Tree */
+    /* Practice Plan Collapsible Folder Tree Styles */
     .tree-root { list-style: none; margin: 0; padding: 0; }
     .tree-root ul { list-style: none; margin: 0; padding-left: 12px; }
-    .tree-caret { cursor: pointer; user-select: none; font-size: 11.5px; font-weight: bold; color: var(--primary); display: block; padding: 4px 0; }
-    .tree-caret:hover { color: var(--accent); }
-    .tree-leaf { cursor: pointer; font-size: 11px; padding: 4px 0 4px 18px; color: var(--text); border-radius: 3px; margin-bottom: 2px;}
+    .tree-folder-header { font-size: 11px; font-weight: bold; color: var(--primary); padding: 4px 6px; margin-top: 4px; cursor: pointer; user-select: none; display: flex; align-items: center; gap: 4px; }
+    .tree-folder-header:hover { background-color: #f1f5f9; border-radius: 3px; }
+    .tree-leaf { cursor: pointer; font-size: 11px; padding: 5px 8px; color: var(--text); border-radius: 3px; margin-bottom: 2px; }
     .tree-leaf:hover { background-color: #eff6ff; color: var(--accent); font-weight: bold; }
     .tree-leaf.selected { background-color: #dbeafe; font-weight: bold; border-left: 2px solid var(--accent); }
-    .practice-tree-btn { padding: 4px 8px; border: 1px solid var(--card-border); border-radius: 4px; font-weight: bold; cursor: pointer; background: #fff; height: 28px; line-height: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .practice-tree-btn { padding: 4px 8px; border: 1px solid var(--card-border); border-radius: 4px; font-weight: bold; cursor: pointer; background: #fff; height: 28px; line-height: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; justify-content: space-between; }
 
-    .card-search-dropdown { position: absolute; background: #ffffff; border: 1px solid var(--card-border); border-radius: 6px; box-shadow: 0 4px 6px rgba(0,0,0,0.15); }
+    .card-search-dropdown { position: absolute; background: #ffffff; border: 1px solid var(--card-border); border-radius: 6px; box-shadow: 0 4px 6px rgba(0,0,0,0.15); z-index: 10000; }
 
     /* Drill Tree View Styles */
     .drill-tree { list-style: none; padding: 0; margin: 0; }
@@ -252,17 +252,18 @@
       .scouting-grid { grid-template-columns: 1fr; }
     }
 
-    /* Practice Plan Table */
-    .practice-dashboard {
+    /* Practice Dashboard Bar */
+    .practice-dashboard-info {
       background: #f1f5f9;
-      padding: 8px 12px;
+      padding: 10px 12px;
       border-radius: 6px;
       border: 1px solid var(--card-border);
       margin-bottom: 12px;
       display: flex;
-      gap: 15px;
+      gap: 12px;
       align-items: center;
       flex-wrap: wrap;
+      font-size: 11.5px;
     }
 
     .practice-table {
@@ -363,21 +364,25 @@
     .full-roster-item { padding: 6px 8px; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; justify-content: space-between; font-size: 11px; cursor: grab; background: #f8fafc; margin-bottom: 4px; border-radius: 4px; border: 1px solid var(--card-border); user-select: none; }
     .full-roster-item:hover { border-color: var(--accent); background: #eff6ff; }
 
-    /* PRINT STYLES */
+    /* PRINT STYLES WITH EXACT COLOR ADJUST */
     @media print {
       @page { size: letter portrait; margin: 0.25in; }
-      body { background-color: #ffffff; padding: 0; margin: 0; font-size: 13px !important; }
-      .toolbar, #sidebar-container, .remove-btn, .action-group, p.subtitle, .search-box, .tab-navigation, .toggle-board-btn, .week-bar, .board-controls, .add-row-btn, .add-form-btn, .row-actions, .practice-dashboard, #print-modal, #new-prac-modal, #scrimmage-print-modal, #scrimmage-filter-modal { display: none !important; }
+      body { background-color: #ffffff; padding: 0; margin: 0; font-size: 13px !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .toolbar, #sidebar-container, .remove-btn, .action-group, p.subtitle, .search-box, .tab-navigation, .toggle-board-btn, .week-bar, .board-controls, .add-row-btn, .add-form-btn, .row-actions, .practice-dashboard-info, #print-modal, #new-prac-modal, #scrimmage-print-modal, #scrimmage-filter-modal { display: none !important; }
       .app-layout, .boards-container, .unit-panel:not(.hidden) { display: block !important; }
       .formation-container { border: 2px solid #000000 !important; box-shadow: none !important; padding: 6px; page-break-inside: auto !important; margin-bottom: 8px; background: #ffffff !important; }
       .formation-row { min-width: 100% !important; page-break-inside: avoid; align-items: start !important; }
       .row-slot { align-items: flex-start !important; border: none !important; background: transparent !important; min-height: auto !important; }
       .position-card { border: 2px solid #000000 !important; box-shadow: none !important; min-width: 75px; background: #ffffff !important; }
-      .position-header { background: #e2e8f0 !important; color: #000000 !important; border-bottom: 2px solid #000000 !important; font-size: 11px !important; padding: 4px 6px; font-weight: bold; }
+      .position-header { background: #e2e8f0 !important; color: #000000 !important; border-bottom: 2px solid #000000 !important; font-size: 11px !important; padding: 4px 6px; font-weight: bold; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       .player-item { border: 1px solid #000000 !important; font-size: 11px !important; padding: 4px 6px !important; margin-bottom: 3px; background: #fff !important; }
+      
+      .rank-starter, .rank-sub-gold, .rank-sub-blue { -webkit-print-color-adjust: exact; print-color-adjust: exact; opacity: 0.9; }
+      tbody tr.period-even td { background-color: #f4f6f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
       h1 { margin-top: 0; font-size: 16px; color: #000000; text-align: center; }
       .practice-table { font-size: 12px !important; border: 2px solid #000 !important; }
-      .practice-table th { font-size: 13px !important; background: #e2e8f0 !important; color: #000 !important; }
+      .practice-table th { font-size: 13px !important; background: #e2e8f0 !important; color: #000 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       .practice-table td { font-size: 12px !important; border: 1px solid #000 !important; padding: 8px !important; }
       .period-schedule-time { font-size: 12px !important; color: #000 !important; }
       .prac-input, .prac-select, .prac-textarea { font-size: 12px !important; border: none !important; background: transparent !important; padding: 0 !important; color: #000 !important; }
@@ -514,7 +519,7 @@
            <h3 style="margin:0; color:var(--primary);">⚔️ Practice / Scrimmage Rotation (Gold & Blue Subs Only)</h3>
            <div style="display:flex; gap:6px;">
               <button class="toggle-board-btn no-print" onclick="openScrimmageFilterModal()" style="background:#f1f5f9; color:var(--primary);">⚙️ Filter Boards</button>
-              <button class="toggle-board-btn no-print" onclick="openScrimmagePrintModal()" style="background:var(--primary); color:#fff;">🖨️ Print Scrimmage Sheet</button>
+              <button class="toggle-board-btn no-print" onclick="openScrimmagePrintModal()" style="background:#f1f5f9; color:var(--primary);">🖨️ Print Scrimmage Sheet</button>
            </div>
         </div>
         <div id="boards-scrimmage"></div>
@@ -595,21 +600,55 @@
       <!-- PRACTICE PLAN GENERATOR PANEL -->
       <div class="unit-panel hidden" id="panel-practice">
         <div class="formation-container" style="overflow: visible;">
+          <!-- Header Bar with Year > Week > Practice Folders -->
           <div class="board-title no-print">
             <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
               <span>Practice:</span>
-              <div style="position:relative; width: 250px; z-index: 9999;">
-                <div id="selected-practice-display" class="practice-tree-btn" style="pointer-events: auto !important;" onclick="document.getElementById('practice-tree-dropdown').classList.toggle('hidden')">Select Practice...</div>
-                <div id="practice-tree-dropdown" class="card-search-dropdown hidden" onclick="event.stopPropagation()" style="width: 350px; max-height: 400px; overflow-y: auto; text-align:left; padding:8px; border:2px solid var(--primary); pointer-events: auto !important; top: 100%; left: 0;"></div>
+              <div style="position:relative; width: 240px;">
+                <div id="selected-practice-display" class="practice-tree-btn" onclick="togglePracticeDropdown(event)">Select Practice... ▾</div>
+                <div id="practice-tree-dropdown" class="card-search-dropdown hidden" onclick="event.stopPropagation()" style="width: 320px; max-height: 320px; overflow-y: auto; text-align:left; padding:8px; top: 100%; left: 0;"></div>
               </div>
               <button class="toggle-board-btn admin-only" onclick="openNewPracticeModal()">+ New</button>
-              <button class="toggle-board-btn admin-only" onclick="editPracticeDetails()">✏️ Edit</button>
+              <button class="toggle-board-btn admin-only" onclick="editPracticeDetails()">✏️ Details</button>
+              <button class="toggle-board-btn admin-only" onclick="autoNumberPractices()" style="background:#e0f2fe; color:#0369a1;" title="Auto-number practice day numbers">🔢 Auto Day #</button>
               <button class="toggle-board-btn admin-only" onclick="deletePractice()" style="color:#ef4444;">🗑️</button>
             </div>
             <div style="display:flex; gap:6px; align-items:center;">
               <button class="add-row-btn admin-only" onclick="addPracticeRow()">+ Add Period</button>
               <button class="toolbar button" onclick="window.print()" style="padding:4px 10px;">🖨️ Print Plan</button>
             </div>
+          </div>
+
+          <!-- Quick Date & Day Settings Bar -->
+          <div class="practice-dashboard-info no-print">
+            <label style="display:flex; align-items:center; gap:6px; font-weight:bold;">
+               Year:
+               <input type="text" id="prac-year-input" class="prac-input" style="width: 70px;" onchange="updatePracMeta('year', this.value)">
+            </label>
+            <label style="display:flex; align-items:center; gap:6px; font-weight:bold;">
+               Week:
+               <input type="text" id="prac-week-input" class="prac-input" style="width: 90px;" onchange="updatePracMeta('weekFolder', this.value)">
+            </label>
+            <label style="display:flex; align-items:center; gap:6px; font-weight:bold;">
+               Practice Date:
+               <input type="date" id="prac-date-input" class="prac-input" style="width: 140px;" onchange="updatePracMeta('date', this.value)">
+            </label>
+            <label style="display:flex; align-items:center; gap:6px; font-weight:bold;">
+               Day of Week:
+               <select id="prac-day-select" class="prac-select" style="width: 120px;" onchange="updatePracMeta('day', this.value)">
+                  <option value="Monday">Monday</option>
+                  <option value="Tuesday">Tuesday</option>
+                  <option value="Wednesday">Wednesday</option>
+                  <option value="Thursday">Thursday</option>
+                  <option value="Friday">Friday</option>
+                  <option value="Saturday">Saturday</option>
+                  <option value="Sunday">Sunday</option>
+               </select>
+            </label>
+            <label style="display:flex; align-items:center; gap:6px; font-weight:bold;">
+               Start Time:
+               <input type="time" id="prac-start-input" class="prac-input" style="width: 100px;" onchange="updatePracMeta('startTime', this.value)">
+            </label>
           </div>
           
           <table class="practice-table" id="main-practice-table">
@@ -620,7 +659,7 @@
                 <th style="width: 38%;">Groups & Stations / Drills</th>
                 <th style="width: 16%;">Coach (es)</th>
                 <th style="width: 12%;">Coaching Focus</th>
-                <th style="width: 4%; text-align:center;" class="no-print admin-only">❌</th>
+                <th style="width: 6%; text-align:center;" class="no-print admin-only">Actions</th>
               </tr>
             </thead>
             <tbody id="practice-rows"></tbody>
@@ -662,7 +701,12 @@
   <div id="new-prac-modal" class="custom-modal hidden">
     <div class="custom-modal-card">
        <h3>Create New Practice Plan</h3>
-       <input type="text" id="modal-prac-title" class="prac-input" value="Full Pads Install" style="margin-bottom:12px;">
+       <label style="font-size:11px; font-weight:bold; color:var(--primary); display:block; margin-bottom:4px;">Year Folder:</label>
+       <input type="text" id="modal-prac-year" class="prac-input" value="2026" style="margin-bottom:10px;">
+       <label style="font-size:11px; font-weight:bold; color:var(--primary); display:block; margin-bottom:4px;">Week Folder:</label>
+       <input type="text" id="modal-prac-week" class="prac-input" value="Week 1" style="margin-bottom:10px;">
+       <label style="font-size:11px; font-weight:bold; color:var(--primary); display:block; margin-bottom:4px;">Practice Title:</label>
+       <input type="text" id="modal-prac-title" class="prac-input" value="Practice #1" style="margin-bottom:15px;">
        <div style="display: flex; gap: 8px; justify-content: flex-end;">
           <button class="toggle-board-btn" onclick="document.getElementById('new-prac-modal').classList.add('hidden')">Cancel</button>
           <button class="add-row-btn" style="margin:0;" onclick="executeCreateNewPractice()">Create Plan</button>
@@ -742,6 +786,20 @@
       }
     }
 
+    function toggleGuideFullScreen() {
+      const container = document.getElementById("guide-viewer-container");
+      if (!container) return;
+      if (!document.fullscreenElement) {
+        container.requestFullscreen().catch(err => {
+          alert("Error attempting to enable full-screen mode: " + err.message);
+        });
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+    }
+
     function closeAllDropdowns(event) {
       const dropdown = document.getElementById("practice-tree-dropdown");
       if (dropdown && event.target.id !== "selected-practice-display" && !dropdown.contains(event.target)) {
@@ -759,6 +817,7 @@
     let selectedFormationFilterId = null;
     let currentUser = null, userRole = 'admin', isSignUpMode = false;
     let scrimmageFilters = safeJSONParse("footballScrimmageFilters", null);
+    let collapsedFolders = safeJSONParse("footballCollapsedFolders", {});
 
     let pdfGuides = safeJSONParse("footballPdfGuides", { "Offense": "", "53 Defense": "", "44 Defense": "" });
     let activeGuidePos = Object.keys(pdfGuides).length > 0 ? Object.keys(pdfGuides)[0] : null;
@@ -899,10 +958,11 @@
         localStorage.setItem("footballMasterPlays", JSON.stringify(masterPlayLibrary));
         localStorage.setItem("footballDynamicDrills", JSON.stringify(dynamicDrills));
         localStorage.setItem("footballPdfGuides", JSON.stringify(pdfGuides));
+        localStorage.setItem("footballCollapsedFolders", JSON.stringify(collapsedFolders));
 
         if (cloudEnabled && db && userRole === 'admin') {
             db.collection("teamData").doc("depthChartData").set({
-                weeklyData, practiceData, masterPlayLibrary, dynamicDrills, pdfGuides,
+                weeklyData, practiceData, masterPlayLibrary, dynamicDrills, pdfGuides, collapsedFolders,
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             }, { merge: true }).catch(err => console.error("Firestore sync error:", err));
         }
@@ -1080,12 +1140,72 @@
     }
 
     // --- PRACTICE PLAN ---
+    function togglePracticeDropdown(e) {
+        if (e) e.stopPropagation();
+        document.getElementById("practice-tree-dropdown").classList.toggle("hidden");
+    }
+
+    function toggleFolderCollapse(folderKey, e) {
+        if (e) e.stopPropagation();
+        collapsedFolders[folderKey] = !collapsedFolders[folderKey];
+        saveState();
+        populatePracticeDropdown();
+    }
+
+    function onCategoryFilterSelected(rIdx, sIdx, catSelectEl) {
+        const selectedCat = catSelectEl.value;
+        const prac = practiceData.find(p => p.id === currentPracticeId);
+        if (prac && prac.plan[rIdx] && prac.plan[rIdx].stations[sIdx]) {
+            prac.plan[rIdx].stations[sIdx].selectedCategory = selectedCat;
+            prac.plan[rIdx].stations[sIdx].name = ""; 
+            saveState();
+            renderPracticePlan();
+        }
+    }
+
+    function onDrillSelected(rIdx, sIdx, selectEl) {
+        const drillName = selectEl.value;
+        if (!drillName) return;
+        
+        let foundDrill = null;
+        Object.keys(dynamicDrills).forEach(cat => {
+            const match = (dynamicDrills[cat] || []).find(d => d.name === drillName);
+            if (match) foundDrill = match;
+        });
+
+        if (foundDrill) {
+            const prac = practiceData.find(p => p.id === currentPracticeId);
+            if (prac && prac.plan[rIdx] && prac.plan[rIdx].stations[sIdx]) {
+                prac.plan[rIdx].stations[sIdx].name = foundDrill.name;
+                prac.plan[rIdx].stations[sIdx].desc = foundDrill.desc;
+                prac.plan[rIdx].stations[sIdx].focus = foundDrill.key;
+                saveState();
+                renderPracticePlan();
+            }
+        }
+    }
+
     function renderPracticePlan() {
         const prac = practiceData.find(p => p.id === currentPracticeId);
         if (!prac) return;
+        
+        const yearInput = document.getElementById("prac-year-input");
+        const weekInput = document.getElementById("prac-week-input");
+        const dateInput = document.getElementById("prac-date-input");
+        const daySelect = document.getElementById("prac-day-select");
+        const startInput = document.getElementById("prac-start-input");
+
+        if (yearInput) yearInput.value = prac.year || "2026";
+        if (weekInput) weekInput.value = prac.weekFolder || "Week 1";
+        if (dateInput) dateInput.value = prac.date || "";
+        if (daySelect) daySelect.value = prac.day || "Wednesday";
+        if (startInput) startInput.value = prac.startTime || "17:05";
+
         const tbody = document.getElementById('practice-rows');
         if (!tbody) return;
         tbody.innerHTML = '';
+
+        const allCategories = Object.keys(dynamicDrills);
 
         let currentTimeMin = parseTimeString(prac.startTime || "17:05");
         (prac.plan || []).forEach((row, idx) => {
@@ -1093,12 +1213,34 @@
             let endTimeMin = currentTimeMin + rowTime;
             let timeStr = `${formatTime(currentTimeMin)} - ${formatTime(endTimeMin)}`;
             
-            let stationsHtml = (row.stations || []).map((st, sIdx) => `
+            let stationsHtml = (row.stations || []).map((st, sIdx) => {
+                let currentCat = st.selectedCategory || (allCategories.length > 0 ? allCategories[0] : "");
+                let catOptionsHtml = `<option value="">-- All Categories --</option>`;
+                allCategories.forEach(cat => {
+                    catOptionsHtml += `<option value="${cat}" ${cat === currentCat ? 'selected' : ''}>${cat}</option>`;
+                });
+
+                let drillsInCat = currentCat ? (dynamicDrills[currentCat] || []) : [];
+                let drillOptionsHtml = `<option value="">-- Select Drill --</option>`;
+                drillsInCat.forEach(d => {
+                    drillOptionsHtml += `<option value="${d.name}" ${d.name === st.name ? 'selected' : ''}>${d.name}</option>`;
+                });
+
+                return `
                 <div class="station-block">
+                    <div style="display:flex; gap:4px; margin-bottom:4px;" class="no-print">
+                        <select class="prac-select" style="font-size:10px; color:var(--primary);" onchange="onCategoryFilterSelected(${idx}, ${sIdx}, this)">
+                            ${catOptionsHtml}
+                        </select>
+                        <select class="prac-select" style="font-weight:bold; color:var(--primary);" onchange="onDrillSelected(${idx}, ${sIdx}, this)">
+                            ${drillOptionsHtml}
+                        </select>
+                    </div>
                     <input type="text" class="prac-input" value="${st.name || ''}" oninput="updatePracStation(${idx}, ${sIdx}, 'name', this.value)" placeholder="Group / Drill Name">
                     <textarea class="prac-textarea" oninput="autoResizeTextarea(this); updatePracStation(${idx}, ${sIdx}, 'desc', this.value)" placeholder="Details...">${st.desc || ''}</textarea>
                 </div>
-            `).join('');
+            `;
+            }).join('');
 
             let coachesHtml = (row.stations || []).map((st, sIdx) => `
                 <div class="station-block" style="min-height:50px;">
@@ -1132,13 +1274,41 @@
                 <td>${coachesHtml}</td>
                 <td>${focusHtml}</td>
                 <td class="admin-only" style="text-align:center;">
-                    <button class="remove-btn" onclick="removePracticeRow(${idx})">&times;</button>
+                    <div style="display:flex; flex-direction:column; gap:2px; align-items:center;">
+                      <div style="display:flex; gap:2px;">
+                        <button class="toggle-board-btn" style="padding:1px 4px; font-size:9px;" onclick="movePracticeRow(${idx}, -1)" title="Move Up">▲</button>
+                        <button class="toggle-board-btn" style="padding:1px 4px; font-size:9px;" onclick="movePracticeRow(${idx}, 1)" title="Move Down">▼</button>
+                      </div>
+                      <button class="remove-btn" onclick="removePracticeRow(${idx})" title="Delete Period">&times;</button>
+                    </div>
                 </td>
             `;
             tbody.appendChild(tr);
             currentTimeMin = endTimeMin;
         });
         document.querySelectorAll('#main-practice-table .prac-textarea').forEach(ta => autoResizeTextarea(ta));
+    }
+
+    function movePracticeRow(rIdx, direction) {
+        const prac = practiceData.find(p => p.id === currentPracticeId);
+        if (!prac) return;
+        const newIndex = rIdx + direction;
+        if (newIndex < 0 || newIndex >= prac.plan.length) return;
+        
+        const item = prac.plan.splice(rIdx, 1)[0];
+        prac.plan.splice(newIndex, 0, item);
+        saveState();
+        renderPracticePlan();
+    }
+
+    function updatePracMeta(field, val) {
+        const prac = practiceData.find(p => p.id === currentPracticeId);
+        if (prac) {
+            prac[field] = val;
+            saveState();
+            populatePracticeDropdown();
+            renderPracticePlan();
+        }
     }
 
     function updatePracRow(rIdx, field, val) {
@@ -1177,11 +1347,40 @@
         const dropdown = document.getElementById("practice-tree-dropdown");
         const display = document.getElementById("selected-practice-display");
         if (!dropdown || !display) return;
+        
+        let tree = {};
+        practiceData.forEach((p) => {
+            let yr = p.year || "2026";
+            let wk = p.weekFolder || "Week 1";
+            if (!tree[yr]) tree[yr] = {};
+            if (!tree[yr][wk]) tree[yr][wk] = [];
+            tree[yr][wk].push(p);
+
+            if (p.id === currentPracticeId) {
+                display.innerHTML = `<span>📄 ${p.title}</span> <span style="font-size:9px; color:var(--text-muted);">(${yr} / ${wk})</span>`;
+            }
+        });
+
         let html = '<ul class="tree-root">';
-        practiceData.forEach(p => {
-            let isSelected = p.id === currentPracticeId;
-            if (isSelected) display.textContent = p.title;
-            html += `<li class="tree-leaf ${isSelected ? 'selected' : ''}" onclick="selectPractice('${p.id}')">📄 ${p.title}</li>`;
+        Object.keys(tree).sort().forEach(yr => {
+            let yrKey = `yr_${yr}`;
+            let yrCollapsed = collapsedFolders[yrKey];
+            html += `<li class="tree-folder-header" onclick="toggleFolderCollapse('${yrKey}', event)"><span>${yrCollapsed ? '📁' : '📂'}</span> <strong>${yr}</strong></li>`;
+            html += `<ul style="display:${yrCollapsed ? 'none' : 'block'};">`;
+
+            Object.keys(tree[yr]).sort().forEach(wk => {
+                let wkKey = `wk_${yr}_${wk}`;
+                let wkCollapsed = collapsedFolders[wkKey];
+                html += `<li class="tree-folder-header" onclick="toggleFolderCollapse('${wkKey}', event)"><span>${wkCollapsed ? '📁' : '📂'}</span> ${wk}</li>`;
+                html += `<ul style="display:${wkCollapsed ? 'none' : 'block'};">`;
+
+                tree[yr][wk].forEach(p => {
+                    let isSelected = p.id === currentPracticeId;
+                    html += `<li class="tree-leaf ${isSelected ? 'selected' : ''}" onclick="selectPractice('${p.id}')">📄 ${p.title} <span style="font-size:9px; color:var(--text-muted);">(${p.day || ''})</span></li>`;
+                });
+                html += `</ul>`;
+            });
+            html += `</ul>`;
         });
         dropdown.innerHTML = html + '</ul>';
     }
@@ -1194,11 +1393,14 @@
 
     function openNewPracticeModal() { document.getElementById('new-prac-modal').classList.remove('hidden'); }
     function executeCreateNewPractice() {
-        const title = document.getElementById('modal-prac-title').value || "New Practice";
+        const yearInput = document.getElementById('modal-prac-year').value || "2026";
+        const weekInput = document.getElementById('modal-prac-week').value || "Week 1";
+        const titleInput = document.getElementById('modal-prac-title').value || "Practice #1";
+
         const newPrac = {
-            id: 'prac_' + Date.now(), title: title, year: new Date().getFullYear().toString(),
-            week: "Week 1", day: "Wednesday", startTime: "17:05", endTime: "20:00", lastEdited: Date.now(),
-            plan: [{ time: 10, category: "Warm-Up", format: "static", stations: [{ name: "Warmup", desc: "", coach: "", focus: "" }] }]
+            id: 'prac_' + Date.now(), year: yearInput, weekFolder: weekInput, title: titleInput, 
+            date: new Date().toISOString().split('T')[0], day: "Wednesday", startTime: "17:05", endTime: "20:00", lastEdited: Date.now(),
+            plan: [{ time: 15, category: "Pre Practice", format: "static", stations: [{ name: "Warm-Up", desc: "", coach: "", focus: "" }] }]
         };
         practiceData.push(newPrac);
         currentPracticeId = newPrac.id;
@@ -1209,14 +1411,34 @@
     function editPracticeDetails() {
         const prac = practiceData.find(p => p.id === currentPracticeId);
         if (!prac) return;
-        let title = prompt("Edit Title:", prac.title);
-        if (title !== null) prac.title = title.trim();
+        let yr = prompt("Edit Year Folder (e.g. 2026):", prac.year || "2026");
+        if (yr === null) return;
+        let wk = prompt("Edit Week Folder (e.g. Week 1):", prac.weekFolder || "Week 1");
+        if (wk === null) return;
+        let title = prompt("Edit Practice Title:", prac.title);
+        if (title === null) return;
+
+        prac.year = yr.trim();
+        prac.weekFolder = wk.trim();
+        prac.title = title.trim();
         saveState(); populatePracticeDropdown(); renderPracticePlan();
     }
 
+    function autoNumberPractices() {
+        if (confirm("Automatically rename all practice plans sequentially as Practice #1, Practice #2, etc.?")) {
+            practiceData.forEach((p, index) => {
+                p.title = `Practice #${index + 1}`;
+            });
+            saveState();
+            populatePracticeDropdown();
+            renderPracticePlan();
+            alert("Practice plans successfully auto-numbered!");
+        }
+    }
+
     function deletePractice() {
-        if (practiceData.length <= 1) return alert("Cannot delete last plan.");
-        if (confirm("Delete plan?")) {
+        if (practiceData.length <= 1) return alert("Cannot delete the last practice plan.");
+        if (confirm("Delete this practice plan?")) {
             practiceData = practiceData.filter(p => p.id !== currentPracticeId);
             currentPracticeId = practiceData[0].id;
             saveState(); populatePracticeDropdown(); renderPracticePlan();
@@ -1235,6 +1457,7 @@
               if (data.masterPlayLibrary) masterPlayLibrary = data.masterPlayLibrary;
               if (data.dynamicDrills) dynamicDrills = data.dynamicDrills;
               if (data.pdfGuides) pdfGuides = data.pdfGuides;
+              if (data.collapsedFolders) collapsedFolders = data.collapsedFolders;
 
               depthChart = getWeekDepthChart(currentWeek);
               renderActiveBoards();
@@ -1661,11 +1884,16 @@
       let displayHtml = guideVal.startsWith("http") ? `<iframe src="${guideVal}" style="width:100%; height:600px; border:none;" title="Playbook Guide"></iframe>` : `<div style="padding:20px; text-align:center; color:var(--text-muted);">No document uploaded for this category yet.</div>`;
 
       contentArea.innerHTML = `
-        <div class="admin-only" style="padding: 10px; background: #f8fafc; border: 1px solid var(--card-border); border-radius: 6px; margin-bottom: 10px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-           <label style="font-size:12px; font-weight:bold; color:var(--primary);">Upload PDF / Document for [${activeGuidePos}]:</label>
-           <input type="file" id="guide-file-input" accept=".pdf,.doc,.docx" onchange="uploadGuideFile(event)" />
+        <div class="admin-only" style="padding: 10px; background: #f8fafc; border: 1px solid var(--card-border); border-radius: 6px; margin-bottom: 10px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:space-between;">
+           <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+             <label style="font-size:12px; font-weight:bold; color:var(--primary);">Upload PDF / Document for [${activeGuidePos}]:</label>
+             <input type="file" id="guide-file-input" accept=".pdf,.doc,.docx" onchange="uploadGuideFile(event)" />
+           </div>
+           <div>
+             <button class="toggle-board-btn" style="background:var(--primary); color:#fff;" onclick="toggleGuideFullScreen()">⛶ Full Screen PDF</button>
+           </div>
         </div>
-        <div style="flex-grow:1; background:#fff; border:1px solid var(--card-border); border-radius:6px; overflow:hidden; min-height:600px;">
+        <div id="guide-viewer-container" style="flex-grow:1; background:#fff; border:1px solid var(--card-border); border-radius:6px; overflow:hidden; min-height:600px; display:flex; flex-direction:column;">
            ${displayHtml}
         </div>
       `;
@@ -1731,6 +1959,7 @@
                 if (parsed.masterPlayLibrary) masterPlayLibrary = parsed.masterPlayLibrary;
                 if (parsed.dynamicDrills) dynamicDrills = parsed.dynamicDrills;
                 if (parsed.pdfGuides) pdfGuides = parsed.pdfGuides;
+                if (parsed.collapsedFolders) collapsedFolders = parsed.collapsedFolders;
                 saveState(); 
                 alert("Data and drills imported successfully!");
                 location.reload();
@@ -1810,17 +2039,24 @@
     function sanitizePracticeData() {
       if (!Array.isArray(practiceData) || practiceData.length === 0) {
         practiceData = [{
-          id: "prac_1", title: "Full Pads Install", year: new Date().getFullYear().toString(),
-          week: "Week 1", day: "Wednesday", startTime: "17:05", endTime: "20:00", lastEdited: Date.now(),
+          id: "prac_1", year: "2026", weekFolder: "Week 1", title: "Practice #1", date: new Date().toISOString().split('T')[0],
+          day: "Wednesday", startTime: "17:05", endTime: "20:00", lastEdited: Date.now(),
           plan: [{ time: 25, category: "Pre Practice", format: "static", stations: [{ name: "GROUP 1: QB & Center", desc: "", coach: "", focus: "" }] }]
         }];
+      } else {
+        practiceData.forEach(p => {
+          if (!p.year) p.year = "2026";
+          if (!p.weekFolder) p.weekFolder = "Week 1";
+        });
       }
     }
 
     function initializeApp() {
       sanitizePracticeData();
       depthChart = getWeekDepthChart(currentWeek);
-      currentPracticeId = practiceData[0].id;
+      if (!currentPracticeId || !practiceData.some(p => p.id === currentPracticeId)) {
+          currentPracticeId = practiceData[0].id;
+      }
       renderActiveBoards();
       renderMasterRoster();
       populatePracticeDropdown();
