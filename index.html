@@ -17,7 +17,9 @@
   <!-- PDF.js library for reliable mobile/iPad rendering -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script>
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    if (window.pdfjsLib) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
   </script>
 
   <style>
@@ -163,15 +165,14 @@
 
     .board-title { font-size: 14px; font-weight: bold; color: var(--primary); margin-bottom: 10px; border-bottom: 2px solid var(--primary); padding-bottom: 4px; display: flex; justify-content: space-between; align-items: center; }
     .board-controls { display: flex; align-items: center; gap: 4px; }
-    .toggle-board-btn, .add-pos-btn, .add-form-btn { background: #f1f5f9; border: 1px solid var(--card-border); color: var(--primary); font-size: 11px; font-weight: bold; padding: 3px 8px; border-radius: 4px; cursor: pointer; }
+    .toggle-board-btn, .add-pos-btn, .add-form-btn, .row-action-btn, .pos-hdr-btn { background: #f1f5f9; border: 1px solid var(--card-border); color: var(--primary); font-size: 11px; font-weight: bold; padding: 3px 8px; border-radius: 4px; cursor: pointer; }
     .add-form-btn { background: var(--primary); color: #ffffff; padding: 6px 12px; margin-bottom: 5px; align-self: flex-start; }
 
     .formation-body.collapsed { display: none !important; }
     .row-container { margin-bottom: 12px; }
     .level-header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; border-bottom: 1px solid #e2e8f0; padding-bottom: 2px; }
-    .level-label { font-size: 10px; font-weight: bold; color: var(--text-muted); text-transform: uppercase; }
+    .level-label { font-size: 10px; font-weight: bold; color: var(--text-muted); text-transform: uppercase; cursor: pointer; }
 
-    /* Dynamic Slot Grid Layout per Row (Aligned to Top) */
     .formation-row {
       display: grid;
       gap: 6px;
@@ -195,7 +196,8 @@
     }
     .row-slot.drag-over { background-color: #dbeafe; border-color: var(--accent); }
 
-    .position-card { background: var(--card-bg); border-radius: 6px; border: 2px solid var(--card-border); width: 100%; position: relative; transition: transform 0.1s; }
+    .position-card { background: var(--card-bg); border-radius: 6px; border: 2px solid var(--card-border); width: 100%; position: relative; transition: transform 0.1s; cursor: pointer; }
+    .position-card.active-selected { border-color: var(--accent) !important; box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.3); background-color: #f8fafc; }
     .position-card.drag-over { border-color: var(--accent) !important; background: #eff6ff !important; transform: scale(1.02); }
     .position-header { background: #f1f5f9; padding: 3px 6px; font-weight: bold; font-size: 11px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border); color: var(--primary); }
 
@@ -216,8 +218,8 @@
     .custom-modal {
       position: fixed; inset: 0; background: rgba(15,23,42,0.7); display: flex; align-items: center; justify-content: center; z-index: 20000;
     }
-    .custom-modal-card { background: #fff; padding: 20px; border-radius: 8px; width: 340px; max-width: 90%; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
-    .custom-modal-card h3 { margin-top: 0; color: var(--primary); font-size: 16px; margin-bottom: 15px;}
+    .custom-modal-card, .print-modal-card { background: #fff; padding: 20px; border-radius: 8px; width: 340px; max-width: 90%; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+    .custom-modal-card h3, .print-modal-card h3 { margin-top: 0; color: var(--primary); font-size: 16px; margin-bottom: 15px;}
 
     /* Wristband Builder */
     .wb-exact-table { width: 100%; border-collapse: collapse; border: 2px solid #000000; background: #ffffff; }
@@ -232,7 +234,7 @@
     .wb-sub-yellow { background-color: #ffff00 !important; color: #000 !important; }
     .wb-body-yellow { background-color: #ffffff !important; } 
 
-    /* Custom Practice Plan Dropdown Tree */
+    /* Practice Plan Dropdown Tree */
     .tree-root { list-style: none; margin: 0; padding: 0; }
     .tree-root ul { list-style: none; margin: 0; padding-left: 12px; }
     .tree-caret { cursor: pointer; user-select: none; font-size: 11.5px; font-weight: bold; color: var(--primary); display: block; padding: 4px 0; }
@@ -240,8 +242,6 @@
     .tree-leaf { cursor: pointer; font-size: 11px; padding: 4px 0 4px 18px; color: var(--text); border-radius: 3px; margin-bottom: 2px;}
     .tree-leaf:hover { background-color: #eff6ff; color: var(--accent); font-weight: bold; }
     .tree-leaf.selected { background-color: #dbeafe; font-weight: bold; border-left: 2px solid var(--accent); }
-    .week-drop-target { border-radius: 4px; padding: 2px 4px; margin-left:-4px;}
-    .week-drop-target.drag-over { background-color: #fef08a; border: 1px dashed #ca8a04; }
     .practice-tree-btn { padding: 4px 8px; border: 1px solid var(--card-border); border-radius: 4px; font-weight: bold; cursor: pointer; background: #fff; height: 28px; line-height: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
     .card-search-dropdown { position: absolute; background: #ffffff; border: 1px solid var(--card-border); border-radius: 6px; box-shadow: 0 4px 6px rgba(0,0,0,0.15); }
@@ -265,7 +265,7 @@
       .scouting-grid { grid-template-columns: 1fr; }
     }
 
-    /* Practice Plan Resizable Table & Alternating Shading Styles */
+    /* Practice Plan Table */
     .practice-dashboard {
       background: #f1f5f9;
       padding: 8px 12px;
@@ -312,22 +312,6 @@
       font-weight: bold;
       color: var(--accent);
       font-size: 10.5px;
-    }
-
-    .col-resizer {
-      position: absolute;
-      top: 0;
-      right: -3px;
-      width: 6px;
-      cursor: col-resize;
-      user-select: none;
-      height: 100%;
-      background: transparent;
-      z-index: 10;
-    }
-
-    .col-resizer:hover, .col-resizer.resizing {
-      background: var(--accent);
     }
 
     .prac-input, .prac-select, .prac-textarea {
@@ -381,23 +365,6 @@
       border-bottom: none;
     }
 
-    .coach-badge {
-      display: inline-block;
-      background: #e2e8f0;
-      color: var(--primary);
-      padding: 2px 5px;
-      border-radius: 4px;
-      font-size: 9px;
-      margin: 0 4px 4px 0;
-      cursor: pointer;
-      font-weight: bold;
-    }
-
-    .coach-badge:hover {
-      background: #ef4444;
-      color: white;
-    }
-
     /* Sidebar Wrapper & Panels */
     #sidebar-container { flex: 1; min-width: 220px; max-width: 280px; position: sticky; top: 15px; max-height: calc(100vh - 30px); display: flex; flex-direction: column; }
     .sidebar { background: var(--card-bg); border-radius: 8px; padding: 12px; border: 1px solid var(--card-border); display: flex; flex-direction: column; box-shadow: 0 1px 3px rgba(0,0,0,0.05); flex-grow: 1; max-height: 100%; }
@@ -408,16 +375,13 @@
     .full-roster-list { list-style: none; padding: 0; margin: 0; overflow-y: auto; flex-grow: 1; min-height: 200px; }
     .full-roster-item { padding: 6px 8px; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; justify-content: space-between; font-size: 11px; cursor: grab; background: #f8fafc; margin-bottom: 4px; border-radius: 4px; border: 1px solid var(--card-border); user-select: none; }
     .full-roster-item:hover { border-color: var(--accent); background: #eff6ff; }
-    .multi-badge { font-size: 9px; background: #e2e8f0; color: #475569; padding: 1px 5px; border-radius: 10px; font-weight: bold; }
 
-    /* PRINT STYLES WITH LARGER FONTS */
+    /* PRINT STYLES */
     @media print {
       @page { size: letter portrait; margin: 0.25in; }
       body { background-color: #ffffff; padding: 0; margin: 0; font-size: 13px !important; }
-      .toolbar, #sidebar-container, .remove-btn, .action-group, p.subtitle, .search-box, .card-search-container, .tab-navigation, .toggle-board-btn, .week-bar, .board-controls, .add-row-btn, .add-form-btn, .row-actions, .col-resizer, .practice-dashboard, #print-modal, #new-prac-modal, #scrimmage-print-modal, #scrimmage-filter-modal { display: none !important; }
+      .toolbar, #sidebar-container, .remove-btn, .action-group, p.subtitle, .search-box, .tab-navigation, .toggle-board-btn, .week-bar, .board-controls, .add-row-btn, .add-form-btn, .row-actions, .practice-dashboard, #print-modal, #new-prac-modal, #scrimmage-print-modal, #scrimmage-filter-modal { display: none !important; }
       .app-layout, .boards-container, .unit-panel:not(.hidden) { display: block !important; }
-      .formation-container.print-hidden { display: none !important; }
-      .formation-body.collapsed { display: block !important; }
       .formation-container { border: 2px solid #000000 !important; box-shadow: none !important; padding: 6px; page-break-inside: auto !important; margin-bottom: 8px; background: #ffffff !important; }
       .formation-row { min-width: 100% !important; page-break-inside: avoid; align-items: start !important; }
       .row-slot { align-items: flex-start !important; border: none !important; background: transparent !important; min-height: auto !important; }
@@ -425,21 +389,11 @@
       .position-header { background: #e2e8f0 !important; color: #000000 !important; border-bottom: 2px solid #000000 !important; font-size: 11px !important; padding: 4px 6px; font-weight: bold; }
       .player-item { border: 1px solid #000000 !important; font-size: 11px !important; padding: 4px 6px !important; margin-bottom: 3px; background: #fff !important; }
       h1 { margin-top: 0; font-size: 16px; color: #000000; text-align: center; }
-      
-      /* Larger Practice Plan Print Fonts */
       .practice-table { font-size: 12px !important; border: 2px solid #000 !important; }
       .practice-table th { font-size: 13px !important; background: #e2e8f0 !important; color: #000 !important; }
       .practice-table td { font-size: 12px !important; border: 1px solid #000 !important; padding: 8px !important; }
-      .practice-table tbody tr.period-odd td { background-color: #ffffff !important; }
-      .practice-table tbody tr.period-even td { background-color: #f4f6f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-
       .period-schedule-time { font-size: 12px !important; color: #000 !important; }
       .prac-input, .prac-select, .prac-textarea { font-size: 12px !important; border: none !important; background: transparent !important; padding: 0 !important; color: #000 !important; }
-
-      .no-print { display: none !important; }
-      .print-only-header { display: block !important; text-align: center; margin-bottom: 6px; }
-      .print-only-header h2 { margin: 0 0 2px 0; font-size: 16px; }
-      .print-only-header p { margin: 0; font-size: 12px; color: #333; }
     }
   </style>
 </head>
@@ -529,7 +483,6 @@
   </div>
 
   <div class="app-layout">
-    
     <div class="boards-container">
       
       <!-- OFFENSE PANEL -->
@@ -568,7 +521,7 @@
         <div id="boards-groups"></div>
       </div>
 
-      <!-- PRACTICE / SCRIMMAGE PANEL (Independent placements, subs only) -->
+      <!-- PRACTICE / SCRIMMAGE PANEL -->
       <div class="unit-panel hidden" id="panel-scrimmage">
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
            <h3 style="margin:0; color:var(--primary);">⚔️ Practice / Scrimmage Rotation (Gold & Blue Subs Only)</h3>
@@ -596,10 +549,7 @@
               <button class="toolbar button" onclick="if(document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur(); setTimeout(()=>window.print(), 100);" style="padding:4px 10px; margin-left:6px;">🖨️ Print Wristband</button>
             </div>
           </div>
-          
-          <div id="wristband-grid" style="overflow-x: auto; padding: 4px; display:flex; justify-content:center;">
-            <!-- Table Populated by JS -->
-          </div>
+          <div id="wristband-grid" style="overflow-x: auto; padding: 4px; display:flex; justify-content:center;"></div>
         </div>
       </div>
 
@@ -617,7 +567,6 @@
               <button class="toolbar button" onclick="if(document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur(); setTimeout(()=>window.print(), 100);" style="padding:4px 10px; margin-left:6px;">🖨️ Print Report</button>
             </div>
           </div>
-          
           <div class="scouting-grid">
              <div class="station-block no-print" style="grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 15px; background: #f8fafc; padding: 12px; border-radius: 6px; border: 1px solid var(--card-border);">
                 <label style="font-size: 12px; font-weight: bold; color: var(--primary); display: flex; align-items: center; gap: 6px;">
@@ -640,7 +589,7 @@
              </div>
              <div class="station-block">
                 <div class="station-title">Offensive Tendencies</div>
-                <textarea id="scout-offenseTendencies" class="prac-textarea scout-textarea" oninput="autoResizeTextarea(this); updateScouting('teamOverview', this.value)" placeholder="Formations, favorite plays, run/pass ratio..."></textarea>
+                <textarea id="scout-offenseTendencies" class="prac-textarea scout-textarea" oninput="autoResizeTextarea(this); updateScouting('offenseTendencies', this.value)" placeholder="Formations, favorite plays, run/pass ratio..."></textarea>
              </div>
              <div class="station-block">
                 <div class="station-title">Defensive Tendencies</div>
@@ -661,12 +610,8 @@
             <span>📋 Playbooks & Positional Guides</span>
             <button class="add-row-btn admin-only" style="margin:0;" onclick="addGuideCategory()">+ Add Category</button>
           </div>
-          <div id="guide-tabs-container" style="display:flex; gap:8px; margin-bottom:15px; flex-wrap:wrap; border-bottom: 2px solid var(--card-border); padding-bottom: 10px;">
-             <!-- Injected via JS -->
-          </div>
-          <div id="guide-content-area" style="min-height: 500px; display:flex; flex-direction:column; gap: 10px;">
-             <!-- Injected via JS -->
-          </div>
+          <div id="guide-tabs-container" style="display:flex; gap:8px; margin-bottom:15px; flex-wrap:wrap; border-bottom: 2px solid var(--card-border); padding-bottom: 10px;"></div>
+          <div id="guide-content-area" style="min-height: 500px; display:flex; flex-direction:column; gap: 10px;"></div>
         </div>
       </div>
 
@@ -680,16 +625,12 @@
                <span>Master Drill Library</span>
                <button class="add-row-btn admin-only" style="margin:0;" onclick="addDrillCategory()">+ Add New Category</button>
             </div>
-            <div id="drills-wrapper">
-               <!-- Populated by JS -->
-            </div>
+            <div id="drills-wrapper"></div>
          </div>
       </div>
 
       <!-- PRACTICE PLAN GENERATOR PANEL -->
       <div class="unit-panel hidden" id="panel-practice">
-        
-        <!-- PRINT ONLY HEADER -->
         <div class="print-only-header">
            <h2 id="print-practice-title">Practice Plan</h2>
            <p id="print-practice-date"></p>
@@ -699,18 +640,13 @@
           <div class="board-title no-print">
             <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
               <span>Practice:</span>
-              
-              <!-- Custom Native Details Folder Tree Dropdown -->
               <div style="position:relative; width: 250px; z-index: 9999;">
                 <div id="selected-practice-display" class="practice-tree-btn" style="pointer-events: auto !important;" onclick="document.getElementById('practice-tree-dropdown').classList.toggle('hidden')">Select Practice...</div>
-                <div id="practice-tree-dropdown" class="card-search-dropdown hidden" onclick="event.stopPropagation()" style="width: 350px; max-height: 400px; overflow-y: auto; text-align:left; padding:8px; border:2px solid var(--primary); pointer-events: auto !important; top: 100%; left: 0;">
-                   <!-- Populated by JS -->
-                </div>
+                <div id="practice-tree-dropdown" class="card-search-dropdown hidden" onclick="event.stopPropagation()" style="width: 350px; max-height: 400px; overflow-y: auto; text-align:left; padding:8px; border:2px solid var(--primary); pointer-events: auto !important; top: 100%; left: 0;"></div>
               </div>
 
               <button class="toggle-board-btn admin-only" onclick="openNewPracticeModal()">+ New</button>
               <button class="toggle-board-btn admin-only" onclick="editPracticeDetails()">✏️ Edit Details</button>
-              <button class="toggle-board-btn admin-only" onclick="saveAsTemplate()">💾 Save Template</button>
               <button class="toggle-board-btn admin-only" onclick="deletePractice()" style="color:#ef4444;">🗑️ Delete</button>
             </div>
             <div style="display:flex; gap:6px; align-items:center;">
@@ -732,9 +668,7 @@
               </label>
             </div>
             <div style="flex:1;"></div>
-            <div id="prac-stats" style="font-size:11px; font-weight:bold; display:flex; gap:15px; align-items:center;">
-              <!-- JS injects stats here -->
-            </div>
+            <div id="prac-stats" style="font-size:11px; font-weight:bold; display:flex; gap:15px; align-items:center;"></div>
           </div>
           
           <table class="practice-table" id="main-practice-table">
@@ -748,42 +682,35 @@
                 <th style="width: 4%; text-align:center;" class="no-print admin-only">❌</th>
               </tr>
             </thead>
-            <tbody id="practice-rows">
-              <!-- JS Injected Practice Rows -->
-            </tbody>
+            <tbody id="practice-rows"></tbody>
           </table>
         </div>
       </div>
 
-      <!-- USER MANAGEMENT PANEL (HEAD COACH ONLY) -->
+      <!-- USER MANAGEMENT PANEL -->
       <div class="unit-panel hidden" id="panel-users">
         <div class="formation-container">
           <div class="board-title">
             <span>👥 Staff & User Permissions</span>
           </div>
-          <div id="users-table-container" style="overflow-x: auto;">
-             <!-- Injected by JS -->
-          </div>
+          <div id="users-table-container" style="overflow-x: auto;"></div>
         </div>
       </div>
 
     </div>
 
-    <!-- SIDEBAR CONTAINER (Master Roster or Play Library) -->
+    <!-- SIDEBAR CONTAINER -->
     <div id="sidebar-container">
-        
-        <!-- Master Roster Sidebar -->
         <div class="sidebar" id="sidebar-panel">
           <h2>Master Roster</h2>
           <div style="margin-bottom: 8px;">
             <label style="font-size: 11px; font-weight: bold; color: var(--text-muted); display: block; margin-bottom: 3px;" id="roster-count-label">Counting: All in Tab</label>
-            <div style="font-size: 9px; color: var(--accent); margin-bottom: 6px;">Click any formation box to filter</div>
+            <div style="font-size: 9px; color: var(--accent); margin-bottom: 6px;" id="roster-instruction-label">Click a formation card to filter roster</div>
           </div>
           <input type="text" id="search-input" class="search-box" placeholder="Search first/last name or #..." oninput="filterRoster()" />
           <ul class="full-roster-list" id="master-roster-list"></ul>
         </div>
 
-        <!-- Play Library Sidebar (For Wristbands) -->
         <div class="sidebar hidden" id="plays-sidebar-panel">
           <h2>Play Library</h2>
           <p style="font-size:10px; color:var(--text-muted); margin-top:-5px; margin-bottom:10px;">Drag plays onto your wristband</p>
@@ -794,11 +721,10 @@
           <input type="text" id="play-search-input" class="search-box" placeholder="Search saved plays..." oninput="renderPlayLibrary()" />
           <ul class="full-roster-list" id="play-library-list"></ul>
         </div>
-
     </div>
   </div>
 
-  <!-- NEW PRACTICE TEMPLATE MODAL -->
+  <!-- NEW PRACTICE MODAL -->
   <div id="new-prac-modal" class="custom-modal hidden">
     <div class="custom-modal-card">
        <h3>Create New Practice Plan</h3>
@@ -807,19 +733,6 @@
 
        <label style="font-size:12px; font-weight:bold; display:block; margin-bottom:6px; text-align:left;">Folder / Week:</label>
        <input type="text" id="modal-prac-folder" class="prac-input" value="Week 1" style="margin-bottom:12px;">
-
-       <label style="font-size:12px; font-weight:bold; display:block; margin-bottom:6px; text-align:left;">Starter Template Focus:</label>
-       <select id="modal-prac-template" class="prac-select" style="margin-bottom:12px;">
-           <option value="offense">Offensive Day (Pass, Run, O-Line Install)</option>
-           <option value="defense">Defensive Day (Tackling Circuit, Fronts, DBs)</option>
-           <option value="combined">Offense / Defense Combined</option>
-       </select>
-
-       <label style="font-size:12px; font-weight:bold; display:block; margin-bottom:6px; text-align:left;">Total Duration:</label>
-       <select id="modal-prac-duration" class="prac-select" style="margin-bottom:20px;">
-           <option value="120">2 Hours (120 Mins)</option>
-           <option value="150" selected>2.5 Hours (150 Mins)</option>
-       </select>
 
        <div style="display: flex; gap: 8px; justify-content: flex-end;">
           <button class="toggle-board-btn" onclick="document.getElementById('new-prac-modal').classList.add('hidden')">Cancel</button>
@@ -865,11 +778,6 @@
   </div>
 
   <script>
-    // ----------------------------------------------------------------------------------
-    // APPLICATION CORE SCRIPT
-    // ----------------------------------------------------------------------------------
-    
-    // 🔥 PASTE YOUR FIREBASE CONFIG HERE 🔥
     const firebaseConfig = {
        apiKey: "AIzaSyBxAet3UzgBNuMUyUgj2MDWgrK5X63IPvg",
        authDomain: "u-depth-chart.firebaseapp.com",
@@ -880,10 +788,7 @@
        measurementId: "G-K15ZKX0S45" 
     };
 
-    let db = null;
-    let auth = null;
-    let storage = null;
-    let cloudEnabled = false;
+    let db = null, auth = null, storage = null, cloudEnabled = false;
 
     function initFirebase() {
       try {
@@ -894,11 +799,8 @@
           storage = firebase.storage();
           storage.setMaxUploadRetryTime(5000);
           cloudEnabled = true;
-          console.log("Firebase connected.");
         }
-      } catch (err) {
-        console.warn("Firebase not connected. Running local mode.", err);
-      }
+      } catch (err) { console.warn("Firebase offline mode.", err); }
     }
     initFirebase();
 
@@ -910,22 +812,16 @@
     }
 
     function safeJSONParse(key, fallback) {
-      try {
-        const val = localStorage.getItem(key);
-        if (val) return JSON.parse(val);
-      } catch (e) {}
+      try { const val = localStorage.getItem(key); if (val) return JSON.parse(val); } catch (e) {}
       return fallback;
     }
 
     let draggedData = null;
-    let activeUnit = "offense";
-    let currentWeek = "0";
-    let activeCountFormationId = null;
-    let currentUser = null;
-    let userRole = 'admin';
-    let isSignUpMode = false;
+    let activeUnit = "offense", currentWeek = "0";
+    let selectedFormationFilterId = null; // Tracks clicked formation for master roster filtering
+    let currentUser = null, userRole = 'admin', isSignUpMode = false;
+    let scrimmageFilters = safeJSONParse("footballScrimmageFilters", null);
 
-    // Playbooks & Guides dynamic object (seeded with defaults if blank)
     let pdfGuides = safeJSONParse("footballPdfGuides", { "Offense": "", "53 Defense": "", "44 Defense": "" });
     let activeGuidePos = Object.keys(pdfGuides).length > 0 ? Object.keys(pdfGuides)[0] : null;
 
@@ -976,696 +872,123 @@
     ];
 
     const defaultDynamicDrills = {
-      "Pre Practice": [
-        { name: "QB & Center Exchange", desc: "Under center and shotgun snaps.", key: "Snap accuracy" }
+      "Warm-Ups & General Conditioning": [
+        { name: "Dynamic Warm-Up", desc: "High knees, karaoke, shuffling, and short acceleration sprints.", key: "Speed & posture" },
+        { name: "QB & Center Exchange", desc: "Under-center and shotgun snaps focusing on clean exchange and lace grip.", key: "Clean exchange" },
+        { name: "11-Man 'Liz' Pursuit Drill", desc: "Full 11-man defense executes run fits and inside-out pursuit angles on perimeter sweep. Every player must touch runner.", key: "Never follow same color jersey" }
       ],
-      "Warm-Up & Breaks": [
-        { name: "Dynamic Warm-Up", desc: "High knees, karaoke, shuffling, short sprints.", key: "Speed & posture" },
-        { name: "Mandatory Water Break", desc: "Fast hydration and hustle.", key: "Hydrate" }
+      "Offensive Position: Quarterback (QB)": [
+        { name: "Dropback & Footwork Mechanics", desc: "3-step and 5-step drops from under center and shotgun. Set feet instantly on hitch step.", key: "Balanced base & ready arm" },
+        { name: "Play Action & Bootleg Mesh", desc: "Execute handoff fake to running back with eyes locked on crashing defensive end before rolling out.", key: "Sell the run fake" },
+        { name: "On-Run & Off-Platform Throws", desc: "Rolling right and left throwing on the run while squaring shoulders to target.", key: "Torque hips to target" }
       ],
-      "Individual Offense": [
-        { name: "O-Line Run Blocking", desc: "Power steps and drive blocking.", key: "Pad level" },
-        { name: "WR Route Tree", desc: "Route running and on-air throws.", key: "Clean breaks" }
+      "Offensive Position: Running Back (RB)": [
+        { name: "Handoff & Ball Security Circuit", desc: "Receive handoff with high and tight ball security (four points of pressure: fingers, palm, forearm, bicep).", key: "Secure ball through traffic" },
+        { name: "Read & Cut (A/B/C Gap Press)", desc: "Attack inside hip of lead blocker, press downhill, and plant foot to cut off blocker's hip.", key: "Press the hole, make one cut" },
+        { name: "Pass Protection & Blitz Pickup", desc: "Step up into A/B gap, square shoulders, strike oncoming linebacker in the chest plate, and anchor.", key: "Base up, punch chest plate" }
+      ],
+      "Offensive Position: Offensive Line (O-Line)": [
+        { name: "6-Inch Power Step & Board Fit", desc: "O-Linemen align in 3-point stance straddling board with blocker shield. Fire out 6-inch power step, strike chest plate with thumbs up.", key: "Eliminate false steps" },
+        { name: "Drive Blocking & Chute Drills", desc: "Explosion steps staying under the chute. Keep thumbs up, elbows tight, and legs driving through contact.", key: "Low pad level & leg drive" },
+        { name: "Pulling Guard & Trap Technique", desc: "Execute flat pulling footwork across formation, locate kicking target (DE/LB), and deliver blow with inside shoulder.", key: "Flat pull, accelerate through contact" }
+      ],
+      "Offensive Position: Wide Receiver (WR)": [
+        { name: "Stance & Release Package", desc: "Speed release and square cut release off the line of scrimmage against press coverage.", key: "Vary your speed and stem" },
+        { name: "Route Tree Landmarks (X, W, Z)", desc: "Run precise depth routes (Slants at 5 yds, Outs at 10 yds, Curls at 12 yds) planting on correct foot.", key: "Precise depth & hard cuts" },
+        { name: "Stalk Block & Perimeter Shield", desc: "Attack DB outside shoulder on screen/sweep plays, keep outside arm free, and guide defender wide.", key: "Inside leverage, block through whistle" }
+      ],
+      "Offensive Position: Tight End (TE)": [
+        { name: "Inline Drive Block & Seal", desc: "Engage Defensive End with tight base, drive helmet across bow, and seal B-gap on inside runs.", key: "Forehead across the numbers" },
+        { name: "Seam Release & Reroute Read", desc: "Release vertical up the seam past outside linebacker while reading zone coverage dropping underneath.", key: "Split the zone safeties" }
+      ],
+      "Defensive Line Position: Defensive Tackle (DT / NG)": [
+        { name: "Nose Guard Bull & 2-Gap Strike", desc: "NG aligns 0-Tech opposite Center with pad. Fire low, strike breastplate, lock out arms, peek into A-gap of ball flow, and shed.", key: "Pad level is king" },
+        { name: "Defensive Tackle Shed & Spill", desc: "DT vs offensive guard with shield attempting base block. Strike with violent hands, drop hips, rip through outside arm into B-gap.", key: "Create separation instantly" },
+        { name: "Down-Block Squeeze & Spill", desc: "OT, OG, and DL (T1/T3). OT down-blocks on DL while OG pulls. DL reads down-block, presses into OT hip to squeeze hole, spills play wide.", key: "Never get reached" }
+      ],
+      "Defensive Line Position: Defensive End (DE / E5 / E9)": [
+        { name: "Hard Edge Contain (Force Drill)", desc: "DE aligned 5/9 tech vs TE/OT blocker with shield and sweep runner. Strike outside shoulder, keep outside arm free, turn runner in.", key: "Never get hooked inside" },
+        { name: "Squeeze & Check Boot/Reverse", desc: "Backside DE squeezes down LOS to depth of QB on flow away, keeping outside arm free to nail bootlegs and reverses.", key: "Hold cutback and boot leverage" }
+      ],
+      "Linebacker Position: Inside Linebacker (ILB / Mike & Will)": [
+        { name: "Downhill Shuffle & Fill (Triangle Fit)", desc: "ILBs aligned 4 yards back read guard-center-back of triangle key. Fire downhill to fit hole inside-out on low hat run flow.", key: "Meet them in the hallway" },
+        { name: "Backside Scrape & Cutback Vice", desc: "Playside LB pushes wide; Backside LB takes controlled shuffle steps, reads pulling guard, and mirrors inside hip leverage to execute vice tackle.", key: "Wide base to plant and drive" },
+        { name: "45-Degree Drop & Robot Crosser Match", desc: "Open hips at 45° on high hat read to Hook-to-Curl zone (8-10 yds). Match crossing receivers and pass off ('In! / Out!').", key: "Eyes on QB front shoulder" }
+      ],
+      "Linebacker Position: Outside Linebacker (OLB / Sam & Rover)": [
+        { name: "Setting Hard Edge (Force Drill)", desc: "OLB aligned 2x2 vs lead blocker with shield and sweep runner. Attack downhill outside-in, strike outside shoulder, keep outside arm free.", key: "Keep shoulders square to sideline" },
+        { name: "Seam Reroute & Curl-to-Flat Drop", desc: "Physically collision and reroute slot receiver releasing vertical up seam before expanding to Curl-to-Flat zone (10-12 yds).", key: "Jam slot receiver first" }
+      ],
+      "Secondary Position: Cornerback (CB)": [
+        { name: "W-Drill (Backpedal & Drive)", desc: "5 cones in W shape 5 yards apart. Backpedal with chest over toes to Cone 1, plant outside foot, drive 45° forward to Cone 2.", key: "Low center of gravity" },
+        { name: "Deep 1/3 Cushion & Route Bail", desc: "Corner aligned 6 yds off WR running vertical. Open 45° in side-shuffle bail keeping 3 yds vertical cushion over receiver.", key: "Keep the roof on" },
+        { name: "Sideline Contain & Stalk Shed", desc: "CB attacks WR outside shoulder with violent hands on toss play, keeping outside arm free to squeeze runner to sideline.", key: "Maintain outside leverage" }
+      ],
+      "Secondary Position: Free Safety (FS)": [
+        { name: "Fast Alley Trigger & Breakdown", desc: "FS at 12 yds depth vs sweep. Take 2 downhill read steps, inside-out pursuit angle, chop feet at 3 yds, clamp near hip.", key: "Never cross near hip" },
+        { name: "Single-High Post / Seam Range", desc: "FS in center field vs deep post/seam. Plant outside foot, drive 90° across hashes, beat WR to catch point for interception.", key: "Jump throwing lane early" }
       ],
       "Tackle Circuit": [
-        { name: "Form Fit & Drive", desc: "Shoulder fit and 3-step drive.", key: "Wrap cloth" },
-        { name: "Angle Tackle", desc: "Inside-out angle pursuit.", key: "Near hip" }
+        { name: "Open-Field Angle Tackle", desc: "Ball carrier runs at 45-degree angle vs defender in 10x10 yard grid. Defender breaks down, takes proper angle, aims for near hip, and drives through legs.", key: "Break down feet & aim for near hip" },
+        { name: "Thigh-And-Drive Open-Field Tackle", desc: "Defender sprints 5 yards to ball carrier, squares shoulders, drops hips, and delivers shoulder strike to thigh numbers while wrapping numbers.", key: "Wrap, squeeze, and drive feet" },
+        { name: "Sideline Pin-And-Squeeze Tackle", desc: "Runner attempts to turn corner down sideline. Defender uses sideline as 12th defender, attacks outside shoulder, and forces runner out of bounds.", key: "Keep outside leverage, squeeze to line" },
+        { name: "Leverage Form Tackle (Ring Drill)", desc: "Two lines facing each other 5 yards apart. Ball carrier jogs in place; tackler steps up, establishes inside leverage, and lifts through hips.", key: "Head across bows, drive through contact" }
       ],
-      "Team Offense": [
-        { name: "Full Team Run Install", desc: "Review assignments vs defense.", key: "Assignment execution" }
+      "Full Team Drills & Install": [
+        { name: "Chalk Talk & Play-Calling Walk-Through", desc: "Coaches review weekly game plan, formations, audibles, and opponent defensive/offensive tendencies on whiteboard before walking through cards.", key: "Mental clarity & alignment" },
+        { name: "Full Offensive Install & Skelly", desc: "Install weekly run scheme and passing concepts against scout team defense in 7-on-7 and 11-on-11 jog-throughs.", key: "Timing, reads, and execution tempo" },
+        { name: "Full Defensive Install & Run Fits", desc: "Install base 4-4/5-3 fronts, gap assignments, stunt checks, and secondary coverages against scout offense.", key: "Alignment, gap integrity, and communication" },
+        { name: "11-on-11 Live Scrimmage Script", desc: "Full speed situational scrimmage periods (Goal Line, Red Zone, Two-Minute Drill) utilizing Gold and Blue sub rotations.", key: "Live execution under game speed" }
+      ],
+      "Stunts, Blitz Packages & Team Scheme": [
+        { name: "Stunt: Slant Liz & Cross Liz", desc: "Front-four DL slants one gap to Liz side or interior tackles execute scissor-cross through A-gaps to disrupt blocking.", key: "Gap exchange integrity" },
+        { name: "Stunt: Fan Liz & Pinch Rip", desc: "DTs fan outward into B-gaps while DEs contain edge, or all 4 DL pinch hard inside to stop interior dive and sneak.", key: "Contain and squeeze" },
+        { name: "Blitz: Double Dog 0 Liz", desc: "Both ILBs fire downhill on snap through A and B gaps right to the quarterback in Cover 0 man coverage.", key: "Immediate rush pressure" },
+        { name: "Blitz: Blow Sting Liz (You/Me)", desc: "Edge calls ('You'/'Me') coordinating DE crash and OLB blitz pressure with man coverage assignments across the board.", key: "Communicate edge assignments" }
       ]
     };
 
     let weeklyData = safeJSONParse("footballWeeklyData", {});
     let practiceData = safeJSONParse("footballPracticeData", []);
     let masterPlayLibrary = safeJSONParse("footballMasterPlays", ["24 Dive", "25 Trap", "Sweep Right", "Bootleg Pass", "Screen Pass"]);
-    
-    let collapsedDrillCats = {};
+    let collapsedDrillCats = safeJSONParse('footballCollapsedDrills', {});
     let dynamicDrills = safeJSONParse("footballDynamicDrills", defaultDynamicDrills);
-    let practiceTemplates = safeJSONParse("footballPracticeTemplates", []);
-    let savedCoaches = safeJSONParse("footballSavedCoaches", ["TJ", "Brian", "John", "Ed", "Pete", "Dan", "Joe"]);
-    let savedCustomCategories = safeJSONParse("footballCustomCategories", []);
-    let depthChart = null;
-    let currentPracticeId = null;
-    
-    let weekSortOrder = safeJSONParse("footballWeekOrder", {});
-    if (Array.isArray(weekSortOrder)) { weekSortOrder = {}; }
+    let depthChart = null, currentPracticeId = null;
 
-    // --- INSTANT STATE SAVING ---
     function saveState() {
         localStorage.setItem("footballWeeklyData", JSON.stringify(weeklyData));
         localStorage.setItem("footballPracticeData", JSON.stringify(practiceData));
         localStorage.setItem("footballMasterPlays", JSON.stringify(masterPlayLibrary));
         localStorage.setItem("footballDynamicDrills", JSON.stringify(dynamicDrills));
-        localStorage.setItem("footballSavedCoaches", JSON.stringify(savedCoaches));
-        localStorage.setItem("footballWeekOrder", JSON.stringify(weekSortOrder));
         localStorage.setItem("footballPdfGuides", JSON.stringify(pdfGuides));
 
         if (cloudEnabled && db && userRole === 'admin') {
             db.collection("teamData").doc("depthChartData").set({
-                weeklyData: weeklyData,
-                practiceData: practiceData,
-                masterPlayLibrary: masterPlayLibrary,
-                dynamicDrills: dynamicDrills,
-                savedCoaches: savedCoaches,
-                weekSortOrder: weekSortOrder,
-                pdfGuides: pdfGuides,
+                weeklyData, practiceData, masterPlayLibrary, dynamicDrills, pdfGuides,
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            }, { merge: true }).catch(err => {
-                console.error("Firestore sync error:", err);
-            });
+            }, { merge: true }).catch(err => console.error("Firestore sync error:", err));
         }
     }
 
     let saveTimeout = null;
     function triggerDebouncedSave() {
         if (saveTimeout) clearTimeout(saveTimeout);
-        saveTimeout = setTimeout(() => {
-            saveState();
-        }, 500);
+        saveTimeout = setTimeout(() => { saveState(); }, 500);
     }
 
-
-    // --- ACCURATE PRACTICE PLAN PARSER (.DOCX & .TXT) ---
     function parseTimeString(str) {
         if (!str) return 0;
         let parts = str.trim().split(':');
-        if (parts.length === 2) {
-            return parseInt(parts[0]) * 60 + parseInt(parts[1]);
-        }
+        if (parts.length === 2) return parseInt(parts[0]) * 60 + parseInt(parts[1]);
         return 0;
     }
 
-    function importExternalPracticePlan(e) {
-        if (userRole !== 'admin') { alert("Admin only."); return; }
-        const file = e.target.files[0];
-        if (!file) return;
-
-        const isDocx = file.name.endsWith('.docx');
-        const reader = new FileReader();
-
-        reader.onload = async (event) => {
-            try {
-                let rawText = "";
-
-                if (isDocx) {
-                    const arrayBuffer = event.target.result;
-                    const result = await mammoth.extractRawText({ arrayBuffer });
-                    rawText = result.value;
-                } else {
-                    rawText = event.target.result;
-                }
-
-                if (file.name.endsWith('.json')) {
-                    const parsed = JSON.parse(rawText);
-                    if (Array.isArray(parsed)) {
-                        practiceData.push(...parsed);
-                    } else if (parsed.plan) {
-                        practiceData.push(parsed);
-                    }
-                } else {
-                    const lines = rawText.split('\n');
-                    let title = file.name.replace(/\.[^/.]+$/, "");
-                    let yearStr = new Date().getFullYear().toString();
-                    let weekFolder = "Week " + (currentWeek || "1");
-                    let dayStr = "Wednesday";
-                    let overallStartTime = "17:05";
-                    let newPlanPeriods = [];
-
-                    let parsedBlocks = [];
-                    let currentGroupName = "";
-                    let currentStartTime = "";
-                    let currentEndTime = "";
-                    let currentSubItems = [];
-
-                    lines.forEach((line, idx) => {
-                        let trimmed = line.trim();
-                        if (!trimmed) return;
-
-                        if (idx === 0 || (idx < 3 && (trimmed.includes("Practice") || trimmed.includes("10U")))) {
-                            title = trimmed;
-                            let dateMatch = trimmed.match(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
-                            if (dateMatch) {
-                                let yr = dateMatch[3];
-                                if (yr.length === 2) yr = "20" + yr;
-                                yearStr = yr;
-                            }
-                            return;
-                        }
-
-                        let timeRangeMatch = trimmed.match(/^(\d{1,2}:\d{2})\s*[–-]\s*(\d{1,2}:\d{2})\s*(.*)/);
-                        let singleTimeMatch = !timeRangeMatch ? trimmed.match(/^(\d{1,2}:\d{2})\s*[–-]\s*(.*)/) : null;
-
-                        if (timeRangeMatch || singleTimeMatch) {
-                            if (currentGroupName || currentSubItems.length > 0) {
-                                parsedBlocks.push({
-                                    start: currentStartTime,
-                                    end: currentEndTime,
-                                    group: currentGroupName,
-                                    items: currentSubItems
-                                });
-                                currentSubItems = [];
-                            }
-
-                            if (timeRangeMatch) {
-                                currentStartTime = timeRangeMatch[1];
-                                currentEndTime = timeRangeMatch[2];
-                                currentGroupName = timeRangeMatch[3].trim();
-                            } else if (singleTimeMatch) {
-                                currentStartTime = singleTimeMatch[1];
-                                currentEndTime = "";
-                                currentGroupName = singleTimeMatch[2].trim();
-                            }
-                        } else {
-                            if (trimmed.startsWith("GROUP") || trimmed.startsWith("STATION") || trimmed.includes("Drill")) {
-                                currentSubItems.push({ name: trimmed, desc: "", coach: "", focus: "" });
-                            } else if (currentSubItems.length > 0) {
-                                currentSubItems[currentSubItems.length - 1].desc += " " + trimmed;
-                            } else {
-                                currentSubItems.push({ name: currentGroupName || "General", desc: trimmed, coach: "", focus: "" });
-                            }
-                        }
-                    });
-
-                    if (currentGroupName || currentSubItems.length > 0) {
-                        parsedBlocks.push({
-                            start: currentStartTime,
-                            end: currentEndTime,
-                            group: currentGroupName,
-                            items: currentSubItems
-                        });
-                    }
-
-                    if (parsedBlocks.length > 0) {
-                        if (parsedBlocks[0].start) overallStartTime = parsedBlocks[0].start;
-
-                        for (let i = 0; i < parsedBlocks.length; i++) {
-                            let block = parsedBlocks[i];
-                            let duration = 15;
-
-                            if (block.start && block.end) {
-                                let startMins = parseTimeString(block.start);
-                                let endMins = parseTimeString(block.end);
-                                if (endMins > startMins) duration = endMins - startMins;
-                            } else if (i < parsedBlocks.length - 1 && block.start && parsedBlocks[i+1].start) {
-                                let startMins = parseTimeString(block.start);
-                                let nextStartMins = parseTimeString(parsedBlocks[i+1].start);
-                                if (nextStartMins > startMins) duration = nextStartMins - startMins;
-                            }
-
-                            let category = "Indy / Fundamentals";
-                            let lowerGrp = block.group.toLowerCase();
-                            let formatType = "static";
-
-                            if (lowerGrp.includes('arrival') || lowerGrp.includes('pre practice') || lowerGrp.includes('pre-practice')) category = "Pre Practice";
-                            else if (lowerGrp.includes('water') || lowerGrp.includes('warm')) category = "Warm-Up & Breaks";
-                            else if (lowerGrp.includes('special teams')) category = "Special Teams";
-                            else if (lowerGrp.includes('offense') || lowerGrp.includes('team')) category = "Full Team/Installs";
-                            else if (lowerGrp.includes('circuit') || lowerGrp.includes('breakouts')) {
-                                category = "Tackle Circuit";
-                                formatType = "rotating";
-                            }
-
-                            let stations = block.items.length > 0 ? block.items.map(it => ({
-                                name: it.name || "Station",
-                                desc: it.desc.trim(),
-                                coach: "",
-                                focus: ""
-                            })) : [{ name: block.group, desc: "", coach: "", focus: "" }];
-
-                            newPlanPeriods.push({
-                                time: duration,
-                                category: category,
-                                format: formatType,
-                                stations: stations,
-                                coaches: [],
-                                key: ""
-                            });
-                        }
-                    }
-
-                    if (newPlanPeriods.length > 0) {
-                        let newPrac = {
-                            id: generateUniqueId('prac'),
-                            title: title,
-                            year: yearStr,
-                            week: weekFolder,
-                            day: dayStr,
-                            startTime: overallStartTime.includes(':') ? (overallStartTime.length === 4 ? '0'+overallStartTime : overallStartTime) : "17:05",
-                            endTime: "20:00",
-                            lastEdited: Date.now(),
-                            plan: newPlanPeriods
-                        };
-                        practiceData.push(newPrac);
-                        currentPracticeId = newPrac.id;
-                    }
-                }
-
-                saveState();
-                populatePracticeDropdown();
-                renderPracticePlan();
-                
-                alert(`Practice plan successfully imported into Year: ${yearStr} / ${weekFolder}!`);
-            } catch (err) {
-                alert("Error importing file: " + err.message);
-            }
-        };
-
-        if (isDocx) {
-            reader.readAsArrayBuffer(file);
-        } else {
-            reader.readAsText(file);
-        }
-        e.target.value = '';
-    }
-
-    // --- PRINT MODAL LOGIC ---
-    function openPrintModal(unitType) {
-       const forms = getWeekFormations(currentWeek).filter(f => f && f.unit === unitType);
-       if (forms.length === 0) {
-           alert("No boards available to print in this tab.");
-           return;
-       }
-
-       if (confirm("Print all visible boards in this tab?")) {
-           document.querySelectorAll('.formation-container').forEach(card => {
-               card.classList.remove('print-hidden');
-           });
-           if(document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur();
-           setTimeout(() => window.print(), 100);
-       }
-    }
-
-    function openScrimmagePrintModal() {
-        const scrimmageFilters = weeklyData[currentWeek] && weeklyData[currentWeek].scrimmageFilters ? weeklyData[currentWeek].scrimmageFilters : null;
-        const forms = getWeekFormations(currentWeek).filter(f => f && (f.unit === 'offense' || f.unit === 'defense'));
-        const activeForms = scrimmageFilters ? forms.filter(f => scrimmageFilters.includes(f.id)) : forms;
-
-        const listContainer = document.getElementById('scrimmage-print-list');
-        if (!listContainer) return;
-
-        if (activeForms.length === 0) {
-            alert("No formations selected for scrimmage. Click 'Filter Boards' to select some.");
-            return;
-        }
-
-        let html = '';
-        activeForms.forEach(form => {
-            html += `
-              <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
-                 <input type="checkbox" class="scrimmage-print-chk" value="${form.id}" checked>
-                 <strong>[${form.unit.toUpperCase()}]</strong> ${form.name}
-              </label>
-            `;
-        });
-        listContainer.innerHTML = html;
-        document.getElementById('scrimmage-print-modal').classList.remove('hidden');
-    }
-
-    function executeScrimmagePrint() {
-        const checkboxes = document.querySelectorAll('.scrimmage-print-chk');
-        const selectedIds = Array.from(checkboxes).filter(chk => chk.checked).map(chk => chk.value);
-
-        document.getElementById('scrimmage-print-modal').classList.add('hidden');
-
-        const renderedContainers = document.querySelectorAll('#boards-scrimmage .formation-container');
-        renderedContainers.forEach((el, idx) => {
-            const scrimmageFilters = weeklyData[currentWeek] && weeklyData[currentWeek].scrimmageFilters ? weeklyData[currentWeek].scrimmageFilters : null;
-            const forms = getWeekFormations(currentWeek).filter(f => f && (f.unit === 'offense' || f.unit === 'defense'));
-            const activeForms = scrimmageFilters ? forms.filter(f => scrimmageFilters.includes(f.id)) : forms;
-
-            if (activeForms[idx] && selectedIds.includes(activeForms[idx].id)) {
-                el.classList.remove('print-hidden');
-            } else {
-                el.classList.add('print-hidden');
-            }
-        });
-
-        if(document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur();
-        setTimeout(() => window.print(), 100);
-    }
-
-    function openScrimmageFilterModal() {
-        const forms = getWeekFormations(currentWeek).filter(f => f && (f.unit === 'offense' || f.unit === 'defense'));
-        const listContainer = document.getElementById('scrimmage-filter-list');
-        if (!listContainer) return;
-
-        const currentFilters = weeklyData[currentWeek] && weeklyData[currentWeek].scrimmageFilters ? weeklyData[currentWeek].scrimmageFilters : forms.map(f => f.id);
-
-        let html = '';
-        forms.forEach(form => {
-            const isChecked = currentFilters.includes(form.id) ? 'checked' : '';
-            html += `
-              <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
-                 <input type="checkbox" class="scrimmage-filter-chk" value="${form.id}" ${isChecked}>
-                 <strong>[${form.unit.toUpperCase()}]</strong> ${form.name}
-              </label>
-            `;
-        });
-        listContainer.innerHTML = html;
-        document.getElementById('scrimmage-filter-modal').classList.remove('hidden');
-    }
-
-    function saveScrimmageFilters() {
-        const checkboxes = document.querySelectorAll('.scrimmage-filter-chk');
-        const selectedIds = Array.from(checkboxes).filter(chk => chk.checked).map(chk => chk.value);
-
-        if (!weeklyData[currentWeek]) weeklyData[currentWeek] = {};
-        weeklyData[currentWeek].scrimmageFilters = selectedIds;
-        saveState();
-
-        document.getElementById('scrimmage-filter-modal').classList.add('hidden');
-        renderScrimmageTab();
-        if (activeUnit === 'groups' || activeUnit === 'scrimmage') renderMasterRoster();
-    }
-
-    // --- DYNAMIC PLAYBOOK & GUIDE LOGIC (PDF.JS MOBILE CANVAS RENDERER) ---
-    async function renderGuideTab() {
-        const tabsContainer = document.getElementById('guide-tabs-container');
-        const contentArea = document.getElementById('guide-content-area');
-        if (!tabsContainer || !contentArea) return;
-
-        let tabsHtml = '';
-        Object.keys(pdfGuides).forEach(cat => {
-            const isActive = (cat === activeGuidePos) ? 'active' : '';
-            tabsHtml += `<button class="nav-tab ${isActive}" onclick="switchGuidePos('${cat}')">${cat}</button>`;
-        });
-        tabsContainer.innerHTML = tabsHtml;
-
-        if (!activeGuidePos || !pdfGuides.hasOwnProperty(activeGuidePos)) {
-            contentArea.innerHTML = `<div style="text-align:center; padding:20px; color:var(--text-muted);">No categories available. Add one above.</div>`;
-            return;
-        }
-
-        const currentPdf = pdfGuides[activeGuidePos];
-
-        let html = `
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <h3 style="margin:0; color:var(--primary); font-size:16px;">${activeGuidePos}</h3>
-                    <button class="toggle-board-btn admin-only" onclick="renameGuideCategory('${activeGuidePos}')">✏️ Rename</button>
-                    <button class="toggle-board-btn admin-only" style="color:#ef4444;" onclick="deleteGuideCategory('${activeGuidePos}')">🗑️ Delete</button>
-                </div>
-                <div class="admin-only" style="display:flex; gap:6px;">
-                    <input type="file" id="pdf-upload-guide-${activeGuidePos.replace(/[^a-zA-Z0-9]/g, '_')}" accept="application/pdf" style="display:none;" onchange="handlePdfUpload(event, '${activeGuidePos}')">
-                    <button class="add-row-btn" style="margin:0;" onclick="document.getElementById('pdf-upload-guide-${activeGuidePos.replace(/[^a-zA-Z0-9]/g, '_')}').click()">📄 Upload PDF</button>
-                    ${currentPdf ? `<button class="toggle-board-btn" style="color:#ef4444;" onclick="deletePdfGuide('${activeGuidePos}')">🗑️ Remove PDF</button>` : ''}
-                </div>
-            </div>
-        `;
-
-        if (currentPdf) {
-            html += `
-                <div style="background:#f8fafc; border:1px solid var(--card-border); border-radius:8px; padding:12px; display:flex; flex-direction:column; gap:10px; flex-grow:1;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; background:#eff6ff; padding:10px 14px; border-radius:6px; border:1px solid #bae6fd;">
-                        <div>
-                            <strong style="font-size:12px; color:var(--primary); display:block;">📄 ${activeGuidePos} Mobile View Active</strong>
-                            <span style="font-size:10.5px; color:var(--text-muted);">Rendered natively for iPad & Mobile devices below.</span>
-                        </div>
-                        <a href="${currentPdf}" target="_blank" class="add-row-btn" style="margin:0; text-decoration:none; background:var(--accent); padding:6px 14px; text-align:center;">Open Fullscreen ↗</a>
-                    </div>
-                    
-                    <!-- Canvas container where PDF.js will draw the pages -->
-                    <div id="pdf-canvas-container" style="width:100%; max-height:700px; overflow-y:auto; background:#525659; border-radius:6px; padding:15px; display:flex; flex-direction:column; align-items:center; gap:15px;">
-                       <div style="color:#fff; padding:20px;">Loading PDF pages for mobile...</div>
-                    </div>
-                </div>
-            `;
-            contentArea.innerHTML = html;
-            loadPdfIntoCanvases(currentPdf);
-        } else {
-            html += `<div style="flex-grow:1; display:flex; align-items:center; justify-content:center; color:var(--text-muted); font-style:italic; background:#f8fafc; border-radius:6px; border:1px dashed #cbd5e1; min-height:300px;">No PDF uploaded for ${activeGuidePos}. (Head Coach can upload one above).</div>`;
-            contentArea.innerHTML = html;
-        }
-    }
-
-    async function loadPdfIntoCanvases(url) {
-        try {
-            const loadingTask = pdfjsLib.getDocument(url);
-            const pdfDoc = await loadingTask.promise;
-            const container = document.getElementById('pdf-canvas-container');
-            if (!container) return;
-            
-            container.innerHTML = '';
-
-            for (let pageNum = 1; pageNum <= pdfDoc.numPages; pageNum++) {
-                const page = await pdfDoc.getPage(pageNum);
-                const scale = 1.5;
-                const viewport = page.getViewport({ scale: scale });
-
-                const canvas = document.createElement('canvas');
-                canvas.style.width = "100%";
-                canvas.style.height = "auto";
-                canvas.style.boxShadow = "0 4px 6px rgba(0,0,0,0.3)";
-                canvas.style.marginBottom = "10px";
-                canvas.style.background = "#fff";
-                
-                const context = canvas.getContext('2d');
-                canvas.height = viewport.height;
-                canvas.width = viewport.width;
-
-                container.appendChild(canvas);
-
-                await page.render({
-                    canvasContext: context,
-                    viewport: viewport
-                }).promise;
-            }
-        } catch (err) {
-            console.error("Error rendering PDF via PDF.js:", err);
-            const container = document.getElementById('pdf-canvas-container');
-            if (container) {
-                container.innerHTML = `<div style="color:#fff; padding:20px; text-align:center;">Could not render mobile preview inline. <br><a href="${url}" target="_blank" style="color:#93c5fd;">Tap here to open PDF directly</a></div>`;
-            }
-        }
-    }
-
-    function switchGuidePos(pos) {
-        activeGuidePos = pos;
-        renderGuideTab();
-    }
-
-    function addGuideCategory() {
-        if (userRole !== 'admin') return;
-        let cat = prompt("Enter new Guide Category Name (e.g., 'Offensive Playbook'):");
-        if (cat && cat.trim() !== "") {
-            cat = cat.trim();
-            if (pdfGuides[cat] !== undefined) {
-                alert("A category with this name already exists.");
-                return;
-            }
-            pdfGuides[cat] = "";
-            activeGuidePos = cat;
-            saveState();
-            renderGuideTab();
-        }
-    }
-
-    function renameGuideCategory(oldCat) {
-        if (userRole !== 'admin') return;
-        let newCat = prompt("Rename Category:", oldCat);
-        if (newCat && newCat.trim() !== "" && newCat !== oldCat) {
-            newCat = newCat.trim();
-            if (pdfGuides[newCat] !== undefined) {
-                alert("A category with this name already exists.");
-                return;
-            }
-            pdfGuides[newCat] = pdfGuides[oldCat];
-            delete pdfGuides[oldCat];
-            if (activeGuidePos === oldCat) activeGuidePos = newCat;
-            saveState();
-            renderGuideTab();
-        }
-    }
-
-    function deleteGuideCategory(cat) {
-        if (userRole !== 'admin') return;
-        if (confirm(`Are you sure you want to delete the "${cat}" category entirely?`)) {
-            delete pdfGuides[cat];
-            const remaining = Object.keys(pdfGuides);
-            activeGuidePos = remaining.length > 0 ? remaining[0] : null;
-            saveState();
-            renderGuideTab();
-        }
-    }
-
-    async function handlePdfUpload(e, pos) {
-        if (userRole !== 'admin') return;
-        const file = e.target.files[0];
-        if (!file) return;
-
-        const uploadBtn = e.target.nextElementSibling;
-        const originalText = uploadBtn.textContent;
-        uploadBtn.textContent = "⏳ Uploading to Cloud... (Please wait)";
-        uploadBtn.style.pointerEvents = "none";
-        uploadBtn.style.opacity = "0.7";
-
-        if (cloudEnabled && storage) {
-            try {
-                const storageRef = storage.ref(`guides/${pos.replace(/[^a-zA-Z0-9]/g, '_')}_guide_${Date.now()}.pdf`);
-                const snapshot = await storageRef.put(file);
-                const downloadURL = await snapshot.ref.getDownloadURL();
-                
-                pdfGuides[pos] = downloadURL;
-                saveState();
-                renderGuideTab();
-            } catch (err) {
-                console.error("Firebase Storage Error:", err);
-                alert("Upload failed. Ensure Firebase Storage Rules are set to 'allow write' and CORS is configured. Error: " + err.message);
-                
-                uploadBtn.textContent = originalText;
-                uploadBtn.style.pointerEvents = "auto";
-                uploadBtn.style.opacity = "1";
-            }
-        } else {
-            if (file.size > 800 * 1024) { 
-                alert("File is too large for offline local storage mode (Max ~800KB recommended). It may cause saving issues.");
-            }
-            const reader = new FileReader();
-            reader.onload = function(evt) {
-                pdfGuides[pos] = evt.target.result;
-                saveState();
-                renderGuideTab();
-            };
-            reader.readAsDataURL(file);
-        }
-        e.target.value = '';
-    }
-
-    function deletePdfGuide(pos) {
-        if (userRole !== 'admin') return;
-        if (confirm(`Remove the PDF guide for ${pos}?`)) {
-            pdfGuides[pos] = "";
-            saveState();
-            renderGuideTab();
-        }
-    }
-
-
-    // --- TAB & WEEK LOGIC ---
-    function switchUnitTab(unit) {
-      activeUnit = unit;
-      
-      document.querySelectorAll('.nav-tab').forEach(btn => btn.classList.remove('active'));
-      const activeBtn = document.getElementById('tab-btn-' + unit);
-      if (activeBtn) activeBtn.classList.add('active');
-      
-      document.querySelectorAll('.unit-panel').forEach(panel => panel.classList.add('hidden'));
-      const activePanel = document.getElementById('panel-' + unit);
-      if (activePanel) activePanel.classList.remove('hidden');
-
-      const rosterSidebar = document.getElementById('sidebar-panel');
-      const playsSidebar = document.getElementById('plays-sidebar-panel');
-      
-      if (unit === 'wristband') {
-        if(rosterSidebar) rosterSidebar.classList.add('hidden');
-        if(playsSidebar) playsSidebar.classList.remove('hidden');
-        renderPlayLibrary();
-      } else {
-        if(rosterSidebar) rosterSidebar.classList.remove('hidden');
-        if(playsSidebar) playsSidebar.classList.add('hidden');
-      }
-
-      if (unit === 'wristband') {
-        renderWristband();
-      } else if (unit === 'scouting') {
-        renderScouting();
-      } else if (unit === 'drills') {
-        renderDrillsTab();
-      } else if (unit === 'practice') {
-        renderPracticePlan();
-      } else if (unit === 'users') {
-        renderUsers();
-      } else if (unit === 'guide') {
-        renderGuideTab();
-      } else if (unit === 'scrimmage') {
-        renderScrimmageTab();
-        renderMasterRoster();
-      } else {
-        renderActiveBoards();
-        renderMasterRoster();
-      }
-    }
-
-    function changeWeek(val) {
-        currentWeek = val;
-        depthChart = getWeekDepthChart(currentWeek);
-        const oppInput = document.getElementById("opponent-input");
-        if(oppInput) oppInput.value = weeklyData[currentWeek] ? (weeklyData[currentWeek].opponent || "") : "";
-        renderActiveBoards();
-        renderWristband();
-        renderScouting();
-        renderMasterRoster();
-        if (activeUnit === 'scrimmage') renderScrimmageTab();
-        const weekSelect = document.getElementById("week-select");
-        if (weekSelect && weekSelect.value !== val) weekSelect.value = val;
-    }
-
-    function copyWeekToPrompt() {
-        if (userRole !== 'admin') { alert("Admin only."); return; }
-        
-        let target = prompt("Enter the Week Number (0-8) to copy this lineup TO:");
-        if (target !== null && target.trim() !== "") {
-            target = target.trim();
-            if (target >= 0 && target <= 8 && target !== currentWeek) {
-                if (confirm(`Are you sure you want to overwrite Week ${target} with ALL data from Week ${currentWeek}?`)) {
-                    weeklyData[target] = JSON.parse(JSON.stringify(weeklyData[currentWeek]));
-                    saveState();
-                    alert(`Successfully Copied to Week ${target}!`);
-                }
-            }
-        }
-    }
-
-    function updateOpponentLabel(val) {
-        if(userRole !== 'admin') return;
-        if (!weeklyData[currentWeek]) weeklyData[currentWeek] = {};
-        weeklyData[currentWeek].opponent = val;
-        
-        if(!weeklyData[currentWeek].scouting) weeklyData[currentWeek].scouting = {};
-        weeklyData[currentWeek].scouting.opponent = val;
-        
-        triggerDebouncedSave();
-        renderScouting();
-    }
-
-
-    function listenToLiveUpdates() {
-        if (!cloudEnabled || !db) return;
-
-        db.collection("teamData").doc("depthChartData")
-          .onSnapshot((doc) => {
-            if (doc.exists) {
-              const data = doc.data();
-
-              if (data.weeklyData) weeklyData = data.weeklyData;
-              if (data.practiceData) practiceData = data.practiceData;
-              if (data.masterPlayLibrary) masterPlayLibrary = data.masterPlayLibrary;
-              if (data.dynamicDrills) dynamicDrills = data.dynamicDrills;
-              if (data.savedCoaches) savedCoaches = data.savedCoaches;
-              if (data.weekSortOrder) weekSortOrder = data.weekSortOrder;
-              if (data.pdfGuides) {
-                  pdfGuides = data.pdfGuides;
-                  if (!pdfGuides[activeGuidePos] && Object.keys(pdfGuides).length > 0) {
-                      activeGuidePos = Object.keys(pdfGuides)[0];
-                  }
-              }
-
-              depthChart = getWeekDepthChart(currentWeek);
-              renderActiveBoards();
-              renderMasterRoster();
-              populatePracticeDropdown();
-              if (activeUnit === 'practice') renderPracticePlan();
-              if (activeUnit === 'wristband') renderWristband();
-              if (activeUnit === 'scouting') renderScouting();
-              if (activeUnit === 'guide') renderGuideTab();
-              if (activeUnit === 'scrimmage') renderScrimmageTab();
-
-              console.log("Live changes synced from cloud.");
-            }
-          }, (error) => {
-            console.error("Live listener error:", error);
-          });
+    function formatTime(mins) {
+        let h = Math.floor(mins / 60);
+        let m = mins % 60;
+        let ampm = h >= 12 ? 'PM' : 'AM';
+        h = h % 12; if(h === 0) h = 12;
+        return `${h}:${m < 10 ? '0'+m : m} ${ampm}`;
     }
 
     function autoResizeTextarea(el) {
@@ -1673,17 +996,6 @@
         el.style.height = (el.scrollHeight) + 'px';
     }
 
-    function formatTime(mins) {
-        let h = Math.floor(mins / 60);
-        let m = mins % 60;
-        let ampm = h >= 12 ? 'PM' : 'AM';
-        h = h % 12;
-        if(h === 0) h = 12;
-        let mStr = m < 10 ? '0'+m : m;
-        return `${h}:${mStr} ${ampm}`;
-    }
-
-    // --- CORE INITIALIZATION ---
     function getWeekFormations(week) {
       if (!weeklyData[week]) weeklyData[week] = { opponent: "" };
       if (!weeklyData[week].formations || !Array.isArray(weeklyData[week].formations)) {
@@ -1708,922 +1020,9 @@
       return weeklyData[week].scrimmageChart;
     }
 
-    function sanitizePracticeData() {
-      if (!Array.isArray(practiceData) || practiceData.length === 0) {
-        practiceData = [{
-          id: "prac_1",
-          title: "Full Pads Install",
-          year: new Date().getFullYear().toString(),
-          week: "Week " + (currentWeek || "1"),
-          day: "Wednesday",
-          startTime: "17:05",
-          endTime: "20:00",
-          lastEdited: Date.now(),
-          plan: [
-            { 
-              time: 25, 
-              category: "Pre Practice", 
-              stations: [
-                { name: "GROUP 1: QB & Center Exchange", desc: "Centers and QBs pair up to practice under-center and shotgun snaps.", coach: "TJ", focus: "Snap accuracy" },
-                { name: "GROUP 2: Specialists", desc: "Specialists work on snap, hold, and kick mechanics.", coach: "Brian", focus: "Timing" }
-              ] 
-            }
-          ]
-        }];
-      }
-
-      practiceData.forEach((p, pIdx) => {
-        if (!p) return;
-        if (!p.id) p.id = (Date.now() + pIdx).toString();
-        if (!p.title) p.title = "Practice " + (pIdx + 1);
-
-        if (p.folder && !p.week) {
-            p.week = p.folder;
-        }
-        if (p.date && !p.year) {
-            p.year = p.date.substring(0, 4);
-        }
-        if (p.date && !p.day) {
-            p.day = "Monday"; 
-        }
-
-        if (!p.year) p.year = new Date().getFullYear().toString();
-        if (!p.week) p.week = "Week " + (currentWeek || "1");
-        if (!p.day) p.day = "Wednesday";
-        
-        delete p.folder; 
-
-        if (!p.startTime) p.startTime = "17:05";
-        if (!p.endTime) p.endTime = "20:00";
-        if (!p.lastEdited) p.lastEdited = Date.now();
-        if (!Array.isArray(p.plan)) p.plan = [];
-        
-        p.plan.forEach(row => {
-            if (!Array.isArray(row.stations)) {
-                row.stations = [{
-                    name: row.drill || row.category || "Group 1",
-                    desc: row.desc || "",
-                    coach: (row.coaches || []).join(', ') || "",
-                    focus: row.key || ""
-                }];
-            }
-        });
-      });
-
-      if (!currentPracticeId || !practiceData.find(p => p.id === currentPracticeId)) {
-        let sorted = [...practiceData].sort((a,b) => (b.lastEdited || 0) - (a.lastEdited || 0));
-        if(sorted.length > 0) currentPracticeId = sorted[0].id;
-      }
-    }
-
-    function initWristbandData() {
-      if (!weeklyData[currentWeek]) weeklyData[currentWeek] = {};
-      let wbData = weeklyData[currentWeek].wristbandData;
-      if (!wbData || typeof wbData !== 'object' || Array.isArray(wbData)) {
-          wbData = { rows: 16, columns: [] };
-      }
-      if (weeklyData[currentWeek].wristband) delete weeklyData[currentWeek].wristband;
-      if (wbData.pages) {
-          wbData.columns = wbData.pages.map(p => ({
-              color: p.color || 'white',
-              plays: (p.plays || []).map(pt => ({ text: pt || "", color: p.color || 'white' }))
-          }));
-          delete wbData.pages;
-          delete wbData.startIndex;
-      }
-      wbData.rows = parseInt(wbData.rows);
-      if (isNaN(wbData.rows) || wbData.rows <= 0) wbData.rows = 16;
-      
-      if (!Array.isArray(wbData.columns) || wbData.columns.length === 0) {
-          wbData.columns = [
-              { color: "blue", plays: [] },
-              { color: "yellow", plays: [] }
-          ];
-      }
-      wbData.columns.forEach(c => {
-         if (!Array.isArray(c.plays)) c.plays = [];
-         while(c.plays.length < wbData.rows) c.plays.push({ text: "", color: c.color || 'white' });
-         while(c.plays.length > wbData.rows) c.plays.pop();
-      });
-      weeklyData[currentWeek].wristbandData = wbData;
-    }
-
-    function initializeApp() {
-      try {
-        sanitizePracticeData();
-        
-        const weekSelect = document.getElementById("week-select");
-        if(weekSelect) currentWeek = weekSelect.value;
-        
-        initWristbandData();
-        depthChart = getWeekDepthChart(currentWeek);
-        
-        const oppInput = document.getElementById("opponent-input");
-        if(oppInput) oppInput.value = weeklyData[currentWeek] ? (weeklyData[currentWeek].opponent || "") : "";
-
-        renderActiveBoards();
-        populatePracticeDropdown();
-        renderPracticePlan();
-        renderMasterRoster();
-      } catch (e) {
-        console.error("Fatal initialization error:", e);
-      }
-    }
-
-    // --- Drag & Drop Mechanics (Roster & Position Cards) ---
-    function handleRosterDragStart(e, name, num) {
-      if (userRole !== 'admin') { e.preventDefault(); return; }
-      draggedData = { type: "roster", name, num };
-      e.dataTransfer.setData("text/plain", name);
-      e.dataTransfer.effectAllowed = "copy";
-    }
-
-    function handlePlayerDragStart(e, posId, idx, name, num, isScrimmage = false) {
-      if (userRole !== 'admin') { e.preventDefault(); return; }
-      draggedData = { type: isScrimmage ? "scrimmage_position" : "position", sourcePos: posId, sourceIndex: idx, name, num };
-      e.dataTransfer.setData("text/plain", name);
-      e.dataTransfer.effectAllowed = "move";
-      e.stopPropagation();
-    }
-    
-    function handlePosCardDragStart(e, formId, rowId, posId) {
-      if (userRole !== 'admin') { e.preventDefault(); return; }
-      draggedData = { type: "position_card", formId, rowId, posId };
-      e.dataTransfer.setData("text/plain", posId);
-      e.dataTransfer.effectAllowed = "move";
-      e.stopPropagation();
-    }
-
-    function handleFormationDragStart(e, formId) {
-        if (userRole !== 'admin') return;
-        draggedData = { type: 'formation', formId: formId };
-        e.dataTransfer.setData("text/plain", formId);
-        e.stopPropagation();
-    }
-
-    function handleFormationDrop(e, targetFormId) {
-        if (userRole !== 'admin' || !draggedData || draggedData.type !== 'formation') return;
-        e.preventDefault();
-        e.stopPropagation();
-        document.querySelectorAll('.formation-container').forEach(c => c.classList.remove('drag-over-board'));
-
-        if (draggedData.formId === targetFormId) {
-            draggedData = null;
-            return;
-        }
-
-        const forms = weeklyData[currentWeek].formations;
-        const sIdx = forms.findIndex(f => f.id === draggedData.formId);
-        const tIdx = forms.findIndex(f => f.id === targetFormId);
-
-        if (sIdx > -1 && tIdx > -1) {
-            const [moved] = forms.splice(sIdx, 1);
-            
-            const targetEl = document.getElementById(`board_${targetFormId}`);
-            let finalIdx = tIdx;
-            if (targetEl) {
-                const rect = targetEl.getBoundingClientRect();
-                if (e.clientY > rect.top + rect.height / 2) {
-                    finalIdx += 1;
-                }
-            }
-            
-            if (sIdx < finalIdx) finalIdx--; 
-
-            forms.splice(finalIdx, 0, moved);
-            saveState();
-            renderActiveBoards();
-        }
-        draggedData = null;
-    }
-
-    function handleCardDrop(e, targetFormId, targetRowId, targetPosId, isScrimmage = false) {
-      if (userRole !== 'admin') return;
-      e.preventDefault();
-      e.stopPropagation();
-      document.querySelectorAll(".position-card, .row-slot").forEach(c => c.classList.remove("drag-over"));
-      if (!draggedData) return;
-      
-      if (draggedData.type === "position_card") {
-          const sFormId = draggedData.formId;
-          const sRowId = draggedData.rowId;
-          const sPosId = draggedData.posId;
-          if (sPosId === targetPosId) { draggedData = null; return; }
-          
-          const forms = getWeekFormations(currentWeek);
-          const sForm = forms.find(f => f.id === sFormId);
-          const tForm = forms.find(f => f.id === targetFormId);
-          const sRow = sForm.rows.find(r => r.id === sRowId);
-          const tRow = tForm.rows.find(r => r.id === targetRowId);
-          
-          let sCount = tRow.slotCount || 7;
-          if (!Array.isArray(sRow.positions)) sRow.positions = [];
-          if (!Array.isArray(tRow.positions)) tRow.positions = [];
-
-          while(sRow.positions.length < sCount) sRow.positions.push(null);
-          while(tRow.positions.length < sCount) tRow.positions.push(null);
-
-          let movedObj = null;
-          for(let i=0; i<sRow.positions.length; i++) {
-              if (sRow.positions[i] && sRow.positions[i].id === sPosId) {
-                  movedObj = sRow.positions[i];
-                  sRow.positions[i] = null;
-                  break;
-              }
-          }
-
-          const tIdx = tRow.positions.findIndex(p => p && p.id === targetPosId);
-          if (tIdx > -1 && movedObj) {
-              const cardEl = document.getElementById(`card-${targetPosId}`);
-              let finalIdx = tIdx;
-              if (cardEl) {
-                  const rect = cardEl.getBoundingClientRect();
-                  if (e.clientX > rect.left + rect.width / 2) finalIdx = tIdx + 1;
-              }
-              tRow.positions[tIdx] = null; 
-              tRow.positions.splice(finalIdx, 0, movedObj);
-          }
-
-          tRow.positions = tRow.positions.filter(p => p !== null);
-          while(tRow.positions.length < sCount) tRow.positions.push(null);
-          
-          draggedData = null;
-          saveState();
-          renderActiveBoards();
-          return;
-      }
-
-      if (draggedData.type === "position" || draggedData.type === "scrimmage_position" || draggedData.type === "roster") {
-          const chart = isScrimmage ? getWeekScrimmageChart(currentWeek) : depthChart;
-          if (!chart[targetPosId]) chart[targetPosId] = [];
-
-          let movedPlayer = null;
-          
-          if (draggedData.type === "position" || draggedData.type === "scrimmage_position") {
-              const srcChart = draggedData.type === "scrimmage_position" ? getWeekScrimmageChart(currentWeek) : depthChart;
-              movedPlayer = srcChart[draggedData.sourcePos][draggedData.sourceIndex];
-              srcChart[draggedData.sourcePos].splice(draggedData.sourceIndex, 1);
-          } else if (draggedData.type === "roster") {
-              movedPlayer = { name: draggedData.name, num: draggedData.num };
-          }
-
-          if (movedPlayer) {
-              const cardEl = document.getElementById(`card-${targetPosId}`);
-              let insertIdx = chart[targetPosId].length; 
-              
-              if (cardEl) {
-                  const listItems = Array.from(cardEl.querySelectorAll('.player-item'));
-                  for (let i = 0; i < listItems.length; i++) {
-                      const rect = listItems[i].getBoundingClientRect();
-                      if (e.clientY < rect.top + rect.height / 2) {
-                          insertIdx = i;
-                          break;
-                      }
-                  }
-              }
-
-              if ((draggedData.type === "position" || draggedData.type === "scrimmage_position") && draggedData.sourcePos === targetPosId && insertIdx > draggedData.sourceIndex) {
-                  insertIdx--;
-              }
-
-              chart[targetPosId].splice(insertIdx, 0, movedPlayer);
-          }
-          
-          draggedData = null;
-          saveState();
-          if (isScrimmage) {
-              renderScrimmageTab();
-          } else {
-              renderActiveBoards();
-          }
-          renderMasterRoster();
-      }
-    }
-    
-    function handleSlotDrop(e, targetFormId, targetRowId, slotIndex) {
-        if (userRole !== 'admin' || !draggedData || draggedData.type !== 'position_card') return;
-        e.preventDefault();
-        e.stopPropagation();
-        document.querySelectorAll(".row-slot").forEach(c => c.classList.remove("drag-over"));
-
-        const sFormId = draggedData.formId;
-        const sRowId = draggedData.rowId;
-        const sPosId = draggedData.posId;
-        
-        const forms = getWeekFormations(currentWeek);
-        const sForm = forms.find(f => f.id === sFormId);
-        const tForm = forms.find(f => f.id === targetFormId);
-        const sRow = sForm.rows.find(r => r.id === sRowId);
-        const tRow = tForm.rows.find(r => r.id === targetRowId);
-
-        let sCount = tRow.slotCount || 7;
-        if (!Array.isArray(sRow.positions)) sRow.positions = [];
-        if (!Array.isArray(tRow.positions)) tRow.positions = [];
-
-        while(sRow.positions.length < sCount) sRow.positions.push(null);
-        while(tRow.positions.length < sCount) tRow.positions.push(null);
-
-        let movedObj = null;
-        for (let i = 0; i < sRow.positions.length; i++) {
-            if (sRow.positions[i] && sRow.positions[i].id === sPosId) {
-                movedObj = sRow.positions[i];
-                sRow.positions[i] = null;
-                break;
-            }
-        }
-        if (!movedObj) {
-            movedObj = { id: sPosId, name: sPosId };
-        }
-
-        tRow.positions[slotIndex] = movedObj;
-
-        draggedData = null;
-        saveState();
-        renderActiveBoards();
-    }
-
-    function removePlayer(posId, idx, e, isScrimmage = false) {
-      if (userRole !== 'admin') return;
-      if (e) e.stopPropagation();
-      const chart = isScrimmage ? getWeekScrimmageChart(currentWeek) : depthChart;
-      if (chart[posId]) {
-        chart[posId].splice(idx, 1);
-        saveState();
-        if (isScrimmage) renderScrimmageTab();
-        else renderActiveBoards();
-        renderMasterRoster();
-      }
-    }
-
-    function toggleBoardCollapse(formId) {
-        const forms = getWeekFormations(currentWeek);
-        const form = forms.find(f => f.id === formId);
-        if (form) {
-            form.collapsed = !form.collapsed;
-            saveState();
-            renderActiveBoards();
-        }
-    }
-
-    // --- Boards Rendering ---
-    function renderActiveBoards() {
-      try {
-        const container = document.getElementById("boards-" + activeUnit);
-        if(!container) return;
-        
-        const forms = getWeekFormations(currentWeek).filter(f => f && f.unit === activeUnit);
-        container.innerHTML = "";
-
-        if (forms.length === 0) {
-            container.innerHTML = `
-               <div style="padding:40px 20px; text-align:center; color:var(--text-muted); border:2px dashed var(--card-border); border-radius:10px; background:#f8fafc;">
-                  <div style="font-size:24px; margin-bottom:10px;">📋</div>
-                  <strong style="font-size:14px; color:var(--primary);">No boards found for ${activeUnit.toUpperCase()}</strong><br><br>
-                  <span class="admin-only">Click the <b>+ Add Formation</b> button above to create one.</span>
-               </div>
-            `;
-            return;
-        }
-
-        forms.forEach(form => {
-          try {
-              if (!form) return;
-              const isCollapsed = form.collapsed || false;
-              const formDiv = document.createElement("div");
-              formDiv.className = "formation-container" + (activeCountFormationId === form.id ? " counting-active" : "");
-              formDiv.id = "board_" + form.id;
-              
-              formDiv.onclick = (e) => {
-                  if (e.target.closest('button') || e.target.closest('input') || e.target.closest('select')) return;
-                  handleFormationClick(form.id);
-              };
-
-              formDiv.innerHTML = `
-                <div class="board-title" draggable="${userRole === 'admin' ? 'true' : 'false'}" 
-                     ondragstart="handleFormationDragStart(event, '${form.id}')" 
-                     ondragover="event.preventDefault(); this.parentElement.classList.add('drag-over-board');" 
-                     ondragleave="this.parentElement.classList.remove('drag-over-board');" 
-                     ondrop="handleFormationDrop(event, '${form.id}')">
-                  <div style="cursor:grab; display:flex; align-items:center;">
-                    <span class="admin-only no-print" style="margin-right:8px; color:#94a3b8; font-size:16px;" title="Drag to reorder formation">↕</span>
-                    <span>${form.name}</span> 
-                    ${form.subtitle ? `<span style="font-size:11px; color:var(--text-muted); font-weight:normal; margin-left:8px;">${form.subtitle}</span>` : ''}
-                  </div>
-                  <div class="board-controls no-print">
-                    <button class="toggle-board-btn" onclick="toggleBoardCollapse('${form.id}')">${isCollapsed ? 'Show 👁️' : 'Hide 🙈'}</button>
-                    <button class="toggle-board-btn admin-only" onclick="renameFormation('${form.id}')">✏️ Rename</button>
-                    <button class="toggle-board-btn admin-only" onclick="addRowToFormation('${form.id}')">+ Add Row</button>
-                    <button class="toggle-board-btn admin-only" style="color:#ef4444;" onclick="deleteFormation('${form.id}')">🗑️</button>
-                  </div>
-                </div>
-                <div class="formation-body ${isCollapsed ? 'collapsed' : ''}"></div>
-              `;
-
-              const bodyDiv = formDiv.querySelector(".formation-body");
-
-              (form.rows || []).forEach(row => {
-                if (!row) return;
-                const slotCount = row.slotCount || 7;
-                const rowWrap = document.createElement("div");
-                rowWrap.className = "row-container";
-                
-                rowWrap.innerHTML = `
-                  <div class="level-header-bar">
-                    <span class="level-label" onclick="renameRow('${form.id}', '${row.id}')">${row.label || 'Row'} ✏️</span>
-                    <div class="row-actions no-print admin-only" style="display:flex; gap:4px; align-items:center;">
-                      <button class="row-action-btn" onclick="changeRowSlots('${form.id}', '${row.id}')" title="Change number of slots">⚙️ Slots (${slotCount})</button>
-                      <button class="row-action-btn" onclick="addPositionToRow('${form.id}', '${row.id}')">+ Pos</button>
-                      <button class="row-action-btn" style="color:#ef4444;" onclick="deleteRow('${form.id}', '${row.id}')">✕</button>
-                    </div>
-                  </div>
-                  <div class="formation-row ${row.rowClass || 'oline'}" id="row-grid-${row.id}" style="grid-template-columns: repeat(${slotCount}, 1fr);"></div>
-                `;
-
-                const posRowEl = rowWrap.querySelector(".formation-row");
-                
-                if (!Array.isArray(row.positions)) row.positions = [];
-                while(row.positions.length < slotCount) row.positions.push(null);
-                if(row.positions.length > slotCount) row.positions = row.positions.slice(0, slotCount);
-
-                row.positions.forEach((pos, slotIdx) => {
-                  const slotDiv = document.createElement("div");
-                  slotDiv.className = "row-slot";
-                  if (userRole === 'admin') {
-                      slotDiv.ondragover = (e) => { e.preventDefault(); slotDiv.classList.add("drag-over"); };
-                      slotDiv.ondragleave = () => slotDiv.classList.remove("drag-over");
-                      slotDiv.ondrop = (e) => handleSlotDrop(e, form.id, row.id, slotIdx);
-                  }
-
-                  if (pos) {
-                      const card = document.createElement("div");
-                      card.className = "position-card";
-                      card.id = `card-${pos.id}`;
-
-                      if (userRole === 'admin') {
-                        card.ondragover = (e) => { e.preventDefault(); card.classList.add("drag-over"); e.stopPropagation(); };
-                        card.ondragleave = () => card.classList.remove("drag-over");
-                        card.ondrop = (e) => { handleCardDrop(e, form.id, row.id, pos.id, false); };
-                      }
-
-                      const players = (depthChart && Array.isArray(depthChart[pos.id])) ? depthChart[pos.id].filter(p => p) : [];
-
-                      let playersHtml = players.map((player, idx) => {
-                        let rankClass = 'rank-sub-gray';
-                        let rankLabel = 'D' + (idx + 1);
-
-                        if (idx === 0) {
-                            rankClass = 'rank-starter';
-                            rankLabel = 'ST';
-                        } else if (idx === 1) {
-                            rankClass = 'rank-sub-gold';
-                            rankLabel = 'D2';
-                        } else if (idx === 2) {
-                            rankClass = 'rank-sub-blue';
-                            rankLabel = 'D3';
-                        }
-                        
-                        return `
-                        <li class="player-item" draggable="${userRole==='admin'?'true':'false'}" ondragstart="handlePlayerDragStart(event, '${pos.id}', ${idx}, '${player.name}', '${player.num}', false)">
-                          <div class="player-info">
-                            <span class="rank-badge ${rankClass}">${rankLabel}</span>
-                            <span class="num-tag">#${player.num}</span>
-                            <span>${player.name}</span>
-                          </div>
-                          <button class="remove-btn admin-only" onclick="removePlayer('${pos.id}', ${idx}, event, false)">&times;</button>
-                        </li>
-                        `;
-                      }).join("");
-                      
-                      card.innerHTML = `
-                        <div class="position-header" draggable="${userRole === 'admin' ? 'true' : 'false'}" ondragstart="handlePosCardDragStart(event, '${form.id}', '${row.id}', '${pos.id}')">
-                          <span style="cursor:grab;" title="Drag to move position">⋮⋮ ${pos.name}</span>
-                          <div class="no-print admin-only" style="display:flex; gap:2px;">
-                             <button class="pos-hdr-btn" onclick="deletePosition('${form.id}', '${row.id}', '${pos.id}')">&times;</button>
-                             <span class="pos-count">${players.length}</span>
-                          </div>
-                        </div>
-                        <ul class="player-list">${playersHtml || '<div style="color:var(--text-muted); font-size:10px; padding:6px; text-align:center;">Drop Player</div>'}</ul>
-                      `;
-                      slotDiv.appendChild(card);
-                  }
-                  posRowEl.appendChild(slotDiv);
-                });
-
-                bodyDiv.appendChild(rowWrap);
-              });
-
-              container.appendChild(formDiv);
-          } catch(err) {
-              console.error("Error rendering formation:", err);
-          }
-        });
-      } catch(err) {
-        console.error("Error rendering boards container:", err);
-      }
-    }
-
-    // --- PRACTICE / SCRIMMAGE TAB RENDERING (Gold & Blue Subs Only, Independent Assignments) ---
-    function renderScrimmageTab() {
-      const container = document.getElementById("boards-scrimmage");
-      if (!container) return;
-      container.innerHTML = "";
-
-      const scrimmageChart = getWeekScrimmageChart(currentWeek);
-      const scrimmageFilters = weeklyData[currentWeek] && weeklyData[currentWeek].scrimmageFilters ? weeklyData[currentWeek].scrimmageFilters : null;
-      const allForms = getWeekFormations(currentWeek).filter(f => f && (f.unit === 'offense' || f.unit === 'defense'));
-      const forms = scrimmageFilters ? allForms.filter(f => scrimmageFilters.includes(f.id)) : allForms;
-      
-      if (forms.length === 0) {
-          container.innerHTML = `<div style="padding:30px; text-align:center; color:var(--text-muted);">No formations selected for scrimmage. Click '⚙️ Filter Boards' above to choose which offense/defense boards to include.</div>`;
-          return;
-      }
-
-      forms.forEach(form => {
-          const formDiv = document.createElement("div");
-          formDiv.className = "formation-container";
-          formDiv.style.marginBottom = "15px";
-
-          let rowsHtml = "";
-          (form.rows || []).forEach(row => {
-              const slotCount = row.slotCount || 7;
-              let slotsHtml = "";
-              
-              (row.positions || []).forEach(pos => {
-                  if (!pos) {
-                      slotsHtml += `<div class="row-slot" style="background:#f8fafc; border:none;"></div>`;
-                      return;
-                  }
-
-                  const allPlayers = (scrimmageChart && Array.isArray(scrimmageChart[pos.id])) ? scrimmageChart[pos.id].filter(p => p) : [];
-
-                  let playersHtml = allPlayers.map((player, sIdx) => {
-                      let rankClass = (sIdx === 0) ? 'rank-sub-gold' : 'rank-sub-blue';
-                      let rankLabel = (sIdx === 0) ? 'Gold' : 'Blue';
-
-                      return `
-                      <li class="player-item" draggable="${userRole==='admin'?'true':'false'}" ondragstart="handlePlayerDragStart(event, '${pos.id}', ${sIdx}, '${player.name}', '${player.num}', true)">
-                        <div class="player-info">
-                          <span class="rank-badge ${rankClass}">${rankLabel}</span>
-                          <span class="num-tag">#${player.num}</span>
-                          <span>${player.name}</span>
-                        </div>
-                        <button class="remove-btn admin-only" onclick="removePlayer('${pos.id}', ${sIdx}, event, true)">&times;</button>
-                      </li>
-                      `;
-                  }).join("");
-
-                  slotsHtml += `
-                    <div class="row-slot" style="min-height:55px;" ondragover="event.preventDefault(); this.classList.add('drag-over');" ondragleave="this.classList.remove('drag-over');" ondrop="handleCardDrop(event, '${form.id}', '${row.id}', '${pos.id}', true)">
-                      <div class="position-card" id="scrim-card-${pos.id}" style="width:100%;">
-                        <div class="position-header" style="background:#e0f2fe; color:#0369a1;">
-                          <span>${pos.name}</span>
-                          <span style="font-size:9px;">Scrimmage</span>
-                        </div>
-                        <ul class="player-list">${playersHtml || '<div style="color:var(--text-muted); font-size:9px; padding:4px; text-align:center;">Drop Sub</div>'}</ul>
-                      </div>
-                    </div>
-                  `;
-              });
-
-              rowsHtml += `
-                <div class="row-container">
-                  <div class="level-header-bar"><span class="level-label">${row.label || 'Row'} (Gold & Blue Squads)</span></div>
-                  <div class="formation-row" style="grid-template-columns: repeat(${slotCount}, 1fr);">${slotsHtml}</div>
-                </div>
-              `;
-          });
-
-          formDiv.innerHTML = `
-            <div class="board-title">
-               <span>[${form.unit.toUpperCase()}] ${form.name}</span>
-               <span style="font-size:11px; color:var(--text-muted); font-weight:normal;">Scrimmage Rotation View</span>
-            </div>
-            ${rowsHtml}
-          `;
-          container.appendChild(formDiv);
-      });
-    }
-
-    function changeRowSlots(formId, rowId) {
-      if (userRole !== 'admin') { alert("Admin only"); return; }
-      const forms = getWeekFormations(currentWeek);
-      const form = forms.find(f => f.id === formId);
-      if(!form) return;
-      const row = form.rows.find(r => r.id === rowId);
-      if(!row) return;
-
-      const current = row.slotCount || 7;
-      let val = prompt("Enter number of slots for this row (1 to 12):", current);
-      if(val !== null) {
-          const newNum = parseInt(val);
-          if(!isNaN(newNum) && newNum >= 1 && newNum <= 12) {
-              if (!Array.isArray(row.positions)) row.positions = [];
-              while(row.positions.length < current) row.positions.push(null);
-
-              if (newNum < current) {
-                  for (let i = row.positions.length - 1; i >= 0 && row.positions.length > newNum; i--) {
-                      if (row.positions[i] === null) {
-                          row.positions.splice(i, 1);
-                      }
-                  }
-                  if (row.positions.length > newNum) {
-                      row.positions = row.positions.slice(0, newNum);
-                  }
-              } else {
-                  while(row.positions.length < newNum) row.positions.push(null);
-              }
-
-              row.slotCount = newNum;
-              saveState();
-              renderActiveBoards();
-          } else {
-              alert("Please enter a valid number between 1 and 12.");
-          }
-      }
-    }
-
-    // --- Roster Logic with Scrimmage & Regular Support ---
-    function renderMasterRoster() {
-      try {
-        const rosterContainer = document.getElementById("master-roster-list");
-        if (!rosterContainer) return;
-
-        const labelEl = document.getElementById("roster-count-label");
-        if (labelEl) {
-            if (activeUnit === 'scrimmage') {
-                labelEl.innerHTML = `Counting: <span style="color:var(--accent); font-weight:bold;">Filtered Scrimmage Boards</span>`;
-            } else if (activeCountFormationId) {
-                const form = getWeekFormations(currentWeek).find(f => f && f.id === activeCountFormationId);
-                if (form && form.unit === activeUnit) {
-                   labelEl.innerHTML = `Counting: <span style="color:var(--accent); font-weight:bold;">${form.name}</span>`;
-                } else {
-                   activeCountFormationId = null;
-                   labelEl.textContent = `Counting: All ${activeUnit.toUpperCase()}`;
-                }
-            } else {
-                labelEl.textContent = `Counting: All ${activeUnit.toUpperCase()}`;
-            }
-        }
-
-        const searchEl = document.getElementById("search-input");
-        const searchTerm = (searchEl ? searchEl.value : "").toLowerCase().trim();
-        rosterContainer.innerHTML = "";
-
-        masterRoster.forEach(player => {
-          const fName = (player.firstName || "").toLowerCase();
-          const lName = (player.lastName || "").toLowerCase();
-          const pNum = (player.num || "").toString().toLowerCase();
-
-          const matches = !searchTerm || fName.includes(searchTerm) || lName.includes(searchTerm) || pNum.includes(searchTerm);
-          if (!matches) return;
-
-          let placements = [];
-          let targetForms = [];
-
-          if (activeUnit === 'scrimmage') {
-              const scrimmageFilters = weeklyData[currentWeek] && weeklyData[currentWeek].scrimmageFilters ? weeklyData[currentWeek].scrimmageFilters : null;
-              const allForms = getWeekFormations(currentWeek).filter(f => f && (f.unit === 'offense' || f.unit === 'defense'));
-              targetForms = scrimmageFilters ? allForms.filter(f => scrimmageFilters.includes(f.id)) : allForms;
-          } else {
-              targetForms = getWeekFormations(currentWeek).filter(f => f && f.unit === activeUnit);
-              if (activeCountFormationId) {
-                 const matched = targetForms.filter(f => f.id === activeCountFormationId);
-                 if (matched.length > 0) targetForms = matched;
-              }
-          }
-
-          targetForms.forEach(form => {
-            (form.rows || []).forEach(row => {
-              if(!row) return;
-              (row.positions || []).forEach(pos => {
-                if (pos && pos.id) {
-                  if (activeUnit === 'scrimmage') {
-                      const scChart = getWeekScrimmageChart(currentWeek);
-                      if (scChart && Array.isArray(scChart[pos.id])) {
-                          scChart[pos.id].forEach((p, idx) => {
-                              if (p && String(p.num) === String(player.num)) {
-                                  let colorStyle = (idx === 0) ? "background:#eab308; color:#000000;" : "background:#1d4ed8; color:#ffffff;";
-                                  placements.push({ posName: pos.name, style: colorStyle });
-                              }
-                          });
-                      }
-                  } else {
-                      if (depthChart && Array.isArray(depthChart[pos.id])) {
-                          depthChart[pos.id].forEach((p, idx) => {
-                            if (p && String(p.num) === String(player.num)) {
-                              let colorStyle = "background:#64748b; color:#fff;"; 
-                              if (idx === 0) colorStyle = "background:#000000; color:#ffffff;"; 
-                              else if (idx === 1) colorStyle = "background:#eab308; color:#000000;"; 
-                              else if (idx === 2) colorStyle = "background:#1d4ed8; color:#ffffff;"; 
-
-                              placements.push({ posName: pos.name, style: colorStyle });
-                            }
-                          });
-                      }
-                  }
-                }
-              });
-            });
-          });
-
-          const li = document.createElement("li");
-          li.className = "full-roster-item";
-          if (userRole === 'admin') {
-            li.draggable = true;
-            li.ondragstart = (e) => handleRosterDragStart(e, player.lastName || player.firstName, player.num || "");
-          }
-
-          let badgesHtml = placements.map(pl => `
-             <span style="font-size:9px; font-weight:bold; padding:2px 5px; border-radius:3px; ${pl.style}; margin-left:2px;" title="${pl.posName}">
-               ${pl.posName}
-             </span>
-          `).join("");
-
-          li.innerHTML = `
-            <div style="display:flex; align-items:center; justify-content:space-between; width:100%;">
-              <div>
-                <span class="num-tag" style="display:inline-block; min-width:24px; color:var(--primary);">${player.num ? '#' + player.num : ''}</span> 
-                <span>${player.firstName || ''} ${player.lastName || ''}</span>
-              </div>
-              <div style="display:flex; flex-wrap:wrap; gap:2px; justify-content:flex-end; max-width:130px;">
-                ${badgesHtml}
-              </div>
-            </div>
-          `;
-          rosterContainer.appendChild(li);
-        });
-      } catch(err) {
-        console.error("Error rendering master roster:", err);
-      }
-    }
-
-    function filterRoster() { renderMasterRoster(); }
-
-    // --- WRISTBAND LOGIC ---
-    function renderWristband() {
-      initWristbandData();
-      const wbData = weeklyData[currentWeek].wristbandData;
-      const grid = document.getElementById("wristband-grid");
-      if (!grid) return;
-      
-      let html = `<table class="wb-exact-table"><tbody>`;
-      for(let r=0; r < wbData.rows; r++) {
-          html += `<tr>`;
-          wbData.columns.forEach((col, cIdx) => {
-              const cell = col.plays[r] || { text: "", color: col.color || 'white' };
-              html += `
-                  <td class="wb-sub-idx wb-sub-${cell.color}">${r+1}</td>
-                  <td class="wb-play-cell wb-body-${cell.color}" ondragover="event.preventDefault(); this.classList.add('drag-over');" ondragleave="this.classList.remove('drag-over');" ondrop="dropPlayToWristband(event, ${cIdx}, ${r})">
-                      <input type="text" class="wb-play-input" value="${cell.text}" ondrop="dropPlayToWristband(event, ${cIdx}, ${r})" oninput="weeklyData[currentWeek].wristbandData.columns[${cIdx}].plays[${r}].text = this.value; triggerDebouncedSave();" />
-                  </td>
-              `;
-          });
-          html += `</tr>`;
-      }
-      html += `</tbody></table>`;
-      grid.innerHTML = html;
-    }
-
-    function renderPlayLibrary() {
-        const list = document.getElementById("play-library-list");
-        if (!list) return;
-        
-        const term = (document.getElementById("play-search-input") ? document.getElementById("play-search-input").value : "").toLowerCase().trim();
-        list.innerHTML = "";
-
-        if (masterPlayLibrary.length === 0) {
-            list.innerHTML = `<div style="text-align:center; padding:10px; color:var(--text-muted); font-size:10px;">No plays saved. Add some above!</div>`;
-            return;
-        }
-
-        masterPlayLibrary.forEach((play, idx) => {
-            if (term && !play.toLowerCase().includes(term)) return;
-            const li = document.createElement("li");
-            li.className = "full-roster-item";
-            
-            if (userRole === 'admin') {
-                li.draggable = true;
-                li.ondragstart = (e) => {
-                    e.dataTransfer.setData("text/plain", play);
-                    e.dataTransfer.effectAllowed = "copy";
-                };
-            }
-            
-            li.innerHTML = `
-                <span>📋 <strong>${play}</strong></span>
-                <button class="remove-btn admin-only" onclick="removePlayFromLibrary(${idx})">&times;</button>
-            `;
-            list.appendChild(li);
-        });
-    }
-
-    function addPlayToLibrary() {
-        const input = document.getElementById("new-play-input");
-        const play = input.value.trim();
-        if (play) {
-            masterPlayLibrary.push(play);
-            input.value = "";
-            saveState();
-            renderPlayLibrary();
-        }
-    }
-
-    function removePlayFromLibrary(idx) {
-        if (confirm("Delete this play from the library forever?")) {
-            masterPlayLibrary.splice(idx, 1);
-            saveState();
-            renderPlayLibrary();
-        }
-    }
-
-    function dropPlayToWristband(e, colIdx, rowIdx) {
-        e.preventDefault();
-        e.stopPropagation();
-        e.currentTarget.classList.remove('drag-over');
-        if (userRole !== 'admin') return;
-        
-        const playText = e.dataTransfer.getData("text/plain");
-        if (playText) {
-            weeklyData[currentWeek].wristbandData.columns[colIdx].plays[rowIdx].text = playText;
-            saveState();
-            renderWristband();
-        }
-    }
-
-    function addWbRow() {
-      if (userRole !== 'admin') return;
-      initWristbandData();
-      const wbData = weeklyData[currentWeek].wristbandData;
-      wbData.rows += 1;
-      wbData.columns.forEach(c => c.plays.push({ text: "", color: c.color }));
-      saveState();
-      renderWristband();
-    }
-
-    function removeWbRow() {
-      if (userRole !== 'admin') return;
-      initWristbandData();
-      const wbData = weeklyData[currentWeek].wristbandData;
-      if (wbData.rows > 1) {
-         wbData.rows -= 1;
-         wbData.columns.forEach(c => c.plays.pop());
-         saveState();
-         renderWristband();
-      }
-    }
-
-    // --- SCOUTING LOGIC ---
-    function renderScouting() {
-      const scout = weeklyData[currentWeek].scouting || {};
-      
-      const textFields = ['teamOverview', 'keyPlayers', 'offenseTendencies', 'defenseTendencies', 'specialTeams'];
-      textFields.forEach(f => {
-         const el = document.getElementById('scout-' + f);
-         if (el) {
-             el.value = scout[f] || "";
-             autoResizeTextarea(el);
-         }
-      });
-
-      ['year', 'week', 'opponent'].forEach(f => {
-         const el = document.getElementById('scout-' + f);
-         if (el) el.value = scout[f] || "";
-      });
-      
-      const printTitle = document.getElementById('print-scout-title');
-      const opp = scout.opponent || weeklyData[currentWeek].opponent || `Week ${currentWeek}`;
-      const yr = scout.year ? `${scout.year} ` : "";
-      const wk = scout.week ? `${scout.week} - ` : "";
-      if (printTitle) printTitle.textContent = `Scouting Report: ${yr}${wk}${opp}`;
-    }
-
-    function updateScouting(field, value) {
-      if (userRole !== 'admin') return;
-      
-      if(!weeklyData[currentWeek].scouting) weeklyData[currentWeek].scouting = {};
-      weeklyData[currentWeek].scouting[field] = value;
-      
-      if (field === 'opponent') {
-         weeklyData[currentWeek].opponent = value;
-         const oppInput = document.getElementById("opponent-input");
-         if(oppInput) oppInput.value = value;
-      }
-      
-      triggerDebouncedSave();
-
-      if (['year', 'week', 'opponent'].includes(field)) {
-         const scout = weeklyData[currentWeek].scouting;
-         const printTitle = document.getElementById('print-scout-title');
-         const opp = scout.opponent || weeklyData[currentWeek].opponent || `Week ${currentWeek}`;
-         const yr = scout.year ? `${scout.year} ` : "";
-         const wk = scout.week ? `${scout.week} - ` : "";
-         if (printTitle) printTitle.textContent = `Scouting Report: ${yr}${wk}${opp}`;
-      }
-    }
-
-    // --- MASTER DRILLS LOGIC ---
+    // --- DRILL LIBRARY COLLAPSE & CONTROLS ---
     function toggleDrillCat(cat, e) {
-        if(e) e.stopPropagation();
+        if (e) e.stopPropagation();
         collapsedDrillCats[cat] = !collapsedDrillCats[cat];
         localStorage.setItem('footballCollapsedDrills', JSON.stringify(collapsedDrillCats));
         renderDrillsTab();
@@ -2652,7 +1051,7 @@
                  <div class="drill-cat-body" style="display:${displayStyle};">
            `;
            
-           if(dynamicDrills[cat].length === 0) {
+           if (!dynamicDrills[cat] || dynamicDrills[cat].length === 0) {
                html += `<div style="text-align:center; color:var(--text-muted); font-style:italic; padding: 10px;">No drills in this category.</div>`;
            } else {
                html += `
@@ -2667,7 +1066,7 @@
                   html += `
                      <div class="drill-item-row">
                         <div><input type="text" class="prac-input" value="${d.name}" oninput="updateDrillField('${cat}', ${i}, 'name', this.value)" placeholder="Drill Name"></div>
-                        <div><textarea class="prac-textarea" style="min-height:30px;" oninput="autoResizeTextarea(this); updateDrillField('${cat}', ${i}, 'desc', this.value);" placeholder="Setup: ...\nInstruction: ...">${d.desc}</textarea></div>
+                        <div><textarea class="prac-textarea" style="min-height:30px;" oninput="autoResizeTextarea(this); updateDrillField('${cat}', ${i}, 'desc', this.value);">${d.desc}</textarea></div>
                         <div><input type="text" class="prac-input" value="${d.key}" oninput="updateDrillField('${cat}', ${i}, 'key', this.value)" placeholder="Focus..."></div>
                         <div class="admin-only" style="text-align:center; padding-top:4px;"><button class="remove-btn" onclick="deleteDrillFromCategory('${cat}', ${i}, event)">&times;</button></div>
                      </div>
@@ -2680,17 +1079,15 @@
        
        html += `</div>`;
        wrapper.innerHTML = html;
-       
        document.querySelectorAll('#panel-drills .prac-textarea').forEach(ta => autoResizeTextarea(ta));
     }
 
     function addDrillCategory() {
-      if (userRole !== 'admin') { alert("Admin only"); return; }
+      if (userRole !== 'admin') return;
       let cat = prompt("Enter new Drill Category Name:");
       if (cat && cat.trim() !== "" && !dynamicDrills[cat]) {
           dynamicDrills[cat.trim()] = [];
-          saveState();
-          renderDrillsTab();
+          saveState(); renderDrillsTab();
       }
     }
 
@@ -2701,23 +1098,16 @@
       if (newCat && newCat.trim() !== "" && newCat !== oldCat && !dynamicDrills[newCat]) {
           dynamicDrills[newCat.trim()] = dynamicDrills[oldCat];
           delete dynamicDrills[oldCat];
-          if (collapsedDrillCats[oldCat] !== undefined) {
-             collapsedDrillCats[newCat.trim()] = collapsedDrillCats[oldCat];
-             delete collapsedDrillCats[oldCat];
-          }
-          saveState();
-          renderDrillsTab();
+          saveState(); renderDrillsTab();
       }
     }
 
     function deleteDrillCategory(cat, e) {
       if (e) e.stopPropagation();
       if (userRole !== 'admin') return;
-      if (confirm(`Are you sure you want to delete "${cat}" and all its drills?`)) {
+      if (confirm(`Delete category "${cat}"?`)) {
           delete dynamicDrills[cat];
-          delete collapsedDrillCats[cat];
-          saveState();
-          renderDrillsTab();
+          saveState(); renderDrillsTab();
       }
     }
 
@@ -2726,8 +1116,7 @@
       if (userRole !== 'admin') return;
       collapsedDrillCats[cat] = false; 
       dynamicDrills[cat].unshift({ name: "New Drill", desc: "", key: "" });
-      saveState();
-      renderDrillsTab();
+      saveState(); renderDrillsTab();
     }
 
     function updateDrillField(cat, index, field, val) {
@@ -2741,630 +1130,11 @@
       if (userRole !== 'admin') return;
       if (confirm("Delete this drill?")) {
          dynamicDrills[cat].splice(index, 1);
-         saveState();
-         renderDrillsTab();
+         saveState(); renderDrillsTab();
       }
     }
 
-    // --- FORMATION UTILS ---
-    function handleFormationClick(formId) {
-        if (activeCountFormationId === formId) {
-            activeCountFormationId = null; 
-        } else {
-            activeCountFormationId = formId;
-        }
-
-        document.querySelectorAll('.formation-container').forEach(el => {
-            el.classList.remove('counting-active');
-        });
-        
-        if (activeCountFormationId) {
-            const activeEl = document.getElementById('board_' + activeCountFormationId);
-            if (activeEl) {
-                activeEl.classList.add('counting-active');
-            }
-        }
-
-        renderMasterRoster(); 
-    }
-
-    function createFormationPrompt(unit) {
-      if (userRole !== 'admin') { alert("Admin only"); return; }
-      
-      let name = prompt(`Enter new ${unit.toUpperCase()} formation name:`, "New Formation");
-      if(name === null) return;
-      if(name.trim() === "") name = "New Formation";
-
-      let subtitle = prompt("Enter subtitle/description:", "Personnel / Alignment details");
-      if(subtitle === null) subtitle = "";
-
-      const forms = getWeekFormations(currentWeek);
-      const formId = generateUniqueId("form");
-      const rowId = generateUniqueId("row");
-      const posId = generateUniqueId("pos");
-
-      const newForm = {
-        id: formId,
-        unit: unit,
-        name: name,
-        subtitle: subtitle,
-        collapsed: false,
-        rows: [
-          { id: rowId, label: "Main Level", rowClass: "oline", slotCount: 7, positions: [
-            { id: posId, name: "POS 1" }, null, null, null, null, null, null
-          ]}
-        ]
-      };
-      
-      forms.push(newForm);
-      if(!depthChart) depthChart = getWeekDepthChart(currentWeek);
-      if(!depthChart[posId]) depthChart[posId] = [];
-      
-      saveState(); 
-      renderActiveBoards();
-      renderMasterRoster(); 
-    }
-
-    function renameFormation(formId) {
-      if (userRole !== 'admin') return;
-      const forms = getWeekFormations(currentWeek);
-      const form = forms.find(f => f.id === formId);
-      if(!form) return;
-      
-      let newName = prompt("Edit Formation Name:", form.name);
-      if (newName !== null && newName.trim() !== "") {
-          form.name = newName.trim();
-          let newSub = prompt("Edit Subtitle:", form.subtitle || "");
-          if (newSub !== null) form.subtitle = newSub.trim();
-          saveState();
-          renderActiveBoards();
-      }
-    }
-
-    function deleteFormation(formId) {
-      if (userRole !== 'admin') return;
-      const forms = getWeekFormations(currentWeek);
-      if (confirm("Are you sure you want to delete this entire formation?")) {
-        weeklyData[currentWeek].formations = forms.filter(f => f.id !== formId);
-        if (activeCountFormationId === formId) activeCountFormationId = null;
-        saveState();
-        renderActiveBoards();
-        renderMasterRoster(); 
-      }
-    }
-
-    function addRowToFormation(formId) {
-      if (userRole !== 'admin') { alert("Admin only"); return; }
-      const forms = getWeekFormations(currentWeek);
-      const form = forms.find(f => f.id === formId);
-      if(!form) return;
-      
-      let label = prompt("Enter Row/Level Name (e.g., 'Linebackers', 'Backfield'):", "New Level");
-      if(label === null) return;
-      if(label.trim() === "") label = "New Level";
-      
-      const rowId = generateUniqueId("row");
-      const posId = generateUniqueId("pos");
-
-      if (!Array.isArray(form.rows)) form.rows = [];
-
-      form.rows.push({
-        id: rowId,
-        label: label,
-        rowClass: "oline",
-        slotCount: 7,
-        positions: [
-          { id: posId, name: "POS 1" }, null, null, null, null, null, null
-        ]
-      });
-      
-      if(!depthChart) depthChart = getWeekDepthChart(currentWeek);
-      if(!depthChart[posId]) depthChart[posId] = [];
-      
-      saveState(); 
-      renderActiveBoards();
-      renderMasterRoster();
-    }
-
-    function renameRow(formId, rowId) {
-      if (userRole !== 'admin') return;
-      const forms = getWeekFormations(currentWeek);
-      const form = forms.find(f => f.id === formId);
-      if(!form) return;
-      const row = form.rows.find(r => r.id === rowId);
-      if(!row) return;
-      
-      let newLabel = prompt("Edit Row Name:", row.label);
-      if (newLabel !== null && newLabel.trim() !== "") {
-          row.label = newLabel.trim();
-          saveState();
-          renderActiveBoards();
-      }
-    }
-
-    function deleteRow(formId, rowId) {
-      if (userRole !== 'admin') return;
-      const forms = getWeekFormations(currentWeek);
-      const form = forms.find(f => f.id === formId);
-      if(!form) return;
-      
-      if (confirm("Delete this row and its positions?")) {
-        form.rows = form.rows.filter(r => r.id !== rowId);
-        saveState(); 
-        renderActiveBoards();
-        renderMasterRoster();
-      }
-    }
-
-    function addPositionToRow(formId, rowId) {
-      if (userRole !== 'admin') { alert("Admin only"); return; }
-      const forms = getWeekFormations(currentWeek);
-      const form = forms.find(f => f.id === formId);
-      if(!form) return;
-      const row = form.rows.find(r => r.id === rowId);
-      if(!row) return;
-
-      const slotCount = row.slotCount || 7;
-      if (!Array.isArray(row.positions)) row.positions = [];
-      while(row.positions.length < slotCount) row.positions.push(null);
-
-      const emptyIndex = row.positions.findIndex(p => p === null);
-      if (emptyIndex === -1) {
-          alert(`This row is full (maximum ${slotCount} slots). Click '⚙️ Slots' on the row header to increase capacity.`);
-          return;
-      }
-
-      let posName = prompt("Enter Position Name (e.g. 'LT', 'MIKE'):", "POS");
-      if(posName === null) return;
-      if(posName.trim() === "") posName = "POS";
-      
-      const posId = generateUniqueId("pos");
-      row.positions[emptyIndex] = { id: posId, name: posName.trim() };
-      
-      if(!depthChart) depthChart = getWeekDepthChart(currentWeek);
-      if(!depthChart[posId]) depthChart[posId] = [];
-      
-      saveState(); 
-      renderActiveBoards();
-      renderMasterRoster();
-    }
-
-    function deletePosition(formId, rowId, posId) {
-      if (userRole !== 'admin') return;
-      const forms = getWeekFormations(currentWeek);
-      const form = forms.find(f => f.id === formId);
-      if(!form) return;
-      const row = form.rows.find(r => r.id === rowId);
-      if(!row) return;
-
-      if (confirm("Delete this position card?")) {
-        row.positions = row.positions.map(p => (p && p.id === posId) ? null : p);
-        delete depthChart[posId];
-        saveState();
-        renderActiveBoards();
-        renderMasterRoster();
-      }
-    }
-
-    function renamePracticeWeek(year, oldWeek, e) {
-        e.stopPropagation();
-        if(userRole !== 'admin') return;
-        
-        let newWeek = prompt(`Rename Folder '${oldWeek}':`, oldWeek);
-        if(newWeek !== null && newWeek.trim() !== "" && newWeek !== oldWeek) {
-            newWeek = newWeek.trim();
-            practiceData.forEach(p => {
-                if(p.year === year && p.week === oldWeek) p.week = newWeek;
-            });
-            if (weekSortOrder[year]) {
-                const idx = weekSortOrder[year].indexOf(oldWeek);
-                if (idx > -1) weekSortOrder[year][idx] = newWeek;
-            }
-            saveState();
-            populatePracticeDropdown();
-            renderPracticePlan();
-        }
-    }
-
-    function editPracticeDetails() {
-        if(userRole !== 'admin') return;
-        const prac = practiceData.find(p => p.id === currentPracticeId);
-        if(!prac) return;
-        
-        let title = prompt("Edit Title:", prac.title);
-        if (title !== null) prac.title = title.trim();
-        
-        let day = prompt("Edit Day (e.g. Wednesday):", prac.day);
-        if (day !== null) prac.day = day.trim();
-        
-        let week = prompt("Edit Week (e.g. Week 3):", prac.week);
-        if (week !== null) prac.week = week.trim();
-        
-        let year = prompt("Edit Year:", prac.year);
-        if (year !== null) prac.year = year.trim();
-
-        prac.lastEdited = Date.now();
-        saveState();
-        populatePracticeDropdown();
-        renderPracticePlan();
-    }
-
-    function deletePractice() {
-        if(userRole !== 'admin') return;
-        if(practiceData.length <= 1) {
-            alert("Cannot delete the last remaining practice plan.");
-            return;
-        }
-        if (confirm("Are you sure you want to delete this entire practice plan?")) {
-            practiceData = practiceData.filter(p => p.id !== currentPracticeId);
-            currentPracticeId = practiceData[0].id;
-            saveState();
-            populatePracticeDropdown();
-            renderPracticePlan();
-        }
-    }
-
-    // --- USERS LOGIC ---
-    async function renderUsers() {
-       const container = document.getElementById("users-table-container");
-       if(!container) return;
-       
-       container.innerHTML = `<div style="padding:10px;">Syncing with database...</div>`;
-
-       let html = `
-          <table style="width:100%; border-collapse: collapse; font-size:12px; background:#fff; border:1px solid var(--card-border);">
-             <tr style="background:#f1f5f9; text-align:left;">
-                <th style="padding:8px 12px; border:1px solid var(--card-border);">Email / Name</th>
-                <th style="padding:8px 12px; border:1px solid var(--card-border);">Role</th>
-                <th style="padding:8px 12px; border:1px solid var(--card-border);">Status</th>
-                <th class="admin-only" style="padding:8px 12px; border:1px solid var(--card-border);">Action</th>
-             </tr>
-       `;
-
-       if (cloudEnabled && db) {
-           try {
-               const snapshot = await db.collection('users').get();
-               if (snapshot.empty) {
-                    html += `<tr><td colspan="4" style="padding:8px 12px; text-align:center; color:var(--text-muted);">No assigned coaches found in the 'users' database yet.</td></tr>`;
-               } else {
-                   snapshot.forEach(doc => {
-                       const u = doc.data();
-                       const roleBadge = u.role === 'admin' ? '<span class="role-badge role-admin">HEAD COACH</span>' : '<span class="role-badge role-viewer">COACH</span>';
-                       html += `
-                       <tr>
-                          <td style="padding:8px 12px; border:1px solid var(--card-border); font-weight:bold;">${u.email || doc.id}</td>
-                          <td style="padding:8px 12px; border:1px solid var(--card-border);">${roleBadge}</td>
-                          <td style="padding:8px 12px; border:1px solid var(--card-border); color:var(--text-muted);">${u.status || 'Active'}</td>
-                          <td class="admin-only" style="padding:8px 12px; border:1px solid var(--card-border);">
-                              <button onclick="updateFirebaseUserRole('${doc.id}', '${u.role === 'admin' ? 'viewer' : 'admin'}')" style="font-size:10px; padding:2px 6px;">Toggle Role</button>
-                          </td>
-                       </tr>
-                       `;
-                   });
-               }
-           } catch(err) {
-               console.error("Error fetching users:", err);
-               html += `<tr><td colspan="4" style="padding:8px 12px; text-align:center; color:#ef4444;">Unable to load users. Ensure your Firestore Database has a 'users' collection and permissions are public to read.</td></tr>`;
-           }
-       }
-       
-       const currentEmail = currentUser ? (currentUser.email || "Logged In User") : 'Local Offline Admin';
-       html += `
-             <tr style="background:#fefce8;">
-                <td style="padding:8px 12px; border:1px solid var(--card-border); font-weight:bold;">${currentEmail} (You)</td>
-                <td style="padding:8px 12px; border:1px solid var(--card-border);"><span class="role-badge role-admin">HEAD COACH</span></td>
-                <td style="padding:8px 12px; border:1px solid var(--card-border); color:var(--text-muted);">Current Active Session</td>
-                <td class="admin-only" style="padding:8px 12px; border:1px solid var(--card-border);"></td>
-             </tr>
-          </table>
-          
-          <div class="admin-only" style="margin-top:10px; padding:10px; background:#f8fafc; border:1px solid var(--card-border); border-radius:6px;">
-             <strong>Add Coach to Database:</strong>
-             <div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:6px;">
-                <input type="email" id="new-user-email" class="prac-input" placeholder="Coach Email Address" style="width:200px;">
-                <select id="new-user-role" class="prac-select" style="width:140px;">
-                    <option value="viewer">COACH (View Only)</option>
-                    <option value="admin">HEAD COACH (Edit)</option>
-                </select>
-                <button class="add-row-btn" style="margin:0;" onclick="addFirebaseUser()">+ Add to Database</button>
-             </div>
-          </div>
-
-          <p style="margin-top:15px; font-size:12px; color:var(--text-muted); background:#eff6ff; padding:10px; border-radius:6px; border:1px solid #bae6fd;">
-             <strong>Note:</strong> Firebase Authentication hides full user lists for security. Any coach who creates an account will have default read-only access. To grant them Head Coach powers, simply add their email here using the tool above to sync their permissions!
-          </p>
-       `;
-       container.innerHTML = html;
-    }
-
-    async function addFirebaseUser() {
-        if(!cloudEnabled || !db) return alert("Firebase is not connected in Offline Mode.");
-        const email = document.getElementById('new-user-email').value.trim();
-        const role = document.getElementById('new-user-role').value;
-        if(!email) return;
-        try {
-            await db.collection('users').doc(email.toLowerCase()).set({ email: email.toLowerCase(), role: role, status: 'Active' });
-            renderUsers();
-        } catch(e) {
-            alert("Error adding user: "+e.message);
-        }
-    }
-
-    async function updateFirebaseUserRole(docId, newRole) {
-        if(!cloudEnabled || !db) return;
-        try {
-            await db.collection('users').doc(docId).update({ role: newRole });
-            renderUsers();
-        } catch(e) {
-            alert("Error updating permissions: "+e.message);
-        }
-    }
-
-    // --- Authentication & User Lifecycle ---
-    function switchAuthTab(mode) {
-      isSignUpMode = (mode === 'register');
-      document.getElementById("tab-login").classList.toggle('active', !isSignUpMode);
-      document.getElementById("tab-register").classList.toggle('active', isSignUpMode);
-      document.getElementById("auth-submit-btn").textContent = isSignUpMode ? "Create Account" : "Sign In";
-      document.getElementById("auth-error").style.display = "none";
-    }
-
-    function applyRole(role) {
-       userRole = role;
-       const badge = document.getElementById("user-role-badge");
-       
-       if(role === 'admin') {
-          document.body.classList.remove('view-only');
-          if (badge) {
-              badge.textContent = "HEAD COACH";
-              badge.className = "role-badge role-admin";
-          }
-       } else {
-          document.body.classList.add('view-only');
-          if (badge) {
-              badge.textContent = "COACH";
-              badge.className = "role-badge role-viewer";
-          }
-       }
-    }
-
-    function bypassLogin() {
-      const overlay = document.getElementById("auth-overlay");
-      if (overlay) overlay.style.display = "none";
-      applyRole('admin');
-      document.getElementById("user-display-email").textContent = "Offline Coach";
-    }
-
-    function displayAuthError(msg) {
-      const errorEl = document.getElementById("auth-error");
-      if (errorEl) {
-        errorEl.textContent = msg;
-        errorEl.style.display = "block";
-      }
-    }
-
-    async function handleEmailAuth(e) {
-      if (e) {
-        e.preventDefault();
-        e.stopPropagation();
-      }
-      const errDiv = document.getElementById("auth-error");
-      if (errDiv) errDiv.style.display = "none";
-
-      if (!auth) {
-        bypassLogin();
-        return false;
-      }
-      const email = document.getElementById("auth-email").value.trim();
-      const pass = document.getElementById("auth-password").value;
-
-      try {
-        if (isSignUpMode) {
-          await auth.createUserWithEmailAndPassword(email, pass);
-        } else {
-          await auth.signInWithEmailAndPassword(email, pass);
-        }
-        const overlay = document.getElementById("auth-overlay");
-        if (overlay) overlay.style.display = "none";
-      } catch (err) {
-        console.error("Auth Error:", err);
-        displayAuthError(err.message);
-      }
-      return false;
-    }
-
-    async function signInWithGoogle() {
-      const errDiv = document.getElementById("auth-error");
-      if (errDiv) errDiv.style.display = "none";
-
-      if (!auth) {
-        bypassLogin();
-        return;
-      }
-      try {
-        const provider = new firebase.auth.GoogleAuthProvider();
-        provider.setCustomParameters({ prompt: 'select_account' });
-        await auth.signInWithPopup(provider);
-        const overlay = document.getElementById("auth-overlay");
-        if (overlay) overlay.style.display = "none";
-      } catch (err) {
-        console.error("Google Auth Error:", err);
-        let msg = err.message;
-        if (window.location.protocol === 'file:') {
-          msg = "Google popup login requires http://localhost or GitHub Pages. Use Offline Mode or Email login.";
-        }
-        displayAuthError(msg);
-      }
-    }
-
-    function signOutUser() {
-      if (auth) {
-        auth.signOut().then(() => location.reload());
-      } else {
-        location.reload();
-      }
-    }
-
-    if (auth) {
-      let authResolved = false;
-      auth.onAuthStateChanged(async (user) => {
-        authResolved = true;
-        const overlay = document.getElementById("auth-overlay");
-        if (user) {
-          currentUser = user;
-          if (overlay) overlay.style.display = "none";
-          document.getElementById("user-display-email").textContent = user.email || user.displayName || "Coach";
-          document.getElementById("sync-text").textContent = "Live Cloud Sync Active";
-          
-          let roleAssigned = 'viewer'; 
-          
-          if (db) {
-             try {
-                 const userEmail = user.email.toLowerCase();
-                 const docRef = db.collection('users').doc(userEmail);
-                 const doc = await docRef.get();
-                 
-                 if (userEmail === 'dannym1010@gmail.com') {
-                     roleAssigned = 'admin';
-                     await docRef.set({ email: userEmail, role: 'admin', status: 'Active' }, { merge: true });
-                 } else if (doc.exists) {
-                     roleAssigned = doc.data().role || 'viewer';
-                 } else {
-                     roleAssigned = 'viewer';
-                     await docRef.set({ email: userEmail, role: 'viewer', status: 'Active' });
-                 }
-             } catch(e) { 
-                 console.error("Database access error:", e); 
-                 if (user.email.toLowerCase() === 'dannym1010@gmail.com') roleAssigned = 'admin';
-             }
-          } else {
-              if (user.email.toLowerCase() === 'dannym1010@gmail.com') roleAssigned = 'admin';
-          }
-          
-          applyRole(roleAssigned);
-          listenToLiveUpdates();
-          
-        } else {
-          currentUser = null;
-          if (overlay) overlay.style.display = "flex";
-        }
-      });
-      
-      setTimeout(() => {
-        if (!authResolved) {
-          console.warn("Auth state change timed out. Unlocking interface.");
-          const overlay = document.getElementById("auth-overlay");
-          if (overlay && overlay.style.display !== "none") {
-            bypassLogin();
-          }
-        }
-      }, 1500);
-    }
-
-    // --- UTILITIES ---
-    function generateUniqueId(prefix) {
-        return prefix + '_' + Math.random().toString(36).substr(2, 9);
-    }
-
-    function exportData() {
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({weeklyData, practiceData, masterPlayLibrary, dynamicDrills}));
-        const dlAnchorElem = document.createElement('a');
-        dlAnchorElem.setAttribute("href", dataStr);
-        dlAnchorElem.setAttribute("download", "football_backup.json");
-        dlAnchorElem.click();
-    }
-
-    function resetDefault() {
-        if (confirm("Are you sure you want to wipe all local data?")) {
-            localStorage.clear();
-            location.reload();
-        }
-    }
-
-    function executeCustomPrint() {
-        const printModal = document.getElementById('print-modal');
-        if(printModal) printModal.classList.add('hidden');
-        window.print();
-    }
-
-    // --- PRACTICE PLAN FUNCTIONS ---
-    function populatePracticeDropdown() {
-        const dropdown = document.getElementById("practice-tree-dropdown");
-        const display = document.getElementById("selected-practice-display");
-        if (!dropdown || !display) return;
-
-        let html = '<ul class="tree-root">';
-        let folders = {};
-        
-        practiceData.forEach(p => {
-            let folder = p.week || "Uncategorized";
-            if (!folders[folder]) folders[folder] = [];
-            folders[folder].push(p);
-        });
-
-        for (let folder in folders) {
-            html += `<li>
-                <span class="tree-caret" onclick="this.nextElementSibling.classList.toggle('hidden')">📁 ${folder}</span>
-                <ul class="hidden">`;
-            folders[folder].forEach(p => {
-                let isSelected = p.id === currentPracticeId;
-                if (isSelected) display.textContent = `${folder} - ${p.title}`;
-                html += `<li class="tree-leaf ${isSelected ? 'selected' : ''}" onclick="selectPractice('${p.id}')">📄 ${p.title}</li>`;
-            });
-            html += `</ul></li>`;
-        }
-        html += '</ul>';
-        dropdown.innerHTML = html;
-    }
-
-    function selectPractice(id) {
-        currentPracticeId = id;
-        document.getElementById("practice-tree-dropdown").classList.add("hidden");
-        saveState();
-        populatePracticeDropdown();
-        renderPracticePlan();
-    }
-
-    function openNewPracticeModal() {
-        if (userRole !== 'admin') return;
-        document.getElementById('new-prac-modal').classList.remove('hidden');
-    }
-
-    function executeCreateNewPractice() {
-        if (userRole !== 'admin') return;
-        const title = document.getElementById('modal-prac-title').value || "New Practice";
-        const folder = document.getElementById('modal-prac-folder').value || "Week 1";
-        
-        const newPrac = {
-            id: generateUniqueId('prac'),
-            title: title,
-            year: new Date().getFullYear().toString(),
-            week: folder,
-            day: "Wednesday",
-            startTime: "17:05",
-            endTime: "20:00",
-            lastEdited: Date.now(),
-            plan: [
-                { time: 10, category: "Warm-Up & Breaks", format: "static", stations: [{ name: "Warmup", desc: "Dynamic stretching", coach: "", focus: "Get loose" }] }
-            ]
-        };
-        practiceData.push(newPrac);
-        currentPracticeId = newPrac.id;
-        document.getElementById('new-prac-modal').classList.add('hidden');
-        saveState();
-        populatePracticeDropdown();
-        renderPracticePlan();
-    }
-
-    function updatePracticeTimes(field, val) {
-        const prac = practiceData.find(p => p.id === currentPracticeId);
-        if (prac) {
-            prac[field] = val;
-            saveState();
-            renderPracticePlan();
-        }
-    }
-
+    // --- FULL PRACTICE PLAN RENDERING WITH MULTI-STATION SUPPORT ---
     function renderPracticePlan() {
         const prac = practiceData.find(p => p.id === currentPracticeId);
         if (!prac) return;
@@ -3375,7 +1145,7 @@
         const printTitle = document.getElementById('print-practice-title');
         const printDate = document.getElementById('print-practice-date');
         if (printTitle) printTitle.textContent = prac.title;
-        if (printDate) printDate.textContent = `${prac.day} | ${prac.week} ${prac.year}`;
+        if (printDate) printDate.textContent = `${prac.day || ''} | ${prac.week || ''} ${prac.year || ''}`;
 
         const tbody = document.getElementById('practice-rows');
         if (!tbody) return;
@@ -3393,20 +1163,20 @@
             
             let stationsHtml = (row.stations || []).map((st, sIdx) => `
                 <div class="station-block">
-                    <input type="text" class="prac-input" value="${st.name}" oninput="updatePracStation(${idx}, ${sIdx}, 'name', this.value)" placeholder="Group / Drill Name">
-                    <textarea class="prac-textarea" oninput="autoResizeTextarea(this); updatePracStation(${idx}, ${sIdx}, 'desc', this.value)" placeholder="Drill details...">${st.desc}</textarea>
+                    <input type="text" class="prac-input" value="${st.name || ''}" oninput="updatePracStation(${idx}, ${sIdx}, 'name', this.value)" placeholder="Group / Drill Name">
+                    <textarea class="prac-textarea" oninput="autoResizeTextarea(this); updatePracStation(${idx}, ${sIdx}, 'desc', this.value)" placeholder="Drill details...">${st.desc || ''}</textarea>
                 </div>
             `).join('');
 
             let coachesHtml = (row.stations || []).map((st, sIdx) => `
                 <div class="station-block" style="min-height:50px;">
-                    <input type="text" class="prac-input" value="${st.coach}" oninput="updatePracStation(${idx}, ${sIdx}, 'coach', this.value)" placeholder="Coach Name(s)">
+                    <input type="text" class="prac-input" value="${st.coach || ''}" oninput="updatePracStation(${idx}, ${sIdx}, 'coach', this.value)" placeholder="Coach Name(s)">
                 </div>
             `).join('');
 
             let focusHtml = (row.stations || []).map((st, sIdx) => `
                 <div class="station-block" style="min-height:50px;">
-                    <input type="text" class="prac-input" value="${st.focus}" oninput="updatePracStation(${idx}, ${sIdx}, 'focus', this.value)" placeholder="Key Coaching Point">
+                    <input type="text" class="prac-input" value="${st.focus || ''}" oninput="updatePracStation(${idx}, ${sIdx}, 'focus', this.value)" placeholder="Key Coaching Point">
                 </div>
             `).join('');
 
@@ -3446,12 +1216,10 @@
             currentTimeMin = endTimeMin;
         });
 
-        document.querySelectorAll('.prac-textarea').forEach(ta => autoResizeTextarea(ta));
+        document.querySelectorAll('#main-practice-table .prac-textarea').forEach(ta => autoResizeTextarea(ta));
 
         const stats = document.getElementById('prac-stats');
-        if (stats) {
-            stats.innerHTML = `Total Planned Time: ${totalMins} mins`;
-        }
+        if (stats) stats.innerHTML = `Total Planned Time: ${totalMins} mins`;
     }
 
     function updatePracRow(rIdx, field, val) {
@@ -3459,7 +1227,10 @@
         if (prac && prac.plan[rIdx]) {
             prac.plan[rIdx][field] = val;
             triggerDebouncedSave();
-            if (field === 'time') renderPracticePlan();
+            if (field === 'time') {
+                const isTyping = document.activeElement && document.activeElement.closest('#main-practice-table');
+                if (!isTyping) renderPracticePlan();
+            }
         }
     }
 
@@ -3475,13 +1246,10 @@
         const prac = practiceData.find(p => p.id === currentPracticeId);
         if (prac) {
             prac.plan.push({
-                time: 10,
-                category: "Indy / Fundamentals",
-                format: "static",
+                time: 10, category: "Indy / Fundamentals", format: "static",
                 stations: [{ name: "New Group", desc: "", coach: "", focus: "" }]
             });
-            saveState();
-            renderPracticePlan();
+            saveState(); renderPracticePlan();
         }
     }
 
@@ -3489,25 +1257,721 @@
         const prac = practiceData.find(p => p.id === currentPracticeId);
         if (prac && prac.plan[rIdx]) {
             prac.plan[rIdx].stations.push({ name: "", desc: "", coach: "", focus: "" });
-            saveState();
-            renderPracticePlan();
+            saveState(); renderPracticePlan();
         }
     }
 
     function removePracticeRow(rIdx) {
         const prac = practiceData.find(p => p.id === currentPracticeId);
-        if (prac && confirm("Remove this entire period?")) {
+        if (prac && confirm("Remove this period?")) {
             prac.plan.splice(rIdx, 1);
-            saveState();
-            renderPracticePlan();
+            saveState(); renderPracticePlan();
         }
     }
 
-    function saveAsTemplate() {
-        alert("Template saved locally!");
+    function updatePracticeTimes(field, val) {
+        const prac = practiceData.find(p => p.id === currentPracticeId);
+        if (prac) {
+            prac[field] = val;
+            saveState(); renderPracticePlan();
+        }
     }
 
-    // Run
+    function populatePracticeDropdown() {
+        const dropdown = document.getElementById("practice-tree-dropdown");
+        const display = document.getElementById("selected-practice-display");
+        if (!dropdown || !display) return;
+
+        let html = '<ul class="tree-root">';
+        let folders = {};
+        
+        practiceData.forEach(p => {
+            let folder = p.week || "Uncategorized";
+            if (!folders[folder]) folders[folder] = [];
+            folders[folder].push(p);
+        });
+
+        for (let folder in folders) {
+            html += `<li>
+                <span class="tree-caret" onclick="this.nextElementSibling.classList.toggle('hidden')">📁 ${folder}</span>
+                <ul class="hidden">`;
+            folders[folder].forEach(p => {
+                let isSelected = p.id === currentPracticeId;
+                if (isSelected) display.textContent = `${folder} - ${p.title}`;
+                html += `<li class="tree-leaf ${isSelected ? 'selected' : ''}" onclick="selectPractice('${p.id}')">📄 ${p.title}</li>`;
+            });
+            html += `</ul></li>`;
+        }
+        dropdown.innerHTML = html + '</ul>';
+    }
+
+    function selectPractice(id) {
+        currentPracticeId = id;
+        document.getElementById("practice-tree-dropdown").classList.add("hidden");
+        saveState(); populatePracticeDropdown(); renderPracticePlan();
+    }
+
+    function openNewPracticeModal() { document.getElementById('new-prac-modal').classList.remove('hidden'); }
+    function executeCreateNewPractice() {
+        const title = document.getElementById('modal-prac-title').value || "New Practice";
+        const folder = document.getElementById('modal-prac-folder').value || "Week 1";
+        const newPrac = {
+            id: 'prac_' + Date.now(), title: title, year: new Date().getFullYear().toString(),
+            week: folder, day: "Wednesday", startTime: "17:05", endTime: "20:00", lastEdited: Date.now(),
+            plan: [{ time: 10, category: "Warm-Up & Breaks", format: "static", stations: [{ name: "Warmup", desc: "Dynamic stretch", coach: "", focus: "" }] }]
+        };
+        practiceData.push(newPrac);
+        currentPracticeId = newPrac.id;
+        document.getElementById('new-prac-modal').classList.add('hidden');
+        saveState(); populatePracticeDropdown(); renderPracticePlan();
+    }
+
+    function editPracticeDetails() {
+        const prac = practiceData.find(p => p.id === currentPracticeId);
+        if (!prac) return;
+        let title = prompt("Edit Title:", prac.title);
+        if (title !== null) prac.title = title.trim();
+        saveState(); populatePracticeDropdown(); renderPracticePlan();
+    }
+
+    function deletePractice() {
+        if (practiceData.length <= 1) return alert("Cannot delete the last plan.");
+        if (confirm("Delete this practice plan?")) {
+            practiceData = practiceData.filter(p => p.id !== currentPracticeId);
+            currentPracticeId = practiceData[0].id;
+            saveState(); populatePracticeDropdown(); renderPracticePlan();
+        }
+    }
+
+    // --- FOCUS-PROTECTED LIVE SNAPSHOT LISTENER ---
+    function listenToLiveUpdates() {
+        if (!cloudEnabled || !db) return;
+        db.collection("teamData").doc("depthChartData")
+          .onSnapshot((doc) => {
+            if (doc.exists) {
+              const data = doc.data();
+              if (data.weeklyData) weeklyData = data.weeklyData;
+              if (data.practiceData) practiceData = data.practiceData;
+              if (data.masterPlayLibrary) masterPlayLibrary = data.masterPlayLibrary;
+              if (data.dynamicDrills) dynamicDrills = data.dynamicDrills;
+              if (data.pdfGuides) pdfGuides = data.pdfGuides;
+
+              depthChart = getWeekDepthChart(currentWeek);
+              renderActiveBoards();
+              renderMasterRoster();
+              populatePracticeDropdown();
+
+              if (activeUnit === 'practice') {
+                  const isTyping = document.activeElement && document.activeElement.closest('#main-practice-table');
+                  if (!isTyping) renderPracticePlan();
+              }
+              if (activeUnit === 'wristband') renderWristband();
+              if (activeUnit === 'scouting') renderScouting();
+              if (activeUnit === 'guide') renderGuideTab();
+              if (activeUnit === 'scrimmage') renderScrimmageTab();
+            }
+          });
+    }
+
+    // --- SELECT FORMATION FOR MASTER ROSTER FILTERING ---
+    function selectFormationForRoster(formId) {
+        selectedFormationFilterId = formId;
+        // Highlight active container
+        document.querySelectorAll('.formation-container').forEach(c => c.classList.remove('active-selected'));
+        const container = document.getElementById("board_" + formId);
+        if (container) container.classList.add('active-selected');
+        renderMasterRoster();
+    }
+
+    // --- RENDER BOARDS & SCRIMMAGE ROTATION ---
+    function renderActiveBoards() {
+      const container = document.getElementById("boards-" + activeUnit);
+      if (!container) return;
+      const forms = getWeekFormations(currentWeek).filter(f => f && f.unit === activeUnit);
+      container.innerHTML = "";
+
+      if (forms.length === 0) {
+          container.innerHTML = `<div style="padding:40px; text-align:center; color:var(--text-muted);">No boards found for ${activeUnit.toUpperCase()}.</div>`;
+          return;
+      }
+
+      // Default selection to first form if none selected or invalid
+      if (!selectedFormationFilterId || !forms.some(f => f.id === selectedFormationFilterId)) {
+          selectedFormationFilterId = forms[0].id;
+      }
+
+      forms.forEach(form => {
+        const formDiv = document.createElement("div");
+        formDiv.className = "formation-container" + (form.id === selectedFormationFilterId ? " active-selected" : "");
+        formDiv.id = "board_" + form.id;
+        formDiv.onclick = () => selectFormationForRoster(form.id);
+
+        formDiv.innerHTML = `<div class="board-title"><span>${form.name}</span></div><div class="formation-body"></div>`;
+        const bodyDiv = formDiv.querySelector(".formation-body");
+
+        (form.rows || []).forEach(row => {
+          const rowWrap = document.createElement("div");
+          rowWrap.className = "row-container";
+          rowWrap.innerHTML = `<div class="level-header-bar"><span class="level-label">${row.label || 'Row'}</span></div><div class="formation-row" style="grid-template-columns: repeat(${row.slotCount || 7}, 1fr);"></div>`;
+          const posRowEl = rowWrap.querySelector(".formation-row");
+
+          (row.positions || []).forEach(pos => {
+            const slotDiv = document.createElement("div");
+            slotDiv.className = "row-slot";
+            if (pos) {
+              const card = document.createElement("div");
+              card.className = "position-card";
+              card.id = `card-${pos.id}`;
+
+              if (userRole === 'admin') {
+                card.ondragover = (e) => { e.preventDefault(); card.classList.add("drag-over"); };
+                card.ondragleave = () => card.classList.remove("drag-over");
+                card.ondrop = (e) => handleCardDrop(e, form.id, row.id, pos.id, false);
+              }
+
+              const players = (depthChart && Array.isArray(depthChart[pos.id])) ? depthChart[pos.id].filter(p => p) : [];
+              let playersHtml = players.map((player, idx) => `
+                <li class="player-item" draggable="${userRole==='admin'?'true':'false'}" ondragstart="handlePlayerDragStart(event, '${pos.id}', ${idx}, '${player.name}', '${player.num}', false)">
+                  <div class="player-info">
+                    <span class="rank-badge ${idx===0?'rank-starter':idx===1?'rank-sub-gold':'rank-sub-blue'}">${idx===0?'ST':idx===1?'D2':'D3'}</span>
+                    <span class="num-tag">#${player.num}</span>
+                    <span>${player.name}</span>
+                  </div>
+                  <button class="remove-btn admin-only" onclick="removePlayer('${pos.id}', ${idx}, event, false)">&times;</button>
+                </li>
+              `).join("");
+
+              card.innerHTML = `<div class="position-header"><span>${pos.name}</span></div><ul class="player-list">${playersHtml || '<div style="color:var(--text-muted); font-size:10px; padding:6px; text-align:center;">Drop Player</div>'}</ul>`;
+              slotDiv.appendChild(card);
+            }
+            posRowEl.appendChild(slotDiv);
+          });
+          bodyDiv.appendChild(rowWrap);
+        });
+        container.appendChild(formDiv);
+      });
+      renderMasterRoster();
+    }
+
+    function renderScrimmageTab() {
+      const container = document.getElementById("boards-scrimmage");
+      if (!container) return;
+      container.innerHTML = "";
+
+      const scrimmageChart = getWeekScrimmageChart(currentWeek);
+      const allForms = getWeekFormations(currentWeek).filter(f => f && (f.unit === 'offense' || f.unit === 'defense'));
+      const forms = allForms.filter(f => !scrimmageFilters || scrimmageFilters.includes(f.id));
+
+      if (forms.length === 0) {
+          container.innerHTML = `<div style="padding:40px; text-align:center; color:var(--text-muted);">No scrimmage boards selected. Click "Filter Boards" to choose.</div>`;
+          renderMasterRoster();
+          return;
+      }
+
+      forms.forEach(form => {
+          const formDiv = document.createElement("div");
+          formDiv.className = "formation-container";
+          formDiv.innerHTML = `<div class="board-title"><span>[${form.unit.toUpperCase()}] ${form.name}</span></div>`;
+
+          (form.rows || []).forEach(row => {
+              const rowWrap = document.createElement("div");
+              rowWrap.className = "row-container";
+              rowWrap.innerHTML = `<div class="level-header-bar"><span class="level-label">${row.label || 'Row'} (Gold & Blue Rotation)</span></div><div class="formation-row" style="grid-template-columns: repeat(${row.slotCount || 7}, 1fr);"></div>`;
+              const posRowEl = rowWrap.querySelector(".formation-row");
+
+              (row.positions || []).forEach(pos => {
+                  const slotDiv = document.createElement("div");
+                  slotDiv.className = "row-slot";
+                  if (pos) {
+                      const card = document.createElement("div");
+                      card.className = "position-card";
+                      if (userRole === 'admin') {
+                        card.ondragover = (e) => { e.preventDefault(); card.classList.add("drag-over"); };
+                        card.ondragleave = () => card.classList.remove("drag-over");
+                        card.ondrop = (e) => handleCardDrop(e, form.id, row.id, pos.id, true);
+                      }
+
+                      const players = (scrimmageChart && Array.isArray(scrimmageChart[pos.id])) ? scrimmageChart[pos.id].filter(p => p) : [];
+                      let playersHtml = players.map((player, sIdx) => `
+                        <li class="player-item" draggable="${userRole==='admin'?'true':'false'}" ondragstart="handlePlayerDragStart(event, '${pos.id}', ${sIdx}, '${player.name}', '${player.num}', true)">
+                          <div class="player-info">
+                            <span class="rank-badge ${sIdx===0?'rank-sub-gold':'rank-sub-blue'}">${sIdx===0?'Gold':'Blue'}</span>
+                            <span class="num-tag">#${player.num}</span>
+                            <span>${player.name}</span>
+                          </div>
+                          <button class="remove-btn admin-only" onclick="removePlayer('${pos.id}', ${sIdx}, event, true)">&times;</button>
+                        </li>
+                      `).join("");
+
+                      card.innerHTML = `<div class="position-header" style="background:#e0f2fe; color:#0369a1;"><span>${pos.name}</span></div><ul class="player-list">${playersHtml || '<div style="color:var(--text-muted); font-size:9px; padding:4px; text-align:center;">Drop Sub</div>'}</ul>`;
+                      slotDiv.appendChild(card);
+                  }
+                  posRowEl.appendChild(slotDiv);
+              });
+              formDiv.appendChild(rowWrap);
+          });
+          container.appendChild(formDiv);
+      });
+      renderMasterRoster();
+    }
+
+    function renderMasterRoster() {
+      const rosterContainer = document.getElementById("master-roster-list");
+      if (!rosterContainer) return;
+
+      const searchEl = document.getElementById("search-input");
+      const searchTerm = (searchEl ? searchEl.value : "").toLowerCase().trim();
+      rosterContainer.innerHTML = "";
+
+      const isScrimmageTab = (activeUnit === 'scrimmage');
+      const activeChart = isScrimmageTab ? getWeekScrimmageChart(currentWeek) : depthChart;
+
+      // Update instructions label
+      const countLabel = document.getElementById("roster-count-label");
+      const instructionLabel = document.getElementById("roster-instruction-label");
+      if (isScrimmageTab) {
+          if (countLabel) countLabel.textContent = "Counting: All Filtered Scrimmage Boards";
+          if (instructionLabel) instructionLabel.textContent = "Showing all filtered scrimmage assignments";
+      } else {
+          if (countLabel) countLabel.textContent = "Counting: Selected Formation Only";
+          if (instructionLabel) instructionLabel.textContent = "Click a formation card to filter roster";
+      }
+
+      masterRoster.forEach(player => {
+        const fName = (player.firstName || "").toLowerCase();
+        const lName = (player.lastName || "").toLowerCase();
+        const pNum = (player.num || "").toString().toLowerCase();
+
+        if (searchTerm && !fName.includes(searchTerm) && !lName.includes(searchTerm) && !pNum.includes(searchTerm)) return;
+
+        let placements = [];
+        const allForms = getWeekFormations(currentWeek);
+
+        if (isScrimmageTab) {
+            const formsToScan = scrimmageFilters ? allForms.filter(f => scrimmageFilters.includes(f.id)) : allForms.filter(f => f.unit === 'offense' || f.unit === 'defense');
+            formsToScan.forEach(form => {
+              (form.rows || []).forEach(row => {
+                (row.positions || []).forEach(pos => {
+                  if (pos && activeChart && Array.isArray(activeChart[pos.id])) {
+                    activeChart[pos.id].forEach((p, idx) => {
+                      if (p && String(p.num) === String(player.num)) {
+                        let badgeStyle = idx === 0 ? "background:#eab308; color:#000;" : "background:#1d4ed8; color:#fff;";
+                        placements.push({ posName: pos.name, style: badgeStyle });
+                      }
+                    });
+                  }
+                });
+              });
+            });
+        } else {
+            // Only scan the single selected formation
+            const selectedForm = allForms.find(f => f.id === selectedFormationFilterId && f.unit === activeUnit);
+            if (selectedForm) {
+              (selectedForm.rows || []).forEach(row => {
+                (row.positions || []).forEach(pos => {
+                  if (pos && activeChart && Array.isArray(activeChart[pos.id])) {
+                    activeChart[pos.id].forEach((p, idx) => {
+                      if (p && String(p.num) === String(player.num)) {
+                        let badgeStyle = idx === 0 ? "background:#000; color:#fff;" : (idx === 1 ? "background:#eab308; color:#000;" : "background:#1d4ed8; color:#fff;");
+                        placements.push({ posName: pos.name, style: badgeStyle });
+                      }
+                    });
+                  }
+                });
+              });
+            }
+        }
+
+        const li = document.createElement("li");
+        li.className = "full-roster-item";
+        if (userRole === 'admin') {
+          li.draggable = true;
+          li.ondragstart = (e) => handleRosterDragStart(e, player.lastName || player.firstName, player.num || "");
+        }
+
+        let badgesHtml = placements.map(pl => `<span style="font-size:9px; font-weight:bold; padding:2px 5px; border-radius:3px; ${pl.style}; margin-left:2px;">${pl.posName}</span>`).join("");
+
+        li.innerHTML = `
+          <div style="display:flex; align-items:center; justify-content:space-between; width:100%;">
+            <div>
+              <span class="num-tag" style="display:inline-block; min-width:24px; color:var(--primary);">${player.num ? '#' + player.num : ''}</span> 
+              <span>${player.firstName || ''} ${player.lastName || ''}</span>
+            </div>
+            <div style="display:flex; flex-wrap:wrap; gap:2px;">${badgesHtml}</div>
+          </div>
+        `;
+        rosterContainer.appendChild(li);
+      });
+    }
+
+    // --- SCRIMMAGE FILTER MODAL FUNCTIONS ---
+    function openScrimmageFilterModal() {
+        const listDiv = document.getElementById("scrimmage-filter-list");
+        if (!listDiv) return;
+        const allForms = getWeekFormations(currentWeek).filter(f => f && (f.unit === 'offense' || f.unit === 'defense'));
+        if (!scrimmageFilters) scrimmageFilters = allForms.map(f => f.id);
+
+        listDiv.innerHTML = allForms.map(f => `
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                <input type="checkbox" value="${f.id}" ${scrimmageFilters.includes(f.id) ? 'checked' : ''} class="scrim-filter-cb">
+                <span>[${f.unit.toUpperCase()}] ${f.name}</span>
+            </label>
+        `).join('');
+        document.getElementById("scrimmage-filter-modal").classList.remove("hidden");
+    }
+
+    function saveScrimmageFilters() {
+        const cbs = document.querySelectorAll(".scrim-filter-cb");
+        scrimmageFilters = [];
+        cbs.forEach(cb => { if (cb.checked) scrimmageFilters.push(cb.value); });
+        localStorage.setItem("footballScrimmageFilters", JSON.stringify(scrimmageFilters));
+        document.getElementById("scrimmage-filter-modal").classList.add("hidden");
+        renderScrimmageTab();
+    }
+
+    function openScrimmagePrintModal() {
+        const listDiv = document.getElementById("scrimmage-print-list");
+        if (!listDiv) return;
+        const allForms = getWeekFormations(currentWeek).filter(f => f && (f.unit === 'offense' || f.unit === 'defense'));
+        const activeForms = allForms.filter(f => !scrimmageFilters || scrimmageFilters.includes(f.id));
+
+        listDiv.innerHTML = activeForms.map(f => `
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                <input type="checkbox" value="${f.id}" checked class="scrim-print-cb">
+                <span>[${f.unit.toUpperCase()}] ${f.name}</span>
+            </label>
+        `).join('');
+        document.getElementById("scrimmage-print-modal").classList.remove("hidden");
+    }
+
+    function executeScrimmagePrint() {
+        const cbs = document.querySelectorAll(".scrim-print-cb");
+        let selectedIds = [];
+        cbs.forEach(cb => { if (cb.checked) selectedIds.push(cb.value); });
+        document.getElementById("scrimmage-print-modal").classList.add("hidden");
+
+        const allContainers = document.querySelectorAll("#boards-scrimmage .formation-container");
+        allContainers.forEach((container, idx) => {
+            const forms = getWeekFormations(currentWeek).filter(f => f && (f.unit === 'offense' || f.unit === 'defense'));
+            const activeForms = forms.filter(f => !scrimmageFilters || scrimmageFilters.includes(f.id));
+            if (activeForms[idx] && !selectedIds.includes(activeForms[idx].id)) {
+                container.style.display = 'none';
+            }
+        });
+
+        setTimeout(() => {
+            window.print();
+            allContainers.forEach(c => c.style.display = '');
+        }, 300);
+    }
+
+    function openPrintModal(unit) {
+        const listDiv = document.getElementById("print-modal-list");
+        if (!listDiv) return;
+        const forms = getWeekFormations(currentWeek).filter(f => f && f.unit === unit);
+        listDiv.innerHTML = forms.map(f => `
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                <input type="checkbox" value="${f.id}" checked class="print-cb">
+                <span>${f.name}</span>
+            </label>
+        `).join('');
+        document.getElementById("print-modal").classList.remove("hidden");
+    }
+
+    function executeCustomPrint() {
+        const cbs = document.querySelectorAll(".print-cb");
+        let selectedIds = [];
+        cbs.forEach(cb => { if (cb.checked) selectedIds.push(cb.value); });
+        document.getElementById("print-modal").classList.add("hidden");
+
+        const containerId = "boards-" + activeUnit;
+        const allContainers = document.querySelectorAll(`#${containerId} .formation-container`);
+        const forms = getWeekFormations(currentWeek).filter(f => f && f.unit === activeUnit);
+
+        allContainers.forEach((container, idx) => {
+            if (forms[idx] && !selectedIds.includes(forms[idx].id)) {
+                container.style.display = 'none';
+            }
+        });
+
+        setTimeout(() => {
+            window.print();
+            allContainers.forEach(c => c.style.display = '');
+        }, 300);
+    }
+
+    // --- DRAG & DROP & POSITIONS ---
+    function handleRosterDragStart(e, name, num) {
+      if (userRole !== 'admin') { e.preventDefault(); return; }
+      draggedData = { type: "roster", name, num };
+      e.dataTransfer.setData("text/plain", name);
+    }
+
+    function handlePlayerDragStart(e, posId, idx, name, num, isScrimmage = false) {
+      if (userRole !== 'admin') { e.preventDefault(); return; }
+      draggedData = { type: isScrimmage ? "scrimmage_position" : "position", sourcePos: posId, sourceIndex: idx, name, num };
+      e.dataTransfer.setData("text/plain", name);
+      e.stopPropagation();
+    }
+
+    function handleCardDrop(e, targetFormId, targetRowId, targetPosId, isScrimmage = false) {
+      if (userRole !== 'admin') return;
+      e.preventDefault(); e.stopPropagation();
+      if (!draggedData) return;
+
+      const chart = isScrimmage ? getWeekScrimmageChart(currentWeek) : depthChart;
+      if (!chart[targetPosId]) chart[targetPosId] = [];
+
+      let movedPlayer = null;
+      if (draggedData.type === "position" || draggedData.type === "scrimmage_position") {
+          const srcChart = draggedData.type === "scrimmage_position" ? getWeekScrimmageChart(currentWeek) : depthChart;
+          movedPlayer = srcChart[draggedData.sourcePos][draggedData.sourceIndex];
+          srcChart[draggedData.sourcePos].splice(draggedData.sourceIndex, 1);
+      } else if (draggedData.type === "roster") {
+          movedPlayer = { name: draggedData.name, num: draggedData.num };
+      }
+
+      if (movedPlayer) chart[targetPosId].push(movedPlayer);
+
+      draggedData = null; saveState();
+      if (isScrimmage) renderScrimmageTab(); else renderActiveBoards();
+      renderMasterRoster();
+    }
+
+    function removePlayer(posId, idx, e, isScrimmage = false) {
+      if (userRole !== 'admin') return;
+      if (e) e.stopPropagation();
+      const chart = isScrimmage ? getWeekScrimmageChart(currentWeek) : depthChart;
+      if (chart[posId]) {
+        chart[posId].splice(idx, 1);
+        saveState();
+        if (isScrimmage) renderScrimmageTab(); else renderActiveBoards();
+        renderMasterRoster();
+      }
+    }
+
+    // --- TAB SWITCHING ---
+    function switchUnitTab(unit) {
+      activeUnit = unit;
+      document.querySelectorAll('.nav-tab').forEach(btn => btn.classList.remove('active'));
+      document.getElementById('tab-btn-' + unit)?.classList.add('active');
+      
+      document.querySelectorAll('.unit-panel').forEach(panel => panel.classList.add('hidden'));
+      document.getElementById('panel-' + unit)?.classList.remove('hidden');
+
+      const rosterSidebar = document.getElementById('sidebar-panel');
+      const playsSidebar = document.getElementById('plays-sidebar-panel');
+      
+      if (unit === 'wristband') {
+        rosterSidebar?.classList.add('hidden');
+        playsSidebar?.classList.remove('hidden');
+        renderPlayLibrary(); renderWristband();
+      } else {
+        rosterSidebar?.classList.remove('hidden');
+        playsSidebar?.classList.add('hidden');
+      }
+
+      if (unit === 'scouting') renderScouting();
+      else if (unit === 'drills') renderDrillsTab();
+      else if (unit === 'practice') { populatePracticeDropdown(); renderPracticePlan(); }
+      else if (unit === 'users') renderUsers();
+      else if (unit === 'guide') renderGuideTab();
+      else if (unit === 'scrimmage') { renderScrimmageTab(); renderMasterRoster(); }
+      else { renderActiveBoards(); renderMasterRoster(); }
+    }
+
+    function changeWeek(val) { currentWeek = val; depthChart = getWeekDepthChart(currentWeek); renderActiveBoards(); renderMasterRoster(); }
+    function updateOpponentLabel(val) { if (!weeklyData[currentWeek]) weeklyData[currentWeek] = {}; weeklyData[currentWeek].opponent = val; saveState(); }
+
+    function renderWristband() {
+      const container = document.getElementById("wristband-grid");
+      if (!container) return;
+      if (!weeklyData[currentWeek].wristbandData) {
+        weeklyData[currentWeek].wristbandData = { rows: 10, columns: [{ color: "blue", plays: [] }] };
+      }
+      const wb = weeklyData[currentWeek].wristbandData;
+      let html = `<table class="wb-exact-table">`;
+      for (let r = 0; r < wb.rows; r++) {
+        html += `<tr><td class="wb-sub-idx">${r + 1}</td><td class="wb-play-cell"><input type="text" class="wb-play-input" value="${wb.columns[0]?.plays[r]?.text || ''}" oninput="updateWbPlay(0, ${r}, this.value)"></td></tr>`;
+      }
+      container.innerHTML = html + `</table>`;
+    }
+
+    function updateWbPlay(cIdx, rIdx, val) {
+      if (!weeklyData[currentWeek].wristbandData.columns[cIdx].plays[rIdx]) {
+        weeklyData[currentWeek].wristbandData.columns[cIdx].plays[rIdx] = {};
+      }
+      weeklyData[currentWeek].wristbandData.columns[cIdx].plays[rIdx].text = val;
+      triggerDebouncedSave();
+    }
+
+    function addWbRow() { weeklyData[currentWeek].wristbandData.rows += 1; saveState(); renderWristband(); }
+    function removeWbRow() { if(weeklyData[currentWeek].wristbandData.rows > 1) weeklyData[currentWeek].wristbandData.rows -= 1; saveState(); renderWristband(); }
+
+    function renderScouting() {
+      const scout = weeklyData[currentWeek]?.scouting || {};
+      ["year", "week", "opponent", "teamOverview", "keyPlayers", "offenseTendencies", "defenseTendencies"].forEach(field => {
+        const el = document.getElementById("scout-" + field);
+        if (el) el.value = scout[field] || "";
+      });
+    }
+
+    function updateScouting(field, val) {
+      if (!weeklyData[currentWeek].scouting) weeklyData[currentWeek].scouting = {};
+      weeklyData[currentWeek].scouting[field] = val;
+      triggerDebouncedSave();
+    }
+
+    function renderGuideTab() {
+      const tabsContainer = document.getElementById('guide-tabs-container');
+      const contentArea = document.getElementById('guide-content-area');
+      if (!tabsContainer || !contentArea) return;
+      tabsContainer.innerHTML = Object.keys(pdfGuides).map(cat => `<button class="nav-tab ${cat === activeGuidePos ? 'active' : ''}" onclick="switchGuidePos('${cat}')">${cat}</button>`).join('');
+      contentArea.innerHTML = `<div style="padding:20px; text-align:center;">Viewing Playbook Guide: <strong>${activeGuidePos || 'None'}</strong></div>`;
+    }
+
+    function switchGuidePos(cat) { activeGuidePos = cat; renderGuideTab(); }
+    function addGuideCategory() {
+      let cat = prompt("Enter new Guide Category:");
+      if (cat && cat.trim() !== "") { pdfGuides[cat.trim()] = ""; activeGuidePos = cat.trim(); saveState(); renderGuideTab(); }
+    }
+
+    function renderUsers() {
+       const container = document.getElementById("users-table-container");
+       if (!container) return;
+       container.innerHTML = `<table style="width:100%; border-collapse:collapse; background:#fff;"><tr><td style="padding:8px;">${currentUser ? currentUser.email : 'Local Head Coach (Offline Mode)'}</td></tr></table>`;
+    }
+
+    function filterRoster() { renderMasterRoster(); }
+    function renderPlayLibrary() {
+      const container = document.getElementById("play-library-list");
+      if (container) container.innerHTML = masterPlayLibrary.map(p => `<li class="full-roster-item"><span>${p}</span></li>`).join('');
+    }
+
+    function addPlayToLibrary() {
+      const input = document.getElementById("new-play-input");
+      if (input && input.value.trim()) { masterPlayLibrary.push(input.value.trim()); input.value = ""; saveState(); renderPlayLibrary(); }
+    }
+
+    function createFormationPrompt(unit) {
+      let name = prompt(`Enter ${unit.toUpperCase()} formation name:`);
+      if (name) {
+        const forms = getWeekFormations(currentWeek);
+        const newId = "form_" + Date.now();
+        forms.push({ id: newId, unit, name, rows: [{ id: "row_" + Date.now(), label: "Main Level", slotCount: 7, positions: [null, null, null, null, null, null, null] }] });
+        saveState(); renderActiveBoards();
+        selectFormationForRoster(newId);
+      }
+    }
+
+    function exportData() {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({weeklyData, practiceData, masterPlayLibrary, dynamicDrills}));
+        const dl = document.createElement('a'); dl.setAttribute("href", dataStr); dl.setAttribute("download", `football_backup.json`); dl.click();
+    }
+
+    function importData(e) {
+        const file = e.target.files[0]; if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+            try {
+                const parsed = JSON.parse(evt.target.result);
+                if (parsed.weeklyData) weeklyData = parsed.weeklyData;
+                if (parsed.practiceData) practiceData = parsed.practiceData;
+                saveState(); location.reload();
+            } catch (err) { alert("Invalid backup file."); }
+        };
+        reader.readAsText(file);
+    }
+
+    function resetDefault() { if (confirm("Wipe all data?")) { localStorage.clear(); location.reload(); } }
+
+    function applyRole(role) {
+       userRole = role;
+       const badge = document.getElementById("user-role-badge");
+       if (role === 'admin') {
+          document.body.classList.remove('view-only');
+          if (badge) { badge.textContent = "HEAD COACH"; badge.className = "role-badge role-admin"; }
+       } else {
+          document.body.classList.add('view-only');
+          if (badge) { badge.textContent = "COACH"; badge.className = "role-badge role-viewer"; }
+       }
+    }
+
+    function bypassLogin() {
+      const overlay = document.getElementById("auth-overlay");
+      if (overlay) overlay.style.display = "none";
+      applyRole('admin');
+      document.getElementById("user-display-email").textContent = "Offline Coach";
+      initializeApp();
+    }
+
+    function switchAuthTab(mode) {
+      isSignUpMode = (mode === 'register');
+      document.getElementById("tab-login").classList.toggle('active', !isSignUpMode);
+      document.getElementById("tab-register").classList.toggle('active', isSignUpMode);
+      document.getElementById("auth-submit-btn").textContent = isSignUpMode ? "Create Account" : "Sign In";
+    }
+
+    async function handleEmailAuth(e) {
+      if (e) { e.preventDefault(); e.stopPropagation(); }
+      if (!auth) { bypassLogin(); return false; }
+      const email = document.getElementById("auth-email").value.trim();
+      const pass = document.getElementById("auth-password").value;
+      try {
+        if (isSignUpMode) await auth.createUserWithEmailAndPassword(email, pass);
+        else await auth.signInWithEmailAndPassword(email, pass);
+        document.getElementById("auth-overlay").style.display = "none";
+      } catch (err) { alert(err.message); }
+      return false;
+    }
+
+    async function signInWithGoogle() {
+      if (!auth) { bypassLogin(); return; }
+      try {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        await auth.signInWithPopup(provider);
+        document.getElementById("auth-overlay").style.display = "none";
+      } catch (err) { alert(err.message); }
+    }
+
+    function signOutUser() { if (auth) auth.signOut().then(() => location.reload()); else location.reload(); }
+
+    if (auth) {
+      auth.onAuthStateChanged(async (user) => {
+        if (user) {
+          currentUser = user;
+          document.getElementById("auth-overlay").style.display = "none";
+          document.getElementById("user-display-email").textContent = user.email || "Coach";
+          document.getElementById("sync-text").textContent = "Live Cloud Sync Active";
+          applyRole('admin');
+          initializeApp();
+          listenToLiveUpdates();
+        } else {
+          document.getElementById("auth-overlay").style.display = "flex";
+        }
+      });
+    }
+
+    function sanitizePracticeData() {
+      if (!Array.isArray(practiceData) || practiceData.length === 0) {
+        practiceData = [{
+          id: "prac_1", title: "Full Pads Install", year: new Date().getFullYear().toString(),
+          week: "Week 1", day: "Wednesday", startTime: "17:05", endTime: "20:00", lastEdited: Date.now(),
+          plan: [{ time: 25, category: "Pre Practice", format: "static", stations: [{ name: "GROUP 1: QB & Center Exchange", desc: "Centers and QBs pair up to practice snaps.", coach: "TJ", focus: "Snap accuracy" }] }]
+        }];
+      }
+    }
+
+    function initializeApp() {
+      sanitizePracticeData();
+      depthChart = getWeekDepthChart(currentWeek);
+      currentPracticeId = practiceData[0].id;
+      renderActiveBoards();
+      renderMasterRoster();
+      populatePracticeDropdown();
+      renderPracticePlan();
+    }
+
     initializeApp();
   </script>
 </body>
