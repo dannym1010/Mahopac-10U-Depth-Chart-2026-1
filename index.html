@@ -131,15 +131,27 @@
     .nav-tab { padding: 8px 16px; border: 1px solid var(--card-border); background: var(--card-bg); color: var(--text-muted); font-weight: bold; border-radius: 20px; cursor: pointer; font-size: 12px; }
     .nav-tab.active { background: var(--primary); color: #ffffff; border-color: var(--primary); }
 
-    /* Layout */
+    /* Layout & Auto-Scaling Wrapper for Mobile */
     .app-layout { display: flex; gap: 12px; max-width: 1400px; margin: 0 auto; flex-direction: row; align-items: flex-start; }
-    @media (max-width: 900px) { 
-      .app-layout { flex-direction: column !important; display: block !important; } 
-      .boards-container { width: 100% !important; overflow-x: auto !important; }
-    }
-
+    
     .boards-container { flex: 3; min-width: 0; display: flex; flex-direction: column; gap: 15px; width: 100%; overflow: visible; }
     .unit-panel { display: flex; flex-direction: column; gap: 20px; width: 100%; overflow: visible; }
+
+    /* Scaling container wrapper for formations on small screens */
+    .formation-scaler {
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    @media (max-width: 768px) {
+      .app-layout { flex-direction: column; }
+      #sidebar-container { width: 100% !important; max-width: 100% !important; position: static !important; margin-top: 15px; }
+      
+      /* Forces wide formation boards to scale down smoothly to fit mobile viewport */
+      .formation-scaler-inner {
+        min-width: 600px; 
+      }
+    }
 
     /* Formation Cards */
     .formation-container {
@@ -383,7 +395,6 @@
     /* Sidebar Wrapper & Panels */
     #sidebar-container { flex: 1; min-width: 220px; max-width: 280px; position: sticky; top: 15px; max-height: calc(100vh - 30px); display: flex; flex-direction: column; }
     .sidebar { background: var(--card-bg); border-radius: 8px; padding: 12px; border: 1px solid var(--card-border); display: flex; flex-direction: column; box-shadow: 0 1px 3px rgba(0,0,0,0.05); flex-grow: 1; max-height: 100%; }
-    @media (max-width: 900px) { #sidebar-container { position: static; max-width: 100%; max-height: 600px; } }
     .sidebar h2 { font-size: 14px; margin: 0 0 8px 0; color: var(--primary); border-bottom: 1px solid var(--card-border); padding-bottom: 6px; }
     .search-box { width: 100%; padding: 8px 10px; border: 1px solid var(--card-border); border-radius: 6px; font-size: 12px; margin-bottom: 10px; box-sizing: border-box; outline: none; }
     .search-box:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2); }
@@ -613,11 +624,14 @@
       <!-- MASTER DRILLS PANEL -->
       <div class="unit-panel hidden" id="panel-drills">
          <div class="formation-container" style="background:transparent; border:none; padding:0; box-shadow:none;">
-            <div class="board-title no-print" style="background:#fff; border:1px solid var(--card-border); border-radius:8px; padding:10px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+            <div class="board-title no-print" style="background:#fff; border:1px solid var(--card-border); border-radius:8px; padding:10px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
                <span>Master Drill Library</span>
-               <div style="display:flex; gap:6px;">
-                  <button class="toggle-board-btn admin-only" style="background:#0284c7; color:#fff;" onclick="forceResetDefaultDrills()">🔄 Load Default & Tackle Circuit Drills</button>
-                  <button class="add-row-btn admin-only" style="margin:0;" onclick="addDrillCategory()">+ Add New Category</button>
+               <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                  <button class="toggle-board-btn" style="background:#16a34a; color:#fff;" onclick="exportDrillsCSV()" title="Export Drills to CSV for Google Sheets">📤 Export CSV</button>
+                  <button class="toggle-board-btn admin-only" style="background:#0284c7; color:#fff;" onclick="document.getElementById('import-drills-file').click()" title="Import Drills CSV">📥 Import CSV</button>
+                  <input type="file" id="import-drills-file" style="display:none;" onchange="importDrillsCSV(event)" accept=".csv,.txt" />
+                  <button class="toggle-board-btn admin-only" style="background:#475569; color:#fff;" onclick="forceResetDefaultDrills()">🔄 Reset Defaults</button>
+                  <button class="add-row-btn admin-only" style="margin:0;" onclick="addDrillCategory()">+ Add Category</button>
                </div>
             </div>
             <div id="drills-wrapper"></div>
@@ -1055,6 +1069,89 @@
         weeklyData[week].scrimmageChart = {};
       }
       return weeklyData[week].scrimmageChart;
+    }
+
+    // --- DRILL LIBRARY EXPORT / IMPORT CSV ---
+    function exportDrillsCSV() {
+        let csv = ['"Category","Drill Name","Setup & Instructions","Coaching Focus"'];
+        Object.keys(dynamicDrills).forEach(cat => {
+            (dynamicDrills[cat] || []).forEach(d => {
+                let name = (d.name || "").replace(/"/g, '""');
+                let desc = (d.desc || "").replace(/"/g, '""');
+                let key = (d.key || "").replace(/"/g, '""');
+                csv.push(`"${cat}","${name}","${desc}","${key}"`);
+            });
+        });
+
+        let blob = new Blob([csv.join('\n')], { type: 'text/csv;charset=utf-8;' });
+        let link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "master_drills_export.csv";
+        link.style.display = "none";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    function importDrillsCSV(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+            try {
+                let text = evt.target.result;
+                let lines = text.split('\n');
+                let count = 0;
+                
+                let startIndex = 0;
+                if (lines[0].toLowerCase().includes('category') && lines[0].toLowerCase().includes('drill name')) {
+                    startIndex = 1;
+                }
+
+                for (let i = startIndex; i < lines.length; i++) {
+                    let line = lines[i].trim();
+                    if (!line) continue;
+                    
+                    let row = [];
+                    let inQuote = false;
+                    let val = '';
+                    for (let char of line) {
+                        if (char === '"') {
+                            inQuote = !inQuote;
+                        } else if (char === ',' && !inQuote) {
+                            row.push(val.trim());
+                            val = '';
+                        } else {
+                            val += char;
+                        }
+                    }
+                    row.push(val.trim());
+
+                    if (row.length >= 4) {
+                        let cat = row[0].replace(/^"|"$/g, '').trim();
+                        let name = row[1].replace(/^"|"$/g, '').trim();
+                        let desc = row[2].replace(/^"|"$/g, '').trim();
+                        let key = row[3].replace(/^"|"$/g, '').trim();
+
+                        if (cat && name) {
+                            if (!dynamicDrills[cat]) dynamicDrills[cat] = [];
+                            let existing = dynamicDrills[cat].find(d => d.name.toLowerCase() === name.toLowerCase());
+                            if (!existing) {
+                                dynamicDrills[cat].push({ name, desc, key });
+                                count++;
+                            }
+                        }
+                    }
+                }
+                saveState();
+                renderDrillsTab();
+                alert(`Successfully imported and merged ${count} drills from CSV!`);
+            } catch (err) {
+                alert("Error parsing CSV file: " + err.message);
+            }
+            e.target.value = '';
+        };
+        reader.readAsText(file);
     }
 
     // --- DRILL LIBRARY ---
@@ -1557,7 +1654,14 @@
         formDiv.id = "board_" + form.id;
         formDiv.onclick = () => selectFormationForRoster(form.id);
 
-        formDiv.innerHTML = `<div class="board-title"><span>${form.name}</span></div><div class="formation-body"></div>`;
+        formDiv.innerHTML = `
+          <div class="board-title"><span>${form.name}</span></div>
+          <div class="formation-scaler">
+            <div class="formation-scaler-inner">
+              <div class="formation-body"></div>
+            </div>
+          </div>
+        `;
         const bodyDiv = formDiv.querySelector(".formation-body");
 
         (form.rows || []).forEach(row => {
@@ -1620,7 +1724,15 @@
       forms.forEach(form => {
           const formDiv = document.createElement("div");
           formDiv.className = "formation-container";
-          formDiv.innerHTML = `<div class="board-title"><span>[${form.unit.toUpperCase()}] ${form.name}</span></div>`;
+          formDiv.innerHTML = `
+            <div class="board-title"><span>[${form.unit.toUpperCase()}] ${form.name}</span></div>
+            <div class="formation-scaler">
+              <div class="formation-scaler-inner">
+                <div class="formation-body"></div>
+              </div>
+            </div>
+          `;
+          const bodyDiv = formDiv.querySelector(".formation-body");
 
           (form.rows || []).forEach(row => {
               const rowWrap = document.createElement("div");
@@ -1657,7 +1769,7 @@
                   }
                   posRowEl.appendChild(slotDiv);
               });
-              formDiv.appendChild(rowWrap);
+              bodyDiv.appendChild(rowWrap);
           });
           container.appendChild(formDiv);
       });
