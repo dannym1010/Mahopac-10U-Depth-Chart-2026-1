@@ -274,6 +274,10 @@
       .practice-table td { font-size: 12px !important; border: 1px solid #000 !important; padding: 8px !important; }
       .period-schedule-time { font-size: 12px !important; color: #000 !important; }
       .prac-input, .prac-select, .prac-textarea { font-size: 12px !important; border: none !important; background: transparent !important; padding: 0 !important; color: #000 !important; }
+      
+      /* Make drill/station input name bold when printing */
+      #panel-practice .station-block input.prac-input { font-weight: bold !important; font-size: 12.5px !important; }
+
       #panel-practice select.prac-select:not([onchange*="updatePracRowCategory"]):not([onchange*="updatePracRowFormat"]),
       #panel-practice span[onclick*="coach_mgr"] { display: none !important; }
     }
@@ -1149,6 +1153,14 @@
       }
       if (!weeklyData[week].formations || !Array.isArray(weeklyData[week].formations) || weeklyData[week].formations.length === 0) {
         weeklyData[week].formations = JSON.parse(JSON.stringify(defaultFormations));
+      } else {
+        // Ensure all default units exist in the imported formations
+        const existingUnits = weeklyData[week].formations.map(f => f.unit);
+        defaultFormations.forEach(defF => {
+          if (!existingUnits.includes(defF.unit)) {
+            weeklyData[week].formations.push(JSON.parse(JSON.stringify(defF)));
+          }
+        });
       }
       if (!weeklyData[week].depthChart || typeof weeklyData[week].depthChart !== 'object' || Array.isArray(weeklyData[week].depthChart)) {
         weeklyData[week].depthChart = {};
