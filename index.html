@@ -1099,7 +1099,7 @@
     let depthChart = null, currentPracticeId = null;
 
     function saveState() {
-        if (isImporting) return; // Prevent writing during import
+        if (isImporting) return;
         const prac = practiceData.find(p => p.id === currentPracticeId);
         if (prac) prac.lastEdited = Date.now();
 
@@ -2210,7 +2210,7 @@
         if (!cloudEnabled || !db) return;
         db.collection("teamData").doc("depthChartData")
           .onSnapshot((doc) => {
-            if (isImporting) return; // Ignore cloud updates while importing
+            if (isImporting) return;
             if (doc.exists) {
               const data = doc.data();
               
@@ -3209,7 +3209,17 @@
                 isImporting = true; // Lock sync / writes during import
                 const parsed = JSON.parse(evt.target.result);
                 
-                if (parsed.weeklyData) weeklyData = parsed.weeklyData;
+                // Bulletproof normalization: support both direct and nested backup keys
+                if (parsed.weeklyData && typeof parsed.weeklyData === 'object') {
+                    weeklyData = parsed.weeklyData;
+                } else if (parsed.depthChart || parsed.formations) {
+                    // Handle flat or legacy single-week backups by migrating into current week
+                    ensureWeekDataExists(currentWeek);
+                    if (parsed.formations) weeklyData[currentWeek].formations = parsed.formations;
+                    if (parsed.depthChart) weeklyData[currentWeek].depthChart = parsed.depthChart;
+                    if (parsed.scrimmageChart) weeklyData[currentWeek].scrimmageChart = parsed.scrimmageChart;
+                }
+
                 if (parsed.practiceData) practiceData = parsed.practiceData;
                 if (parsed.masterPlayLibrary) masterPlayLibrary = parsed.masterPlayLibrary;
                 if (parsed.cascadingDrills) cascadingDrills = parsed.cascadingDrills;
