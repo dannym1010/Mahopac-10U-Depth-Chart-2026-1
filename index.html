@@ -3010,10 +3010,18 @@
          let statusColor = coach.status === 'Active' ? '#16a34a' : '#d97706';
          let toggleBtnText = coach.status === 'Active' ? '⏸️ Deactivate' : '✅ Approve';
          let isDanny = coach.email.toLowerCase() === "dannym1010@gmail.com";
+         
+         let roleCellHtml = isDanny ? `<span class="role-badge role-admin">${coach.role}</span>` : `
+           <select class="prac-select" style="font-size:11px; font-weight:bold; width:150px;" onchange="updateCoachRole(${idx}, this.value)">
+              <option value="Head Coach (Admin)" ${coach.role.includes('Admin') ? 'selected' : ''}>Head Coach (Admin)</option>
+              <option value="Assistant Coach" ${!coach.role.includes('Admin') ? 'selected' : ''}>Assistant Coach</option>
+           </select>
+         `;
+
          return `
            <tr>
              <td style="padding:8px; border:1px solid var(--card-border); font-weight:bold;">${coach.email}</td>
-             <td style="padding:8px; border:1px solid var(--card-border);"><span class="role-badge ${coach.role.includes('Admin') ? 'role-admin' : 'role-viewer'}">${coach.role}</span></td>
+             <td style="padding:8px; border:1px solid var(--card-border);">${roleCellHtml}</td>
              <td style="padding:8px; border:1px solid var(--card-border); text-align:center; color:${statusColor}; font-weight:bold;">${coach.status || 'Pending'}</td>
              <td style="padding:8px; border:1px solid var(--card-border); text-align:center;" class="admin-only">
                 ${isDanny ? '<span style="font-size:10px; color:var(--text-muted); font-style:italic;">Master Admin</span>' : `
@@ -3044,6 +3052,15 @@
          </table>
        `;
        container.innerHTML = html;
+    }
+
+    function updateCoachRole(idx, newRole) {
+        if (teamCoachesList[idx]) {
+            if (teamCoachesList[idx].email.toLowerCase() === "dannym1010@gmail.com") return;
+            teamCoachesList[idx].role = newRole;
+            saveState();
+            renderUsers();
+        }
     }
 
     function toggleCoachApproval(idx) {
