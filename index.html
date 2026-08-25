@@ -1839,11 +1839,27 @@
 
     function updateCoachInput(rIdx, sIdx, val) {
         updatePracStation(rIdx, sIdx, 'coach', val);
-        const trimmed = val.trim();
-        if (trimmed && !savedCoachesList.includes(trimmed)) {
-            savedCoachesList.push(trimmed);
+        const tokens = val.split(',').map(t => t.trim()).filter(Boolean);
+        let updated = false;
+        tokens.forEach(coachName => {
+            if (coachName && !savedCoachesList.includes(coachName)) {
+                savedCoachesList.push(coachName);
+                updated = true;
+            }
+        });
+        if (updated) {
             savedCoachesList.sort();
             saveState();
+            renderPracticePlan();
+        }
+    }
+
+    function deleteCoachFromSaved(coachName, e) {
+        if (e) e.stopPropagation();
+        if (confirm(`Remove "${coachName}" from saved coach list?`)) {
+            savedCoachesList = savedCoachesList.filter(c => c !== coachName);
+            saveState();
+            renderPracticePlan();
         }
     }
 
@@ -1868,6 +1884,12 @@
         tbody.innerHTML = '';
 
         let coachDatalistOptions = savedCoachesList.map(c => `<option value="${c}">`).join('');
+        let coachDeleteOptionsHtml = savedCoachesList.map(c => `
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:2px 4px; font-size:10px; border-bottom:1px solid #f1f5f9;">
+               <span>${c}</span>
+               <button class="remove-btn" style="font-size:11px;" onclick="deleteCoachFromSaved('${c}', event)" title="Delete Coach">&times;</button>
+            </div>
+        `).join('');
 
         let currentTimeMin = parseTimeString(prac.startTime || "17:05");
         (prac.plan || []).forEach((row, idx) => {
@@ -1890,6 +1912,7 @@
 
             let stationsHtml = (row.stations || []).map((st, sIdx) => {
                 let datalistId = `coach_list_${idx}_${sIdx}`;
+                let coachDropdownId = `coach_mgr_${idx}_${sIdx}`;
 
                 return `
                 <div class="station-block" style="display:grid; grid-template-columns: 1fr 200px 180px 30px; gap:8px; align-items:start;">
@@ -1903,11 +1926,20 @@
                         <textarea class="prac-textarea" oninput="autoResizeTextarea(this);" onchange="updatePracStation(${idx}, ${sIdx}, 'desc', this.value)" placeholder="Details...">${st.desc || ''}</textarea>
                     </div>
                     <div>
-                        <label style="font-size:9.5px; font-weight:bold; color:var(--text-muted); display:block; margin-bottom:2px;" class="no-print">Coach:</label>
-                        <input type="text" class="prac-input" list="${datalistId}" value="${st.coach || ''}" onkeydown="if(event.key==='Enter') this.blur();" onchange="updateCoachInput(${idx}, ${sIdx}, this.value)" placeholder="Coach Name">
-                        <datalist id="${datalistId}">
-                            ${coachDatalistOptions}
-                        </datalist>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;" class="no-print">
+                           <label style="font-size:9.5px; font-weight:bold; color:var(--text-muted);">Coaches (Comma sep):</label>
+                           <span style="font-size:9px; color:var(--accent); cursor:pointer; text-decoration:underline;" onclick="document.getElementById('${coachDropdownId}').classList.toggle('hidden')">Manage ▾</span>
+                        </div>
+                        <div style="position:relative;">
+                           <input type="text" class="prac-input" list="${datalistId}" value="${st.coach || ''}" onkeydown="if(event.key==='Enter') this.blur();" onchange="updateCoachInput(${idx}, ${sIdx}, this.value)" placeholder="Coach Name(s)">
+                           <datalist id="${datalistId}">
+                               ${coachDatalistOptions}
+                           </datalist>
+                           <div id="${coachDropdownId}" class="card-search-dropdown hidden" style="width: 100%; max-height: 120px; overflow-y: auto; top: 100%; left: 0; padding:4px; background:#fff; z-index:50000;">
+                              <div style="font-size:9px; font-weight:bold; color:var(--primary); margin-bottom:2px; border-bottom:1px solid #ccc;">Saved Coaches:</div>
+                              ${coachDeleteOptionsHtml || '<div style="font-size:9px; color:#64748b;">No saved coaches.</div>'}
+                           </div>
+                        </div>
                     </div>
                     <div>
                         <label style="font-size:9.5px; font-weight:bold; color:var(--text-muted); display:block; margin-bottom:2px;" class="no-print">Coaching Focus:</label>
