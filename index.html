@@ -1926,14 +1926,27 @@
                 drillOptionsHtml += `<option value="${d.name}">${d.name}</option>`;
             });
 
+            // Calculate rotating station times if format is 'rotating'
+            let isRotating = (row.format === 'rotating');
+            let numStations = (row.stations || []).length;
+            let stationDurationMin = (isRotating && numStations > 0) ? (rowTime / numStations) : rowTime;
+
             let stationsHtml = (row.stations || []).map((st, sIdx) => {
                 let datalistId = `coach_list_${idx}_${sIdx}`;
                 let coachDropdownId = `coach_mgr_${idx}_${sIdx}`;
                 let specificCoachAddHtml = coachAddDropdownHtml.replace(/%%R%%/g, idx).replace(/%%S%%/g, sIdx);
 
+                let stationBadgeHtml = '';
+                if (isRotating) {
+                    let stStartTimeMin = currentTimeMin + (sIdx * stationDurationMin);
+                    let stEndTimeMin = stStartTimeMin + stationDurationMin;
+                    stationBadgeHtml = `<div style="font-size:10px; font-weight:bold; color:#0284c7; background:#e0f2fe; padding:2px 6px; border-radius:4px; margin-bottom:4px; display:inline-block;">⏱️ Station Time: ${formatTime(stStartTimeMin)} - ${formatTime(stEndTimeMin)} (${Math.round(stationDurationMin)} min)</div>`;
+                }
+
                 return `
                 <div class="station-block" style="display:grid; grid-template-columns: 1fr 200px 180px 30px; gap:8px; align-items:start;">
                     <div>
+                        ${stationBadgeHtml}
                         <div style="margin-bottom:4px;" class="no-print">
                             <select class="prac-select" style="font-weight:bold; color:var(--primary);" onchange="onDrillSelected(${idx}, ${sIdx}, this)">
                                 ${drillOptionsHtml}
@@ -2046,7 +2059,8 @@
         const prac = practiceData.find(p => p.id === currentPracticeId);
         if (prac && prac.plan[rIdx]) {
             prac.plan[rIdx][field] = val;
-            triggerDebouncedSave();
+            saveState();
+            renderPracticePlan();
         }
     }
 
@@ -2064,6 +2078,7 @@
         if (prac && prac.plan[rIdx]) {
             prac.plan[rIdx].format = val;
             saveState();
+            renderPracticePlan();
         }
     }
 
