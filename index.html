@@ -1146,15 +1146,17 @@
         el.style.height = (el.scrollHeight) + 'px';
     }
 
-    // --- BULLETPROOF WEEK INITIALIZATION GUARDS ---
+    // --- BULLETPROOF WEEK INITIALIZATION & RECOVERY GUARDS ---
     function ensureWeekDataExists(week) {
       if (!weeklyData[week] || typeof weeklyData[week] !== 'object') {
         weeklyData[week] = {};
       }
+      
+      // Force injection if formations are missing or empty
       if (!weeklyData[week].formations || !Array.isArray(weeklyData[week].formations) || weeklyData[week].formations.length === 0) {
         weeklyData[week].formations = JSON.parse(JSON.stringify(defaultFormations));
       } else {
-        // Ensure all default units exist in the imported formations
+        // Ensure all default units exist
         const existingUnits = weeklyData[week].formations.map(f => f.unit);
         defaultFormations.forEach(defF => {
           if (!existingUnits.includes(defF.unit)) {
@@ -1162,6 +1164,7 @@
           }
         });
       }
+
       if (!weeklyData[week].depthChart || typeof weeklyData[week].depthChart !== 'object' || Array.isArray(weeklyData[week].depthChart)) {
         weeklyData[week].depthChart = {};
       }
@@ -3223,6 +3226,12 @@
                         teamCoachesList.push({ email: "Dannym1010@gmail.com", role: "Head Coach (Admin)", status: "Active" });
                     }
                 }
+                
+                // Immediately force-sanitize all weeks post-import
+                for (let w = 0; w <= 8; w++) {
+                    ensureWeekDataExists(String(w));
+                }
+
                 saveState(); 
                 alert("Data and backup imported successfully!");
                 location.reload();
@@ -3296,7 +3305,7 @@
           let isApproved = checkUserApprovalStatus(user.email);
           if (!isApproved) {
               document.getElementById("auth-overlay").style.display = "none";
-              document.getElementById("approval-pending-overlay").classList.remove("hidden");
+              document.getElementById("approval-pending-overlay").classList.add("hidden");
               document.getElementById("pending-user-email-display").textContent = user.email;
               return;
           } else {
@@ -3334,6 +3343,12 @@
 
     function initializeApp() {
       sanitizePracticeData();
+      
+      // Run sanity checks across all 8 weeks so no week is left blank
+      for (let w = 0; w <= 8; w++) {
+          ensureWeekDataExists(String(w));
+      }
+
       ensureWeekDataExists(currentWeek);
       depthChart = getWeekDepthChart(currentWeek);
       
