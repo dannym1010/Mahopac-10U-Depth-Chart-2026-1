@@ -364,7 +364,7 @@
     @media print {
       @page { size: letter portrait; margin: 0.25in; }
       body { background-color: #ffffff; padding: 0; margin: 0; font-size: 13px !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      .toolbar, #sidebar-container, .remove-btn, .action-group, p.subtitle, .search-box, .tab-navigation, .toggle-board-btn, .week-bar, .board-controls, .add-row-btn, .add-form-btn, .row-actions, .practice-dashboard-info, #print-modal, #new-prac-modal, #scrimmage-print-modal, #scrimmage-filter-modal { display: none !important; }
+      .toolbar, #sidebar-container, .remove-btn, .action-group, p.subtitle, .search-box, .tab-navigation, .toggle-board-btn, .week-bar, .board-controls, .add-row-btn, .add-form-btn, .row-actions, .practice-dashboard-info, #print-modal, #new-prac-modal, #scrimmage-print-modal, #scrimmage-filter-modal, #templates-modal { display: none !important; }
       .app-layout, .boards-container, .unit-panel:not(.hidden) { display: block !important; }
       .formation-container { border: 2px solid #000000 !important; box-shadow: none !important; padding: 6px; page-break-inside: auto !important; margin-bottom: 8px; background: #ffffff !important; }
       .formation-row { min-width: 100% !important; page-break-inside: avoid; align-items: start !important; }
@@ -606,7 +606,7 @@
           <div class="board-title no-print">
             <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
               <span>Practice:</span>
-              <div style="position:relative; width: 240px;">
+              <div style="position:relative; width: 220px;">
                 <div id="selected-practice-display" class="practice-tree-btn" onclick="togglePracticeDropdown(event)">Select Practice... ▾</div>
                 <div id="practice-tree-dropdown" class="card-search-dropdown hidden" onclick="event.stopPropagation()" style="width: 320px; max-height: 320px; overflow-y: auto; text-align:left; padding:8px; top: 100%; left: 0;"></div>
               </div>
@@ -615,7 +615,14 @@
               <button class="toggle-board-btn admin-only" onclick="autoNumberPractices()" style="background:#e0f2fe; color:#0369a1;" title="Auto-number practice day numbers">🔢 Auto Day #</button>
               <button class="toggle-board-btn admin-only" onclick="deletePractice()" style="color:#ef4444;">🗑️</button>
             </div>
-            <div style="display:flex; gap:6px; align-items:center;">
+            <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+              <!-- Template Controls -->
+              <div style="display:flex; gap:4px; align-items:center; background:#f1f5f9; padding:2px 6px; border-radius:6px; border:1px solid var(--card-border);" class="admin-only">
+                <span style="font-size:10px; font-weight:bold; color:var(--primary);">Template:</span>
+                <select id="practice-template-select" class="prac-select" style="width:130px; font-size:11px;" onchange="applyPracticeTemplate(this.value)"></select>
+                <button class="toggle-board-btn" style="padding:2px 6px; font-size:10px;" onclick="saveCurrentAsTemplate()" title="Save current plan as template">💾 Save</button>
+                <button class="toggle-board-btn" style="padding:2px 6px; font-size:10px;" onclick="openTemplatesManager()" title="Edit or delete templates">⚙️ Manage</button>
+              </div>
               <button class="add-row-btn admin-only" onclick="addPracticeRow()">+ Add Period</button>
               <button class="toolbar button" onclick="window.print()" style="padding:4px 10px;">🖨️ Print Plan</button>
             </div>
@@ -713,6 +720,18 @@
     </div>
   </div>
 
+  <!-- TEMPLATES MANAGER MODAL -->
+  <div id="templates-modal" class="custom-modal hidden">
+    <div class="custom-modal-card" style="width: 450px;">
+       <h3>⚙️ Manage Practice Templates</h3>
+       <p style="font-size:11px; color:var(--text-muted); margin-bottom:12px;">Rename or delete your saved practice templates below:</p>
+       <div id="templates-list-container" style="max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px;"></div>
+       <div style="display: flex; gap: 8px; justify-content: flex-end;">
+          <button class="toggle-board-btn" onclick="document.getElementById('templates-modal').classList.add('hidden')">Close</button>
+       </div>
+    </div>
+  </div>
+
   <div id="print-modal" class="custom-modal hidden">
     <div class="print-modal-card">
        <h3>Select Boards to Print</h3>
@@ -788,7 +807,7 @@
             return;
         }
         db.collection("teamData").doc("depthChartData").set({
-            weeklyData, practiceData, masterPlayLibrary, cascadingDrills, pdfGuides, collapsedFolders, savedCoachesList,
+            weeklyData, practiceData, masterPlayLibrary, cascadingDrills, pdfGuides, collapsedFolders, savedCoachesList, practiceTemplates,
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         }, { merge: true }).then(() => {
             alert("Successfully forced all local drill folders and data to live cloud database!");
@@ -847,6 +866,24 @@
     let collapsedFolders = safeJSONParse("footballCollapsedFolders", {});
     let savedCoachesList = safeJSONParse("footballSavedCoaches", ["Coach Smith", "Coach Davis", "Coach Miller", "Coach Johnson"]);
 
+    const defaultPracticeTemplates = {
+      "Standard Practice": [
+        { time: 10, category: "📋 General", format: "static", stations: [{ name: "Team Stretch & Warm-Up", desc: "Dynamic stretching", coach: "", focus: "Flexibility" }] },
+        { time: 15, category: "⚡ (Warm-up, Agility and Conditioning)", format: "static", stations: [{ name: "Agility Ladder & Footwork", desc: "Quick feet", coach: "", focus: "Speed" }] },
+        { time: 20, category: "🏈 Offense", format: "static", stations: [{ name: "Individual Position Groups", desc: "QB/RB/OL/WR splits", coach: "", focus: "Execution" }] },
+        { time: 20, category: "🛡️ Defense", format: "static", stations: [{ name: "DL/LB/DB Pursuit Drills", desc: "Tackling & coverage fits", coach: "", focus: "Angle pursuit" }] },
+        { time: 20, category: "💥 Tackling", format: "static", stations: [{ name: "Form Tackling Circuit", desc: "Breakdown & near-foot step", coach: "", focus: "Safety & form" }] },
+        { time: 25, category: "🏈 Offense", format: "static", stations: [{ name: "Team 11-on-11 Scrimmage", desc: "Live script install", coach: "", focus: "Full speed" }] }
+      ],
+      "Walkthrough / Light": [
+        { time: 10, category: "📋 General", format: "static", stations: [{ name: "Chalk Talk & Script Review", desc: "Whiteboard walk-through", coach: "", focus: "Mental clarity" }] },
+        { time: 20, category: "⚡ (Warm-up, Agility and Conditioning)", format: "static", stations: [{ name: "Light Stretch & Footwork", desc: "No pads dynamic warm-up", coach: "", focus: "Mobility" }] },
+        { time: 30, category: "🏈 Offense", format: "static", stations: [{ name: "Offensive Walkthrough", desc: "Slow speed install vs air", coach: "", focus: "Assignments" }] },
+        { time: 30, category: "🛡️ Defense", format: "static", stations: [{ name: "Defensive Alignment Walkthrough", desc: "Gap fits & coverage drops", coach: "", focus: "Alignment" }] }
+      ]
+    };
+
+    let practiceTemplates = safeJSONParse("footballPracticeTemplates", defaultPracticeTemplates);
     let pdfGuides = safeJSONParse("footballPdfGuides", { "Offense": "", "53 Defense": "", "44 Defense": "" });
     let activeGuidePos = Object.keys(pdfGuides).length > 0 ? Object.keys(pdfGuides)[0] : null;
 
@@ -1131,10 +1168,11 @@
         localStorage.setItem("footballPdfGuides", JSON.stringify(pdfGuides));
         localStorage.setItem("footballCollapsedFolders", JSON.stringify(collapsedFolders));
         localStorage.setItem("footballSavedCoaches", JSON.stringify(savedCoachesList));
+        localStorage.setItem("footballPracticeTemplates", JSON.stringify(practiceTemplates));
 
         if (cloudEnabled && db && userRole === 'admin') {
             db.collection("teamData").doc("depthChartData").set({
-                weeklyData, practiceData, masterPlayLibrary, cascadingDrills, pdfGuides, collapsedFolders, savedCoachesList,
+                weeklyData, practiceData, masterPlayLibrary, cascadingDrills, pdfGuides, collapsedFolders, savedCoachesList, practiceTemplates,
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             }, { merge: true }).catch(err => console.error("Firestore sync error:", err));
         }
@@ -1188,6 +1226,91 @@
         weeklyData[week].scrimmageChart = {};
       }
       return weeklyData[week].scrimmageChart;
+    }
+
+    // --- TEMPLATES LOGIC ---
+    function populateTemplateDropdown() {
+        const select = document.getElementById("practice-template-select");
+        if (!select) return;
+        let html = '<option value="">-- Apply Template --</option>';
+        Object.keys(practiceTemplates).forEach(name => {
+            html += `<option value="${name}">${name}</option>`;
+        });
+        select.innerHTML = html;
+    }
+
+    function applyPracticeTemplate(templateName) {
+        if (!templateName || !practiceTemplates[templateName]) return;
+        const prac = practiceData.find(p => p.id === currentPracticeId);
+        if (!prac) return;
+
+        if (confirm(`Apply template "${templateName}" to this practice? This will replace current periods.`)) {
+            prac.plan = JSON.parse(JSON.stringify(practiceTemplates[templateName]));
+            saveState();
+            renderPracticePlan();
+            document.getElementById("practice-template-select").value = "";
+            alert(`Template "${templateName}" applied successfully!`);
+        }
+    }
+
+    function saveCurrentAsTemplate() {
+        const prac = practiceData.find(p => p.id === currentPracticeId);
+        if (!prac || !prac.plan || prac.plan.length === 0) {
+            alert("No practice plan periods to save.");
+            return;
+        }
+        let tName = prompt("Enter a name for this practice template:");
+        if (tName && tName.trim() !== "") {
+            practiceTemplates[tName.trim()] = JSON.parse(JSON.stringify(prac.plan));
+            saveState();
+            populateTemplateDropdown();
+            alert(`Practice template "${tName.trim()}" saved successfully!`);
+        }
+    }
+
+    function openTemplatesManager() {
+        const container = document.getElementById("templates-list-container");
+        if (!container) return;
+
+        let html = '';
+        Object.keys(practiceTemplates).forEach(name => {
+            html += `
+              <div style="display:flex; justify-content:space-between; align-items:center; background:#f8fafc; padding:8px; border:1px solid var(--card-border); border-radius:6px;">
+                 <span style="font-weight:bold; font-size:12px; color:var(--primary);">${name}</span>
+                 <div style="display:flex; gap:6px;">
+                    <button class="toggle-board-btn" style="padding:2px 6px; font-size:10px;" onclick="renameTemplate('${name}')">✏️ Rename</button>
+                    <button class="remove-btn" onclick="deleteTemplate('${name}')" style="font-size:14px; padding:0 4px;" title="Delete">&times;</button>
+                 </div>
+              </div>
+            `;
+        });
+        container.innerHTML = html || '<div style="color:var(--text-muted); text-align:center; font-size:11px;">No templates saved.</div>';
+        document.getElementById("templates-modal").classList.remove("hidden");
+    }
+
+    function renameTemplate(oldName) {
+        let newName = prompt("Rename template:", oldName);
+        if (newName && newName.trim() !== "" && newName !== oldName) {
+            let cleanName = newName.trim();
+            if (practiceTemplates[cleanName]) {
+                alert("A template with that name already exists.");
+                return;
+            }
+            practiceTemplates[cleanName] = practiceTemplates[oldName];
+            delete practiceTemplates[oldName];
+            saveState();
+            populateTemplateDropdown();
+            openTemplatesManager();
+        }
+    }
+
+    function deleteTemplate(name) {
+        if (confirm(`Delete template "${name}"?`)) {
+            delete practiceTemplates[name];
+            saveState();
+            populateTemplateDropdown();
+            openTemplatesManager();
+        }
     }
 
     // --- CASCADING DRILLS JSON & CSV EXPORT / IMPORT ---
@@ -2014,11 +2137,13 @@
               if (data.pdfGuides) pdfGuides = data.pdfGuides;
               if (data.collapsedFolders) collapsedFolders = data.collapsedFolders;
               if (data.savedCoachesList) savedCoachesList = data.savedCoachesList;
+              if (data.practiceTemplates) practiceTemplates = data.practiceTemplates;
 
               depthChart = getWeekDepthChart(currentWeek);
               renderActiveBoards();
               renderMasterRoster();
               populatePracticeDropdown();
+              populateTemplateDropdown();
 
               if (activeUnit === 'practice') {
                   const isTyping = document.activeElement && document.activeElement.closest('#main-practice-table');
@@ -2403,7 +2528,7 @@
 
       if (unit === 'scouting') renderScouting();
       else if (unit === 'drills') renderDrillsTab();
-      else if (unit === 'practice') { populatePracticeDropdown(); renderPracticePlan(); }
+      else if (unit === 'practice') { populatePracticeDropdown(); populateTemplateDropdown(); renderPracticePlan(); }
       else if (unit === 'users') renderUsers();
       else if (unit === 'guide') renderGuideTab();
       else if (unit === 'scrimmage') { renderScrimmageTab(); renderMasterRoster(); }
@@ -2523,7 +2648,7 @@
     }
 
     function exportData() {
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({weeklyData, practiceData, masterPlayLibrary, cascadingDrills, pdfGuides}));
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({weeklyData, practiceData, masterPlayLibrary, cascadingDrills, pdfGuides, practiceTemplates}));
         const dl = document.createElement('a'); dl.setAttribute("href", dataStr); dl.setAttribute("download", `football_backup.json`); dl.click();
     }
 
@@ -2540,6 +2665,7 @@
                 if (parsed.pdfGuides) pdfGuides = parsed.pdfGuides;
                 if (parsed.collapsedFolders) collapsedFolders = parsed.collapsedFolders;
                 if (parsed.savedCoachesList) savedCoachesList = parsed.savedCoachesList;
+                if (parsed.practiceTemplates) practiceTemplates = parsed.practiceTemplates;
                 saveState(); 
                 alert("Data and drills imported successfully!");
                 location.reload();
@@ -2639,6 +2765,7 @@
       renderActiveBoards();
       renderMasterRoster();
       populatePracticeDropdown();
+      populateTemplateDropdown();
       renderPracticePlan();
     }
 
