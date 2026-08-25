@@ -1645,9 +1645,9 @@
 
                     html += `
                       <div class="drill-item-row" draggable="true" ondragstart="handleDrillDragStart(event, '${pathKey}', ${dIdx})">
-                         <div><input type="text" class="prac-input" value="${d.name}" onkeydown="if(event.key==='Enter') this.blur();" onchange="updateDrillInPath('${pathKey}', ${dIdx}, 'name', this.value)" placeholder="Drill Name"></div>
-                         <div><textarea class="prac-textarea" style="min-height:30px;" oninput="autoResizeTextarea(this);" onchange="updateDrillInPath('${pathKey}', ${dIdx}, 'desc', this.value);">${d.desc}</textarea></div>
-                         <div><input type="text" class="prac-input" value="${d.key}" onkeydown="if(event.key==='Enter') this.blur();" onchange="updateDrillInPath('${pathKey}', ${dIdx}, 'key', this.value)" placeholder="Focus..."></div>
+                         <div><input type="text" class="prac-input" value="${d.name || ''}" onkeydown="if(event.key==='Enter') this.blur();" onchange="updateDrillInPath('${pathKey}', ${dIdx}, 'name', this.value)" placeholder="Drill Name"></div>
+                         <div><textarea class="prac-textarea" style="min-height:30px;" oninput="autoResizeTextarea(this);" onchange="updateDrillInPath('${pathKey}', ${dIdx}, 'desc', this.value);">${d.desc || ''}</textarea></div>
+                         <div><input type="text" class="prac-input" value="${d.key || ''}" onkeydown="if(event.key==='Enter') this.blur();" onchange="updateDrillInPath('${pathKey}', ${dIdx}, 'key', this.value)" placeholder="Focus..."></div>
                          <div>
                             <select class="prac-select" style="font-size:10px; padding:2px;" onchange="moveDrillToFolder('${pathKey}', ${dIdx}, this.value)">
                                ${moveOptions}
@@ -2135,9 +2135,8 @@
     }
 
     function checkUserApprovalStatus(email) {
-        if (!email) return true; // fallback
+        if (!email) return true;
         
-        // Always trust Dannym1010@gmail.com as active admin
         if (email.toLowerCase() === "dannym1010@gmail.com") {
             let found = teamCoachesList.find(c => c.email.toLowerCase() === email.toLowerCase());
             if (!found) {
@@ -2151,7 +2150,6 @@
 
         let coachRecord = teamCoachesList.find(c => c.email.toLowerCase() === email.toLowerCase());
         if (!coachRecord) {
-            // Any other new coach starts as Pending approval
             teamCoachesList.push({ email, role: "Assistant Coach", status: "Pending" });
             saveState();
             return false;
@@ -2175,7 +2173,6 @@
               if (data.practiceTemplates) practiceTemplates = data.practiceTemplates;
               if (data.teamCoachesList) teamCoachesList = data.teamCoachesList;
 
-              // Check approval status in real-time if user is logged in
               if (currentUser && currentUser.email) {
                   let isApproved = checkUserApprovalStatus(currentUser.email);
                   if (!isApproved) {
@@ -3013,8 +3010,8 @@
          
          let roleCellHtml = isDanny ? `<span class="role-badge role-admin">${coach.role}</span>` : `
            <select class="prac-select" style="font-size:11px; font-weight:bold; width:150px;" onchange="updateCoachRole(${idx}, this.value)">
-              <option value="Head Coach (Admin)" ${coach.role.includes('Admin') ? 'selected' : ''}>Head Coach (Admin)</option>
-              <option value="Assistant Coach" ${!coach.role.includes('Admin') ? 'selected' : ''}>Assistant Coach</option>
+              <option value="Head Coach (Admin)" ${coach.role && coach.role.includes('Admin') ? 'selected' : ''}>Head Coach (Admin)</option>
+              <option value="Assistant Coach" ${!coach.role || !coach.role.includes('Admin') ? 'selected' : ''}>Assistant Coach</option>
            </select>
          `;
 
@@ -3065,7 +3062,7 @@
 
     function toggleCoachApproval(idx) {
         if (teamCoachesList[idx]) {
-            if (teamCoachesList[idx].email.toLowerCase() === "dannym1010@gmail.com") return; // cannot modify master admin
+            if (teamCoachesList[idx].email.toLowerCase() === "dannym1010@gmail.com") return;
             teamCoachesList[idx].status = (teamCoachesList[idx].status === 'Active') ? 'Pending' : 'Active';
             saveState();
             renderUsers();
@@ -3133,11 +3130,17 @@
                 if (parsed.collapsedFolders) collapsedFolders = parsed.collapsedFolders;
                 if (parsed.savedCoachesList) savedCoachesList = parsed.savedCoachesList;
                 if (parsed.practiceTemplates) practiceTemplates = parsed.practiceTemplates;
-                if (parsed.teamCoachesList) teamCoachesList = parsed.teamCoachesList;
+                if (parsed.teamCoachesList && Array.isArray(parsed.teamCoachesList)) {
+                    teamCoachesList = parsed.teamCoachesList;
+                    // Ensure master admin is always present
+                    if (!teamCoachesList.some(c => c.email.toLowerCase() === "dannym1010@gmail.com")) {
+                        teamCoachesList.push({ email: "Dannym1010@gmail.com", role: "Head Coach (Admin)", status: "Active" });
+                    }
+                }
                 saveState(); 
-                alert("Data and drills imported successfully!");
+                alert("Data and backup imported successfully!");
                 location.reload();
-            } catch (err) { alert("Invalid backup file."); }
+            } catch (err) { alert("Invalid backup file: " + err.message); }
         };
         reader.readAsText(file);
     }
@@ -3216,7 +3219,7 @@
           }
 
           let coachEntry = teamCoachesList.find(c => c.email.toLowerCase() === user.email.toLowerCase());
-          let isHeadAdmin = (user.email.toLowerCase() === "dannym1010@gmail.com" || (coachEntry && coachEntry.role.includes("Admin")));
+          let isHeadAdmin = (user.email.toLowerCase() === "dannym1010@gmail.com" || (coachEntry && coachEntry.role && coachEntry.role.includes("Admin")));
           
           applyRole(isHeadAdmin ? 'admin' : 'assistant');
           initializeApp();
