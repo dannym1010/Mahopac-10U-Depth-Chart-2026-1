@@ -2193,10 +2193,23 @@
           .onSnapshot((doc) => {
             if (doc.exists) {
               const data = doc.data();
-              if (data.weeklyData) weeklyData = data.weeklyData;
-              if (data.practiceData) practiceData = data.practiceData;
-              if (data.masterPlayLibrary) masterPlayLibrary = data.masterPlayLibrary;
-              if (data.cascadingDrills) cascadingDrills = data.cascadingDrills;
+              
+              // Only overwrite weeklyData from cloud if the cloud has data, otherwise preserve local
+              if (data.weeklyData && Object.keys(data.weeklyData).length > 0) {
+                  Object.keys(data.weeklyData).forEach(wkKey => {
+                      if (!weeklyData[wkKey]) weeklyData[wkKey] = {};
+                      if (data.weeklyData[wkKey].formations && Array.isArray(data.weeklyData[wkKey].formations)) {
+                          weeklyData[wkKey].formations = data.weeklyData[wkKey].formations;
+                      }
+                      if (data.weeklyData[wkKey].depthChart) weeklyData[wkKey].depthChart = data.weeklyData[wkKey].depthChart;
+                      if (data.weeklyData[wkKey].scrimmageChart) weeklyData[wkKey].scrimmageChart = data.weeklyData[wkKey].scrimmageChart;
+                      if (data.weeklyData[wkKey].opponent) weeklyData[wkKey].opponent = data.weeklyData[wkKey].opponent;
+                  });
+              }
+
+              if (data.practiceData && data.practiceData.length > 0) practiceData = data.practiceData;
+              if (data.masterPlayLibrary && data.masterPlayLibrary.length > 0) masterPlayLibrary = data.masterPlayLibrary;
+              if (data.cascadingDrills && data.cascadingDrills.length > 0) cascadingDrills = data.cascadingDrills;
               if (data.pdfGuides) pdfGuides = data.pdfGuides;
               if (data.collapsedFolders) collapsedFolders = data.collapsedFolders;
               if (data.savedCoachesList) savedCoachesList = data.savedCoachesList;
