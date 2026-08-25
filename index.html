@@ -160,7 +160,8 @@
 
     .position-card { background: var(--card-bg); border-radius: 6px; border: 2px solid var(--card-border); width: 100%; position: relative; transition: transform 0.1s; cursor: pointer; }
     .position-card.drag-over { border-color: var(--accent) !important; background: #eff6ff !important; transform: scale(1.02); }
-    .position-header { background: #f1f5f9; padding: 3px 6px; font-weight: bold; font-size: 11px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border); color: var(--primary); }
+    .position-header { background: #f1f5f9; padding: 3px 6px; font-weight: bold; font-size: 11px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border); color: var(--primary); cursor: grab; }
+    .position-header:active { cursor: grabbing; }
 
     .player-list { list-style: none; padding: 4px; margin: 0; min-height: 45px; }
     .player-item { background: #f8fafc; border: 1px solid var(--card-border); padding: 4px 6px; margin-bottom: 4px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; cursor: grab; font-size: 11px; user-select: none; z-index:100; position:relative; }
@@ -859,6 +860,7 @@
 
     let draggedData = null;
     let draggedDrillData = null;
+    let draggedPositionData = null;
     let activeUnit = "offense", currentWeek = "0";
     let selectedFormationFilterId = null;
     let currentUser = null, userRole = 'admin', isSignUpMode = false;
@@ -2275,6 +2277,129 @@
         renderMasterRoster();
     }
 
+    // --- FORMATION ROW & POSITION REORDERING FUNCTIONS ---
+    function addFormationRow(formId) {
+      if (userRole !== 'admin') return;
+      let label = prompt("Enter new level/row label (e.g. Defensive Secondary, Backfield):", "Additional Level");
+      if (!label) return;
+      let slotCountStr = prompt("Enter number of columns/slots for this row (1 to 10):", "7");
+      let slotCount = parseInt(slotCountStr) || 7;
+      if (slotCount < 1) slotCount = 1;
+      if (slotCount > 10) slotCount = 10;
+
+      const forms = getWeekFormations(currentWeek);
+      const form = forms.find(f => f.id === formId);
+      if (form) {
+        if (!form.rows) form.rows = [];
+        let newRowId = "row_" + Date.now();
+        let positions = [];
+        for(let i=0; i<slotCount; i++) {
+          positions.push(null);
+        }
+        form.rows.push({ id: newRowId, label: label.trim(), slotCount, positions });
+        saveState();
+        renderActiveBoards();
+      }
+    }
+
+    function deleteFormationRow(formId, rIdx) {
+      if (userRole !== 'admin') return;
+      if (!confirm("Delete this entire row and its positions?")) return;
+      const forms = getWeekFormations(currentWeek);
+      const form = forms.find(f => f.id === formId);
+      if (form && form.rows) {
+        form.rows.splice(rIdx, 1);
+        saveState();
+        renderActiveBoards();
+      }
+    }
+
+    function addPositionToRow(formId, rIdx) {
+      if (userRole !== 'admin') return;
+      let posName = prompt("Enter position name (e.g., CB, FS, WR):");
+      if (!posName || !posName.trim()) return;
+      let cleanName = posName.trim();
+      let posId = `${formId}-${cleanName}-${Date.now()}`;
+
+      const forms = getWeekFormations(currentWeek);
+      const form = forms.find(f => f.id === formId);
+      if (form && form.rows && form.rows[rIdx]) {
+        let row = form.rows[rIdx];
+        if (!row.positions) row.positions = [];
+        row.positions.push({ id: posId, name: cleanName });
+        row.slotCount = row.positions.length;
+        saveState();
+        renderActiveBoards();
+      }
+    }
+
+    function removePositionFromRow(formId, rIdx, pIdx) {
+      if (userRole !== 'admin') return;
+      const forms = getWeekFormations(currentWeek);
+      const form = forms.find(f => f.id === formId);
+      if (form && form.rows && form.rows[rIdx] && form.rows[rIdx].positions) {
+        let pos = form.rows[rIdx].positions[pIdx];
+        if (pos && pos.id) {
+          let dc = getWeekDepthChart(currentWeek);
+          if (dc[pos.id]) delete dc[pos.id];
+          let sc = getWeekScrimmageChart(currentWeek);
+          if (sc[pos.id]) delete sc[pos.id];
+        }
+        form.rows[rIdx].positions.splice(pIdx, 1);
+        form.rows[rIdx].slotCount = form.rows[rIdx].positions.length;
+        saveState();
+        renderActiveBoards();
+      }
+    }
+
+    function handlePositionDragStart(e, formId, rIdx, pIdx) {
+      if (userRole !== 'admin') return;
+      draggedPositionData = { formId, rIdx, pIdx };
+      e.dataTransfer.setData("text/plain", "position_card");
+      e.stopPropagation();
+    }
+
+    function handlePositionSlotDragOver(e) {
+      if (userRole !== 'admin') return;
+      e.preventDefault();
+      e.stopPropagation();
+      e.currentTarget.classList.add("drag-over");
+    }
+
+    function handlePositionSlotDragLeave(e) {
+      if (userRole !== 'admin') return;
+      e.currentTarget.classList.remove("drag-over");
+    }
+
+    function handlePositionSlotDrop(e, targetFormId, targetRIdx, targetPIdx) {
+      if (userRole !== 'admin') return;
+      e.preventDefault();
+      e.stopPropagation();
+      e.currentTarget.classList.remove("drag-over");
+
+      if (!draggedPositionData) return;
+      if (draggedPositionData.formId !== targetFormId || draggedPositionData.rIdx !== targetRIdx) {
+        draggedPositionData = null;
+        return;
+      }
+
+      const forms = getWeekFormations(currentWeek);
+      const form = forms.find(f => f.id === targetFormId);
+      if (form && form.rows && form.rows[targetRIdx]) {
+        let row = form.rows[targetRIdx];
+        let srcIdx = draggedPositionData.pIdx;
+        if (srcIdx === targetPIdx) return;
+
+        let temp = row.positions[srcIdx];
+        row.positions[srcIdx] = row.positions[targetPIdx];
+        row.positions[targetPIdx] = temp;
+
+        saveState();
+        renderActiveBoards();
+      }
+      draggedPositionData = null;
+    }
+
     function renderActiveBoards() {
       const container = document.getElementById("boards-" + activeUnit);
       if (!container) return;
@@ -2297,7 +2422,12 @@
         formDiv.onclick = () => selectFormationForRoster(form.id);
 
         formDiv.innerHTML = `
-          <div class="board-title"><span>${form.name}</span></div>
+          <div class="board-title">
+             <span>${form.name}</span>
+             <div class="admin-only" style="display:flex; gap:6px;">
+                <button class="toggle-board-btn" onclick="addFormationRow('${form.id}')">+ Add Row/Level</button>
+             </div>
+          </div>
           <div class="formation-scaler">
             <div class="formation-scaler-inner">
               <div class="formation-body"></div>
@@ -2306,15 +2436,31 @@
         `;
         const bodyDiv = formDiv.querySelector(".formation-body");
 
-        (form.rows || []).forEach(row => {
+        (form.rows || []).forEach((row, rIdx) => {
           const rowWrap = document.createElement("div");
           rowWrap.className = "row-container";
-          rowWrap.innerHTML = `<div class="level-header-bar"><span class="level-label">${row.label || 'Row'}</span></div><div class="formation-row" style="grid-template-columns: repeat(${row.slotCount || 7}, 1fr);"></div>`;
+          rowWrap.innerHTML = `
+            <div class="level-header-bar">
+               <span class="level-label">${row.label || 'Row'}</span>
+               <div class="admin-only" style="display:flex; gap:4px;">
+                  <button class="toggle-board-btn" style="font-size:9px; padding:2px 6px;" onclick="addPositionToRow('${form.id}', ${rIdx})">+ Add Position</button>
+                  <button class="remove-btn" style="font-size:11px; padding:0 4px;" onclick="deleteFormationRow('${form.id}', ${rIdx})" title="Delete Row">&times;</button>
+               </div>
+            </div>
+            <div class="formation-row" style="grid-template-columns: repeat(${row.positions ? row.positions.length : (row.slotCount || 7)}, 1fr);"></div>
+          `;
           const posRowEl = rowWrap.querySelector(".formation-row");
 
-          (row.positions || []).forEach(pos => {
+          (row.positions || []).forEach((pos, pIdx) => {
             const slotDiv = document.createElement("div");
             slotDiv.className = "row-slot";
+            
+            if (userRole === 'admin') {
+              slotDiv.ondragover = handlePositionSlotDragOver;
+              slotDiv.ondragleave = handlePositionSlotDragLeave;
+              slotDiv.ondrop = (e) => handlePositionSlotDrop(e, form.id, rIdx, pIdx);
+            }
+
             if (pos) {
               const card = document.createElement("div");
               card.className = "position-card";
@@ -2336,7 +2482,21 @@
                 </li>
               `).join("");
 
-              card.innerHTML = `<div class="position-header"><span>${pos.name}</span></div><ul class="player-list">${playersHtml || '<div style="color:var(--text-muted); font-size:10px; padding:6px; text-align:center;">Drop Player</div>'}</ul>`;
+              let cardHeaderHtml = userRole === 'admin' ? `
+                <div class="position-header" draggable="true" ondragstart="handlePositionDragStart(event, '${form.id}', ${rIdx}, ${pIdx})" title="Drag header to move position">
+                   <span>${pos.name}</span>
+                   <button class="remove-btn" style="font-size:11px; padding:0 4px; line-height:14px;" onclick="removePositionFromRow('${form.id}', ${rIdx}, ${pIdx})" title="Delete Position">&times;</button>
+                </div>
+              ` : `
+                <div class="position-header">
+                   <span>${pos.name}</span>
+                </div>
+              `;
+
+              card.innerHTML = `
+                ${cardHeaderHtml}
+                <ul class="player-list">${playersHtml || '<div style="color:var(--text-muted); font-size:10px; padding:6px; text-align:center;">Drop Player</div>'}</ul>
+              `;
               slotDiv.appendChild(card);
             }
             posRowEl.appendChild(slotDiv);
@@ -2379,7 +2539,7 @@
           (form.rows || []).forEach(row => {
               const rowWrap = document.createElement("div");
               rowWrap.className = "row-container";
-              rowWrap.innerHTML = `<div class="level-header-bar"><span class="level-label">${row.label || 'Row'} (Gold & Blue Rotation)</span></div><div class="formation-row" style="grid-template-columns: repeat(${row.slotCount || 7}, 1fr);"></div>`;
+              rowWrap.innerHTML = `<div class="level-header-bar"><span class="level-label">${row.label || 'Row'} (Gold & Blue Rotation)</span></div><div class="formation-row" style="grid-template-columns: repeat(${row.positions ? row.positions.length : (row.slotCount || 7)}, 1fr);"></div>`;
               const posRowEl = rowWrap.querySelector(".formation-row");
 
               (row.positions || []).forEach(pos => {
@@ -2620,7 +2780,6 @@
       const rosterSidebar = document.getElementById('sidebar-panel');
       const playsSidebar = document.getElementById('plays-sidebar-panel');
 
-      // Hide sidebar on Drills, Scouting, Guides, and Practice Plan tabs
       if (['drills', 'scouting', 'guide', 'practice'].includes(unit)) {
         if (sidebarContainer) sidebarContainer.classList.add('hidden');
       } else {
@@ -2871,7 +3030,6 @@
       sanitizePracticeData();
       depthChart = getWeekDepthChart(currentWeek);
       
-      // Default to latest modified practice plan
       if (practiceData.length > 0) {
           let latest = practiceData.reduce((prev, curr) => (curr.lastEdited || 0) > (prev.lastEdited || 0) ? curr : prev);
           currentPracticeId = latest.id;
