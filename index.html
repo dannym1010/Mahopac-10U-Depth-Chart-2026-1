@@ -864,7 +864,7 @@
     let currentUser = null, userRole = 'admin', isSignUpMode = false;
     let scrimmageFilters = safeJSONParse("footballScrimmageFilters", null);
     let collapsedFolders = safeJSONParse("footballCollapsedFolders", {});
-    let savedCoachesList = safeJSONParse("footballSavedCoaches", ["Coach Smith", "Coach Davis", "Coach Miller", "Coach Johnson"]);
+    let savedCoachesList = safeJSONParse("footballSavedCoaches", []);
 
     const defaultPracticeTemplates = {
       "Standard Practice": [
@@ -1911,7 +1911,7 @@
                     </div>
                     <div>
                         <label style="font-size:9.5px; font-weight:bold; color:var(--text-muted); display:block; margin-bottom:2px;" class="no-print">Coaching Focus:</label>
-                        <input type="text" class="prac-input" value="${st.focus || ''}" onkeydown="if(event.key==='Enter') this.blur();" onchange="updatePracStation(${idx}, ${sIdx}, 'focus', this.value)" placeholder="Key focus...">
+                        <textarea class="prac-textarea" oninput="autoResizeTextarea(this);" onchange="updatePracStation(${idx}, ${sIdx}, 'focus', this.value)" placeholder="Key focus...">${st.focus || ''}</textarea>
                     </div>
                     <div class="admin-only" style="padding-top:20px; text-align:center;">
                         <button class="remove-btn" onclick="removeStation(${idx}, ${sIdx})" title="Delete Station">&times;</button>
