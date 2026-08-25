@@ -1892,7 +1892,7 @@
                 let datalistId = `coach_list_${idx}_${sIdx}`;
 
                 return `
-                <div class="station-block" style="display:grid; grid-template-columns: 1fr 200px 180px; gap:8px; align-items:start;">
+                <div class="station-block" style="display:grid; grid-template-columns: 1fr 200px 180px 30px; gap:8px; align-items:start;">
                     <div>
                         <div style="margin-bottom:4px;" class="no-print">
                             <select class="prac-select" style="font-weight:bold; color:var(--primary);" onchange="onDrillSelected(${idx}, ${sIdx}, this)">
@@ -1912,6 +1912,9 @@
                     <div>
                         <label style="font-size:9.5px; font-weight:bold; color:var(--text-muted); display:block; margin-bottom:2px;" class="no-print">Coaching Focus:</label>
                         <input type="text" class="prac-input" value="${st.focus || ''}" onkeydown="if(event.key==='Enter') this.blur();" onchange="updatePracStation(${idx}, ${sIdx}, 'focus', this.value)" placeholder="Key focus...">
+                    </div>
+                    <div class="admin-only" style="padding-top:20px; text-align:center;">
+                        <button class="remove-btn" onclick="removeStation(${idx}, ${sIdx})" title="Delete Station">&times;</button>
                     </div>
                 </div>
             `;
@@ -1938,8 +1941,20 @@
                 </td>
                 <td>
                     ${categorySelectHtml}
+                    <div style="margin-top:8px;" class="no-print admin-only">
+                        <label style="font-size:9.5px; font-weight:bold; color:var(--text-muted); display:block; margin-bottom:2px;">Format:</label>
+                        <select class="prac-select" onchange="updatePracRowFormat(${idx}, this.value)">
+                            <option value="static" ${row.format === 'static' ? 'selected' : ''}>Static</option>
+                            <option value="rotating" ${row.format === 'rotating' ? 'selected' : ''}>Rotating</option>
+                        </select>
+                    </div>
                 </td>
-                <td>${stationsHtml}</td>
+                <td>
+                    ${stationsHtml}
+                    <div class="no-print admin-only" style="margin-top:6px;">
+                        <button class="toggle-board-btn" style="background:#e0f2fe; color:#0369a1; padding:3px 8px; font-size:10px;" onclick="addStationToRow(${idx})">+ Add Station / Group</button>
+                    </div>
+                </td>
                 <td class="admin-only" style="text-align:center;">
                     <div style="display:flex; flex-direction:column; gap:2px; align-items:center;">
                       <div style="display:flex; gap:2px;">
@@ -1995,11 +2010,42 @@
         }
     }
 
+    function updatePracRowFormat(rIdx, val) {
+        const prac = practiceData.find(p => p.id === currentPracticeId);
+        if (prac && prac.plan[rIdx]) {
+            prac.plan[rIdx].format = val;
+            saveState();
+        }
+    }
+
     function updatePracStation(rIdx, sIdx, field, val) {
         const prac = practiceData.find(p => p.id === currentPracticeId);
         if (prac && prac.plan[rIdx] && prac.plan[rIdx].stations[sIdx]) {
             prac.plan[rIdx].stations[sIdx][field] = val;
             triggerDebouncedSave();
+        }
+    }
+
+    function addStationToRow(rIdx) {
+        const prac = practiceData.find(p => p.id === currentPracticeId);
+        if (prac && prac.plan[rIdx]) {
+            if (!prac.plan[rIdx].stations) prac.plan[rIdx].stations = [];
+            prac.plan[rIdx].stations.push({ name: "New Station / Group", desc: "", coach: "", focus: "" });
+            saveState();
+            renderPracticePlan();
+        }
+    }
+
+    function removeStation(rIdx, sIdx) {
+        const prac = practiceData.find(p => p.id === currentPracticeId);
+        if (prac && prac.plan[rIdx] && prac.plan[rIdx].stations) {
+            if (prac.plan[rIdx].stations.length <= 1) {
+                alert("A period must have at least one station/group.");
+                return;
+            }
+            prac.plan[rIdx].stations.splice(sIdx, 1);
+            saveState();
+            renderPracticePlan();
         }
     }
 
