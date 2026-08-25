@@ -1161,6 +1161,9 @@
     let depthChart = null, currentPracticeId = null;
 
     function saveState() {
+        const prac = practiceData.find(p => p.id === currentPracticeId);
+        if (prac) prac.lastEdited = Date.now();
+
         localStorage.setItem("footballWeeklyData", JSON.stringify(weeklyData));
         localStorage.setItem("footballPracticeData", JSON.stringify(practiceData));
         localStorage.setItem("footballMasterPlays", JSON.stringify(masterPlayLibrary));
@@ -1850,6 +1853,19 @@
         if (updated) {
             savedCoachesList.sort();
             saveState();
+        }
+    }
+
+    function addCoachToStation(rIdx, sIdx, coachName) {
+        const prac = practiceData.find(p => p.id === currentPracticeId);
+        if (!prac || !prac.plan[rIdx] || !prac.plan[rIdx].stations[sIdx]) return;
+        
+        let curVal = prac.plan[rIdx].stations[sIdx].coach || "";
+        let tokens = curVal.split(',').map(t => t.trim()).filter(Boolean);
+        if (!tokens.includes(coachName)) {
+            tokens.push(coachName);
+            prac.plan[rIdx].stations[sIdx].coach = tokens.join(', ');
+            saveState();
             renderPracticePlan();
         }
     }
@@ -1884,9 +1900,9 @@
         tbody.innerHTML = '';
 
         let coachDatalistOptions = savedCoachesList.map(c => `<option value="${c}">`).join('');
-        let coachDeleteOptionsHtml = savedCoachesList.map(c => `
-            <div style="display:flex; justify-content:space-between; align-items:center; padding:2px 4px; font-size:10px; border-bottom:1px solid #f1f5f9;">
-               <span>${c}</span>
+        let coachAddDropdownHtml = savedCoachesList.map(c => `
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:3px 6px; font-size:10.5px; border-bottom:1px solid #f1f5f9; cursor:pointer;" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='#fff'">
+               <span onclick="addCoachToStation(%%R%%, %%S%%, '${c}')" style="flex-grow:1; font-weight:bold; color:var(--primary);">${c}</span>
                <button class="remove-btn" style="font-size:11px;" onclick="deleteCoachFromSaved('${c}', event)" title="Delete Coach">&times;</button>
             </div>
         `).join('');
@@ -1913,6 +1929,7 @@
             let stationsHtml = (row.stations || []).map((st, sIdx) => {
                 let datalistId = `coach_list_${idx}_${sIdx}`;
                 let coachDropdownId = `coach_mgr_${idx}_${sIdx}`;
+                let specificCoachAddHtml = coachAddDropdownHtml.replace(/%%R%%/g, idx).replace(/%%S%%/g, sIdx);
 
                 return `
                 <div class="station-block" style="display:grid; grid-template-columns: 1fr 200px 180px 30px; gap:8px; align-items:start;">
@@ -1927,17 +1944,17 @@
                     </div>
                     <div>
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;" class="no-print">
-                           <label style="font-size:9.5px; font-weight:bold; color:var(--text-muted);">Coaches (Comma sep):</label>
-                           <span style="font-size:9px; color:var(--accent); cursor:pointer; text-decoration:underline;" onclick="document.getElementById('${coachDropdownId}').classList.toggle('hidden')">Manage ▾</span>
+                           <label style="font-size:9.5px; font-weight:bold; color:var(--text-muted);">Coaches:</label>
+                           <span style="font-size:9px; color:var(--accent); cursor:pointer; text-decoration:underline;" onclick="document.getElementById('${coachDropdownId}').classList.toggle('hidden')">+ Coach ▾</span>
                         </div>
                         <div style="position:relative;">
                            <input type="text" class="prac-input" list="${datalistId}" value="${st.coach || ''}" onkeydown="if(event.key==='Enter') this.blur();" onchange="updateCoachInput(${idx}, ${sIdx}, this.value)" placeholder="Coach Name(s)">
                            <datalist id="${datalistId}">
                                ${coachDatalistOptions}
                            </datalist>
-                           <div id="${coachDropdownId}" class="card-search-dropdown hidden" style="width: 100%; max-height: 120px; overflow-y: auto; top: 100%; left: 0; padding:4px; background:#fff; z-index:50000;">
-                              <div style="font-size:9px; font-weight:bold; color:var(--primary); margin-bottom:2px; border-bottom:1px solid #ccc;">Saved Coaches:</div>
-                              ${coachDeleteOptionsHtml || '<div style="font-size:9px; color:#64748b;">No saved coaches.</div>'}
+                           <div id="${coachDropdownId}" class="card-search-dropdown hidden" style="width: 100%; max-height: 150px; overflow-y: auto; top: 100%; left: 0; padding:4px; background:#fff; z-index:50000; box-shadow:0 4px 6px rgba(0,0,0,0.15);">
+                              <div style="font-size:9px; font-weight:bold; color:var(--primary); margin-bottom:2px; border-bottom:1px solid #ccc;">Click to Add Coach:</div>
+                              ${specificCoachAddHtml || '<div style="font-size:9px; color:#64748b; padding:4px;">No saved coaches yet. Type in field to add.</div>'}
                            </div>
                         </div>
                     </div>
@@ -2830,6 +2847,7 @@
         practiceData.forEach(p => {
           if (!p.year) p.year = "2026";
           if (!p.weekFolder) p.weekFolder = "Week 1";
+          if (!p.lastEdited) p.lastEdited = Date.now();
         });
       }
     }
@@ -2837,9 +2855,13 @@
     function initializeApp() {
       sanitizePracticeData();
       depthChart = getWeekDepthChart(currentWeek);
-      if (!currentPracticeId || !practiceData.some(p => p.id === currentPracticeId)) {
-          currentPracticeId = practiceData[0].id;
+      
+      // Default to latest modified practice plan
+      if (practiceData.length > 0) {
+          let latest = practiceData.reduce((prev, curr) => (curr.lastEdited || 0) > (prev.lastEdited || 0) ? curr : prev);
+          currentPracticeId = latest.id;
       }
+
       renderActiveBoards();
       renderMasterRoster();
       populatePracticeDropdown();
