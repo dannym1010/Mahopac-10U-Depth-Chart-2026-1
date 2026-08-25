@@ -134,6 +134,7 @@
     .row-container { margin-bottom: 12px; }
     .level-header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; border-bottom: 1px solid #e2e8f0; padding-bottom: 2px; }
     .level-label { font-size: 10px; font-weight: bold; color: var(--text-muted); text-transform: uppercase; cursor: pointer; }
+    .level-label:hover { color: var(--accent); text-decoration: underline; }
 
     .formation-row {
       display: grid;
@@ -162,6 +163,7 @@
     .position-card.drag-over { border-color: var(--accent) !important; background: #eff6ff !important; transform: scale(1.02); }
     .position-header { background: #f1f5f9; padding: 3px 6px; font-weight: bold; font-size: 11px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border); color: var(--primary); cursor: grab; }
     .position-header:active { cursor: grabbing; }
+    .position-header span:first-child:hover { color: var(--accent); text-decoration: underline; cursor: pointer; }
 
     .player-list { list-style: none; padding: 4px; margin: 0; min-height: 45px; }
     .player-item { background: #f8fafc; border: 1px solid var(--card-border); padding: 4px 6px; margin-bottom: 4px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; cursor: grab; font-size: 11px; user-select: none; z-index:100; position:relative; }
@@ -1928,7 +1930,6 @@
                 drillOptionsHtml += `<option value="${d.name}">${d.name}</option>`;
             });
 
-            // Calculate rotating station times if format is 'rotating'
             let isRotating = (row.format === 'rotating');
             let numStations = (row.stations || []).length;
             let stationDurationMin = (isRotating && numStations > 0) ? (rowTime / numStations) : rowTime;
@@ -2277,7 +2278,7 @@
         renderMasterRoster();
     }
 
-    // --- FORMATION ROW & POSITION REORDERING FUNCTIONS ---
+    // --- FORMATION ROW, POSITION & EDITING FUNCTIONS ---
     function addFormationRow(formId) {
       if (userRole !== 'admin') return;
       let label = prompt("Enter new level/row label (e.g. Defensive Secondary, Backfield):", "Additional Level");
@@ -2299,6 +2300,62 @@
         form.rows.push({ id: newRowId, label: label.trim(), slotCount, positions });
         saveState();
         renderActiveBoards();
+      }
+    }
+
+    function editRowName(formId, rIdx) {
+      if (userRole !== 'admin') return;
+      const forms = getWeekFormations(currentWeek);
+      const form = forms.find(f => f.id === formId);
+      if (form && form.rows && form.rows[rIdx]) {
+        let currentLabel = form.rows[rIdx].label || "";
+        let newLabel = prompt("Edit Row/Level Name:", currentLabel);
+        if (newLabel !== null && newLabel.trim() !== "") {
+          form.rows[rIdx].label = newLabel.trim();
+          saveState();
+          renderActiveBoards();
+        }
+      }
+    }
+
+    function editRowSlots(formId, rIdx) {
+      if (userRole !== 'admin') return;
+      const forms = getWeekFormations(currentWeek);
+      const form = forms.find(f => f.id === formId);
+      if (form && form.rows && form.rows[rIdx]) {
+        let row = form.rows[rIdx];
+        let currentCount = row.positions ? row.positions.length : (row.slotCount || 7);
+        let newCountStr = prompt("Edit number of position slots for this row (1 to 10):", currentCount);
+        let newCount = parseInt(newCountStr);
+        if (isNaN(newCount) || newCount < 1 || newCount > 10) return;
+
+        if (!row.positions) row.positions = [];
+        if (newCount > row.positions.length) {
+          while(row.positions.length < newCount) {
+            row.positions.push(null);
+          }
+        } else if (newCount < row.positions.length) {
+          row.positions = row.positions.slice(0, newCount);
+        }
+        row.slotCount = newCount;
+        saveState();
+        renderActiveBoards();
+      }
+    }
+
+    function editPositionName(formId, rIdx, pIdx) {
+      if (userRole !== 'admin') return;
+      const forms = getWeekFormations(currentWeek);
+      const form = forms.find(f => f.id === formId);
+      if (form && form.rows && form.rows[rIdx] && form.rows[rIdx].positions) {
+        let pos = form.rows[rIdx].positions[pIdx];
+        if (!pos) return;
+        let newName = prompt("Edit Position Name:", pos.name);
+        if (newName !== null && newName.trim() !== "") {
+          pos.name = newName.trim();
+          saveState();
+          renderActiveBoards();
+        }
       }
     }
 
@@ -2441,8 +2498,9 @@
           rowWrap.className = "row-container";
           rowWrap.innerHTML = `
             <div class="level-header-bar">
-               <span class="level-label">${row.label || 'Row'}</span>
+               <span class="level-label" onclick="editRowName('${form.id}', ${rIdx})" title="Click to edit row name">${row.label || 'Row'} ✏️</span>
                <div class="admin-only" style="display:flex; gap:4px;">
+                  <button class="toggle-board-btn" style="font-size:9px; padding:2px 6px;" onclick="editRowSlots('${form.id}', ${rIdx})" title="Edit number of position slots">⚙️ Slots</button>
                   <button class="toggle-board-btn" style="font-size:9px; padding:2px 6px;" onclick="addPositionToRow('${form.id}', ${rIdx})">+ Add Position</button>
                   <button class="remove-btn" style="font-size:11px; padding:0 4px;" onclick="deleteFormationRow('${form.id}', ${rIdx})" title="Delete Row">&times;</button>
                </div>
@@ -2483,8 +2541,8 @@
               `).join("");
 
               let cardHeaderHtml = userRole === 'admin' ? `
-                <div class="position-header" draggable="true" ondragstart="handlePositionDragStart(event, '${form.id}', ${rIdx}, ${pIdx})" title="Drag header to move position">
-                   <span>${pos.name}</span>
+                <div class="position-header" draggable="true" ondragstart="handlePositionDragStart(event, '${form.id}', ${rIdx}, ${pIdx})" title="Drag header to reorder position">
+                   <span onclick="editPositionName('${form.id}', ${rIdx}, ${pIdx})" title="Click to edit position name">${pos.name} ✏️</span>
                    <button class="remove-btn" style="font-size:11px; padding:0 4px; line-height:14px;" onclick="removePositionFromRow('${form.id}', ${rIdx}, ${pIdx})" title="Delete Position">&times;</button>
                 </div>
               ` : `
