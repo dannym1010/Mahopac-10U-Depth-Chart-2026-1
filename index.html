@@ -275,7 +275,6 @@
       .period-schedule-time { font-size: 12px !important; color: #000 !important; }
       .prac-input, .prac-select, .prac-textarea { font-size: 12px !important; border: none !important; background: transparent !important; padding: 0 !important; color: #000 !important; }
       
-      /* Make drill/station input name bold when printing */
       #panel-practice .station-block input.prac-input { font-weight: bold !important; font-size: 12.5px !important; }
 
       #panel-practice select.prac-select:not([onchange*="updatePracRowCategory"]):not([onchange*="updatePracRowFormat"]),
@@ -691,6 +690,7 @@
     };
 
     let db = null, auth = null, storage = null, cloudEnabled = false;
+    let isImporting = false; // Lock flag to prevent cloud sync from overwriting imports
 
     function initFirebase() {
       try {
@@ -1099,6 +1099,7 @@
     let depthChart = null, currentPracticeId = null;
 
     function saveState() {
+        if (isImporting) return; // Prevent writing during import
         const prac = practiceData.find(p => p.id === currentPracticeId);
         if (prac) prac.lastEdited = Date.now();
 
@@ -1122,6 +1123,7 @@
 
     let saveTimeout = null;
     function triggerDebouncedSave() {
+        if (isImporting) return;
         if (saveTimeout) clearTimeout(saveTimeout);
         saveTimeout = setTimeout(() => { saveState(); }, 500);
     }
@@ -1146,17 +1148,13 @@
         el.style.height = (el.scrollHeight) + 'px';
     }
 
-    // --- BULLETPROOF WEEK INITIALIZATION & RECOVERY GUARDS ---
     function ensureWeekDataExists(week) {
       if (!weeklyData[week] || typeof weeklyData[week] !== 'object') {
         weeklyData[week] = {};
       }
-      
-      // Force injection if formations are missing or empty
       if (!weeklyData[week].formations || !Array.isArray(weeklyData[week].formations) || weeklyData[week].formations.length === 0) {
         weeklyData[week].formations = JSON.parse(JSON.stringify(defaultFormations));
       } else {
-        // Ensure all default units exist
         const existingUnits = weeklyData[week].formations.map(f => f.unit);
         defaultFormations.forEach(defF => {
           if (!existingUnits.includes(defF.unit)) {
@@ -1191,7 +1189,6 @@
       return weeklyData[week].scrimmageChart;
     }
 
-    // --- TEMPLATES LOGIC ---
     function populateTemplateDropdown() {
         const select = document.getElementById("practice-template-select");
         if (!select) return;
@@ -1276,7 +1273,6 @@
         }
     }
 
-    // --- CASCADING DRILLS JSON & CSV EXPORT / IMPORT ---
     function exportDrillsJSON() {
         let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(cascadingDrills, null, 2));
         let dl = document.createElement('a'); 
@@ -1439,7 +1435,6 @@
         reader.readAsText(file);
     }
 
-    // --- CASCADING DRILL LIBRARY MANAGEMENT & REORDERING ---
     function toggleDrillFolder(folderId, e) {
         if (e) e.stopPropagation();
         collapsedFolders[folderId] = !collapsedFolders[folderId];
@@ -1746,7 +1741,6 @@
         return list;
     }
 
-    // --- PRACTICE PLAN ---
     function togglePracticeDropdown(e) {
         if (e) e.stopPropagation();
         document.getElementById("practice-tree-dropdown").classList.toggle("hidden");
@@ -2216,6 +2210,7 @@
         if (!cloudEnabled || !db) return;
         db.collection("teamData").doc("depthChartData")
           .onSnapshot((doc) => {
+            if (isImporting) return; // Ignore cloud updates while importing
             if (doc.exists) {
               const data = doc.data();
               
@@ -3211,7 +3206,9 @@
         const reader = new FileReader();
         reader.onload = function(evt) {
             try {
+                isImporting = true; // Lock sync / writes during import
                 const parsed = JSON.parse(evt.target.result);
+                
                 if (parsed.weeklyData) weeklyData = parsed.weeklyData;
                 if (parsed.practiceData) practiceData = parsed.practiceData;
                 if (parsed.masterPlayLibrary) masterPlayLibrary = parsed.masterPlayLibrary;
@@ -3227,15 +3224,42 @@
                     }
                 }
                 
-                // Immediately force-sanitize all weeks post-import
                 for (let w = 0; w <= 8; w++) {
                     ensureWeekDataExists(String(w));
                 }
 
-                saveState(); 
+                // Save locally first
+                localStorage.setItem("footballWeeklyData", JSON.stringify(weeklyData));
+                localStorage.setItem("footballPracticeData", JSON.stringify(practiceData));
+                localStorage.setItem("footballMasterPlays", JSON.stringify(masterPlayLibrary));
+                localStorage.setItem("footballCascadingDrills", JSON.stringify(cascadingDrills));
+                localStorage.setItem("footballPdfGuides", JSON.stringify(pdfGuides));
+                localStorage.setItem("footballCollapsedFolders", JSON.stringify(collapsedFolders));
+                localStorage.setItem("footballSavedCoaches", JSON.stringify(savedCoachesList));
+                localStorage.setItem("footballPracticeTemplates", JSON.stringify(practiceTemplates));
+                localStorage.setItem("footballTeamCoaches", JSON.stringify(teamCoachesList));
+
+                // Push to cloud once explicitly after import
+                if (cloudEnabled && db && userRole === 'admin') {
+                    db.collection("teamData").doc("depthChartData").set({
+                        weeklyData, practiceData, masterPlayLibrary, cascadingDrills, pdfGuides, collapsedFolders, savedCoachesList, practiceTemplates, teamCoachesList,
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    }, { merge: true }).then(() => {
+                        isImporting = false;
+                    }).catch(err => {
+                        isImporting = false;
+                        console.error("Cloud import push error:", err);
+                    });
+                } else {
+                    isImporting = false;
+                }
+
                 alert("Data and backup imported successfully!");
                 location.reload();
-            } catch (err) { alert("Invalid backup file: " + err.message); }
+            } catch (err) { 
+                isImporting = false;
+                alert("Invalid backup file: " + err.message); 
+            }
         };
         reader.readAsText(file);
     }
@@ -3344,7 +3368,6 @@
     function initializeApp() {
       sanitizePracticeData();
       
-      // Run sanity checks across all 8 weeks so no week is left blank
       for (let w = 0; w <= 8; w++) {
           ensureWeekDataExists(String(w));
       }
