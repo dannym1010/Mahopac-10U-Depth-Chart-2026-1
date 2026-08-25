@@ -3204,7 +3204,7 @@
     function importData(e) {
         const file = e.target.files[0]; if (!file) return;
         const reader = new FileReader();
-        reader.onload = function(evt) {
+        reader.onload = async function(evt) {
             try {
                 isImporting = true; // Lock sync / writes during import
                 const parsed = JSON.parse(evt.target.result);
@@ -3213,7 +3213,6 @@
                 if (parsed.weeklyData && typeof parsed.weeklyData === 'object') {
                     weeklyData = parsed.weeklyData;
                 } else if (parsed.depthChart || parsed.formations) {
-                    // Handle flat or legacy single-week backups by migrating into current week
                     ensureWeekDataExists(currentWeek);
                     if (parsed.formations) weeklyData[currentWeek].formations = parsed.formations;
                     if (parsed.depthChart) weeklyData[currentWeek].depthChart = parsed.depthChart;
@@ -3249,21 +3248,15 @@
                 localStorage.setItem("footballPracticeTemplates", JSON.stringify(practiceTemplates));
                 localStorage.setItem("footballTeamCoaches", JSON.stringify(teamCoachesList));
 
-                // Push to cloud once explicitly after import
+                // Push to cloud and await confirmation before reloading
                 if (cloudEnabled && db && userRole === 'admin') {
-                    db.collection("teamData").doc("depthChartData").set({
+                    await db.collection("teamData").doc("depthChartData").set({
                         weeklyData, practiceData, masterPlayLibrary, cascadingDrills, pdfGuides, collapsedFolders, savedCoachesList, practiceTemplates, teamCoachesList,
                         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                    }, { merge: true }).then(() => {
-                        isImporting = false;
-                    }).catch(err => {
-                        isImporting = false;
-                        console.error("Cloud import push error:", err);
-                    });
-                } else {
-                    isImporting = false;
+                    }, { merge: true });
                 }
 
+                isImporting = false;
                 alert("Data and backup imported successfully!");
                 location.reload();
             } catch (err) { 
