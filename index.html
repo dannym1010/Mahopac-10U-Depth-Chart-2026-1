@@ -48,9 +48,9 @@
     .hidden { display: none !important; }
 
     /* Auth Overlay */
-    #auth-overlay {
+    #auth-overlay, #approval-pending-overlay {
       position: fixed; inset: 0; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(6px);
-      display: none; align-items: center; justify-content: center; z-index: 100000;
+      display: flex; align-items: center; justify-content: center; z-index: 100000;
     }
     .auth-card { background: #ffffff; border-radius: 12px; padding: 28px; width: 100%; max-width: 380px; text-align: center; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); }
     .auth-card h2 { margin: 0 0 4px 0; color: var(--primary); font-size: 20px; }
@@ -256,7 +256,7 @@
     @media print {
       @page { size: letter portrait; margin: 0.25in; }
       body { background-color: #ffffff; padding: 0; margin: 0; font-size: 13px !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      .toolbar, #sidebar-container, .remove-btn, .action-group, p.subtitle, .search-box, .tab-navigation, .toggle-board-btn, .week-bar, .board-controls, .add-row-btn, .add-form-btn, .row-actions, .practice-dashboard-info, #print-modal, #new-prac-modal, #scrimmage-print-modal, #scrimmage-filter-modal, #templates-modal { display: none !important; }
+      .toolbar, #sidebar-container, .remove-btn, .action-group, p.subtitle, .search-box, .tab-navigation, .toggle-board-btn, .week-bar, .board-controls, .add-row-btn, .add-form-btn, .row-actions, .practice-dashboard-info, #print-modal, #new-prac-modal, #scrimmage-print-modal, #scrimmage-filter-modal, #templates-modal, #approval-pending-overlay { display: none !important; }
       .app-layout, .boards-container, .unit-panel { display: block !important; }
       .unit-panel.hidden { display: none !important; }
       .formation-container { border: 2px solid #000000 !important; box-shadow: none !important; padding: 6px; page-break-inside: auto !important; margin-bottom: 8px; background: #ffffff !important; }
@@ -306,6 +306,16 @@
       </form>
       <div id="auth-error" style="color:#ef4444; font-size:12px; margin-top:10px; font-weight:bold; display:none; background:#fee2e2; padding:8px; border-radius:4px;"></div>
       <div style="margin-top:15px;"><span style="color:#64748b; font-size:11px; cursor:pointer; text-decoration:underline;" onclick="bypassLogin()">Continue without login (Offline Mode)</span></div>
+    </div>
+  </div>
+
+  <!-- Approval Pending Overlay -->
+  <div id="approval-pending-overlay" class="hidden">
+    <div class="auth-card" style="text-align: center;">
+      <h2 style="color: #d97706;">⏳ Approval Pending</h2>
+      <p style="margin-top: 10px;">Your account (<span id="pending-user-email-display" style="font-weight: bold;"></span>) is awaiting approval from the Head Coach (Admin).</p>
+      <p style="font-size: 11px; color: var(--text-muted);">You will receive access automatically once approved.</p>
+      <button class="btn-primary" style="background: #64748b; margin-top: 10px;" onclick="signOutUser()">Sign Out / Switch Account</button>
     </div>
   </div>
 
@@ -758,9 +768,7 @@
     let collapsedFolders = safeJSONParse("footballCollapsedFolders", {});
     let savedCoachesList = safeJSONParse("footballSavedCoaches", []);
     let teamCoachesList = safeJSONParse("footballTeamCoaches", [
-      { email: "headcoach@mahopacwolfpac.com", role: "Head Coach (Admin)", status: "Active" },
-      { email: "offensecoordinator@mahopacwolfpac.com", role: "Assistant Coach", status: "Active" },
-      { email: "defensecoordinator@mahopacwolfpac.com", role: "Assistant Coach", status: "Active" }
+      { email: "headcoach@mahopacwolfpac.com", role: "Head Coach (Admin)", status: "Active" }
     ]);
 
     const defaultPracticeTemplates = {
@@ -2126,6 +2134,26 @@
         }
     }
 
+    function checkUserApprovalStatus(email) {
+        if (!email) return true; // fallback
+        // Always trust headcoach email as active admin
+        if (email.toLowerCase() === "headcoach@mahopacwolfpac.com") {
+            let found = teamCoachesList.find(c => c.email.toLowerCase() === email.toLowerCase());
+            if (!found) teamCoachesList.push({ email, role: "Head Coach (Admin)", status: "Active" });
+            else found.status = "Active";
+            return true;
+        }
+
+        let coachRecord = teamCoachesList.find(c => c.email.toLowerCase() === email.toLowerCase());
+        if (!coachRecord) {
+            // New registering/signing-in coach starts as Pending approval
+            teamCoachesList.push({ email, role: "Assistant Coach", status: "Pending" });
+            saveState();
+            return false;
+        }
+        return coachRecord.status === "Active";
+    }
+
     function listenToLiveUpdates() {
         if (!cloudEnabled || !db) return;
         db.collection("teamData").doc("depthChartData")
@@ -2141,6 +2169,18 @@
               if (data.savedCoachesList) savedCoachesList = data.savedCoachesList;
               if (data.practiceTemplates) practiceTemplates = data.practiceTemplates;
               if (data.teamCoachesList) teamCoachesList = data.teamCoachesList;
+
+              // Check approval status in real-time if user is logged in
+              if (currentUser && currentUser.email) {
+                  let isApproved = checkUserApprovalStatus(currentUser.email);
+                  if (!isApproved) {
+                      document.getElementById("approval-pending-overlay").classList.remove("hidden");
+                      document.getElementById("pending-user-email-display").textContent = currentUser.email;
+                      return;
+                  } else {
+                      document.getElementById("approval-pending-overlay").classList.add("hidden");
+                  }
+              }
 
               depthChart = getWeekDepthChart(currentWeek);
               renderActiveBoards();
@@ -2957,16 +2997,25 @@
        const container = document.getElementById("users-table-container");
        if (!container) return;
 
-       let rowsHtml = teamCoachesList.map((coach, idx) => `
-         <tr>
-           <td style="padding:8px; border:1px solid var(--card-border); font-weight:bold;">${coach.email}</td>
-           <td style="padding:8px; border:1px solid var(--card-border);"><span class="role-badge ${coach.role.includes('Admin') ? 'role-admin' : 'role-viewer'}">${coach.role}</span></td>
-           <td style="padding:8px; border:1px solid var(--card-border); text-align:center; color:#16a34a; font-weight:bold;">${coach.status}</td>
-           <td style="padding:8px; border:1px solid var(--card-border); text-align:center;" class="admin-only">
-              <button class="remove-btn" onclick="removeCoachFromStaff(${idx})" title="Remove Coach">&times;</button>
-           </td>
-         </tr>
-       `).join('');
+       if (currentUser && currentUser.email && !teamCoachesList.some(c => c.email.toLowerCase() === currentUser.email.toLowerCase())) {
+           teamCoachesList.push({ email: currentUser.email, role: "Assistant Coach", status: "Pending" });
+       }
+
+       let rowsHtml = teamCoachesList.map((coach, idx) => {
+         let statusColor = coach.status === 'Active' ? '#16a34a' : '#d97706';
+         let toggleBtnText = coach.status === 'Active' ? '⏸️ Deactivate' : '✅ Approve';
+         return `
+           <tr>
+             <td style="padding:8px; border:1px solid var(--card-border); font-weight:bold;">${coach.email}</td>
+             <td style="padding:8px; border:1px solid var(--card-border);"><span class="role-badge ${coach.role.includes('Admin') ? 'role-admin' : 'role-viewer'}">${coach.role}</span></td>
+             <td style="padding:8px; border:1px solid var(--card-border); text-align:center; color:${statusColor}; font-weight:bold;">${coach.status || 'Pending'}</td>
+             <td style="padding:8px; border:1px solid var(--card-border); text-align:center;" class="admin-only">
+                <button class="toggle-board-btn" style="padding:2px 6px; font-size:10px; margin-right:4px;" onclick="toggleCoachApproval(${idx})">${toggleBtnText}</button>
+                <button class="remove-btn" onclick="removeCoachFromStaff(${idx})" title="Remove Coach">&times;</button>
+             </td>
+           </tr>
+         `;
+       }).join('');
 
        let html = `
          <div style="margin-bottom:10px;" class="admin-only">
@@ -2989,9 +3038,21 @@
        container.innerHTML = html;
     }
 
+    function toggleCoachApproval(idx) {
+        if (teamCoachesList[idx]) {
+            teamCoachesList[idx].status = (teamCoachesList[idx].status === 'Active') ? 'Pending' : 'Active';
+            saveState();
+            renderUsers();
+        }
+    }
+
     function addNewCoachPrompt() {
        let email = prompt("Enter assistant coach email address:");
        if (email && email.trim() !== "") {
+           if (teamCoachesList.some(c => c.email.toLowerCase() === email.trim().toLowerCase())) {
+               alert("Coach already exists in staff list.");
+               return;
+           }
            teamCoachesList.push({ email: email.trim(), role: "Assistant Coach", status: "Active" });
            saveState();
            renderUsers();
@@ -3071,6 +3132,7 @@
 
     function bypassLogin() {
       document.getElementById("auth-overlay").style.display = "none";
+      document.getElementById("approval-pending-overlay").classList.add("hidden");
       applyRole('admin');
       document.getElementById("user-display-email").textContent = "Head Coach";
       initializeApp();
@@ -3091,7 +3153,7 @@
       try {
         if (isSignUpMode) await auth.createUserWithEmailAndPassword(email, pass);
         else await auth.signInWithEmailAndPassword(email, pass);
-        document.getElementById("auth-overlay").style.display = "none";
+        // Auth state listener handles visibility/approval checks
       } catch (err) { alert(err.message); }
       return false;
     }
@@ -3101,7 +3163,7 @@
       try {
         const provider = new firebase.auth.GoogleAuthProvider();
         await auth.signInWithPopup(provider);
-        document.getElementById("auth-overlay").style.display = "none";
+        // Auth state listener handles visibility/approval checks
       } catch (err) { alert(err.message); }
     }
 
@@ -3111,10 +3173,24 @@
       auth.onAuthStateChanged(async (user) => {
         if (user) {
           currentUser = user;
-          document.getElementById("auth-overlay").style.display = "none";
-          document.getElementById("user-display-email").textContent = user.email || "Head Coach";
+          document.getElementById("user-display-email").textContent = user.email || "Coach";
           document.getElementById("sync-text").textContent = "Live Cloud Sync Active";
-          applyRole('admin');
+
+          let isApproved = checkUserApprovalStatus(user.email);
+          if (!isApproved) {
+              document.getElementById("auth-overlay").style.display = "none";
+              document.getElementById("approval-pending-overlay").classList.remove("hidden");
+              document.getElementById("pending-user-email-display").textContent = user.email;
+              return;
+          } else {
+              document.getElementById("auth-overlay").style.display = "none";
+              document.getElementById("approval-pending-overlay").classList.add("hidden");
+          }
+
+          let coachEntry = teamCoachesList.find(c => c.email.toLowerCase() === user.email.toLowerCase());
+          let isHeadAdmin = (user.email.toLowerCase() === "headcoach@mahopacwolfpac.com" || (coachEntry && coachEntry.role.includes("Admin")));
+          
+          applyRole(isHeadAdmin ? 'admin' : 'assistant');
           initializeApp();
           listenToLiveUpdates();
         }
