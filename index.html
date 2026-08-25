@@ -768,7 +768,7 @@
     let collapsedFolders = safeJSONParse("footballCollapsedFolders", {});
     let savedCoachesList = safeJSONParse("footballSavedCoaches", []);
     let teamCoachesList = safeJSONParse("footballTeamCoaches", [
-      { email: "headcoach@mahopacwolfpac.com", role: "Head Coach (Admin)", status: "Active" }
+      { email: "Dannym1010@gmail.com", role: "Head Coach (Admin)", status: "Active" }
     ]);
 
     const defaultPracticeTemplates = {
@@ -2136,17 +2136,22 @@
 
     function checkUserApprovalStatus(email) {
         if (!email) return true; // fallback
-        // Always trust headcoach email as active admin
-        if (email.toLowerCase() === "headcoach@mahopacwolfpac.com") {
+        
+        // Always trust Dannym1010@gmail.com as active admin
+        if (email.toLowerCase() === "dannym1010@gmail.com") {
             let found = teamCoachesList.find(c => c.email.toLowerCase() === email.toLowerCase());
-            if (!found) teamCoachesList.push({ email, role: "Head Coach (Admin)", status: "Active" });
-            else found.status = "Active";
+            if (!found) {
+                teamCoachesList.push({ email, role: "Head Coach (Admin)", status: "Active" });
+            } else {
+                found.role = "Head Coach (Admin)";
+                found.status = "Active";
+            }
             return true;
         }
 
         let coachRecord = teamCoachesList.find(c => c.email.toLowerCase() === email.toLowerCase());
         if (!coachRecord) {
-            // New registering/signing-in coach starts as Pending approval
+            // Any other new coach starts as Pending approval
             teamCoachesList.push({ email, role: "Assistant Coach", status: "Pending" });
             saveState();
             return false;
@@ -2997,21 +3002,24 @@
        const container = document.getElementById("users-table-container");
        if (!container) return;
 
-       if (currentUser && currentUser.email && !teamCoachesList.some(c => c.email.toLowerCase() === currentUser.email.toLowerCase())) {
+       if (currentUser && currentUser.email && currentUser.email.toLowerCase() !== "dannym1010@gmail.com" && !teamCoachesList.some(c => c.email.toLowerCase() === currentUser.email.toLowerCase())) {
            teamCoachesList.push({ email: currentUser.email, role: "Assistant Coach", status: "Pending" });
        }
 
        let rowsHtml = teamCoachesList.map((coach, idx) => {
          let statusColor = coach.status === 'Active' ? '#16a34a' : '#d97706';
          let toggleBtnText = coach.status === 'Active' ? '⏸️ Deactivate' : '✅ Approve';
+         let isDanny = coach.email.toLowerCase() === "dannym1010@gmail.com";
          return `
            <tr>
              <td style="padding:8px; border:1px solid var(--card-border); font-weight:bold;">${coach.email}</td>
              <td style="padding:8px; border:1px solid var(--card-border);"><span class="role-badge ${coach.role.includes('Admin') ? 'role-admin' : 'role-viewer'}">${coach.role}</span></td>
              <td style="padding:8px; border:1px solid var(--card-border); text-align:center; color:${statusColor}; font-weight:bold;">${coach.status || 'Pending'}</td>
              <td style="padding:8px; border:1px solid var(--card-border); text-align:center;" class="admin-only">
-                <button class="toggle-board-btn" style="padding:2px 6px; font-size:10px; margin-right:4px;" onclick="toggleCoachApproval(${idx})">${toggleBtnText}</button>
-                <button class="remove-btn" onclick="removeCoachFromStaff(${idx})" title="Remove Coach">&times;</button>
+                ${isDanny ? '<span style="font-size:10px; color:var(--text-muted); font-style:italic;">Master Admin</span>' : `
+                  <button class="toggle-board-btn" style="padding:2px 6px; font-size:10px; margin-right:4px;" onclick="toggleCoachApproval(${idx})">${toggleBtnText}</button>
+                  <button class="remove-btn" onclick="removeCoachFromStaff(${idx})" title="Remove Coach">&times;</button>
+                `}
              </td>
            </tr>
          `;
@@ -3040,6 +3048,7 @@
 
     function toggleCoachApproval(idx) {
         if (teamCoachesList[idx]) {
+            if (teamCoachesList[idx].email.toLowerCase() === "dannym1010@gmail.com") return; // cannot modify master admin
             teamCoachesList[idx].status = (teamCoachesList[idx].status === 'Active') ? 'Pending' : 'Active';
             saveState();
             renderUsers();
@@ -3060,6 +3069,10 @@
     }
 
     function removeCoachFromStaff(idx) {
+       if (teamCoachesList[idx].email.toLowerCase() === "dannym1010@gmail.com") {
+           alert("Cannot remove master admin account.");
+           return;
+       }
        if (confirm(`Remove coach ${teamCoachesList[idx].email} from the staff list?`)) {
            teamCoachesList.splice(idx, 1);
            saveState();
@@ -3134,7 +3147,7 @@
       document.getElementById("auth-overlay").style.display = "none";
       document.getElementById("approval-pending-overlay").classList.add("hidden");
       applyRole('admin');
-      document.getElementById("user-display-email").textContent = "Head Coach";
+      document.getElementById("user-display-email").textContent = "Dannym1010@gmail.com";
       initializeApp();
     }
 
@@ -3153,7 +3166,6 @@
       try {
         if (isSignUpMode) await auth.createUserWithEmailAndPassword(email, pass);
         else await auth.signInWithEmailAndPassword(email, pass);
-        // Auth state listener handles visibility/approval checks
       } catch (err) { alert(err.message); }
       return false;
     }
@@ -3163,7 +3175,6 @@
       try {
         const provider = new firebase.auth.GoogleAuthProvider();
         await auth.signInWithPopup(provider);
-        // Auth state listener handles visibility/approval checks
       } catch (err) { alert(err.message); }
     }
 
@@ -3188,7 +3199,7 @@
           }
 
           let coachEntry = teamCoachesList.find(c => c.email.toLowerCase() === user.email.toLowerCase());
-          let isHeadAdmin = (user.email.toLowerCase() === "headcoach@mahopacwolfpac.com" || (coachEntry && coachEntry.role.includes("Admin")));
+          let isHeadAdmin = (user.email.toLowerCase() === "dannym1010@gmail.com" || (coachEntry && coachEntry.role.includes("Admin")));
           
           applyRole(isHeadAdmin ? 'admin' : 'assistant');
           initializeApp();
