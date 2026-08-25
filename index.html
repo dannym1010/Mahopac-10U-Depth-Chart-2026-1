@@ -1049,7 +1049,7 @@
           { name: "Tackling: Form Fit & Drive (Thud)", desc: "Players start 2 yards apart. On whistle, step into ball carrier, fit shoulder to numbers, wrap arms tightly around cloth, and drive legs for 3-5 steps at thud tempo", key: "Without taking runner to ground. Leg drive must finish the tackle" },
           { name: "Tackling: Pop-Up Drill for Form Tackle", desc: "Tackler starts on stomach or knees. On whistle, pop up explosively into breakdown, step with near foot, strike dummy/carrier with shoulder, execute uppercuts, grab jersey, and drive 5 yards", key: "Builds explosive hip power and rapid transition from the ground to a striking position" },
           { name: "Tackling: Shoot Drill (Hips & Uppercuts)", desc: "Start in 3-point or 2-point breakdown stance. On cadence, explode hips violently forward-upward, shooting uppercuts through target", key: "Feet must not be charged; power generates purely from hip uncoil" },
-          { name: "Tackling: Hawk (Rugby) Roll Tackle", desc: "Defender approaches runner in open field, aims eyes at the runner's thighs/hip, clamps arms tightly around thighs, and rolls laterally with momentum to bring runner down safely", key: "Safety is paramount for 7U-10U. Emphasize taking the head completely out of the tackle ('eyes on the thighs'). Praise kids who wrap tight over those who try to deliver big hits" },
+          { name: "Tackling: Hawk (Rugby) Roll Tackle", desc: "Defender approaches runner in open field, aims eyes at the runner's thighs/hip, clamps arms tightly around thighs, and rolls laterally with momentum to bring runner down safely", key: "Safety is paramount for 7U-10U. Emphasize taking the head completely out of the tackle ('eyes on the thighs'). Praise kids who wrap tight over those who try to bring big hits" },
           { name: "Tackling: Angle / Alley Tackle Drill", desc: "Runner aims for pylon or sideline cone. Defender takes an inside-out angle to intersect runner's path, breaks down into swoop position, plants near foot, and drives shoulder through runner's near hip", key: "Enforce stepping with the 'near foot' (the foot closest to the runner) right before contact to generate power and prevent reaching" },
           { name: "Tackling: Tight Angle Tackle Drill", desc: "Align defender against a down-blocker with a RB running off-tackle. Defender strikes and sheds the down-blocker, maintains inside leverage, takes tight angle, and form tackles RB", key: "Stay square to the line of scrimmage while shedding the block to maintain the correct angle" },
           { name: "Tackling: Angle Tackle on Green Mat", desc: "Ball carrier runs at half-speed along long edge of mat. Defender approaches on an angle, tracks hip, uses near foot, and completes full shoulder tackle taking runner safely down onto the mat", key: "Great for building confidence in younger players learning how to safely take a runner to the ground" },
@@ -1142,27 +1142,37 @@
         el.style.height = (el.scrollHeight) + 'px';
     }
 
-    function getWeekFormations(week) {
-      if (!weeklyData[week]) weeklyData[week] = { opponent: "" };
+    // --- BULLETPROOF WEEK INITIALIZATION GUARDS ---
+    function ensureWeekDataExists(week) {
+      if (!weeklyData[week] || typeof weeklyData[week] !== 'object') {
+        weeklyData[week] = {};
+      }
       if (!weeklyData[week].formations || !Array.isArray(weeklyData[week].formations) || weeklyData[week].formations.length === 0) {
         weeklyData[week].formations = JSON.parse(JSON.stringify(defaultFormations));
       }
+      if (!weeklyData[week].depthChart || typeof weeklyData[week].depthChart !== 'object' || Array.isArray(weeklyData[week].depthChart)) {
+        weeklyData[week].depthChart = {};
+      }
+      if (!weeklyData[week].scrimmageChart || typeof weeklyData[week].scrimmageChart !== 'object' || Array.isArray(weeklyData[week].scrimmageChart)) {
+        weeklyData[week].scrimmageChart = {};
+      }
+      if (typeof weeklyData[week].opponent !== 'string') {
+        weeklyData[week].opponent = "";
+      }
+    }
+
+    function getWeekFormations(week) {
+      ensureWeekDataExists(week);
       return weeklyData[week].formations;
     }
 
     function getWeekDepthChart(week) {
-      if (!weeklyData[week]) weeklyData[week] = { opponent: "" };
-      if (!weeklyData[week].depthChart || typeof weeklyData[week].depthChart !== 'object' || Array.isArray(weeklyData[week].depthChart)) {
-        weeklyData[week].depthChart = {};
-      }
+      ensureWeekDataExists(week);
       return weeklyData[week].depthChart;
     }
 
     function getWeekScrimmageChart(week) {
-      if (!weeklyData[week]) weeklyData[week] = { opponent: "" };
-      if (!weeklyData[week].scrimmageChart || typeof weeklyData[week].scrimmageChart !== 'object' || Array.isArray(weeklyData[week].scrimmageChart)) {
-        weeklyData[week].scrimmageChart = {};
-      }
+      ensureWeekDataExists(week);
       return weeklyData[week].scrimmageChart;
     }
 
@@ -2194,16 +2204,21 @@
             if (doc.exists) {
               const data = doc.data();
               
-              // Only overwrite weeklyData from cloud if the cloud has data, otherwise preserve local
-              if (data.weeklyData && Object.keys(data.weeklyData).length > 0) {
+              if (data.weeklyData && typeof data.weeklyData === 'object') {
                   Object.keys(data.weeklyData).forEach(wkKey => {
                       if (!weeklyData[wkKey]) weeklyData[wkKey] = {};
-                      if (data.weeklyData[wkKey].formations && Array.isArray(data.weeklyData[wkKey].formations)) {
+                      if (data.weeklyData[wkKey].formations && Array.isArray(data.weeklyData[wkKey].formations) && data.weeklyData[wkKey].formations.length > 0) {
                           weeklyData[wkKey].formations = data.weeklyData[wkKey].formations;
                       }
-                      if (data.weeklyData[wkKey].depthChart) weeklyData[wkKey].depthChart = data.weeklyData[wkKey].depthChart;
-                      if (data.weeklyData[wkKey].scrimmageChart) weeklyData[wkKey].scrimmageChart = data.weeklyData[wkKey].scrimmageChart;
-                      if (data.weeklyData[wkKey].opponent) weeklyData[wkKey].opponent = data.weeklyData[wkKey].opponent;
+                      if (data.weeklyData[wkKey].depthChart && typeof data.weeklyData[wkKey].depthChart === 'object') {
+                          weeklyData[wkKey].depthChart = data.weeklyData[wkKey].depthChart;
+                      }
+                      if (data.weeklyData[wkKey].scrimmageChart && typeof data.weeklyData[wkKey].scrimmageChart === 'object') {
+                          weeklyData[wkKey].scrimmageChart = data.weeklyData[wkKey].scrimmageChart;
+                      }
+                      if (data.weeklyData[wkKey].opponent) {
+                          weeklyData[wkKey].opponent = data.weeklyData[wkKey].opponent;
+                      }
                   });
               }
 
@@ -2949,12 +2964,26 @@
       else { renderActiveBoards(); renderMasterRoster(); }
     }
 
-    function changeWeek(val) { currentWeek = val; depthChart = getWeekDepthChart(currentWeek); renderActiveBoards(); renderMasterRoster(); }
-    function updateOpponentLabel(val) { if (!weeklyData[currentWeek]) weeklyData[currentWeek] = {}; weeklyData[currentWeek].opponent = val; saveState(); }
+    function changeWeek(val) {
+      currentWeek = val;
+      ensureWeekDataExists(currentWeek);
+      depthChart = getWeekDepthChart(currentWeek);
+      const oppInput = document.getElementById("opponent-input");
+      if (oppInput) oppInput.value = weeklyData[currentWeek].opponent || "";
+      renderActiveBoards();
+      renderMasterRoster();
+    }
+
+    function updateOpponentLabel(val) {
+      ensureWeekDataExists(currentWeek);
+      weeklyData[currentWeek].opponent = val;
+      saveState();
+    }
 
     function renderWristband() {
       const container = document.getElementById("wristband-grid");
       if (!container) return;
+      ensureWeekDataExists(currentWeek);
       if (!weeklyData[currentWeek].wristbandData) {
         weeklyData[currentWeek].wristbandData = { rows: 10, columns: [{ color: "blue", plays: [] }] };
       }
@@ -2967,6 +2996,7 @@
     }
 
     function updateWbPlay(cIdx, rIdx, val) {
+      ensureWeekDataExists(currentWeek);
       if (!weeklyData[currentWeek].wristbandData.columns[cIdx].plays[rIdx]) {
         weeklyData[currentWeek].wristbandData.columns[cIdx].plays[rIdx] = {};
       }
@@ -2974,10 +3004,11 @@
       triggerDebouncedSave();
     }
 
-    function addWbRow() { weeklyData[currentWeek].wristbandData.rows += 1; saveState(); renderWristband(); }
-    function removeWbRow() { if(weeklyData[currentWeek].wristbandData.rows > 1) weeklyData[currentWeek].wristbandData.rows -= 1; saveState(); renderWristband(); }
+    function addWbRow() { ensureWeekDataExists(currentWeek); weeklyData[currentWeek].wristbandData.rows += 1; saveState(); renderWristband(); }
+    function removeWbRow() { ensureWeekDataExists(currentWeek); if(weeklyData[currentWeek].wristbandData.rows > 1) weeklyData[currentWeek].wristbandData.rows -= 1; saveState(); renderWristband(); }
 
     function renderScouting() {
+      ensureWeekDataExists(currentWeek);
       const scout = weeklyData[currentWeek]?.scouting || {};
       ["year", "week", "opponent", "teamOverview", "keyPlayers"].forEach(field => {
         const el = document.getElementById("scout-" + field);
@@ -2986,6 +3017,7 @@
     }
 
     function updateScouting(field, val) {
+      ensureWeekDataExists(currentWeek);
       if (!weeklyData[currentWeek].scouting) weeklyData[currentWeek].scouting = {};
       weeklyData[currentWeek].scouting[field] = val;
       triggerDebouncedSave();
@@ -3290,8 +3322,12 @@
 
     function initializeApp() {
       sanitizePracticeData();
+      ensureWeekDataExists(currentWeek);
       depthChart = getWeekDepthChart(currentWeek);
       
+      const oppInput = document.getElementById("opponent-input");
+      if (oppInput) oppInput.value = weeklyData[currentWeek].opponent || "";
+
       if (practiceData.length > 0) {
           let latest = practiceData.reduce((prev, curr) => (curr.lastEdited || 0) > (prev.lastEdited || 0) ? curr : prev);
           currentPracticeId = latest.id;
