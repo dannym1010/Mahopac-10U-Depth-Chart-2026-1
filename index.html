@@ -835,6 +835,36 @@
             null, null, { id: "11-1", name: "1 (QB)" }, null, { id: "11-4", name: "4 (RB)" }, null, null
           ]}
         ]
+      },
+      {
+        id: "form_44_base", unit: "defense", name: "4-4 Base Defense", collapsed: false,
+        rows: [
+          { id: "row_44_dl", label: "Defensive Line (E9, T3, T1, E5)", slotCount: 7, positions: [
+            { id: "def-e9", name: "E9" }, { id: "def-t3", name: "T3" }, { id: "def-t1", name: "T1" }, { id: "def-e5", name: "E5" }, null, null, null
+          ]},
+          { id: "row_44_lb", label: "Linebackers (M, W, S, R)", slotCount: 7, positions: [
+            { id: "def-m", name: "M" }, { id: "def-w", name: "W" }, { id: "def-s", name: "S" }, { id: "def-r", name: "R" }, null, null, null
+          ]},
+          { id: "row_44_sec", label: "Secondary (CB, FS)", slotCount: 7, positions: [
+            { id: "def-lcb", name: "LCB" }, { id: "def-fs", name: "FS" }, { id: "def-rcb", name: "RCB" }, null, null, null, null
+          ]}
+        ]
+      },
+      {
+        id: "form_st_base", unit: "st", name: "Kickoff Return / Coverage", collapsed: false,
+        rows: [
+          { id: "row_st_unit", label: "Special Teams Positions", slotCount: 10, positions: [
+            { id: "st-k", name: "K" }, { id: "st-p", name: "P" }, { id: "st-ls", name: "LS" }, { id: "st-h", name: "H" }, { id: "st-ret", name: "RET" }, null, null, null, null, null
+          ]}
+        ]
+      },
+      {
+        id: "form_groups_base", unit: "groups", name: "Depth Chart Groups", collapsed: false,
+        rows: [
+          { id: "row_group_qb", label: "Quarterbacks", slotCount: 5, positions: [
+            { id: "grp-qb1", name: "QB1" }, { id: "grp-qb2", name: "QB2" }, null, null, null
+          ]}
+        ]
       }
     ];
 
@@ -1114,7 +1144,7 @@
 
     function getWeekFormations(week) {
       if (!weeklyData[week]) weeklyData[week] = { opponent: "" };
-      if (!weeklyData[week].formations || !Array.isArray(weeklyData[week].formations)) {
+      if (!weeklyData[week].formations || !Array.isArray(weeklyData[week].formations) || weeklyData[week].formations.length === 0) {
         weeklyData[week].formations = JSON.parse(JSON.stringify(defaultFormations));
       }
       return weeklyData[week].formations;
@@ -3132,7 +3162,6 @@
                 if (parsed.practiceTemplates) practiceTemplates = parsed.practiceTemplates;
                 if (parsed.teamCoachesList && Array.isArray(parsed.teamCoachesList)) {
                     teamCoachesList = parsed.teamCoachesList;
-                    // Ensure master admin is always present
                     if (!teamCoachesList.some(c => c.email.toLowerCase() === "dannym1010@gmail.com")) {
                         teamCoachesList.push({ email: "Dannym1010@gmail.com", role: "Head Coach (Admin)", status: "Active" });
                     }
