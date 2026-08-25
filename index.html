@@ -2787,7 +2787,7 @@
                 <span>${f.name}</span>
             </label>
         `).join('');
-        document.getElementById("print-modal").classList.remove("hidden");
+        document.getElementById("print-modal").classList.add("hidden");
     }
 
     function executeCustomPrint() {
@@ -2972,7 +2972,24 @@
     function renderUsers() {
        const container = document.getElementById("users-table-container");
        if (!container) return;
-       container.innerHTML = `<table style="width:100%; border-collapse:collapse; background:#fff;"><tr><td style="padding:8px;">${currentUser ? currentUser.email : 'Local Head Coach (Offline Mode)'}</td></tr></table>`;
+       container.innerHTML = `
+         <table style="width:100%; border-collapse:collapse; background:#fff; font-size:11px;">
+           <thead>
+             <tr style="background:#f1f5f9; color:var(--primary); text-align:left;">
+               <th style="padding:8px; border:1px solid var(--card-border);">Coach / User Email</th>
+               <th style="padding:8px; border:1px solid var(--card-border);">Role</th>
+               <th style="padding:8px; border:1px solid var(--card-border); text-align:center;">Status</th>
+             </tr>
+           </thead>
+           <tbody>
+             <tr>
+               <td style="padding:8px; border:1px solid var(--card-border); font-weight:bold;">${currentUser ? currentUser.email : 'Local Head Coach (Offline Mode)'}</td>
+               <td style="padding:8px; border:1px solid var(--card-border);"><span class="role-badge role-admin">Head Coach (Admin)</span></td>
+               <td style="padding:8px; border:1px solid var(--card-border); text-align:center; color:#16a34a; font-weight:bold;">Active Session</td>
+             </tr>
+           </tbody>
+         </table>
+       `;
     }
 
     function filterRoster() { renderMasterRoster(); }
