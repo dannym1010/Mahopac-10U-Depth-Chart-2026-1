@@ -65,7 +65,7 @@
     .auth-divider { display: flex; align-items: center; text-align: center; margin: 16px 0; color: var(--text-muted); font-size: 11px; }
     .auth-divider::before, .auth-divider::after { content: ''; flex: 1; border-bottom: 1px solid #e2e8f0; }
 
-    .user-profile-bar { display: flex; align-items: center; gap: 10px; font-size: 11px; }
+    .user-profile-bar { display: flex; align-items: center; gap: 10px; font-size: 11px; flex-wrap: wrap; }
     .role-badge { font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: bold; text-transform: uppercase; }
     .role-admin { background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; }
     .role-viewer { background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; }
@@ -91,16 +91,12 @@
     .nav-tab { padding: 8px 16px; border: 1px solid var(--card-border); background: var(--card-bg); color: var(--text-muted); font-weight: bold; border-radius: 20px; cursor: pointer; font-size: 12px; transition: all 0.2s; }
     .nav-tab.active { background: var(--primary); color: #ffffff; border-color: var(--primary); }
 
-    /* Layout & Auto-Scaling Wrapper for Mobile */
+    /* Layout */
     .app-layout { display: flex; gap: 12px; max-width: 1400px; margin: 0 auto; flex-direction: row; align-items: flex-start; }
-    
     .boards-container { flex: 3; min-width: 0; display: flex; flex-direction: column; gap: 15px; width: 100%; overflow: visible; }
     .unit-panel { display: flex; flex-direction: column; gap: 20px; width: 100%; overflow: visible; }
 
-    .formation-scaler {
-      width: 100%;
-      overflow-x: auto;
-    }
+    .formation-scaler { width: 100%; overflow-x: auto; }
 
     @media (max-width: 768px) {
       .app-layout { flex-direction: column; }
@@ -186,30 +182,10 @@
 
     /* Fullscreen PDF Modal Overlay */
     #pdf-fullscreen-modal {
-      position: fixed;
-      inset: 0;
-      background: rgba(15, 23, 42, 0.95);
-      z-index: 999999;
-      display: flex;
-      flex-direction: column;
-      padding: 15px;
-      box-sizing: border-box;
+      position: fixed; inset: 0; background: rgba(15, 23, 42, 0.95); z-index: 999999; display: flex; flex-direction: column; padding: 15px; box-sizing: border-box;
     }
-    #pdf-fullscreen-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 10px;
-      color: #fff;
-    }
-    #pdf-fullscreen-content {
-      flex-grow: 1;
-      width: 100%;
-      height: calc(100vh - 60px);
-      background: #ffffff;
-      border-radius: 8px;
-      overflow: hidden;
-    }
+    #pdf-fullscreen-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; color: #fff; }
+    #pdf-fullscreen-content { flex-grow: 1; width: 100%; height: calc(100vh - 60px); background: #ffffff; border-radius: 8px; overflow: hidden; }
 
     /* Wristband Builder */
     .wb-exact-table { width: 100%; border-collapse: collapse; border: 2px solid #000000; background: #ffffff; }
@@ -243,115 +219,28 @@
     .drill-item-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
 
     /* Scouting Grid */
-    .scouting-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 15px;
-    }
-    @media (max-width: 768px) {
-      .scouting-grid { grid-template-columns: 1fr; }
-    }
+    .scouting-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    @media (max-width: 768px) { .scouting-grid { grid-template-columns: 1fr; } }
 
     /* Practice Dashboard Bar */
-    .practice-dashboard-info {
-      background: #f1f5f9;
-      padding: 10px 12px;
-      border-radius: 6px;
-      border: 1px solid var(--card-border);
-      margin-bottom: 12px;
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      flex-wrap: wrap;
-      font-size: 11.5px;
-    }
+    .practice-dashboard-info { background: #f1f5f9; padding: 10px 12px; border-radius: 6px; border: 1px solid var(--card-border); margin-bottom: 12px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; font-size: 11.5px; }
 
-    .practice-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-      background: #ffffff;
-      font-size: 11px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-      table-layout: fixed; 
-    }
-
-    .practice-table th, .practice-table td {
-      border: 1px solid var(--card-border);
-      padding: 6px 8px;
-      text-align: left;
-      vertical-align: top;
-      box-sizing: border-box;
-      position: relative;
-      word-wrap: break-word;
-    }
-
-    .practice-table th {
-      background: #f1f5f9;
-      color: var(--primary);
-      user-select: none;
-    }
-
+    .practice-table { width: 100%; border-collapse: collapse; margin-top: 10px; background: #ffffff; font-size: 11px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); table-layout: fixed; }
+    .practice-table th, .practice-table td { border: 1px solid var(--card-border); padding: 6px 8px; text-align: left; vertical-align: top; box-sizing: border-box; position: relative; word-wrap: break-word; }
+    .practice-table th { background: #f1f5f9; color: var(--primary); user-select: none; }
     .practice-table tbody tr.period-odd td { background-color: #ffffff; }
     .practice-table tbody tr.period-even td { background-color: #f4f6f9; }
 
-    .period-schedule-time {
-      margin-top: 4px;
-      font-weight: bold;
-      color: var(--accent);
-      font-size: 10.5px;
-    }
+    .period-schedule-time { margin-top: 4px; font-weight: bold; color: var(--accent); font-size: 10.5px; }
+    .prac-input, .prac-select, .prac-textarea { width: 100%; border: 1px solid var(--card-border); border-radius: 4px; padding: 4px; font-family: inherit; font-size: 11px; box-sizing: border-box; background: #f8fafc; color: var(--text); }
+    .prac-textarea { resize: vertical; min-height: 44px; height: auto; margin-top: 4px; overflow-y: hidden; }
+    .prac-input:focus, .prac-select:focus, .prac-textarea:focus { border-color: var(--accent); background: #ffffff; outline: none; }
 
-    .prac-input, .prac-select, .prac-textarea {
-      width: 100%;
-      border: 1px solid var(--card-border);
-      border-radius: 4px;
-      padding: 4px;
-      font-family: inherit;
-      font-size: 11px;
-      box-sizing: border-box;
-      background: #f8fafc;
-      color: var(--text);
-    }
-
-    .prac-textarea {
-      resize: vertical;
-      min-height: 44px;
-      height: auto;
-      margin-top: 4px;
-      overflow-y: hidden;
-    }
-
-    .prac-input:focus, .prac-select:focus, .prac-textarea:focus {
-      border-color: var(--accent);
-      background: #ffffff;
-      outline: none;
-    }
-
-    .add-row-btn {
-      margin-top: 10px;
-      padding: 6px 12px;
-      background: var(--primary);
-      color: white;
-      border: none;
-      border-radius: 6px;
-      font-size: 11px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
+    .add-row-btn { margin-top: 10px; padding: 6px 12px; background: var(--primary); color: white; border: none; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; }
     .add-row-btn:hover { background: var(--accent); }
 
-    .station-block {
-      margin-bottom: 8px;
-      padding-bottom: 8px;
-      border-bottom: 1px dashed #cbd5e1;
-    }
-    .station-block:last-child {
-      margin-bottom: 0;
-      padding-bottom: 0;
-      border-bottom: none;
-    }
+    .station-block { margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed #cbd5e1; }
+    .station-block:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
 
     /* Sidebar Wrapper & Panels */
     #sidebar-container { flex: 1; min-width: 220px; max-width: 280px; position: sticky; top: 15px; max-height: calc(100vh - 30px); display: flex; flex-direction: column; }
@@ -363,28 +252,30 @@
     .full-roster-item { padding: 6px 8px; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; justify-content: space-between; font-size: 11px; cursor: grab; background: #f8fafc; margin-bottom: 4px; border-radius: 4px; border: 1px solid var(--card-border); user-select: none; }
     .full-roster-item:hover { border-color: var(--accent); background: #eff6ff; }
 
-    /* PRINT STYLES WITH EXACT COLOR ADJUST */
+    /* PRINT STYLES */
     @media print {
       @page { size: letter portrait; margin: 0.25in; }
       body { background-color: #ffffff; padding: 0; margin: 0; font-size: 13px !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       .toolbar, #sidebar-container, .remove-btn, .action-group, p.subtitle, .search-box, .tab-navigation, .toggle-board-btn, .week-bar, .board-controls, .add-row-btn, .add-form-btn, .row-actions, .practice-dashboard-info, #print-modal, #new-prac-modal, #scrimmage-print-modal, #scrimmage-filter-modal, #templates-modal { display: none !important; }
-      .app-layout, .boards-container, .unit-panel:not(.hidden) { display: block !important; }
+      .app-layout, .boards-container, .unit-panel { display: block !important; }
+      .unit-panel.hidden { display: none !important; }
       .formation-container { border: 2px solid #000000 !important; box-shadow: none !important; padding: 6px; page-break-inside: auto !important; margin-bottom: 8px; background: #ffffff !important; }
+      .formation-container.hidden-print { display: none !important; }
       .formation-row { min-width: 100% !important; page-break-inside: avoid; align-items: start !important; }
       .row-slot { align-items: flex-start !important; border: none !important; background: transparent !important; min-height: auto !important; }
       .position-card { border: 2px solid #000000 !important; box-shadow: none !important; min-width: 75px; background: #ffffff !important; }
       .position-header { background: #e2e8f0 !important; color: #000000 !important; border-bottom: 2px solid #000000 !important; font-size: 11px !important; padding: 4px 6px; font-weight: bold; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       .player-item { border: 1px solid #000000 !important; font-size: 11px !important; padding: 4px 6px !important; margin-bottom: 3px; background: #fff !important; }
-      
       .rank-starter, .rank-sub-gold, .rank-sub-blue { -webkit-print-color-adjust: exact; print-color-adjust: exact; opacity: 0.9; }
       tbody tr.period-even td { background-color: #f4f6f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-
       h1 { margin-top: 0; font-size: 16px; color: #000000; text-align: center; }
       .practice-table { font-size: 12px !important; border: 2px solid #000 !important; }
       .practice-table th { font-size: 13px !important; background: #e2e8f0 !important; color: #000 !important; }
       .practice-table td { font-size: 12px !important; border: 1px solid #000 !important; padding: 8px !important; }
       .period-schedule-time { font-size: 12px !important; color: #000 !important; }
       .prac-input, .prac-select, .prac-textarea { font-size: 12px !important; border: none !important; background: transparent !important; padding: 0 !important; color: #000 !important; }
+      #panel-practice select.prac-select:not([onchange*="updatePracRowCategory"]):not([onchange*="updatePracRowFormat"]),
+      #panel-practice span[onclick*="coach_mgr"] { display: none !important; }
     }
   </style>
 </head>
@@ -427,7 +318,11 @@
       <div class="sync-status"><div class="sync-dot"></div><span id="sync-text">Local Storage Mode</span></div>
       <div class="user-profile-bar">
         <span id="user-display-email" style="font-weight:bold; color:var(--primary);">Head Coach</span>
-        <span id="user-role-badge" class="role-badge role-admin">HEAD COACH</span>
+        <select id="role-switcher-select" class="prac-select" style="width: 140px; font-size: 11px; font-weight: bold;" onchange="applyRole(this.value)">
+          <option value="admin">Head Coach (Admin)</option>
+          <option value="assistant">Assistant Coach</option>
+        </select>
+        <span id="user-role-badge" class="role-badge role-admin">ADMIN</span>
         <button class="toggle-board-btn" onclick="signOutUser()">🚪 Sign Out</button>
       </div>
     </div>
@@ -589,14 +484,14 @@
                <span>Master Drill Library</span>
                <div style="display:flex; gap:6px; flex-wrap:wrap;">
                   <button class="toggle-board-btn" style="background:#10b981; color:#fff;" onclick="exportDrillsCSV()" title="Export Drills to CSV">📊 Export CSV</button>
-                  <button class="toggle-board-btn admin-only" style="background:#059669; color:#fff;" onclick="document.getElementById('import-drills-csv-file').click()" title="Import Drills from CSV">📥 Import CSV</button>
+                  <button class="toggle-board-btn" style="background:#059669; color:#fff;" onclick="document.getElementById('import-drills-csv-file').click()" title="Import Drills from CSV">📥 Import CSV</button>
                   <input type="file" id="import-drills-csv-file" style="display:none;" onchange="importDrillsCSV(event)" accept=".csv" />
                   <button class="toggle-board-btn" style="background:#8b5cf6; color:#fff;" onclick="exportDrillsJSON()" title="Export Drill Folders JSON">📁 Export JSON</button>
-                  <button class="toggle-board-btn admin-only" style="background:#0284c7; color:#fff;" onclick="document.getElementById('import-drills-json-file').click()" title="Import Drill Folders JSON">📂 Import JSON</button>
+                  <button class="toggle-board-btn" style="background:#0284c7; color:#fff;" onclick="document.getElementById('import-drills-json-file').click()" title="Export Drill Folders JSON">📂 Import JSON</button>
                   <input type="file" id="import-drills-json-file" style="display:none;" onchange="importDrillsJSON(event)" accept=".json" />
                   <button class="toggle-board-btn" style="background:#2563eb; color:#fff;" onclick="forceSyncCloud()" title="Force Push to Live Cloud">☁️ Sync to Live</button>
                   <button class="toggle-board-btn admin-only" style="background:#475569; color:#fff;" onclick="forceResetDefaultDrills()">🔄 Reset Defaults</button>
-                  <button class="add-row-btn admin-only" style="margin:0;" onclick="addRootDrillFolder()">+ Add Top Folder</button>
+                  <button class="add-row-btn" style="margin:0;" onclick="addRootDrillFolder()">+ Add Top Folder</button>
                </div>
             </div>
             <div id="drills-wrapper"></div>
@@ -619,7 +514,6 @@
               <button class="toggle-board-btn admin-only" onclick="deletePractice()" style="color:#ef4444;">🗑️</button>
             </div>
             <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
-              <!-- Template Controls -->
               <div style="display:flex; gap:4px; align-items:center; background:#f1f5f9; padding:2px 6px; border-radius:6px; border:1px solid var(--card-border);" class="admin-only">
                 <span style="font-size:10px; font-weight:bold; color:var(--primary);">Template:</span>
                 <select id="practice-template-select" class="prac-select" style="width:130px; font-size:11px;" onchange="applyPracticeTemplate(this.value)"></select>
@@ -633,34 +527,27 @@
 
           <div class="practice-dashboard-info no-print">
             <label style="display:flex; align-items:center; gap:6px; font-weight:bold;">
-               Year:
-               <input type="text" id="prac-year-input" class="prac-input" style="width: 70px;" onchange="updatePracMeta('year', this.value)">
+               Year: <input type="text" id="prac-year-input" class="prac-input" style="width: 70px;" onchange="updatePracMeta('year', this.value)">
             </label>
             <label style="display:flex; align-items:center; gap:6px; font-weight:bold;">
-               Week:
-               <input type="text" id="prac-week-input" class="prac-input" style="width: 90px;" onchange="updatePracMeta('weekFolder', this.value)">
+               Week: <input type="text" id="prac-week-input" class="prac-input" style="width: 90px;" onchange="updatePracMeta('weekFolder', this.value)">
             </label>
             <label style="display:flex; align-items:center; gap:6px; font-weight:bold;">
-               Practice Date:
-               <input type="date" id="prac-date-input" class="prac-input" style="width: 140px;" onchange="updatePracMeta('date', this.value)">
+               Practice Date: <input type="date" id="prac-date-input" class="prac-input" style="width: 140px;" onchange="updatePracMeta('date', this.value)">
             </label>
             <label style="display:flex; align-items:center; gap:6px; font-weight:bold;">
                Day of Week:
                <select id="prac-day-select" class="prac-select" style="width: 120px;" onchange="updatePracMeta('day', this.value)">
-                  <option value="Monday">Monday</option>
-                  <option value="Tuesday">Tuesday</option>
-                  <option value="Wednesday">Wednesday</option>
-                  <option value="Thursday">Thursday</option>
-                  <option value="Friday">Friday</option>
-                  <option value="Saturday">Saturday</option>
-                  <option value="Sunday">Sunday</option>
+                  <option value="Monday">Monday</option><option value="Tuesday">Tuesday</option><option value="Wednesday">Wednesday</option>
+                  <option value="Thursday">Thursday</option><option value="Friday">Friday</option><option value="Saturday">Saturday</option><option value="Sunday">Sunday</option>
                </select>
             </label>
             <label style="display:flex; align-items:center; gap:6px; font-weight:bold;">
-               Start Time:
-               <input type="time" id="prac-start-input" class="prac-input" style="width: 100px;" onchange="updatePracMeta('startTime', this.value)">
+               Start Time: <input type="time" id="prac-start-input" class="prac-input" style="width: 100px;" onchange="updatePracMeta('startTime', this.value)">
             </label>
           </div>
+
+          <div id="print-practice-header" style="display:none; font-size:14px; font-weight:bold; margin-bottom:10px; border-bottom:2px solid #000; padding-bottom:4px;"></div>
           
           <table class="practice-table" id="main-practice-table">
             <thead>
@@ -725,7 +612,6 @@
     </div>
   </div>
 
-  <!-- TEMPLATES MANAGER MODAL -->
   <div id="templates-modal" class="custom-modal hidden">
     <div class="custom-modal-card" style="width: 450px;">
        <h3>⚙️ Manage Practice Templates</h3>
@@ -812,7 +698,7 @@
             return;
         }
         db.collection("teamData").doc("depthChartData").set({
-            weeklyData, practiceData, masterPlayLibrary, cascadingDrills, pdfGuides, collapsedFolders, savedCoachesList, practiceTemplates,
+            weeklyData, practiceData, masterPlayLibrary, cascadingDrills, pdfGuides, collapsedFolders, savedCoachesList, practiceTemplates, teamCoachesList,
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         }, { merge: true }).then(() => {
             alert("Successfully forced all local drill folders and data to live cloud database!");
@@ -871,6 +757,11 @@
     let scrimmageFilters = safeJSONParse("footballScrimmageFilters", null);
     let collapsedFolders = safeJSONParse("footballCollapsedFolders", {});
     let savedCoachesList = safeJSONParse("footballSavedCoaches", []);
+    let teamCoachesList = safeJSONParse("footballTeamCoaches", [
+      { email: "headcoach@mahopacwolfpac.com", role: "Head Coach (Admin)", status: "Active" },
+      { email: "offensecoordinator@mahopacwolfpac.com", role: "Assistant Coach", status: "Active" },
+      { email: "defensecoordinator@mahopacwolfpac.com", role: "Assistant Coach", status: "Active" }
+    ]);
 
     const defaultPracticeTemplates = {
       "Standard Practice": [
@@ -1055,7 +946,6 @@
             subfolders: [],
             drills: [
               { name: "Defense DL: DL Stance & Shock (First-Step Strike)", desc: "Line up in low, staggered 3-point stance 6 inches off sled. On ball movement, fire out with 2 short foot-churning steps. Shoot hands violently upward into blocker's chest right below armpits with thumbs up and elbows in", key: "Reaction time is key. Use a football on a stick to teach them to move on the ball, not on the offense's cadence" },
-              { name: "Defense DL: Swim (Arm-Over) Block Defeat", desc: "DL strikes blocker's breastplate with inside hand, clubs blocker's shoulder with outside hand, and swims opposite arm over blocker's shoulder to clear gap vertically", key: "Make sure they are executing the move vertically up the field, not dancing side-to-side on the line of scrimmage" },
               { name: "Defense DL: DL Slant & Rip (Vertical Penetration)", desc: "On snap, take explosive vertical power step across LOS into slanting gap. Strike with inside arm, dip shoulder, execute violent vertical rip with outside arm (bicep-to-earhole)", key: "Execute the move vertically. Clear hip at 1 yard deep, flatten pursuit angle ('pinch'), and tackle" },
               { name: "Defense DL: DE Containment Stiff-Arm Track", desc: "Fire vertically across LOS. As blocker climbs, strike blocker's outside shoulder with locked-out rigid inside arm. Keep outside arm and shoulder high and completely free", key: "The most important rule for young edge players: Never get reached and never let the ball carrier outside of your outside shoulder" },
               { name: "Defense DL: DE Backside Squeeze & Settle", desc: "DE takes initial vertical containment read step. On diagnosing flow away, transition immediately to backside rule: squeeze down LOS, settle at containment depth 2 yards deeper than deepest back, shuffle parallel to LOS watching QB", key: "'Squeeze & Check Boot/Reverse': Squeeze down the LOS to the depth of the QB. Do not chase flat from behind" },
@@ -1178,10 +1068,11 @@
         localStorage.setItem("footballCollapsedFolders", JSON.stringify(collapsedFolders));
         localStorage.setItem("footballSavedCoaches", JSON.stringify(savedCoachesList));
         localStorage.setItem("footballPracticeTemplates", JSON.stringify(practiceTemplates));
+        localStorage.setItem("footballTeamCoaches", JSON.stringify(teamCoachesList));
 
         if (cloudEnabled && db && userRole === 'admin') {
             db.collection("teamData").doc("depthChartData").set({
-                weeklyData, practiceData, masterPlayLibrary, cascadingDrills, pdfGuides, collapsedFolders, savedCoachesList, practiceTemplates,
+                weeklyData, practiceData, masterPlayLibrary, cascadingDrills, pdfGuides, collapsedFolders, savedCoachesList, practiceTemplates, teamCoachesList,
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             }, { merge: true }).catch(err => console.error("Firestore sync error:", err));
         }
@@ -1368,13 +1259,7 @@
 
                 if (f.drills && f.drills.length > 0) {
                     f.drills.forEach(d => {
-                        rows.push([
-                            curTop,
-                            curSub,
-                            d.name || "",
-                            d.desc || "",
-                            d.key || ""
-                        ]);
+                        rows.push([curTop, curSub, d.name || "", d.desc || "", d.key || ""]);
                     });
                 }
                 if (f.subfolders && f.subfolders.length > 0) {
@@ -1433,7 +1318,6 @@
                 }
 
                 let newDrillsTree = [];
-
                 function getOrCreateFolder(tree, name) {
                     let found = tree.find(item => item.name.toLowerCase() === name.toLowerCase());
                     if (!found) {
@@ -1473,11 +1357,7 @@
                     }
 
                     if (!targetFolder.drills) targetFolder.drills = [];
-                    targetFolder.drills.push({
-                        name: drillName,
-                        desc: drillDesc,
-                        key: drillKey
-                    });
+                    targetFolder.drills.push({ name: drillName, desc: drillDesc, key: drillKey });
                 }
 
                 if (newDrillsTree.length > 0) {
@@ -1505,6 +1385,7 @@
     }
 
     function forceResetDefaultDrills() {
+        if (userRole !== 'admin') { alert("Only Head Coach (Admin) can reset default drills."); return; }
         if (confirm("Reset drill library to default cascading folder structure?")) {
             cascadingDrills = JSON.parse(JSON.stringify(defaultCascadingDrills));
             saveState();
@@ -1514,7 +1395,6 @@
     }
 
     function addRootDrillFolder() {
-        if (userRole !== 'admin') return;
         let name = prompt("Enter new Top-Level Folder Name:");
         if (name && name.trim() !== "") {
             cascadingDrills.push({ name: name.trim(), subfolders: [], drills: [] });
@@ -1524,7 +1404,6 @@
 
     function addSubfolderToPath(pathKey, e) {
         if (e) e.stopPropagation();
-        if (userRole !== 'admin') return;
         let name = prompt("Enter new Subfolder Name:");
         if (name && name.trim() !== "") {
             let folder = findFolderByPath(cascadingDrills, pathKey);
@@ -1539,7 +1418,6 @@
 
     function addDrillToPath(pathKey, e) {
         if (e) e.stopPropagation();
-        if (userRole !== 'admin') return;
         let folder = findFolderByPath(cascadingDrills, pathKey);
         if (folder) {
             if (!folder.drills) folder.drills = [];
@@ -1551,7 +1429,6 @@
 
     function renameFolderAtPath(pathKey, e) {
         if (e) e.stopPropagation();
-        if (userRole !== 'admin') return;
         let folder = findFolderByPath(cascadingDrills, pathKey);
         if (folder) {
             let newName = prompt("Rename Folder:", folder.name);
@@ -1564,7 +1441,7 @@
 
     function deleteFolderAtPath(pathKey, e) {
         if (e) e.stopPropagation();
-        if (userRole !== 'admin') return;
+        if (userRole !== 'admin') { alert("Only Head Coach (Admin) can delete folders."); return; }
         if (confirm("Delete this folder and all its contents?")) {
             removeFolderByPath(cascadingDrills, pathKey);
             saveState(); renderDrillsTab();
@@ -1573,13 +1450,11 @@
 
     function moveFolderUp(pathKey, e) {
         if (e) e.stopPropagation();
-        if (userRole !== 'admin') return;
         moveFolderPosition(pathKey, -1);
     }
 
     function moveFolderDown(pathKey, e) {
         if (e) e.stopPropagation();
-        if (userRole !== 'admin') return;
         moveFolderPosition(pathKey, 1);
     }
 
@@ -1604,7 +1479,6 @@
     }
 
     function updateDrillInPath(pathKey, index, field, val) {
-        if (userRole !== 'admin') return;
         let folder = findFolderByPath(cascadingDrills, pathKey);
         if (folder && folder.drills && folder.drills[index]) {
             folder.drills[index][field] = val;
@@ -1613,7 +1487,6 @@
     }
 
     function moveDrillToFolder(sourcePath, drillIndex, targetPath) {
-        if (userRole !== 'admin') return;
         if (sourcePath === targetPath) return;
 
         let sourceFolder = findFolderByPath(cascadingDrills, sourcePath);
@@ -1631,7 +1504,7 @@
 
     function deleteDrillFromPath(pathKey, index, e) {
         if (e) e.stopPropagation();
-        if (userRole !== 'admin') return;
+        if (userRole !== 'admin') { alert("Only Head Coach (Admin) can delete drills."); return; }
         if (confirm("Delete this drill?")) {
             let folder = findFolderByPath(cascadingDrills, pathKey);
             if (folder && folder.drills) {
@@ -1642,26 +1515,22 @@
     }
 
     function handleDrillDragStart(e, sourcePath, drillIndex) {
-        if (userRole !== 'admin') return;
         draggedDrillData = { sourcePath, drillIndex };
         e.dataTransfer.setData("text/plain", "drill");
         e.stopPropagation();
     }
 
     function handleFolderDragOver(e, targetPath) {
-        if (userRole !== 'admin') return;
         e.preventDefault();
         e.stopPropagation();
         e.currentTarget.classList.add("drag-over");
     }
 
     function handleFolderDragLeave(e) {
-        if (userRole !== 'admin') return;
         e.currentTarget.classList.remove("drag-over");
     }
 
     function handleFolderDrop(e, targetPath) {
-        if (userRole !== 'admin') return;
         e.preventDefault();
         e.stopPropagation();
         e.currentTarget.classList.remove("drag-over");
@@ -1724,6 +1593,8 @@
             let icon = isCollapsed ? '📁' : '📂';
             let displayStyle = isCollapsed ? 'none' : 'block';
 
+            let deleteFolderBtnHtml = userRole === 'admin' ? `<button onclick="deleteFolderAtPath('${pathKey}', event)" class="toggle-board-btn" style="color:red;" title="Delete Folder">🗑️</button>` : '';
+
             html += `
               <li>
                 <div class="drill-node-card">
@@ -1733,13 +1604,13 @@
                         ondrop="handleFolderDrop(event, '${pathKey}')"
                         onclick="toggleDrillFolder('${pathKey}', event)">
                       <span style="user-select:none;">${icon} ${folder.name}</span>
-                      <div class="admin-only" style="display:flex; gap:4px; align-items:center;">
+                      <div style="display:flex; gap:4px; align-items:center;">
                          <button onclick="moveFolderUp('${pathKey}', event)" class="toggle-board-btn" title="Move Up">▲</button>
                          <button onclick="moveFolderDown('${pathKey}', event)" class="toggle-board-btn" title="Move Down">▼</button>
                          <button onclick="addSubfolderToPath('${pathKey}', event)" class="toggle-board-btn" title="Add Subfolder">+ Sub</button>
                          <button onclick="addDrillToPath('${pathKey}', event)" class="toggle-board-btn" title="Add Drill">+ Drill</button>
                          <button onclick="renameFolderAtPath('${pathKey}', event)" class="toggle-board-btn" title="Rename Folder">✏️</button>
-                         <button onclick="deleteFolderAtPath('${pathKey}', event)" class="toggle-board-btn" style="color:red;" title="Delete Folder">🗑️</button>
+                         ${deleteFolderBtnHtml}
                       </div>
                    </div>
                    <div class="drill-node-body" style="display:${displayStyle};">
@@ -1750,29 +1621,31 @@
             }
 
             if (folder.drills && folder.drills.length > 0) {
+                let deleteColHeader = userRole === 'admin' ? `<div style="text-align:center;">Del</div>` : `<div></div>`;
                 html += `
                   <div style="display: grid; grid-template-columns: 20% 40% 22% 13% 5%; gap: 6px; font-weight: bold; font-size: 10px; color: var(--primary); margin: 8px 0 4px 0; border-bottom: 1px solid #ccc; padding-bottom: 4px;">
                      <div>Drill Name</div>
                      <div>Setup & Instructions</div>
                      <div>Coaching Focus / Key</div>
-                     <div class="admin-only">Move to...</div>
-                     <div class="admin-only" style="text-align:center;">Del</div>
+                     <div>Move to...</div>
+                     ${deleteColHeader}
                   </div>
                 `;
                 folder.drills.forEach((d, dIdx) => {
                     let moveOptions = allFoldersList.map(f => `<option value="${f.path}" ${f.path === pathKey ? 'selected' : ''}>↳ ${f.name}</option>`).join('');
+                    let deleteBtnHtml = userRole === 'admin' ? `<button class="remove-btn" onclick="deleteDrillFromPath('${pathKey}', ${dIdx}, event)">&times;</button>` : '';
 
                     html += `
-                      <div class="drill-item-row" draggable="${userRole === 'admin' ? 'true' : 'false'}" ondragstart="handleDrillDragStart(event, '${pathKey}', ${dIdx})">
+                      <div class="drill-item-row" draggable="true" ondragstart="handleDrillDragStart(event, '${pathKey}', ${dIdx})">
                          <div><input type="text" class="prac-input" value="${d.name}" onkeydown="if(event.key==='Enter') this.blur();" onchange="updateDrillInPath('${pathKey}', ${dIdx}, 'name', this.value)" placeholder="Drill Name"></div>
                          <div><textarea class="prac-textarea" style="min-height:30px;" oninput="autoResizeTextarea(this);" onchange="updateDrillInPath('${pathKey}', ${dIdx}, 'desc', this.value);">${d.desc}</textarea></div>
                          <div><input type="text" class="prac-input" value="${d.key}" onkeydown="if(event.key==='Enter') this.blur();" onchange="updateDrillInPath('${pathKey}', ${dIdx}, 'key', this.value)" placeholder="Focus..."></div>
-                         <div class="admin-only">
+                         <div>
                             <select class="prac-select" style="font-size:10px; padding:2px;" onchange="moveDrillToFolder('${pathKey}', ${dIdx}, this.value)">
                                ${moveOptions}
                             </select>
                          </div>
-                         <div class="admin-only" style="text-align:center; padding-top:4px;"><button class="remove-btn" onclick="deleteDrillFromPath('${pathKey}', ${dIdx}, event)">&times;</button></div>
+                         <div style="text-align:center; padding-top:4px;">${deleteBtnHtml}</div>
                       </div>
                     `;
                 });
@@ -1803,13 +1676,9 @@
 
     function collectDrillsFromFolder(folder) {
         let list = [];
-        if (folder.drills) {
-            folder.drills.forEach(d => list.push(d));
-        }
+        if (folder.drills) { folder.drills.forEach(d => list.push(d)); }
         if (folder.subfolders) {
-            folder.subfolders.forEach(sub => {
-                list = list.concat(collectDrillsFromFolder(sub));
-            });
+            folder.subfolders.forEach(sub => { list = list.concat(collectDrillsFromFolder(sub)); });
         }
         return list;
     }
@@ -1901,6 +1770,11 @@
         if (daySelect) daySelect.value = prac.day || "Wednesday";
         if (startInput) startInput.value = prac.startTime || "17:05";
 
+        const printHeader = document.getElementById("print-practice-header");
+        if (printHeader) {
+            printHeader.textContent = `Practice Plan: ${prac.title || ''} | Date: ${prac.date || 'TBD'} (${prac.day || ''}) | ${prac.weekFolder || ''}`;
+        }
+
         const tbody = document.getElementById('practice-rows');
         if (!tbody) return;
         tbody.innerHTML = '';
@@ -1958,7 +1832,7 @@
                             </select>
                         </div>
                         <input type="text" class="prac-input" value="${st.name || ''}" onkeydown="if(event.key==='Enter') this.blur();" onchange="updatePracStation(${idx}, ${sIdx}, 'name', this.value)" placeholder="Group / Drill Name">
-                        <textarea class="prac-textarea" oninput="autoResizeTextarea(this);" onchange="updatePracStation(${idx}, ${sIdx}, 'desc', this.value)" placeholder="Details...">${st.desc || ''}</textarea>
+                        <textarea class="prac-textarea" style="min-height:30px;" oninput="autoResizeTextarea(this);" onchange="updatePracStation(${idx}, ${sIdx}, 'desc', this.value)" placeholder="Details...">${st.desc || ''}</textarea>
                     </div>
                     <div>
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;" class="no-print">
@@ -1978,7 +1852,7 @@
                     </div>
                     <div>
                         <label style="font-size:9.5px; font-weight:bold; color:var(--text-muted); display:block; margin-bottom:2px;" class="no-print">Coaching Focus:</label>
-                        <textarea class="prac-textarea" oninput="autoResizeTextarea(this);" onchange="updatePracStation(${idx}, ${sIdx}, 'focus', this.value)" placeholder="Key focus...">${st.focus || ''}</textarea>
+                        <textarea class="prac-textarea" style="min-height:30px;" oninput="autoResizeTextarea(this);" onchange="updatePracStation(${idx}, ${sIdx}, 'focus', this.value)" placeholder="Key focus...">${st.focus || ''}</textarea>
                     </div>
                     <div class="admin-only" style="padding-top:20px; text-align:center;">
                         <button class="remove-btn" onclick="removeStation(${idx}, ${sIdx})" title="Delete Station">&times;</button>
@@ -2141,8 +2015,6 @@
         if (!dropdown || !display) return;
         
         let tree = {};
-        
-        // Sort practiceData items chronologically by date first (earliest to latest)
         let sortedPractices = [...practiceData].sort((a, b) => {
             let dateA = a.date || "1970-01-01";
             let dateB = b.date || "1970-01-01";
@@ -2254,7 +2126,6 @@
         }
     }
 
-    // --- CLOUD LISTENER & APP SETUP ---
     function listenToLiveUpdates() {
         if (!cloudEnabled || !db) return;
         db.collection("teamData").doc("depthChartData")
@@ -2269,6 +2140,7 @@
               if (data.collapsedFolders) collapsedFolders = data.collapsedFolders;
               if (data.savedCoachesList) savedCoachesList = data.savedCoachesList;
               if (data.practiceTemplates) practiceTemplates = data.practiceTemplates;
+              if (data.teamCoachesList) teamCoachesList = data.teamCoachesList;
 
               depthChart = getWeekDepthChart(currentWeek);
               renderActiveBoards();
@@ -2284,6 +2156,7 @@
               if (activeUnit === 'scouting') renderScouting();
               if (activeUnit === 'drills') renderDrillsTab();
               if (activeUnit === 'scrimmage') renderScrimmageTab();
+              if (activeUnit === 'users') renderUsers();
             }
           });
     }
@@ -2296,7 +2169,6 @@
         renderMasterRoster();
     }
 
-    // --- FORMATION ROW, POSITION & EDITING FUNCTIONS ---
     function addFormationRow(formId) {
       if (userRole !== 'admin') return;
       let label = prompt("Enter new level/row label (e.g. Defensive Secondary, Backfield):", "Additional Level");
@@ -2312,9 +2184,7 @@
         if (!form.rows) form.rows = [];
         let newRowId = "row_" + Date.now();
         let positions = [];
-        for(let i=0; i<slotCount; i++) {
-          positions.push(null);
-        }
+        for(let i=0; i<slotCount; i++) { positions.push(null); }
         form.rows.push({ id: newRowId, label: label.trim(), slotCount, positions });
         saveState();
         renderActiveBoards();
@@ -2349,9 +2219,7 @@
 
         if (!row.positions) row.positions = [];
         if (newCount > row.positions.length) {
-          while(row.positions.length < newCount) {
-            row.positions.push(null);
-          }
+          while(row.positions.length < newCount) { row.positions.push(null); }
         } else if (newCount < row.positions.length) {
           row.positions = row.positions.slice(0, newCount);
         }
@@ -2375,6 +2243,93 @@
           renderActiveBoards();
         }
       }
+    }
+
+    function movePositionToRow(formId, rIdx, pIdx) {
+      if (userRole !== 'admin') return;
+      const forms = getWeekFormations(currentWeek);
+      const form = forms.find(f => f.id === formId);
+      if (!form || !form.rows || !form.rows[rIdx] || !form.rows[rIdx].positions) return;
+
+      let pos = form.rows[rIdx].positions[pIdx];
+      if (!pos) return;
+
+      let rowOptions = form.rows.map((r, i) => `${i}: ${r.label || 'Row ' + (i+1)}`).join('\n');
+      let targetRowStr = prompt(`Select target row index (0 to ${form.rows.length - 1}) for position [${pos.name}]:\n\n${rowOptions}`);
+      if (targetRowStr === null) return;
+      let targetRIdx = parseInt(targetRowStr);
+      if (isNaN(targetRIdx) || targetRIdx < 0 || targetRIdx >= form.rows.length) {
+        alert("Invalid row index.");
+        return;
+      }
+
+      form.rows[rIdx].positions[pIdx] = null;
+
+      let targetRow = form.rows[targetRIdx];
+      if (!targetRow.positions) targetRow.positions = [];
+      let emptyIdx = targetRow.positions.indexOf(null);
+      if (emptyIdx !== -1) {
+        targetRow.positions[emptyIdx] = pos;
+      } else {
+        targetRow.positions.push(pos);
+        targetRow.slotCount = targetRow.positions.length;
+      }
+
+      saveState();
+      renderActiveBoards();
+    }
+
+    function copyPositionToFormation(formId, rIdx, pIdx) {
+      if (userRole !== 'admin') return;
+      const forms = getWeekFormations(currentWeek);
+      const srcForm = forms.find(f => f.id === formId);
+      if (!srcForm || !srcForm.rows || !srcForm.rows[rIdx] || !srcForm.rows[rIdx].positions) return;
+
+      let pos = srcForm.rows[rIdx].positions[pIdx];
+      if (!pos) return;
+
+      let otherForms = forms.filter(f => f.id !== formId);
+      if (otherForms.length === 0) {
+        alert("No other formations available to copy to.");
+        return;
+      }
+
+      let formOptions = otherForms.map((f, i) => `${i + 1}. ${f.name} (${f.unit})`).join('\n');
+      let choiceStr = prompt(`Copy position [${pos.name}] to which formation?\n\n${formOptions}\n\nEnter number:`);
+      if (!choiceStr) return;
+      let choiceIdx = parseInt(choiceStr) - 1;
+      if (isNaN(choiceIdx) || choiceIdx < 0 || choiceIdx >= otherForms.length) {
+        alert("Invalid selection.");
+        return;
+      }
+
+      let targetForm = otherForms[choiceIdx];
+      if (!targetForm.rows || targetForm.rows.length === 0) {
+        alert("Target formation has no rows.");
+        return;
+      }
+
+      let targetRow = targetForm.rows[0];
+      let newPosId = targetForm.id + "-" + pos.name + "-" + Date.now();
+      let newPos = { id: newPosId, name: pos.name };
+
+      if (!targetRow.positions) targetRow.positions = [];
+      let emptyIdx = targetRow.positions.indexOf(null);
+      if (emptyIdx !== -1) {
+        targetRow.positions[emptyIdx] = newPos;
+      } else {
+        targetRow.positions.push(newPos);
+        targetRow.slotCount = targetRow.positions.length;
+      }
+
+      let dc = getWeekDepthChart(currentWeek);
+      if (dc[pos.id] && Array.isArray(dc[pos.id])) {
+        dc[newPosId] = JSON.parse(JSON.stringify(dc[pos.id]));
+      }
+
+      saveState();
+      renderActiveBoards();
+      alert(`Successfully copied [${pos.name}] and its players to formation: ${targetForm.name}!`);
     }
 
     function deleteFormationRow(formId, rIdx) {
@@ -2494,6 +2449,7 @@
         const formDiv = document.createElement("div");
         formDiv.className = "formation-container" + (form.id === selectedFormationFilterId ? " active-selected" : "");
         formDiv.id = "board_" + form.id;
+        formDiv.dataset.formId = form.id;
         formDiv.onclick = () => selectFormationForRoster(form.id);
 
         formDiv.innerHTML = `
@@ -2561,7 +2517,11 @@
               let cardHeaderHtml = userRole === 'admin' ? `
                 <div class="position-header" draggable="true" ondragstart="handlePositionDragStart(event, '${form.id}', ${rIdx}, ${pIdx})" title="Drag header to reorder position">
                    <span onclick="editPositionName('${form.id}', ${rIdx}, ${pIdx})" title="Click to edit position name">${pos.name} ✏️</span>
-                   <button class="remove-btn" style="font-size:11px; padding:0 4px; line-height:14px;" onclick="removePositionFromRow('${form.id}', ${rIdx}, ${pIdx})" title="Delete Position">&times;</button>
+                   <div style="display:flex; gap:3px; align-items:center;">
+                     <button class="toggle-board-btn" style="font-size:8.5px; padding:1px 3px;" onclick="movePositionToRow('${form.id}', ${rIdx}, ${pIdx})" title="Move position to different row">🚚 Move</button>
+                     <button class="toggle-board-btn" style="font-size:8.5px; padding:1px 3px;" onclick="copyPositionToFormation('${form.id}', ${rIdx}, ${pIdx})" title="Copy position and players to another formation">📋 Copy</button>
+                     <button class="remove-btn" style="font-size:11px; padding:0 3px; line-height:14px;" onclick="removePositionFromRow('${form.id}', ${rIdx}, ${pIdx})" title="Delete Position">&times;</button>
+                   </div>
                 </div>
               ` : `
                 <div class="position-header">
@@ -2594,7 +2554,7 @@
       const forms = allForms.filter(f => !scrimmageFilters || scrimmageFilters.includes(f.id));
 
       if (forms.length === 0) {
-          container.innerHTML = `<div style="padding:40px; text-align:center; color:var(--text-muted);">No scrimmage boards selected.</div>`;
+          container.innerHTML = `<div style="padding:4px; text-align:center; color:var(--text-muted);">No scrimmage boards selected.</div>`;
           renderMasterRoster();
           return;
       }
@@ -2773,6 +2733,16 @@
         const cbs = document.querySelectorAll(".scrim-print-cb");
         let selectedIds = [];
         cbs.forEach(cb => { if (cb.checked) selectedIds.push(cb.value); });
+        
+        document.querySelectorAll("#boards-scrimmage .formation-container").forEach(el => {
+            let fId = el.dataset.formId;
+            if (selectedIds.includes(fId)) {
+                el.classList.remove("hidden-print");
+            } else {
+                el.classList.add("hidden-print");
+            }
+        });
+
         document.getElementById("scrimmage-print-modal").classList.add("hidden");
         setTimeout(() => { window.print(); }, 300);
     }
@@ -2787,10 +2757,24 @@
                 <span>${f.name}</span>
             </label>
         `).join('');
-        document.getElementById("print-modal").classList.add("hidden");
+        document.getElementById("print-modal").classList.remove("hidden");
     }
 
     function executeCustomPrint() {
+        const cbs = document.querySelectorAll(".print-cb");
+        let selectedIds = [];
+        cbs.forEach(cb => { if (cb.checked) selectedIds.push(cb.value); });
+
+        const containerId = "boards-" + activeUnit;
+        document.querySelectorAll(`#${containerId} .formation-container`).forEach(el => {
+            let fId = el.dataset.formId;
+            if (selectedIds.includes(fId)) {
+                el.classList.remove("hidden-print");
+            } else {
+                el.classList.add("hidden-print");
+            }
+        });
+
         document.getElementById("print-modal").classList.add("hidden");
         setTimeout(() => { window.print(); }, 300);
     }
@@ -2972,24 +2956,54 @@
     function renderUsers() {
        const container = document.getElementById("users-table-container");
        if (!container) return;
-       container.innerHTML = `
+
+       let rowsHtml = teamCoachesList.map((coach, idx) => `
+         <tr>
+           <td style="padding:8px; border:1px solid var(--card-border); font-weight:bold;">${coach.email}</td>
+           <td style="padding:8px; border:1px solid var(--card-border);"><span class="role-badge ${coach.role.includes('Admin') ? 'role-admin' : 'role-viewer'}">${coach.role}</span></td>
+           <td style="padding:8px; border:1px solid var(--card-border); text-align:center; color:#16a34a; font-weight:bold;">${coach.status}</td>
+           <td style="padding:8px; border:1px solid var(--card-border); text-align:center;" class="admin-only">
+              <button class="remove-btn" onclick="removeCoachFromStaff(${idx})" title="Remove Coach">&times;</button>
+           </td>
+         </tr>
+       `).join('');
+
+       let html = `
+         <div style="margin-bottom:10px;" class="admin-only">
+           <button class="toggle-board-btn" style="background:var(--primary); color:#fff; padding:6px 12px;" onclick="addNewCoachPrompt()">+ Add Coach to Staff</button>
+         </div>
          <table style="width:100%; border-collapse:collapse; background:#fff; font-size:11px;">
            <thead>
              <tr style="background:#f1f5f9; color:var(--primary); text-align:left;">
                <th style="padding:8px; border:1px solid var(--card-border);">Coach / User Email</th>
                <th style="padding:8px; border:1px solid var(--card-border);">Role</th>
                <th style="padding:8px; border:1px solid var(--card-border); text-align:center;">Status</th>
+               <th style="padding:8px; border:1px solid var(--card-border); text-align:center;" class="admin-only">Action</th>
              </tr>
            </thead>
            <tbody>
-             <tr>
-               <td style="padding:8px; border:1px solid var(--card-border); font-weight:bold;">${currentUser ? currentUser.email : 'Local Head Coach (Offline Mode)'}</td>
-               <td style="padding:8px; border:1px solid var(--card-border);"><span class="role-badge role-admin">Head Coach (Admin)</span></td>
-               <td style="padding:8px; border:1px solid var(--card-border); text-align:center; color:#16a34a; font-weight:bold;">Active Session</td>
-             </tr>
+             ${rowsHtml}
            </tbody>
          </table>
        `;
+       container.innerHTML = html;
+    }
+
+    function addNewCoachPrompt() {
+       let email = prompt("Enter assistant coach email address:");
+       if (email && email.trim() !== "") {
+           teamCoachesList.push({ email: email.trim(), role: "Assistant Coach", status: "Active" });
+           saveState();
+           renderUsers();
+       }
+    }
+
+    function removeCoachFromStaff(idx) {
+       if (confirm(`Remove coach ${teamCoachesList[idx].email} from the staff list?`)) {
+           teamCoachesList.splice(idx, 1);
+           saveState();
+           renderUsers();
+       }
     }
 
     function filterRoster() { renderMasterRoster(); }
@@ -3010,7 +3024,7 @@
     }
 
     function exportData() {
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({weeklyData, practiceData, masterPlayLibrary, cascadingDrills, pdfGuides, practiceTemplates}));
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({weeklyData, practiceData, masterPlayLibrary, cascadingDrills, pdfGuides, practiceTemplates, teamCoachesList}));
         const dl = document.createElement('a'); dl.setAttribute("href", dataStr); dl.setAttribute("download", `football_backup.json`); dl.click();
     }
 
@@ -3028,6 +3042,7 @@
                 if (parsed.collapsedFolders) collapsedFolders = parsed.collapsedFolders;
                 if (parsed.savedCoachesList) savedCoachesList = parsed.savedCoachesList;
                 if (parsed.practiceTemplates) practiceTemplates = parsed.practiceTemplates;
+                if (parsed.teamCoachesList) teamCoachesList = parsed.teamCoachesList;
                 saveState(); 
                 alert("Data and drills imported successfully!");
                 location.reload();
@@ -3041,13 +3056,17 @@
     function applyRole(role) {
        userRole = role;
        const badge = document.getElementById("user-role-badge");
+       const selectEl = document.getElementById("role-switcher-select");
+       if (selectEl) selectEl.value = role;
+
        if (role === 'admin') {
           document.body.classList.remove('view-only');
-          if (badge) { badge.textContent = "HEAD COACH"; badge.className = "role-badge role-admin"; }
+          if (badge) { badge.textContent = "ADMIN"; badge.className = "role-badge role-admin"; }
        } else {
           document.body.classList.add('view-only');
-          if (badge) { badge.textContent = "COACH"; badge.className = "role-badge role-viewer"; }
+          if (badge) { badge.textContent = "ASSISTANT"; badge.className = "role-badge role-viewer"; }
        }
+       renderDrillsTab();
     }
 
     function bypassLogin() {
