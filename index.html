@@ -715,7 +715,9 @@
        <label style="font-size:11px; font-weight:bold; color:var(--primary); display:block; margin-bottom:4px;">Week Folder:</label>
        <input type="text" id="modal-prac-week" class="prac-input" value="Week 1" style="margin-bottom:10px;">
        <label style="font-size:11px; font-weight:bold; color:var(--primary); display:block; margin-bottom:4px;">Practice Title:</label>
-       <input type="text" id="modal-prac-title" class="prac-input" value="Practice #1" style="margin-bottom:15px;">
+       <input type="text" id="modal-prac-title" class="prac-input" value="Practice #1" style="margin-bottom:10px;">
+       <label style="font-size:11px; font-weight:bold; color:var(--primary); display:block; margin-bottom:4px;">Practice Date:</label>
+       <input type="date" id="modal-prac-date" class="prac-input" value="" style="margin-bottom:15px;">
        <div style="display: flex; gap: 8px; justify-content: flex-end;">
           <button class="toggle-board-btn" onclick="document.getElementById('new-prac-modal').classList.add('hidden')">Cancel</button>
           <button class="add-row-btn" style="margin:0;" onclick="executeCreateNewPractice()">Create Plan</button>
@@ -2139,7 +2141,15 @@
         if (!dropdown || !display) return;
         
         let tree = {};
-        practiceData.forEach((p) => {
+        
+        // Sort practiceData items chronologically by date first (earliest to latest)
+        let sortedPractices = [...practiceData].sort((a, b) => {
+            let dateA = a.date || "1970-01-01";
+            let dateB = b.date || "1970-01-01";
+            return dateA.localeCompare(dateB);
+        });
+
+        sortedPractices.forEach((p) => {
             let yr = p.year || "2026";
             let wk = p.weekFolder || "Week 1";
             if (!tree[yr]) tree[yr] = {};
@@ -2166,7 +2176,7 @@
 
                 tree[yr][wk].forEach(p => {
                     let isSelected = p.id === currentPracticeId;
-                    html += `<li class="tree-leaf ${isSelected ? 'selected' : ''}" onclick="selectPractice('${p.id}')">📄 ${p.title} <span style="font-size:9px; color:var(--text-muted);">(${p.day || ''})</span></li>`;
+                    html += `<li class="tree-leaf ${isSelected ? 'selected' : ''}" onclick="selectPractice('${p.id}')">📄 ${p.title} <span style="font-size:9px; color:var(--text-muted);">(${p.date || p.day || ''})</span></li>`;
                 });
                 html += `</ul>`;
             });
@@ -2181,16 +2191,21 @@
         saveState(); populatePracticeDropdown(); renderPracticePlan();
     }
 
-    function openNewPracticeModal() { document.getElementById('new-prac-modal').classList.remove('hidden'); }
+    function openNewPracticeModal() { 
+        document.getElementById('modal-prac-date').value = new Date().toISOString().split('T')[0];
+        document.getElementById('new-prac-modal').classList.remove('hidden'); 
+    }
+    
     function executeCreateNewPractice() {
         const yearInput = document.getElementById('modal-prac-year').value || "2026";
         const weekInput = document.getElementById('modal-prac-week').value || "Week 1";
         const titleInput = document.getElementById('modal-prac-title').value || "Practice #1";
+        const dateInput = document.getElementById('modal-prac-date').value || new Date().toISOString().split('T')[0];
 
         let defaultCat = cascadingDrills.length > 0 ? cascadingDrills[0].name : "General";
         const newPrac = {
             id: 'prac_' + Date.now(), year: yearInput, weekFolder: weekInput, title: titleInput, 
-            date: new Date().toISOString().split('T')[0], day: "Wednesday", startTime: "17:05", endTime: "20:00", lastEdited: Date.now(),
+            date: dateInput, day: "Wednesday", startTime: "17:05", endTime: "20:00", lastEdited: Date.now(),
             plan: [{ time: 15, category: defaultCat, format: "static", stations: [{ name: "Warm-Up", desc: "", coach: "", focus: "" }] }]
         };
         practiceData.push(newPrac);
@@ -2208,10 +2223,13 @@
         if (wk === null) return;
         let title = prompt("Edit Practice Title:", prac.title);
         if (title === null) return;
+        let dt = prompt("Edit Practice Date (YYYY-MM-DD):", prac.date || "");
+        if (dt === null) return;
 
         prac.year = yr.trim();
         prac.weekFolder = wk.trim();
         prac.title = title.trim();
+        prac.date = dt.trim();
         saveState(); populatePracticeDropdown(); renderPracticePlan();
     }
 
@@ -3079,6 +3097,7 @@
         practiceData.forEach(p => {
           if (!p.year) p.year = "2026";
           if (!p.weekFolder) p.weekFolder = "Week 1";
+          if (!p.date) p.date = new Date().toISOString().split('T')[0];
           if (!p.lastEdited) p.lastEdited = Date.now();
         });
       }
