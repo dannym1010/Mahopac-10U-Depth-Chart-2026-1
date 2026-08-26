@@ -1299,7 +1299,7 @@
 
     function saveCurrentAsTemplate() {
         const prac = practiceData.find(p => p.id === currentPracticeId);
-        if (!prac || !prac.plan || prac.plan.length === 0) {
+        if (!prac || !Array.isArray(prac.plan) || prac.plan.length === 0) {
             alert("No practice plan periods to save.");
             return;
         }
@@ -1848,7 +1848,7 @@
 
         if (foundDrill) {
             const prac = practiceData.find(p => p.id === currentPracticeId);
-            if (prac && prac.plan[rIdx] && prac.plan[rIdx].stations[sIdx]) {
+            if (prac && Array.isArray(prac.plan) && prac.plan[rIdx] && prac.plan[rIdx].stations[sIdx]) {
                 prac.plan[rIdx].stations[sIdx].name = foundDrill.name;
                 prac.plan[rIdx].stations[sIdx].desc = foundDrill.desc;
                 prac.plan[rIdx].stations[sIdx].focus = foundDrill.key;
@@ -1860,7 +1860,7 @@
 
     function syncDrillLibraryFromStation(rIdx, sIdx) {
         const prac = practiceData.find(p => p.id === currentPracticeId);
-        if (!prac || !prac.plan[rIdx] || !prac.plan[rIdx].stations[sIdx]) return;
+        if (!prac || !Array.isArray(prac.plan) || !prac.plan[rIdx] || !prac.plan[rIdx].stations[sIdx]) return;
 
         const st = prac.plan[rIdx].stations[sIdx];
         const drillName = (st.name || "").trim();
@@ -1902,15 +1902,19 @@
 
     function toggleCoachCheckbox(rIdx, sIdx, coachName, checkboxEl) {
         const prac = practiceData.find(p => p.id === currentPracticeId);
-        if (!prac || !prac.plan[rIdx] || !prac.plan[rIdx].stations[sIdx]) return;
+        if (!prac || !Array.isArray(prac.plan) || !prac.plan[rIdx] || !prac.plan[rIdx].stations[sIdx]) return;
 
         let curVal = prac.plan[rIdx].stations[sIdx].coach || "";
+        // Cleanly split existing tokens, supporting both "Coach Pete" or "Pete" matching
         let tokens = curVal.split(',').map(t => t.trim()).filter(Boolean);
 
+        // Normalize matching by checking exact name or "Coach " + name
+        let hasName = tokens.includes(coachName) || tokens.includes("Coach " + coachName) || (coachName.startsWith("Coach ") && tokens.includes(coachName.replace("Coach ", "")));
+
         if (checkboxEl.checked) {
-            if (!tokens.includes(coachName)) tokens.push(coachName);
+            if (!hasName) tokens.push(coachName);
         } else {
-            tokens = tokens.filter(t => t !== coachName);
+            tokens = tokens.filter(t => t !== coachName && t !== "Coach " + coachName && t !== coachName.replace("Coach ", ""));
         }
 
         prac.plan[rIdx].stations[sIdx].coach = tokens.join(', ');
@@ -1937,7 +1941,7 @@
                 savedCoachesList.sort();
             }
             const prac = practiceData.find(p => p.id === currentPracticeId);
-            if (prac && prac.plan[rIdx] && prac.plan[rIdx].stations[sIdx]) {
+            if (prac && Array.isArray(prac.plan) && prac.plan[rIdx] && prac.plan[rIdx].stations[sIdx]) {
                 let curVal = prac.plan[rIdx].stations[sIdx].coach || "";
                 let tokens = curVal.split(',').map(t => t.trim()).filter(Boolean);
                 if (!tokens.includes(clean)) tokens.push(clean);
@@ -1958,13 +1962,13 @@
             
             // Also clean up from any practice stations where this coach was selected
             practiceData.forEach(p => {
-                if (p.plan) {
+                if (Array.isArray(p.plan)) {
                     p.plan.forEach(row => {
                         if (row.stations) {
                             row.stations.forEach(st => {
                                 if (st.coach) {
                                     let tokens = st.coach.split(',').map(t => t.trim()).filter(Boolean);
-                                    tokens = tokens.filter(t => t !== coachName);
+                                    tokens = tokens.filter(t => t !== coachName && t !== "Coach " + coachName && t !== coachName.replace("Coach ", ""));
                                     st.coach = tokens.join(', ');
                                 }
                             });
@@ -1982,6 +1986,11 @@
     function renderPracticePlan() {
         const prac = practiceData.find(p => p.id === currentPracticeId);
         if (!prac) return;
+        
+        // Ensure plan is always a valid array to prevent forEach type errors
+        if (!Array.isArray(prac.plan)) {
+            prac.plan = [];
+        }
         
         const yearInput = document.getElementById("prac-year-input");
         const weekInput = document.getElementById("prac-week-input");
@@ -2005,7 +2014,7 @@
         tbody.innerHTML = '';
 
         let currentTimeMin = parseTimeString(prac.startTime || "17:05");
-        (prac.plan || []).forEach((row, idx) => {
+        prac.plan.forEach((row, idx) => {
             const rowTime = parseInt(row.time || 0);
             let endTimeMin = currentTimeMin + rowTime;
             let timeStr = `${formatTime(currentTimeMin)} - ${formatTime(endTimeMin)}`;
@@ -2038,7 +2047,7 @@
                 let assignedCoaches = (st.coach || "").split(',').map(t => t.trim()).filter(Boolean);
 
                 let coachCheckboxesHtml = savedCoachesList.map(c => {
-                    let isChecked = assignedCoaches.includes(c);
+                    let isChecked = assignedCoaches.includes(c) || assignedCoaches.includes("Coach " + c) || (c.startsWith("Coach ") && assignedCoaches.includes(c.replace("Coach ", "")));
                     return `
                         <div style="display:flex; align-items:center; justify-content:space-between; padding:3px 6px; font-size:11px;" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='#fff'">
                            <label style="display:flex; align-items:center; gap:6px; cursor:pointer; flex-grow:1;">
@@ -2075,7 +2084,8 @@
 
                 let coachCellContent = `
                     <div id="${stationBoxId}" class="station-block coach-popup-container" style="position:relative;">
-                        <textarea class="prac-textarea coach-textarea" style="white-space:pre-wrap; word-wrap:break-word; cursor:pointer;" readonly onclick="toggleCoachPopup(${idx}, ${sIdx}, event)" oninput="autoResizeTextarea(this);" placeholder="Click coaches...">${st.coach || ''}</textarea>
+                        <textarea class="prac-textarea coach-textarea" style="white-space:pre-wrap; word-wrap:break-word;" oninput="autoResizeTextarea(this); updatePracStation(${idx}, ${sIdx}, 'coach', this.value);" placeholder="Type or click dropdown...">${st.coach || ''}</textarea>
+                        <div style="font-size:9.5px; color:var(--accent); cursor:pointer; margin-top:2px;" onclick="toggleCoachPopup(${idx}, ${sIdx}, event)">▼ Select Coaches</div>
                         
                         <div id="${coachPopupId}" class="coach-popup-box card-search-dropdown hidden" style="width: 220px; max-height: 220px; overflow-y: auto; top: 100%; left: 0; padding:8px; background:#fff; z-index:50000; box-shadow:0 4px 12px rgba(0,0,0,0.15);" onclick="event.stopPropagation()">
                            <div style="font-size:10px; font-weight:bold; color:var(--primary); margin-bottom:6px; border-bottom:1px solid #ccc; padding-bottom:3px; display:flex; justify-content:space-between; align-items:center;">
@@ -2161,7 +2171,7 @@
 
     function movePracticeRow(rIdx, direction) {
         const prac = practiceData.find(p => p.id === currentPracticeId);
-        if (!prac) return;
+        if (!prac || !Array.isArray(prac.plan)) return;
         const newIndex = rIdx + direction;
         if (newIndex < 0 || newIndex >= prac.plan.length) return;
         
@@ -2183,7 +2193,7 @@
 
     function updatePracRow(rIdx, field, val) {
         const prac = practiceData.find(p => p.id === currentPracticeId);
-        if (prac && prac.plan[rIdx]) {
+        if (prac && Array.isArray(prac.plan) && prac.plan[rIdx]) {
             prac.plan[rIdx][field] = val;
             saveState();
             renderPracticePlan();
@@ -2192,7 +2202,7 @@
 
     function updatePracRowCategory(rIdx, val) {
         const prac = practiceData.find(p => p.id === currentPracticeId);
-        if (prac && prac.plan[rIdx]) {
+        if (prac && Array.isArray(prac.plan) && prac.plan[rIdx]) {
             prac.plan[rIdx].category = val;
             saveState();
             renderPracticePlan();
@@ -2201,7 +2211,7 @@
 
     function updatePracRowFormat(rIdx, val) {
         const prac = practiceData.find(p => p.id === currentPracticeId);
-        if (prac && prac.plan[rIdx]) {
+        if (prac && Array.isArray(prac.plan) && prac.plan[rIdx]) {
             prac.plan[rIdx].format = val;
             saveState();
             renderPracticePlan();
@@ -2210,7 +2220,7 @@
 
     function updatePracStation(rIdx, sIdx, field, val) {
         const prac = practiceData.find(p => p.id === currentPracticeId);
-        if (prac && prac.plan[rIdx] && prac.plan[rIdx].stations[sIdx]) {
+        if (prac && Array.isArray(prac.plan) && prac.plan[rIdx] && prac.plan[rIdx].stations[sIdx]) {
             prac.plan[rIdx].stations[sIdx][field] = val;
             triggerDebouncedSave();
         }
@@ -2218,17 +2228,20 @@
 
     function addStationToRow(rIdx) {
         const prac = practiceData.find(p => p.id === currentPracticeId);
-        if (prac && prac.plan[rIdx]) {
-            if (!prac.plan[rIdx].stations) prac.plan[rIdx].stations = [];
-            prac.plan[rIdx].stations.push({ name: "New Station / Group", desc: "", coach: "", focus: "" });
-            saveState();
-            renderPracticePlan();
+        if (prac) {
+            if (!Array.isArray(prac.plan)) prac.plan = [];
+            if (prac.plan[rIdx]) {
+                if (!prac.plan[rIdx].stations) prac.plan[rIdx].stations = [];
+                prac.plan[rIdx].stations.push({ name: "New Station / Group", desc: "", coach: "", focus: "" });
+                saveState();
+                renderPracticePlan();
+            }
         }
     }
 
     function removeStation(rIdx, sIdx) {
         const prac = practiceData.find(p => p.id === currentPracticeId);
-        if (prac && prac.plan[rIdx] && prac.plan[rIdx].stations) {
+        if (prac && Array.isArray(prac.plan) && prac.plan[rIdx] && prac.plan[rIdx].stations) {
             if (prac.plan[rIdx].stations.length <= 1) {
                 alert("A period must have at least one station/group.");
                 return;
@@ -2242,6 +2255,7 @@
     function addPracticeRow() {
         const prac = practiceData.find(p => p.id === currentPracticeId);
         if (prac) {
+            if (!Array.isArray(prac.plan)) prac.plan = [];
             let defaultCat = cascadingDrills.length > 0 ? cascadingDrills[0].name : "General";
             prac.plan.push({ time: 10, category: defaultCat, format: "static", stations: [{ name: "New Group", desc: "", coach: "", focus: "" }] });
             saveState(); renderPracticePlan();
@@ -2250,7 +2264,7 @@
 
     function removePracticeRow(rIdx) {
         const prac = practiceData.find(p => p.id === currentPracticeId);
-        if (prac && confirm("Remove period?")) {
+        if (prac && Array.isArray(prac.plan) && confirm("Remove period?")) {
             prac.plan.splice(rIdx, 1);
             saveState(); renderPracticePlan();
         }
@@ -2430,6 +2444,7 @@
               if (data.savedCoachesList) savedCoachesList = data.savedCoachesList;
               if (data.practiceTemplates && typeof data.practiceTemplates === 'object' && Object.keys(data.practiceTemplates).length > 0) {
                   practiceTemplates = data.practiceTemplates;
+                  populateTemplateDropdown();
               }
               if (data.teamCoachesList) teamCoachesList = data.teamCoachesList;
 
@@ -2448,7 +2463,6 @@
               renderActiveBoards();
               renderMasterRoster();
               populatePracticeDropdown();
-              populateTemplateDropdown();
 
               if (activeUnit === 'practice') {
                   const isTyping = document.activeElement && document.activeElement.closest('#main-practice-table');
@@ -3379,13 +3393,13 @@
             
             // Also clean up from any practice stations where this coach was selected
             practiceData.forEach(p => {
-                if (p.plan) {
+                if (Array.isArray(p.plan)) {
                     p.plan.forEach(row => {
                         if (row.stations) {
                             row.stations.forEach(st => {
                                 if (st.coach) {
                                     let tokens = st.coach.split(',').map(t => t.trim()).filter(Boolean);
-                                    tokens = tokens.filter(t => t !== name);
+                                    tokens = tokens.filter(t => t !== name && t !== "Coach " + name && t !== name.replace("Coach ", ""));
                                     st.coach = tokens.join(', ');
                                 }
                             });
@@ -3490,6 +3504,7 @@
                 if (parsed.savedCoachesList) savedCoachesList = parsed.savedCoachesList;
                 if (parsed.practiceTemplates && typeof parsed.practiceTemplates === 'object' && Object.keys(parsed.practiceTemplates).length > 0) {
                     practiceTemplates = parsed.practiceTemplates;
+                    populateTemplateDropdown();
                 }
                 if (parsed.teamCoachesList && Array.isArray(parsed.teamCoachesList)) {
                     teamCoachesList = parsed.teamCoachesList;
