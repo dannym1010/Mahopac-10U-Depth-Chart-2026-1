@@ -1905,10 +1905,8 @@
         if (!prac || !Array.isArray(prac.plan) || !prac.plan[rIdx] || !prac.plan[rIdx].stations[sIdx]) return;
 
         let curVal = prac.plan[rIdx].stations[sIdx].coach || "";
-        // Cleanly split existing tokens, supporting both "Coach Pete" or "Pete" matching
         let tokens = curVal.split(',').map(t => t.trim()).filter(Boolean);
 
-        // Normalize matching by checking exact name or "Coach " + name
         let hasName = tokens.includes(coachName) || tokens.includes("Coach " + coachName) || (coachName.startsWith("Coach ") && tokens.includes(coachName.replace("Coach ", "")));
 
         if (checkboxEl.checked) {
@@ -1920,14 +1918,12 @@
         prac.plan[rIdx].stations[sIdx].coach = tokens.join(', ');
         saveState();
         
-        // Update the textarea display directly without destroying the open popup container
         const stationEl = document.getElementById(`station_box_${rIdx}_${sIdx}`);
         if (stationEl) {
             const ta = stationEl.querySelector('.coach-textarea');
             if (ta) ta.value = prac.plan[rIdx].stations[sIdx].coach;
         }
         
-        // Keep popup open and focused
         const popup = document.getElementById(`coach_popup_${rIdx}_${sIdx}`);
         if (popup) popup.classList.remove('hidden');
     }
@@ -1960,7 +1956,6 @@
         if (confirm(`Remove "${coachName}" from saved coaches?`)) {
             savedCoachesList = savedCoachesList.filter(c => c !== coachName);
             
-            // Also clean up from any practice stations where this coach was selected
             practiceData.forEach(p => {
                 if (Array.isArray(p.plan)) {
                     p.plan.forEach(row => {
@@ -1987,7 +1982,6 @@
         const prac = practiceData.find(p => p.id === currentPracticeId);
         if (!prac) return;
         
-        // Ensure plan is always a valid array to prevent forEach type errors
         if (!Array.isArray(prac.plan)) {
             prac.plan = [];
         }
@@ -2163,7 +2157,6 @@
             currentTimeMin = endTimeMin;
         });
 
-        // Immediate height expansion on render
         setTimeout(() => {
           document.querySelectorAll('#main-practice-table .prac-textarea').forEach(ta => autoResizeTextarea(ta));
         }, 10);
@@ -3391,7 +3384,6 @@
         if (confirm(`Remove "${name}" from saved practice coaches?`)) {
             savedCoachesList = savedCoachesList.filter(c => c !== name);
             
-            // Also clean up from any practice stations where this coach was selected
             practiceData.forEach(p => {
                 if (Array.isArray(p.plan)) {
                     p.plan.forEach(row => {
@@ -3640,7 +3632,18 @@
                 plan: [{ time: 25, category: defaultCat, format: "static", stations: [{ name: "Warm-Up", desc: "Dynamic stretch", coach: "Coach Danny", focus: "Stance & Agility" }] }]
             }];
         }
-        currentPracticeId = practiceData[0].id;
+        
+        // Default to the latest practice plan sorted by date/timestamp
+        let sortedPracs = [...practiceData].sort((a, b) => {
+            let dateA = a.date || "1970-01-01";
+            let dateB = b.date || "1970-01-01";
+            if (dateA === dateB) {
+                return (b.lastEdited || 0) - (a.lastEdited || 0);
+            }
+            return dateB.localeCompare(dateA);
+        });
+        currentPracticeId = sortedPracs[0].id;
+
         depthChart = getWeekDepthChart(currentWeek);
         const oppInput = document.getElementById("opponent-input");
         if (oppInput) oppInput.value = weeklyData[currentWeek].opponent || "";
