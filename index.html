@@ -226,7 +226,7 @@
     .practice-dashboard-info { background: #f1f5f9; padding: 10px 12px; border-radius: 6px; border: 1px solid var(--card-border); margin-bottom: 12px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; font-size: 11.5px; }
 
     .practice-table { width: 100%; border-collapse: collapse; margin-top: 10px; background: #ffffff; font-size: 11px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); table-layout: fixed; }
-    .practice-table th, .practice-table td { border: 1px solid var(--card-border); padding: 6px 8px; text-align: left; vertical-align: top; box-sizing: border-box; position: relative; word-wrap: break-word; height: 1px; }
+    .practice-table th, .practice-table td { border: 1px solid var(--card-border); padding: 6px 8px; text-align: left; vertical-align: top; box-sizing: border-box; position: relative; word-wrap: break-word; }
     .practice-table th { background: #f1f5f9; color: var(--primary); user-select: none; position: relative; }
     .practice-table tbody tr.period-odd td { background-color: #ffffff; }
     .practice-table tbody tr.period-even td { background-color: #f4f6f9; }
@@ -245,7 +245,7 @@
     .add-row-btn { margin-top: 10px; padding: 6px 12px; background: var(--primary); color: white; border: none; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; }
     .add-row-btn:hover { background: var(--accent); }
 
-    .station-block { margin-bottom: 0px; display: flex; flex-direction: column; justify-content: flex-start; height: 100%; min-height: 55px; box-sizing: border-box; width: 100%; }
+    .station-block { margin-bottom: 0px; display: flex; flex-direction: column; justify-content: flex-start; height: 100%; box-sizing: border-box; width: 100%; }
 
     /* Sidebar Wrapper & Panels */
     #sidebar-container { flex: 1; min-width: 220px; max-width: 280px; position: sticky; top: 15px; max-height: calc(100vh - 30px); display: flex; flex-direction: column; }
@@ -261,7 +261,7 @@
     @media print {
       @page { size: letter portrait; margin: 0.25in; }
       body { background-color: #ffffff !important; color: #000000 !important; padding: 0; margin: 0; font-size: 11px !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; width: 100% !important; overflow: visible !important; }
-      .toolbar, #sidebar-container, .remove-btn, .action-group, p.subtitle, .search-box, .tab-navigation, .toggle-board-btn, .week-bar, .board-controls, .add-row-btn, .add-form-btn, .row-actions, .practice-dashboard-info, #print-modal, #new-prac-modal, #scrimmage-print-modal, #scrimmage-filter-modal, #templates-modal, #approval-pending-overlay, .col-resizer { display: none !important; }
+      .toolbar, #sidebar-container, .remove-btn, .action-group, p.subtitle, .search-box, .tab-navigation, .toggle-board-btn, .week-bar, .board-controls, .add-row-btn, .add-form-btn, .row-actions, .practice-dashboard-info, #print-modal, #new-prac-modal, #scrimmage-print-modal, #scrimmage-filter-modal, #templates-modal, #approval-pending-overlay, .col-resizer, .coach-popup-box, .coach-popup-container > div:last-child { display: none !important; }
       .app-layout, .boards-container, .unit-panel { display: block !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
       .unit-panel.hidden { display: none !important; }
       .formation-container { border: 2px solid #000000 !important; box-shadow: none !important; padding: 6px; page-break-inside: auto !important; margin-bottom: 8px; background: #ffffff !important; width: 100% !important; box-sizing: border-box !important; }
@@ -277,18 +277,23 @@
       .rank-sub-gold { background: #fef08a !important; color: #000000 !important; border: 2px solid #000 !important; font-weight: 900 !important; opacity: 1 !important; box-shadow: inset 0 0 0 1px #000; }
       .rank-sub-blue { background: #93c5fd !important; color: #000000 !important; border: 2px solid #000 !important; font-weight: 900 !important; opacity: 1 !important; box-shadow: inset 0 0 0 1px #000; }
       
-      /* Practice Table Width & Word Wrapping Fix */
+      /* Practice Table Width, Spacing, and Page-Break Fixes for Multi-line Descriptions */
       h1 { margin-top: 0; font-size: 15px; color: #000000; text-align: center; }
-      .practice-table { font-size: 10.5px !important; border: 2px solid #000 !important; width: 100% !important; table-layout: fixed !important; word-wrap: break-word !important; overflow-wrap: break-word !important; }
-      .practice-table th { font-size: 11px !important; background: #e2e8f0 !important; color: #000 !important; border: 1px solid #000 !important; word-wrap: break-word !important; }
-      .practice-table td { font-size: 10.5px !important; border: 1px solid #000 !important; padding: 5px !important; color: #000 !important; vertical-align: middle !important; word-wrap: break-word !important; overflow-wrap: break-word !important; }
-      .period-schedule-time { font-size: 10px !important; color: #000 !important; font-weight: bold !important; }
+      .practice-table { font-size: 10px !important; border: 2px solid #000 !important; width: 100% !important; table-layout: fixed !important; word-wrap: break-word !important; overflow-wrap: break-word !important; }
+      .practice-table th { font-size: 10.5px !important; background: #e2e8f0 !important; color: #000 !important; border: 1px solid #000 !important; word-wrap: break-word !important; }
+      .practice-table td { font-size: 10px !important; border: 1px solid #000 !important; padding: 4px 5px !important; color: #000 !important; vertical-align: top !important; word-wrap: break-word !important; overflow-wrap: break-word !important; height: auto !important; }
+      .practice-table tr { page-break-inside: avoid !important; break-inside: avoid !important; }
+      .period-schedule-time { font-size: 9.5px !important; color: #000 !important; font-weight: bold !important; }
       
-      .prac-input, .prac-select, .prac-textarea { font-size: 10.5px !important; border: none !important; background: transparent !important; padding: 0 !important; color: #000 !important; text-transform: uppercase !important; white-space: pre-wrap !important; word-wrap: break-word !important; overflow-wrap: break-word !important; width: 100% !important; box-sizing: border-box !important; }
+      .prac-input, .prac-select, .prac-textarea { font-size: 10px !important; border: none !important; background: transparent !important; padding: 0 !important; color: #000 !important; text-transform: uppercase !important; white-space: pre-wrap !important; word-wrap: break-word !important; overflow-wrap: break-word !important; width: 100% !important; box-sizing: border-box !important; }
+      .prac-textarea { height: auto !important; min-height: 0 !important; overflow: visible !important; }
       
       #panel-practice .station-block { min-height: auto !important; height: auto !important; }
-      #panel-practice .station-block input.prac-input { font-weight: bold !important; font-size: 11px !important; color: #000 !important; white-space: pre-wrap !important; word-wrap: break-word !important; }
+      #panel-practice .station-block input.prac-input { font-weight: bold !important; font-size: 10.5px !important; color: #000 !important; white-space: pre-wrap !important; word-wrap: break-word !important; }
       #panel-practice select.prac-select:not([onchange*="updatePracRowCategory"]):not([onchange*="updatePracRowFormat"]) { display: none !important; }
+      
+      /* Hide coach selection trigger text when printing */
+      .coach-popup-container > div[onclick*="toggleCoachPopup"] { display: none !important; }
     }
   </style>
 </head>
