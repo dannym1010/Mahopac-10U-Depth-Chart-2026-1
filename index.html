@@ -1951,11 +1951,31 @@
         }
     }
 
-    function deleteCoachFromPopup(coachName) {
+    function deleteCoachFromPopup(coachName, e) {
+        if (e) e.stopPropagation();
         if (confirm(`Remove "${coachName}" from saved coaches?`)) {
             savedCoachesList = savedCoachesList.filter(c => c !== coachName);
+            
+            // Also clean up from any practice stations where this coach was selected
+            practiceData.forEach(p => {
+                if (p.plan) {
+                    p.plan.forEach(row => {
+                        if (row.stations) {
+                            row.stations.forEach(st => {
+                                if (st.coach) {
+                                    let tokens = st.coach.split(',').map(t => t.trim()).filter(Boolean);
+                                    tokens = tokens.filter(t => t !== coachName);
+                                    st.coach = tokens.join(', ');
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+
             saveState();
             renderPracticePlan();
+            if (activeUnit === 'users') renderUsers();
         }
     }
 
@@ -2025,7 +2045,7 @@
                               <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleCoachCheckbox(${idx}, ${sIdx}, '${c}', this)">
                               <span style="font-weight:bold; color:var(--primary);">${c}</span>
                            </label>
-                           <button class="remove-btn" onclick="deleteCoachFromPopup('${c}')" style="font-size:12px; padding:0 4px;" title="Delete Coach">&times;</button>
+                           <button type="button" class="remove-btn" onclick="deleteCoachFromPopup('${c}', event)" style="font-size:13px; padding:2px 6px;" title="Delete Coach">&times;</button>
                         </div>
                     `;
                 }).join('');
@@ -3356,8 +3376,27 @@
     function deleteSavedCoach(name) {
         if (confirm(`Remove "${name}" from saved practice coaches?`)) {
             savedCoachesList = savedCoachesList.filter(c => c !== name);
+            
+            // Also clean up from any practice stations where this coach was selected
+            practiceData.forEach(p => {
+                if (p.plan) {
+                    p.plan.forEach(row => {
+                        if (row.stations) {
+                            row.stations.forEach(st => {
+                                if (st.coach) {
+                                    let tokens = st.coach.split(',').map(t => t.trim()).filter(Boolean);
+                                    tokens = tokens.filter(t => t !== name);
+                                    st.coach = tokens.join(', ');
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+
             saveState();
             renderUsers();
+            if (activeUnit === 'practice') renderPracticePlan();
         }
     }
 
