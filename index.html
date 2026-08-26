@@ -162,14 +162,14 @@
     .position-header span:first-child:hover { color: var(--accent); text-decoration: underline; cursor: pointer; }
 
     .player-list { list-style: none; padding: 4px; margin: 0; min-height: 45px; }
-    .player-item { background: #f8fafc; border: 1px solid var(--card-border); padding: 4px 6px; margin-bottom: 4px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; cursor: grab; font-size: 11px; user-select: none; z-index:100; position:relative; }
+    .player-item { background: #f8fafc; border: 1px solid var(--card-border); padding: 4px 6px; margin-bottom: 4px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; cursor: grab; font-size: 11px; user-select: none; z-index:100; position:relative; text-transform: uppercase; font-weight: 700; }
     .player-info { display: flex; gap: 4px; align-items: center; pointer-events: none; }
     .num-tag { font-weight: bold; display: inline-block; min-width: 26px; }
     
     .rank-badge { font-size: 8px; font-weight: bold; padding: 2px 4px; border-radius: 3px; text-transform: uppercase; }
     .rank-starter { background: #000000; color: #ffffff; }
-    .rank-sub-gold { background: #eab308; color: #000000; }
-    .rank-sub-blue { background: #1d4ed8; color: #ffffff; }
+    .rank-sub-gold { background: #facc15; color: #000000; font-weight: 800; border: 1px solid #ca8a04; }
+    .rank-sub-blue { background: #3b82f6; color: #ffffff; font-weight: 800; border: 1px solid #1d4ed8; }
 
     .remove-btn { background: none; border: none; color: #ef4444; font-weight: bold; cursor: pointer; font-size: 13px; }
 
@@ -271,10 +271,12 @@
       .row-slot { align-items: flex-start !important; border: none !important; background: transparent !important; min-height: auto !important; }
       .position-card { border: 2px solid #000000 !important; box-shadow: none !important; min-width: 75px; background: #ffffff !important; }
       .position-header { background: #e2e8f0 !important; color: #000000 !important; border-bottom: 2px solid #000000 !important; font-size: 11px !important; padding: 4px 6px; font-weight: bold; }
-      .player-item { border: 1px solid #000000 !important; font-size: 11px !important; padding: 4px 6px !important; margin-bottom: 3px; background: #fff !important; color: #000 !important; }
+      .player-item { border: 1px solid #000000 !important; font-size: 11px !important; padding: 4px 6px !important; margin-bottom: 3px; background: #fff !important; color: #000 !important; text-transform: uppercase !important; font-weight: 700 !important; }
       
-      /* High-contrast print badges */
-      .rank-starter, .rank-sub-gold, .rank-sub-blue { background: #000 !important; color: #fff !important; border: 1px solid #000 !important; opacity: 1 !important; }
+      /* High-contrast print badges - Capitalized Names & Gold/Blue Highlights */
+      .rank-starter { background: #000 !important; color: #fff !important; border: 1px solid #000 !important; opacity: 1 !important; }
+      .rank-sub-gold { background: #fef08a !important; color: #000000 !important; border: 2px solid #000 !important; font-weight: 900 !important; opacity: 1 !important; box-shadow: inset 0 0 0 1px #000; }
+      .rank-sub-blue { background: #93c5fd !important; color: #000000 !important; border: 2px solid #000 !important; font-weight: 900 !important; opacity: 1 !important; box-shadow: inset 0 0 0 1px #000; }
       
       /* High-contrast alternating practice rows */
       tbody tr.period-odd td { background-color: #ffffff !important; color: #000000 !important; }
@@ -285,9 +287,9 @@
       .practice-table th { font-size: 12px !important; background: #e2e8f0 !important; color: #000 !important; border: 1px solid #000 !important; }
       .practice-table td { font-size: 11.5px !important; border: 1px solid #000 !important; padding: 6px !important; color: #000 !important; }
       .period-schedule-time { font-size: 11px !important; color: #000 !important; font-weight: bold !important; }
-      .prac-input, .prac-select, .prac-textarea { font-size: 11.5px !important; border: none !important; background: transparent !important; padding: 0 !important; color: #000 !important; }
+      .prac-input, .prac-select, .prac-textarea { font-size: 11.5px !important; border: none !important; background: transparent !important; padding: 0 !important; color: #000 !important; text-transform: uppercase !important; white-space: pre-wrap !important; word-wrap: break-word !important; }
       
-      #panel-practice .station-block input.prac-input { font-weight: bold !important; font-size: 12px !important; color: #000 !important; }
+      #panel-practice .station-block input.prac-input { font-weight: bold !important; font-size: 12px !important; color: #000 !important; white-space: pre-wrap !important; word-wrap: break-word !important; }
 
       #panel-practice select.prac-select:not([onchange*="updatePracRowCategory"]):not([onchange*="updatePracRowFormat"]) { display: none !important; }
     }
@@ -587,8 +589,8 @@
                 <th style="position:relative;">Time / Period<div class="col-resizer" onmousedown="initColResize(event, 0)"></div></th>
                 <th style="position:relative;">Category<div class="col-resizer" onmousedown="initColResize(event, 1)"></div></th>
                 <th style="position:relative;">Stations / Drills<div class="col-resizer" onmousedown="initColResize(event, 2)"></div></th>
-                <th style="position:relative;">Coaches<div class="col-resizer" onmousedown="initColResize(event, 3)"></div></th>
-                <th style="position:relative;">Coaching Focus<div class="col-resizer" onmousedown="initColResize(event, 4)"></div></th>
+                <th style="position:relative;">Coaches</th>
+                <th style="position:relative;">Coaching Focus</th>
                 <th style="text-align:center;" class="no-print admin-only">Actions</th>
               </tr>
             </thead>
@@ -1055,7 +1057,7 @@
             name: "Team Defense & Stunts / Blitzes",
             subfolders: [],
             drills: [
-              { name: "Defense Group: 11-Man 'Liz' Pursuit Drill", desc: "Full 11-man defense executes run fits and inside-out pursuit angles on perimeter sweep. Every player must touch runner", key: "Rule number one: 'Never follow same color jersey'. Take your own lane to the ball carrier to prevent getting walled off" },
+              { name: "Defense Group: 11-Man 'Liz' Pursuit Drill", desc: "Full 11-man defense executes run fits and inside-out pursuit angles on perimeter sweep. Every player must touch runner", key: "Rule number one: 'Never fellow same color jersey'. Take your own lane to the ball carrier to prevent getting walled off" },
               { name: "Defense Group: Team Pursuit Angle Drill (11 Sideline Cones)", desc: "11 cones spaced 2-3 yards apart along sideline from LOS to deep secondary. Defense fires off on ball movement. Coach blows whistle; all 11 defenders turn and sprint to their designated cone lane to form a wall", key: "This completely cures the 'swarm' mentality typical in youth football by visually teaching them that holding their specific lane creates an inescapable defensive wall" },
               { name: "Defense Group: Stay at Home Counter Fit Drill", desc: "Defense lines up with Backside DE, Backside ILB, and Backside OLB. Offense runs Counter. Backside ILB shuffles, reads pulling Guard, stays square, and fills counter hole downhill. Backside DE squeezes and contains boot", key: "'Read Linemen, Not Eye Candy!'. If the Guard pulls across face, follow his hip directly to the ball" },
               { name: "Defense Group: The Alley 'Vice' Tackle Drill", desc: "1 OLB (Force), 1 ILB (Spill), 1 RB with blocker. RB attacks alley. ILB spills RB wide; OLB turns RB in. Both compress and execute two-man vice tackle", key: "Wrap and drive!. Clamp near hip with active driving feet" },
@@ -2040,10 +2042,10 @@
                     </div>
                 `);
 
-                // 2. Coaches Column Part
+                // 2. Coaches Column Part (Horizontally Aligned per Station Block, with text-wrapping enabled)
                 coachColParts.push(`
                     <div class="station-block coach-popup-container" style="position:relative; display:flex; flex-direction:column; justify-content:center;">
-                        <input type="text" class="prac-input" readonly value="${st.coach || ''}" onclick="toggleCoachPopup(${idx}, ${sIdx}, event)" placeholder="Click coaches..." style="cursor:pointer; background:#fff;">
+                        <textarea class="prac-textarea" style="min-height:30px; white-space:pre-wrap; word-wrap:break-word; cursor:pointer;" readonly onclick="toggleCoachPopup(${idx}, ${sIdx}, event)" oninput="autoResizeTextarea(this);" placeholder="Click coaches...">${st.coach || ''}</textarea>
                         
                         <div id="${coachPopupId}" class="coach-popup-box card-search-dropdown hidden" style="width: 220px; max-height: 220px; overflow-y: auto; top: 100%; left: 0; padding:8px; background:#fff; z-index:50000; box-shadow:0 4px 12px rgba(0,0,0,0.15);" onclick="event.stopPropagation()">
                            <div style="font-size:10px; font-weight:bold; color:var(--primary); margin-bottom:6px; border-bottom:1px solid #ccc; padding-bottom:3px; display:flex; justify-content:space-between; align-items:center;">
@@ -2058,7 +2060,7 @@
                     </div>
                 `);
 
-                // 3. Coaching Focus Column Part
+                // 3. Coaching Focus Column Part (Horizontally Aligned per Station Block)
                 focusColParts.push(`
                     <div class="station-block" style="display:flex; flex-direction:column; justify-content:center;">
                         <textarea class="prac-textarea" style="min-height:30px;" oninput="autoResizeTextarea(this);" onchange="updatePracStation(${idx}, ${sIdx}, 'focus', this.value); syncDrillLibraryFromStation(${idx}, ${sIdx});" placeholder="Key focus...">${st.focus || ''}</textarea>
@@ -2101,10 +2103,10 @@
                         <button class="toggle-board-btn" style="background:#e0f2fe; color:#0369a1; padding:3px 8px; font-size:10px;" onclick="addStationToRow(${idx})">+ Add Station / Group</button>
                     </div>
                 </td>
-                <td>
+                <td style="vertical-align: top;">
                     ${coachColParts.join('')}
                 </td>
-                <td>
+                <td style="vertical-align: top;">
                     ${focusColParts.join('')}
                 </td>
                 <td class="admin-only" style="text-align:center;">
@@ -2769,16 +2771,21 @@
               }
 
               const players = (depthChart && Array.isArray(depthChart[pos.id])) ? depthChart[pos.id].filter(p => p) : [];
-              let playersHtml = players.map((player, idx) => `
-                <li class="player-item" draggable="${userRole==='admin'?'true':'false'}" ondragstart="handlePlayerDragStart(event, '${pos.id}', ${idx}, '${player.name}', '${player.num}', false)">
-                  <div class="player-info">
-                    <span class="rank-badge ${idx===0?'rank-starter':idx===1?'rank-sub-gold':'rank-sub-blue'}">${idx===0?'ST':idx===1?'D2':'D3'}</span>
-                    <span class="num-tag">#${player.num}</span>
-                    <span>${player.name}</span>
-                  </div>
-                  <button class="remove-btn admin-only" onclick="removePlayer('${pos.id}', ${idx}, event, false)">&times;</button>
-                </li>
-              `).join("");
+              let playersHtml = players.map((player, idx) => {
+                let badgeClass = idx === 0 ? 'rank-starter' : idx === 1 ? 'rank-sub-gold' : 'rank-sub-blue';
+                let badgeText = idx === 0 ? 'ST' : idx === 1 ? 'D2' : 'D3';
+                let upperName = (player.name || '').toUpperCase();
+                return `
+                  <li class="player-item" draggable="${userRole==='admin'?'true':'false'}" ondragstart="handlePlayerDragStart(event, '${pos.id}', ${idx}, '${player.name}', '${player.num}', false)">
+                    <div class="player-info">
+                      <span class="rank-badge ${badgeClass}">${badgeText}</span>
+                      <span class="num-tag">#${player.num}</span>
+                      <span>${upperName}</span>
+                    </div>
+                    <button class="remove-btn admin-only" onclick="removePlayer('${pos.id}', ${idx}, event, false)">&times;</button>
+                  </li>
+                `;
+              }).join("");
 
               let cardHeaderHtml = userRole === 'admin' ? `
                 <div class="position-header" draggable="true" ondragstart="handlePositionDragStart(event, '${form.id}', ${rIdx}, ${pIdx})" title="Drag header to reorder position">
@@ -2857,16 +2864,21 @@
                       }
 
                       const players = (scrimmageChart && Array.isArray(scrimmageChart[pos.id])) ? scrimmageChart[pos.id].filter(p => p) : [];
-                      let playersHtml = players.map((player, sIdx) => `
-                        <li class="player-item" draggable="${userRole==='admin'?'true':'false'}" ondragstart="handlePlayerDragStart(event, '${pos.id}', ${sIdx}, '${player.name}', '${player.num}', true)">
-                          <div class="player-info">
-                            <span class="rank-badge ${sIdx===0?'rank-sub-gold':'rank-sub-blue'}">${sIdx===0?'Gold':'Blue'}</span>
-                            <span class="num-tag">#${player.num}</span>
-                            <span>${player.name}</span>
-                          </div>
-                          <button class="remove-btn admin-only" onclick="removePlayer('${pos.id}', ${sIdx}, event, true)">&times;</button>
-                        </li>
-                      `).join("");
+                      let playersHtml = players.map((player, sIdx) => {
+                        let badgeClass = sIdx === 0 ? 'rank-sub-gold' : 'rank-sub-blue';
+                        let badgeText = sIdx === 0 ? 'Gold' : 'Blue';
+                        let upperName = (player.name || '').toUpperCase();
+                        return `
+                          <li class="player-item" draggable="${userRole==='admin'?'true':'false'}" ondragstart="handlePlayerDragStart(event, '${pos.id}', ${sIdx}, '${player.name}', '${player.num}', true)">
+                            <div class="player-info">
+                              <span class="rank-badge ${badgeClass}">${badgeText}</span>
+                              <span class="num-tag">#${player.num}</span>
+                              <span>${upperName}</span>
+                            </div>
+                            <button class="remove-btn admin-only" onclick="removePlayer('${pos.id}', ${sIdx}, event, true)">&times;</button>
+                          </li>
+                        `;
+                      }).join("");
 
                       card.innerHTML = `<div class="position-header" style="background:#e0f2fe; color:#0369a1;"><span>${pos.name}</span></div><ul class="player-list">${playersHtml || '<div style="color:var(--text-muted); font-size:9px; padding:4px; text-align:center;">Drop Sub</div>'}</ul>`;
                       slotDiv.appendChild(card);
@@ -2908,7 +2920,7 @@
                   if (pos && activeChart && Array.isArray(activeChart[pos.id])) {
                     activeChart[pos.id].forEach((p, idx) => {
                       if (p && String(p.num) === String(player.num)) {
-                        let badgeStyle = idx === 0 ? "background:#eab308; color:#000;" : "background:#1d4ed8; color:#fff;";
+                        let badgeStyle = idx === 0 ? "background:#facc15; color:#000; font-weight:800; border:1px solid #ca8a04;" : "background:#3b82f6; color:#fff; font-weight:800; border:1px solid #1d4ed8;";
                         placements.push({ posName: pos.name, style: badgeStyle });
                       }
                     });
@@ -2924,7 +2936,7 @@
                   if (pos && activeChart && Array.isArray(activeChart[pos.id])) {
                     activeChart[pos.id].forEach((p, idx) => {
                       if (p && String(p.num) === String(player.num)) {
-                        let badgeStyle = idx === 0 ? "background:#000; color:#fff;" : (idx === 1 ? "background:#eab308; color:#000;" : "background:#1d4ed8; color:#fff;");
+                        let badgeStyle = idx === 0 ? "background:#000; color:#fff;" : (idx === 1 ? "background:#facc15; color:#000; font-weight:800; border:1px solid #ca8a04;" : "background:#3b82f6; color:#fff; font-weight:800; border:1px solid #1d4ed8;");
                         placements.push({ posName: pos.name, style: badgeStyle });
                       }
                     });
@@ -2942,12 +2954,13 @@
         }
 
         let badgesHtml = placements.map(pl => `<span style="font-size:9px; font-weight:bold; padding:2px 5px; border-radius:3px; ${pl.style}; margin-left:2px;">${pl.posName}</span>`).join("");
+        let upperFullName = `${player.firstName || ''} ${player.lastName || ''}`.toUpperCase();
 
         li.innerHTML = `
           <div style="display:flex; align-items:center; justify-content:space-between; width:100%;">
             <div>
               <span class="num-tag" style="display:inline-block; min-width:24px; color:var(--primary);">${player.num ? '#' + player.num : ''}</span> 
-              <span>${player.firstName || ''} ${player.lastName || ''}</span>
+              <span>${upperFullName}</span>
             </div>
             <div style="display:flex; flex-wrap:wrap; gap:2px;">${badgesHtml}</div>
           </div>
@@ -3556,7 +3569,7 @@
           plan: [{ time: 25, category: defaultCat, format: "static", stations: [{ name: "GROUP 1: QB & Center", desc: "", coach: "", focus: "" }] }]
         }];
       } else {
-        practiceData.forEach(p => {
+        practiceData.process = practiceData.forEach(p => {
           if (!p.year) p.year = "2026";
           if (!p.weekFolder) p.weekFolder = "Week 1";
           if (!p.date) p.date = new Date().toISOString().split('T')[0];
