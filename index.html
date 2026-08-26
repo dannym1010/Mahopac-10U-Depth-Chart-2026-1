@@ -227,9 +227,15 @@
 
     .practice-table { width: 100%; border-collapse: collapse; margin-top: 10px; background: #ffffff; font-size: 11px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); table-layout: fixed; }
     .practice-table th, .practice-table td { border: 1px solid var(--card-border); padding: 6px 8px; text-align: left; vertical-align: top; box-sizing: border-box; position: relative; word-wrap: break-word; }
-    .practice-table th { background: #f1f5f9; color: var(--primary); user-select: none; }
+    .practice-table th { background: #f1f5f9; color: var(--primary); user-select: none; position: relative; }
     .practice-table tbody tr.period-odd td { background-color: #ffffff; }
     .practice-table tbody tr.period-even td { background-color: #f4f6f9; }
+
+    /* Resizable Column Handle */
+    .col-resizer {
+      position: absolute; right: 0; top: 0; bottom: 0; width: 6px; cursor: col-resize; z-index: 10;
+    }
+    .col-resizer:hover { background-color: var(--accent); }
 
     .period-schedule-time { margin-top: 4px; font-weight: bold; color: var(--accent); font-size: 10.5px; }
     .prac-input, .prac-select, .prac-textarea { width: 100%; border: 1px solid var(--card-border); border-radius: 4px; padding: 4px; font-family: inherit; font-size: 11px; box-sizing: border-box; background: #f8fafc; color: var(--text); }
@@ -252,11 +258,11 @@
     .full-roster-item { padding: 6px 8px; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; justify-content: space-between; font-size: 11px; cursor: grab; background: #f8fafc; margin-bottom: 4px; border-radius: 4px; border: 1px solid var(--card-border); user-select: none; }
     .full-roster-item:hover { border-color: var(--accent); background: #eff6ff; }
 
-    /* PRINT STYLES */
+    /* PRINT STYLES - High Contrast Black & White */
     @media print {
       @page { size: letter portrait; margin: 0.25in; }
-      body { background-color: #ffffff; padding: 0; margin: 0; font-size: 13px !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      .toolbar, #sidebar-container, .remove-btn, .action-group, p.subtitle, .search-box, .tab-navigation, .toggle-board-btn, .week-bar, .board-controls, .add-row-btn, .add-form-btn, .row-actions, .practice-dashboard-info, #print-modal, #new-prac-modal, #scrimmage-print-modal, #scrimmage-filter-modal, #templates-modal, #approval-pending-overlay { display: none !important; }
+      body { background-color: #ffffff !important; color: #000000 !important; padding: 0; margin: 0; font-size: 12px !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .toolbar, #sidebar-container, .remove-btn, .action-group, p.subtitle, .search-box, .tab-navigation, .toggle-board-btn, .week-bar, .board-controls, .add-row-btn, .add-form-btn, .row-actions, .practice-dashboard-info, #print-modal, #new-prac-modal, #scrimmage-print-modal, #scrimmage-filter-modal, #templates-modal, #approval-pending-overlay, .col-resizer { display: none !important; }
       .app-layout, .boards-container, .unit-panel { display: block !important; }
       .unit-panel.hidden { display: none !important; }
       .formation-container { border: 2px solid #000000 !important; box-shadow: none !important; padding: 6px; page-break-inside: auto !important; margin-bottom: 8px; background: #ffffff !important; }
@@ -264,21 +270,26 @@
       .formation-row { min-width: 100% !important; page-break-inside: avoid; align-items: start !important; }
       .row-slot { align-items: flex-start !important; border: none !important; background: transparent !important; min-height: auto !important; }
       .position-card { border: 2px solid #000000 !important; box-shadow: none !important; min-width: 75px; background: #ffffff !important; }
-      .position-header { background: #e2e8f0 !important; color: #000000 !important; border-bottom: 2px solid #000000 !important; font-size: 11px !important; padding: 4px 6px; font-weight: bold; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      .player-item { border: 1px solid #000000 !important; font-size: 11px !important; padding: 4px 6px !important; margin-bottom: 3px; background: #fff !important; }
-      .rank-starter, .rank-sub-gold, .rank-sub-blue { -webkit-print-color-adjust: exact; print-color-adjust: exact; opacity: 0.9; }
-      tbody tr.period-even td { background-color: #f4f6f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      h1 { margin-top: 0; font-size: 16px; color: #000000; text-align: center; }
-      .practice-table { font-size: 12px !important; border: 2px solid #000 !important; }
-      .practice-table th { font-size: 13px !important; background: #e2e8f0 !important; color: #000 !important; }
-      .practice-table td { font-size: 12px !important; border: 1px solid #000 !important; padding: 8px !important; }
-      .period-schedule-time { font-size: 12px !important; color: #000 !important; }
-      .prac-input, .prac-select, .prac-textarea { font-size: 12px !important; border: none !important; background: transparent !important; padding: 0 !important; color: #000 !important; }
+      .position-header { background: #e2e8f0 !important; color: #000000 !important; border-bottom: 2px solid #000000 !important; font-size: 11px !important; padding: 4px 6px; font-weight: bold; }
+      .player-item { border: 1px solid #000000 !important; font-size: 11px !important; padding: 4px 6px !important; margin-bottom: 3px; background: #fff !important; color: #000 !important; }
       
-      #panel-practice .station-block input.prac-input { font-weight: bold !important; font-size: 12.5px !important; }
+      /* High-contrast print badges */
+      .rank-starter, .rank-sub-gold, .rank-sub-blue { background: #000 !important; color: #fff !important; border: 1px solid #000 !important; opacity: 1 !important; }
+      
+      /* High-contrast alternating practice rows */
+      tbody tr.period-odd td { background-color: #ffffff !important; color: #000000 !important; }
+      tbody tr.period-even td { background-color: #f1f5f9 !important; color: #000000 !important; }
 
-      #panel-practice select.prac-select:not([onchange*="updatePracRowCategory"]):not([onchange*="updatePracRowFormat"]),
-      #panel-practice span[onclick*="coach_mgr"] { display: none !important; }
+      h1 { margin-top: 0; font-size: 16px; color: #000000; text-align: center; }
+      .practice-table { font-size: 11.5px !important; border: 2px solid #000 !important; width: 100% !important; table-layout: fixed !important; }
+      .practice-table th { font-size: 12px !important; background: #e2e8f0 !important; color: #000 !important; border: 1px solid #000 !important; }
+      .practice-table td { font-size: 11.5px !important; border: 1px solid #000 !important; padding: 6px !important; color: #000 !important; }
+      .period-schedule-time { font-size: 11px !important; color: #000 !important; font-weight: bold !important; }
+      .prac-input, .prac-select, .prac-textarea { font-size: 11.5px !important; border: none !important; background: transparent !important; padding: 0 !important; color: #000 !important; }
+      
+      #panel-practice .station-block input.prac-input { font-weight: bold !important; font-size: 12px !important; color: #000 !important; }
+
+      #panel-practice select.prac-select:not([onchange*="updatePracRowCategory"]):not([onchange*="updatePracRowFormat"]) { display: none !important; }
     }
   </style>
 </head>
@@ -563,12 +574,18 @@
           <div id="print-practice-header" style="display:none; font-size:14px; font-weight:bold; margin-bottom:10px; border-bottom:2px solid #000; padding-bottom:4px;"></div>
           
           <table class="practice-table" id="main-practice-table">
+            <colgroup>
+              <col id="col-time" style="width: 15%;">
+              <col id="col-cat" style="width: 25%;">
+              <col id="col-stations" style="width: 54%;">
+              <col id="col-actions" style="width: 6%;">
+            </colgroup>
             <thead>
               <tr>
-                <th style="width: 12%;">Time / Period</th>
-                <th style="width: 22%;">Category (Linked to Drill Folders)</th>
-                <th style="width: 66%;">Stations / Drills, Coaches & Focus</th>
-                <th style="width: 6%; text-align:center;" class="no-print admin-only">Actions</th>
+                <th style="position:relative;">Time / Period<div class="col-resizer" onmousedown="initColResize(event, 0)"></div></th>
+                <th style="position:relative;">Category<div class="col-resizer" onmousedown="initColResize(event, 1)"></div></th>
+                <th style="position:relative;">Stations / Drills, Coaches & Focus<div class="col-resizer" onmousedown="initColResize(event, 2)"></div></th>
+                <th style="text-align:center;" class="no-print admin-only">Actions</th>
               </tr>
             </thead>
             <tbody id="practice-rows"></tbody>
@@ -754,6 +771,11 @@
       const dropdown = document.getElementById("practice-tree-dropdown");
       if (dropdown && event.target.id !== "selected-practice-display" && !dropdown.contains(event.target)) {
         dropdown.classList.add("hidden");
+      }
+      
+      // Close coach popups if clicked outside
+      if (!event.target.closest('.coach-popup-container') && !event.target.closest('.coach-popup-box')) {
+        document.querySelectorAll('.coach-popup-box').forEach(box => box.classList.add('hidden'));
       }
     }
 
@@ -1130,6 +1152,45 @@
         if (isImporting) return;
         if (saveTimeout) clearTimeout(saveTimeout);
         saveTimeout = setTimeout(() => { saveState(); }, 500);
+    }
+
+    /* Column Resizing Logic */
+    let resizingColIndex = null;
+    let startX = 0;
+    let startWidth = 0;
+
+    function initColResize(e, colIndex) {
+        e.preventDefault();
+        e.stopPropagation();
+        resizingColIndex = colIndex;
+        startX = e.clientX;
+        
+        const table = document.getElementById("main-practice-table");
+        const cols = table.querySelectorAll("colgroup col");
+        if (cols[colIndex]) {
+            startWidth = cols[colIndex].offsetWidth;
+        }
+
+        document.addEventListener("mousemove", onColMouseMove);
+        document.addEventListener("mouseup", onColMouseUp);
+    }
+
+    function onColMouseMove(e) {
+        if (resizingColIndex === null) return;
+        let diff = e.clientX - startX;
+        let newWidth = Math.max(50, startWidth + diff);
+
+        const table = document.getElementById("main-practice-table");
+        const cols = table.querySelectorAll("colgroup col");
+        if (cols[resizingColIndex]) {
+            cols[resizingColIndex].style.width = newWidth + "px";
+        }
+    }
+
+    function onColMouseUp() {
+        resizingColIndex = null;
+        document.removeEventListener("mousemove", onColMouseMove);
+        document.removeEventListener("mouseup", onColMouseUp);
     }
 
     function parseTimeString(str) {
@@ -1776,6 +1837,52 @@
         }
     }
 
+    /* Auto-save & sync drill changes from practice plan station name, description, or focus */
+    function syncDrillLibraryFromStation(rIdx, sIdx) {
+        const prac = practiceData.find(p => p.id === currentPracticeId);
+        if (!prac || !prac.plan[rIdx] || !prac.plan[rIdx].stations[sIdx]) return;
+
+        const st = prac.plan[rIdx].stations[sIdx];
+        const drillName = (st.name || "").trim();
+        if (!drillName) return;
+
+        const categoryName = prac.plan[rIdx].category || (cascadingDrills[0] ? cascadingDrills[0].name : "General");
+        
+        // Find or create category folder
+        let folder = cascadingDrills.find(f => f.name.toLowerCase() === categoryName.toLowerCase());
+        if (!folder) {
+            folder = { name: categoryName, subfolders: [], drills: [] };
+            cascadingDrills.push(folder);
+        }
+        if (!folder.drills) folder.drills = [];
+
+        // Check if drill exists by name in this folder
+        let existingDrill = folder.drills.find(d => d.name.toLowerCase() === drillName.toLowerCase());
+        if (existingDrill) {
+            existingDrill.desc = st.desc || "";
+            existingDrill.key = st.focus || "";
+        } else {
+            folder.drills.push({
+                name: drillName,
+                desc: st.desc || "",
+                key: st.focus || ""
+            });
+        }
+        saveState();
+    }
+
+    function toggleCoachPopup(rIdx, sIdx, e) {
+        if (e) e.stopPropagation();
+        // Hide all other open popups first
+        document.querySelectorAll('.coach-popup-box').forEach(box => {
+            if (box.id !== `coach_popup_${rIdx}_${sIdx}`) box.classList.add('hidden');
+        });
+        const popup = document.getElementById(`coach_popup_${rIdx}_${sIdx}`);
+        if (popup) {
+            popup.classList.toggle('hidden');
+        }
+    }
+
     function toggleCoachCheckbox(rIdx, sIdx, coachName, checkboxEl) {
         const prac = practiceData.find(p => p.id === currentPracticeId);
         if (!prac || !prac.plan[rIdx] || !prac.plan[rIdx].stations[sIdx]) return;
@@ -1792,6 +1899,10 @@
         prac.plan[rIdx].stations[sIdx].coach = tokens.join(', ');
         saveState();
         renderPracticePlan();
+        
+        // Keep popup open after click
+        const popup = document.getElementById(`coach_popup_${rIdx}_${sIdx}`);
+        if (popup) popup.classList.remove('hidden');
     }
 
     function addCoachFromPopupPrompt(rIdx, sIdx) {
@@ -1811,6 +1922,10 @@
             }
             saveState();
             renderPracticePlan();
+            
+            // Keep popup open
+            const popup = document.getElementById(`coach_popup_${rIdx}_${sIdx}`);
+            if (popup) popup.classList.remove('hidden');
         }
     }
 
@@ -1861,7 +1976,7 @@
                 categoryDrills = collectAllDrillsFlat(cascadingDrills);
             }
 
-            let drillOptionsHtml = `<option value="">-- Select Drill from ${row.category || 'Library'} --</option>`;
+            let drillOptionsHtml = `<option value="">-- Select Drill --</option>`;
             categoryDrills.forEach(d => {
                 drillOptionsHtml += `<option value="${d.name}">${d.name}</option>`;
             });
@@ -1871,7 +1986,7 @@
             let stationDurationMin = (isRotating && numStations > 0) ? (rowTime / numStations) : rowTime;
 
             let stationsHtml = (row.stations || []).map((st, sIdx) => {
-                let coachDropdownId = `coach_mgr_${idx}_${sIdx}`;
+                let coachPopupId = `coach_popup_${idx}_${sIdx}`;
                 let assignedCoaches = (st.coach || "").split(',').map(t => t.trim()).filter(Boolean);
 
                 let coachCheckboxesHtml = savedCoachesList.map(c => {
@@ -1903,28 +2018,27 @@
                                 ${drillOptionsHtml}
                             </select>
                         </div>
-                        <input type="text" class="prac-input" value="${st.name || ''}" onkeydown="if(event.key==='Enter') this.blur();" onchange="updatePracStation(${idx}, ${sIdx}, 'name', this.value)" placeholder="Group / Drill Name">
-                        <textarea class="prac-textarea" style="min-height:30px;" oninput="autoResizeTextarea(this);" onchange="updatePracStation(${idx}, ${sIdx}, 'desc', this.value)" placeholder="Details...">${st.desc || ''}</textarea>
+                        <input type="text" class="prac-input" value="${st.name || ''}" onkeydown="if(event.key==='Enter') this.blur();" onchange="updatePracStation(${idx}, ${sIdx}, 'name', this.value); syncDrillLibraryFromStation(${idx}, ${sIdx});" placeholder="Group / Drill Name">
+                        <textarea class="prac-textarea" style="min-height:30px;" oninput="autoResizeTextarea(this);" onchange="updatePracStation(${idx}, ${sIdx}, 'desc', this.value); syncDrillLibraryFromStation(${idx}, ${sIdx});" placeholder="Details...">${st.desc || ''}</textarea>
                     </div>
-                    <div>
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;" class="no-print">
-                           <label style="font-size:9.5px; font-weight:bold; color:var(--text-muted);">Coaches:</label>
-                           <span style="font-size:9px; color:var(--accent); cursor:pointer; text-decoration:underline;" onclick="document.getElementById('${coachDropdownId}').classList.toggle('hidden')">+ Coach ▾</span>
-                        </div>
-                        <div style="position:relative;">
-                           <input type="text" class="prac-input" value="${st.coach || ''}" onkeydown="if(event.key==='Enter') this.blur();" onchange="updatePracStation(${idx}, ${sIdx}, 'coach', this.value)" placeholder="Click to type coaches...">
-                           <div id="${coachDropdownId}" class="card-search-dropdown hidden" style="width: 100%; max-height: 200px; overflow-y: auto; top: 100%; left: 0; padding:6px; background:#fff; z-index:50000; box-shadow:0 4px 6px rgba(0,0,0,0.15);">
-                              <div style="font-size:9px; font-weight:bold; color:var(--primary); margin-bottom:4px; border-bottom:1px solid #ccc; padding-bottom:2px;">Select or Manage Coaches:</div>
-                              ${coachCheckboxesHtml || '<div style="font-size:9px; color:#64748b; padding:4px;">No saved coaches.</div>'}
-                              <div style="border-top:1px solid #e2e8f0; margin-top:4px; padding-top:4px; text-align:center;">
-                                 <button class="toggle-board-btn" style="font-size:9.5px; width:100%; background:#e0f2fe; color:#0369a1;" onclick="addCoachFromPopupPrompt(${idx}, ${sIdx})">+ Add New Coach</button>
-                              </div>
+                    <div class="coach-popup-container" style="position:relative;">
+                        <label style="font-size:9.5px; font-weight:bold; color:var(--text-muted); display:block; margin-bottom:2px;" class="no-print">Coaches:</label>
+                        <input type="text" class="prac-input" readonly value="${st.coach || ''}" onclick="toggleCoachPopup(${idx}, ${sIdx}, event)" placeholder="Click to select coaches..." style="cursor:pointer; background:#fff;">
+                        
+                        <div id="${coachPopupId}" class="coach-popup-box card-search-dropdown hidden" style="width: 220px; max-height: 220px; overflow-y: auto; top: 100%; left: 0; padding:8px; background:#fff; z-index:50000; box-shadow:0 4px 12px rgba(0,0,0,0.15);" onclick="event.stopPropagation()">
+                           <div style="font-size:10px; font-weight:bold; color:var(--primary); margin-bottom:6px; border-bottom:1px solid #ccc; padding-bottom:3px; display:flex; justify-content:space-between; align-items:center;">
+                              <span>Select Coaches:</span>
+                              <span style="cursor:pointer; color:#ef4444; font-size:12px;" onclick="document.getElementById('${coachPopupId}').classList.add('hidden')">✕</span>
+                           </div>
+                           ${coachCheckboxesHtml || '<div style="font-size:9px; color:#64748b; padding:4px;">No saved coaches.</div>'}
+                           <div style="border-top:1px solid #e2e8f0; margin-top:6px; padding-top:6px; text-align:center;">
+                              <button class="toggle-board-btn" style="font-size:9.5px; width:100%; background:#e0f2fe; color:#0369a1;" onclick="addCoachFromPopupPrompt(${idx}, ${sIdx})">+ Add New Coach</button>
                            </div>
                         </div>
                     </div>
                     <div>
                         <label style="font-size:9.5px; font-weight:bold; color:var(--text-muted); display:block; margin-bottom:2px;" class="no-print">Coaching Focus:</label>
-                        <textarea class="prac-textarea" style="min-height:30px;" oninput="autoResizeTextarea(this);" onchange="updatePracStation(${idx}, ${sIdx}, 'focus', this.value)" placeholder="Key focus...">${st.focus || ''}</textarea>
+                        <textarea class="prac-textarea" style="min-height:30px;" oninput="autoResizeTextarea(this);" onchange="updatePracStation(${idx}, ${sIdx}, 'focus', this.value); syncDrillLibraryFromStation(${idx}, ${sIdx});" placeholder="Key focus...">${st.focus || ''}</textarea>
                     </div>
                     <div class="admin-only" style="padding-top:20px; text-align:center;">
                         <button class="remove-btn" onclick="removeStation(${idx}, ${sIdx})" title="Delete Station">&times;</button>
