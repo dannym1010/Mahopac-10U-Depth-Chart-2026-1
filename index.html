@@ -779,79 +779,6 @@
         localStorage.setItem("footballPrintFontSize", JSON.stringify(size));
     }
 
-    function reorderObjectKeys(obj, keyToMove, direction) {
-        if (!obj || typeof obj !== 'object') return obj;
-        const keys = Object.keys(obj);
-        const idx = keys.indexOf(keyToMove);
-        if (idx === -1) return obj;
-        const newIdx = idx + direction;
-        if (newIdx < 0 || newIdx >= keys.length) return obj;
-        const [movedKey] = keys.splice(idx, 1);
-        keys.splice(newIdx, 0, movedKey);
-        const newObj = {};
-        keys.forEach(k => { newObj[k] = obj[k]; });
-        return newObj;
-    }
-
-    // Force sync without merge so deletions persist to Firestore
-    function forceSyncCloud() {
-        if (!cloudEnabled || !db) {
-            alert("Cloud sync is not active (running offline mode).");
-            return;
-        }
-        db.collection("teamData").doc("depthChartData").set({
-            weeklyData, practiceData, masterPlayLibrary, cascadingDrills, pdfGuidesTree, activeGuideMain, activeGuideSub, collapsedFolders, savedCoachesList, practiceTemplates, teamCoachesList,
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        }).then(() => {
-            alert("Successfully forced all local drill folders and data to live cloud database!");
-        }).catch(err => {
-            alert("Cloud sync error: " + err.message);
-        });
-    }
-
-    function toggleFullScreen() {
-      if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(err => {
-          alert("Error attempting to enable full-screen mode: " + err.message);
-        });
-      } else {
-        if (document.exitFullscreen) {
-          document.exitFullscreen();
-        }
-      }
-    }
-
-    function openGuideFullScreen() {
-      const modal = document.getElementById("pdf-fullscreen-modal");
-      const container = document.getElementById("pdf-fullscreen-content");
-      
-      let guideVal = "";
-      if (pdfGuidesTree[activeGuideMain] && pdfGuidesTree[activeGuideMain][activeGuideSub]) {
-          guideVal = pdfGuidesTree[activeGuideMain][activeGuideSub];
-      }
-      if (!guideVal) { alert("No document selected."); return; }
-
-      container.innerHTML = `<iframe src="${guideVal}" style="width:100%; height:100%; border:none;" title="Playbook Guide Full Screen"></iframe>`;
-      modal.classList.remove("hidden");
-    }
-
-    function closeGuideFullScreen() {
-      const modal = document.getElementById("pdf-fullscreen-modal");
-      const container = document.getElementById("pdf-fullscreen-content");
-      container.innerHTML = "";
-      modal.classList.add("hidden");
-    }
-
-    function closeAllDropdowns(event) {
-      const dropdown = document.getElementById("practice-tree-dropdown");
-      if (dropdown && event.target.id !== "selected-practice-display" && !dropdown.contains(event.target)) {
-        dropdown.classList.add("hidden");
-      }
-      if (!event.target.closest('.coach-popup-container') && !event.target.closest('.coach-popup-box')) {
-        document.querySelectorAll('.coach-popup-box').forEach(box => box.classList.add('hidden'));
-      }
-    }
-
     let draggedData = null;
     let draggedDrillData = null;
     let draggedPositionData = null;
@@ -892,8 +819,20 @@
     };
     let savedGuidesTree = safeJSONParse("footballPdfGuidesTree", null);
     let pdfGuidesTree = (savedGuidesTree && typeof savedGuidesTree === 'object') ? savedGuidesTree : defaultPdfGuidesTree;
-    let activeGuideMain = "Offense";
-    let activeGuideSub = Object.keys(pdfGuidesTree["Offense"] || {})[0] || "Full Playbook";
+
+    // Explicit order tracking arrays to preserve tab ordering independently of Firestore's Map serialization
+    let defaultPdfGuidesOrder = {
+      main: ["Offense", "Defense", "Specials"],
+      sub: {
+        "Offense": ["Full Playbook", "Quarterbacks", "Running Backs", "Wide Receivers", "Offensive Line"],
+        "Defense": ["Full Playbook", "Defensive Line", "Linebackers", "Secondary"],
+        "Specials": ["Special Teams", "Kicking & Punting"]
+      }
+    };
+    let pdfGuidesOrder = safeJSONParse("footballPdfGuidesOrder", defaultPdfGuidesOrder);
+
+    let activeGuideMain = pdfGuidesOrder.main[0] || "Offense";
+    let activeGuideSub = (pdfGuidesOrder.sub[activeGuideMain] && pdfGuidesOrder.sub[activeGuideMain][0]) || "Full Playbook";
 
     const masterRoster = [
       { num: "2", firstName: "Mohammed", lastName: "Ibrahim" },
@@ -1024,6 +963,48 @@
     let cascadingDrills = safeJSONParse("footballCascadingDrills", defaultCascadingDrills);
     let depthChart = null, currentPracticeId = null;
 
+    // Intelligent formation merger that keeps user-created formations like '32' intact
+    function mergeWeeklyData(cloudWeekly) {
+        if (!cloudWeekly || typeof cloudWeekly !== 'object') return weeklyData;
+        Object.keys(cloudWeekly).forEach(wk => {
+            if (!weeklyData[wk]) {
+                weeklyData[wk] = cloudWeekly[wk];
+            } else {
+                // Merge formations by ID so local additions are never deleted by incoming cloud sync
+                let cloudForms = cloudWeekly[wk].formations || [];
+                let localForms = weeklyData[wk].formations || [];
+                let formMap = {};
+                cloudForms.forEach(f => { if(f && f.id) formMap[f.id] = f; });
+                localForms.forEach(f => { if(f && f.id) formMap[f.id] = f; });
+                weeklyData[wk].formations = Object.values(formMap);
+
+                if (cloudWeekly[wk].depthChart) {
+                    weeklyData[wk].depthChart = { ...(cloudWeekly[wk].depthChart || {}), ...(weeklyData[wk].depthChart || {}) };
+                }
+                if (cloudWeekly[wk].scrimmageChart) {
+                    weeklyData[wk].scrimmageChart = { ...(cloudWeekly[wk].scrimmageChart || {}), ...(weeklyData[wk].scrimmageChart || {}) };
+                }
+                if (cloudWeekly[wk].opponent && !weeklyData[wk].opponent) {
+                    weeklyData[wk].opponent = cloudWeekly[wk].opponent;
+                }
+            }
+        });
+        return weeklyData;
+    }
+
+    function mergePractices(cloudPractices) {
+        if (!Array.isArray(cloudPractices)) return practiceData;
+        let mergedMap = {};
+        cloudPractices.forEach(cp => { if (cp && cp.id) mergedMap[cp.id] = cp; });
+        practiceData.forEach(lp => {
+            if (lp && lp.id) {
+                if (!mergedMap[lp.id]) mergedMap[lp.id] = lp;
+                else if ((lp.lastEdited || 0) >= (mergedMap[lp.id].lastEdited || 0)) mergedMap[lp.id] = lp;
+            }
+        });
+        return Object.values(mergedMap);
+    }
+
     function saveState() {
         if (isImporting) return;
         const prac = practiceData.find(p => p.id === currentPracticeId);
@@ -1034,15 +1015,16 @@
         localStorage.setItem("footballMasterPlays", JSON.stringify(masterPlayLibrary));
         localStorage.setItem("footballCascadingDrills", JSON.stringify(cascadingDrills));
         localStorage.setItem("footballPdfGuidesTree", JSON.stringify(pdfGuidesTree));
+        localStorage.setItem("footballPdfGuidesOrder", JSON.stringify(pdfGuidesOrder));
         localStorage.setItem("footballCollapsedFolders", JSON.stringify(collapsedFolders));
         localStorage.setItem("footballSavedCoaches", JSON.stringify(savedCoachesList));
         localStorage.setItem("footballPracticeTemplates", JSON.stringify(practiceTemplates));
         localStorage.setItem("footballTeamCoaches", JSON.stringify(teamCoachesList));
 
-        // Overwrite full doc without merge to ensure deleted keys do not resurrect
-        if (cloudEnabled && db && userRole === 'admin') {
+        // Overwrite Firestore document cleanly so tab deletions and template changes persist
+        if (cloudEnabled && db) {
             db.collection("teamData").doc("depthChartData").set({
-                weeklyData, practiceData, masterPlayLibrary, cascadingDrills, pdfGuidesTree, activeGuideMain, activeGuideSub, collapsedFolders, savedCoachesList, practiceTemplates, teamCoachesList,
+                weeklyData, practiceData, masterPlayLibrary, cascadingDrills, pdfGuidesTree, pdfGuidesOrder, activeGuideMain, activeGuideSub, collapsedFolders, savedCoachesList, practiceTemplates, teamCoachesList,
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             }).catch(err => console.error("Firestore sync error:", err));
         }
@@ -1052,8 +1034,15 @@
     function triggerDebouncedSave() {
         if (isImporting) return;
         if (saveTimeout) clearTimeout(saveTimeout);
-        saveTimeout = setTimeout(() => { saveState(); }, 500);
+        saveTimeout = setTimeout(() => { saveState(); }, 400);
     }
+
+    window.addEventListener("beforeunload", () => {
+        if (saveTimeout) {
+            clearTimeout(saveTimeout);
+            saveState();
+        }
+    });
 
     /* Column Resizing */
     let resizingColIndex = null;
@@ -1155,13 +1144,15 @@
         if (!select) return;
         let html = '<option value="">-- Apply Template --</option>';
         Object.keys(practiceTemplates).forEach(name => {
-            html += `<option value="${name}">${name}</option>`;
+            html += `<option value="${encodeURIComponent(name)}">${name}</option>`;
         });
         select.innerHTML = html;
     }
 
-    function applyPracticeTemplate(templateName) {
-        if (!templateName || !practiceTemplates[templateName]) return;
+    function applyPracticeTemplate(encodedName) {
+        if (!encodedName) return;
+        let templateName = decodeURIComponent(encodedName);
+        if (!practiceTemplates[templateName]) return;
         const prac = practiceData.find(p => p.id === currentPracticeId);
         if (!prac) return;
         if (confirm(`Apply template "${templateName}"? This will replace current periods.`)) {
@@ -1194,12 +1185,13 @@
             html = '<div style="color:var(--text-muted); text-align:center; font-size:11px;">No templates saved.</div>';
         } else {
             templateKeys.forEach(name => {
+                let encName = encodeURIComponent(name);
                 html += `
                   <div style="display:flex; justify-content:space-between; align-items:center; background:#f8fafc; padding:8px; border:1px solid var(--card-border); border-radius:6px;">
                      <span style="font-weight:bold; font-size:12px; color:var(--primary);">${name}</span>
                      <div style="display:flex; gap:6px;">
-                        <button class="toggle-board-btn" style="padding:2px 6px; font-size:10px;" onclick="renameTemplate('${name}')">✏️ Rename</button>
-                        <button class="remove-btn" onclick="deleteTemplate('${name}')" style="font-size:14px; padding:0 4px;" title="Delete">&times;</button>
+                        <button class="toggle-board-btn" style="padding:2px 6px; font-size:10px;" onclick="renameTemplate('${encName}')">✏️ Rename</button>
+                        <button class="remove-btn" onclick="deleteTemplate('${encName}')" style="font-size:14px; padding:0 4px;" title="Delete">&times;</button>
                      </div>
                   </div>
                 `;
@@ -1209,7 +1201,8 @@
         document.getElementById("templates-modal").classList.remove("hidden");
     }
 
-    function renameTemplate(oldName) {
+    function renameTemplate(encodedOldName) {
+        let oldName = decodeURIComponent(encodedOldName);
         let newName = prompt("Rename template:", oldName);
         if (newName && newName.trim() !== "" && newName !== oldName) {
             let cleanName = newName.trim();
@@ -1221,7 +1214,8 @@
         }
     }
 
-    function deleteTemplate(name) {
+    function deleteTemplate(encodedName) {
+        let name = decodeURIComponent(encodedName);
         if (confirm(`Delete template "${name}"?`)) {
             delete practiceTemplates[name];
             saveState();
@@ -1786,7 +1780,12 @@
     }
 
     function renderPracticePlan() {
-        const prac = practiceData.find(p => p.id === currentPracticeId);
+        let prac = practiceData.find(p => p.id === currentPracticeId);
+        if (!prac && practiceData.length > 0) {
+            let sortedPracs = [...practiceData].sort((a, b) => (b.lastEdited || 0) - (a.lastEdited || 0));
+            prac = sortedPracs[0];
+            currentPracticeId = prac.id;
+        }
         if (!prac) return;
         if (!Array.isArray(prac.plan)) prac.plan = [];
         
@@ -2200,27 +2199,42 @@
         if (!cloudEnabled || !db) return;
         db.collection("teamData").doc("depthChartData").onSnapshot((doc) => {
             if (isImporting || !doc.exists) return;
+            // Shield local state from immediate echo writes
+            if (doc.metadata && doc.metadata.hasPendingWrites) return;
+
             const data = doc.data();
-            if (data.weeklyData) weeklyData = data.weeklyData;
-            if (data.practiceData) practiceData = data.practiceData;
+            if (data.weeklyData) weeklyData = mergeWeeklyData(data.weeklyData);
+            if (data.practiceData) practiceData = mergePractices(data.practiceData);
             if (data.cascadingDrills) cascadingDrills = data.cascadingDrills;
+            
             if (data.pdfGuidesTree && typeof data.pdfGuidesTree === 'object') {
                 pdfGuidesTree = data.pdfGuidesTree;
-                if (!pdfGuidesTree[activeGuideMain]) {
-                    activeGuideMain = Object.keys(pdfGuidesTree)[0] || "Offense";
-                }
-                if (!pdfGuidesTree[activeGuideMain] || !pdfGuidesTree[activeGuideMain][activeGuideSub]) {
-                    activeGuideSub = Object.keys(pdfGuidesTree[activeGuideMain] || {})[0] || "";
-                }
             }
+            if (data.pdfGuidesOrder && typeof data.pdfGuidesOrder === 'object') {
+                pdfGuidesOrder = data.pdfGuidesOrder;
+            }
+
+            if (!pdfGuidesTree[activeGuideMain]) {
+                activeGuideMain = (pdfGuidesOrder.main && pdfGuidesOrder.main[0]) || Object.keys(pdfGuidesTree)[0] || "Offense";
+            }
+            let subList = (pdfGuidesOrder.sub && pdfGuidesOrder.sub[activeGuideMain]) || Object.keys(pdfGuidesTree[activeGuideMain] || {});
+            if (!subList.includes(activeGuideSub)) {
+                activeGuideSub = subList[0] || "";
+            }
+
             if (data.savedCoachesList) savedCoachesList = data.savedCoachesList;
-            if (data.practiceTemplates) practiceTemplates = { ...defaultPracticeTemplates, ...data.practiceTemplates };
+            if (data.practiceTemplates && typeof data.practiceTemplates === 'object') {
+                practiceTemplates = { ...defaultPracticeTemplates, ...data.practiceTemplates };
+                populateTemplateDropdown();
+            }
             if (data.teamCoachesList) teamCoachesList = data.teamCoachesList;
 
             depthChart = getWeekDepthChart(currentWeek);
             renderActiveBoards();
             renderMasterRoster();
             populatePracticeDropdown();
+            populateTemplateDropdown();
+
             if (activeUnit === 'practice' && (!document.activeElement || !document.activeElement.closest('#main-practice-table'))) {
                 renderPracticePlan();
             }
@@ -2389,6 +2403,56 @@
       }
     }
 
+    function renameFormation(formId) {
+      if (userRole !== 'admin') return;
+      const forms = getWeekFormations(currentWeek);
+      const form = forms.find(f => f.id === formId);
+      if (!form) return;
+      let newName = prompt("Rename Formation / Board:", form.name);
+      if (newName && newName.trim() !== "") {
+          form.name = newName.trim();
+          saveState();
+          renderActiveBoards();
+      }
+    }
+
+    function deleteFormation(formId) {
+      if (userRole !== 'admin') return;
+      const forms = getWeekFormations(currentWeek);
+      const form = forms.find(f => f.id === formId);
+      if (!form) return;
+      if (confirm(`Delete formation "${form.name}"?`)) {
+          const idx = forms.findIndex(f => f.id === formId);
+          if (idx !== -1) {
+              forms.splice(idx, 1);
+              saveState();
+              renderActiveBoards();
+          }
+      }
+    }
+
+    function copyFormationToAllWeeks(formId) {
+      if (userRole !== 'admin') return;
+      const forms = getWeekFormations(currentWeek);
+      const form = forms.find(f => f.id === formId);
+      if (!form) return;
+
+      if (confirm(`Copy formation "${form.name}" to all weeks (Week 0 through Week 8)?`)) {
+          for (let w = 0; w <= 8; w++) {
+              let wkKey = String(w);
+              ensureWeekDataExists(wkKey);
+              let wkForms = weeklyData[wkKey].formations;
+              if (!wkForms.some(f => f.name.toLowerCase() === form.name.toLowerCase())) {
+                  let clonedForm = JSON.parse(JSON.stringify(form));
+                  clonedForm.id = "form_" + Date.now() + "_" + w;
+                  wkForms.push(clonedForm);
+              }
+          }
+          saveState();
+          alert(`Formation "${form.name}" copied across all weeks successfully!`);
+      }
+    }
+
     /* DRAG AND DROP HANDLERS FOR POSITION CARDS ACROSS LEVELS */
     function handlePositionDragStart(e, formId, rIdx, pIdx) {
       if (userRole !== 'admin') return;
@@ -2478,8 +2542,11 @@
         formDiv.innerHTML = `
           <div class="board-title">
              <span>${form.name}</span>
-             <div class="admin-only" style="display:flex; gap:6px;">
-                <button class="toggle-board-btn" onclick="addFormationRow('${form.id}')">+ Add Row/Level</button>
+             <div class="admin-only" style="display:flex; gap:4px; align-items:center; flex-wrap:wrap;">
+                <button class="toggle-board-btn" onclick="addFormationRow('${form.id}')">+ Add Row</button>
+                <button class="toggle-board-btn" onclick="copyFormationToAllWeeks('${form.id}')" title="Copy this formation to all game weeks">📅 To All Weeks</button>
+                <button class="toggle-board-btn" onclick="renameFormation('${form.id}')" title="Rename formation">✏️</button>
+                <button class="remove-btn" onclick="deleteFormation('${form.id}')" title="Delete formation" style="font-size:14px; padding:2px 4px;">&times;</button>
              </div>
           </div>
           <div class="formation-scaler">
@@ -2947,11 +3014,17 @@
       triggerDebouncedSave();
     }
 
-    /* PLAYBOOKS & POSITIONAL GUIDES - FULL TAB MANAGEMENT */
+    /* PLAYBOOKS & POSITIONAL GUIDES - COMPLETE DETERMINISTIC TAB MANAGEMENT */
     function moveGuideMain(mainCat, direction, e) {
         if (e) e.stopPropagation();
         if (userRole !== 'admin') return;
-        pdfGuidesTree = reorderObjectKeys(pdfGuidesTree, mainCat, direction);
+        const idx = pdfGuidesOrder.main.indexOf(mainCat);
+        if (idx === -1) return;
+        const newIdx = idx + direction;
+        if (newIdx < 0 || newIdx >= pdfGuidesOrder.main.length) return;
+
+        const [moved] = pdfGuidesOrder.main.splice(idx, 1);
+        pdfGuidesOrder.main.splice(newIdx, 0, moved);
         saveState();
         renderGuideTab();
     }
@@ -2963,13 +3036,18 @@
         if (newName && newName.trim() !== "" && newName.trim() !== mainCat) {
             let clean = newName.trim();
             if (pdfGuidesTree[clean]) return alert("A main folder with that name already exists.");
-            const keys = Object.keys(pdfGuidesTree);
-            const newTree = {};
-            keys.forEach(k => {
-                if (k === mainCat) newTree[clean] = pdfGuidesTree[mainCat];
-                else newTree[k] = pdfGuidesTree[k];
-            });
-            pdfGuidesTree = newTree;
+            
+            pdfGuidesTree[clean] = pdfGuidesTree[mainCat];
+            delete pdfGuidesTree[mainCat];
+
+            const idx = pdfGuidesOrder.main.indexOf(mainCat);
+            if (idx !== -1) pdfGuidesOrder.main[idx] = clean;
+
+            if (pdfGuidesOrder.sub[mainCat]) {
+                pdfGuidesOrder.sub[clean] = pdfGuidesOrder.sub[mainCat];
+                delete pdfGuidesOrder.sub[mainCat];
+            }
+
             if (activeGuideMain === mainCat) activeGuideMain = clean;
             saveState();
             renderGuideTab();
@@ -2979,17 +3057,15 @@
     function deleteMainFolder(mainCat, e) {
         if (e) e.stopPropagation();
         if (userRole !== 'admin') return alert("Only Head Coach (Admin) can delete folders.");
+        if (pdfGuidesOrder.main.length <= 1) return alert("Cannot delete the only main folder.");
+
         if (confirm(`Delete main folder "${mainCat}" and all its sub-tabs?`)) {
             delete pdfGuidesTree[mainCat];
-            const remaining = Object.keys(pdfGuidesTree);
-            if (remaining.length === 0) {
-                pdfGuidesTree["Offense"] = { "Full Playbook": "" };
-                activeGuideMain = "Offense";
-                activeGuideSub = "Full Playbook";
-            } else {
-                activeGuideMain = remaining[0];
-                activeGuideSub = Object.keys(pdfGuidesTree[activeGuideMain] || {})[0] || "";
-            }
+            delete pdfGuidesOrder.sub[mainCat];
+            pdfGuidesOrder.main = pdfGuidesOrder.main.filter(m => m !== mainCat);
+
+            activeGuideMain = pdfGuidesOrder.main[0] || "Offense";
+            activeGuideSub = (pdfGuidesOrder.sub[activeGuideMain] && pdfGuidesOrder.sub[activeGuideMain][0]) || "";
             saveState();
             renderGuideTab();
         }
@@ -2997,8 +3073,15 @@
 
     function moveGuideSub(subKey, direction, e) {
         if (e) e.stopPropagation();
-        if (userRole !== 'admin' || !pdfGuidesTree[activeGuideMain]) return;
-        pdfGuidesTree[activeGuideMain] = reorderObjectKeys(pdfGuidesTree[activeGuideMain], subKey, direction);
+        if (userRole !== 'admin' || !pdfGuidesOrder.sub[activeGuideMain]) return;
+        const subList = pdfGuidesOrder.sub[activeGuideMain];
+        const idx = subList.indexOf(subKey);
+        if (idx === -1) return;
+        const newIdx = idx + direction;
+        if (newIdx < 0 || newIdx >= subList.length) return;
+
+        const [moved] = subList.splice(idx, 1);
+        subList.splice(newIdx, 0, moved);
         saveState();
         renderGuideTab();
     }
@@ -3009,17 +3092,36 @@
       const contentArea = document.getElementById('guide-content-area');
       if (!mainContainer || !subContainer || !contentArea) return;
       
-      if (!pdfGuidesTree[activeGuideMain]) {
-          activeGuideMain = Object.keys(pdfGuidesTree)[0] || "Offense";
+      // Ensure sync between tree and deterministic order array
+      if (!pdfGuidesOrder.main || pdfGuidesOrder.main.length === 0) {
+          pdfGuidesOrder.main = Object.keys(pdfGuidesTree);
       }
-      let subDict = pdfGuidesTree[activeGuideMain] || {};
-      let subKeys = Object.keys(subDict);
+      // Add any missing keys to order array
+      Object.keys(pdfGuidesTree).forEach(k => {
+          if (!pdfGuidesOrder.main.includes(k)) pdfGuidesOrder.main.push(k);
+      });
+      pdfGuidesOrder.main = pdfGuidesOrder.main.filter(k => pdfGuidesTree[k] !== undefined);
+
+      if (!pdfGuidesTree[activeGuideMain]) {
+          activeGuideMain = pdfGuidesOrder.main[0] || "Offense";
+      }
+
+      if (!pdfGuidesOrder.sub) pdfGuidesOrder.sub = {};
+      if (!pdfGuidesOrder.sub[activeGuideMain]) {
+          pdfGuidesOrder.sub[activeGuideMain] = Object.keys(pdfGuidesTree[activeGuideMain] || {});
+      }
+      Object.keys(pdfGuidesTree[activeGuideMain] || {}).forEach(sk => {
+          if (!pdfGuidesOrder.sub[activeGuideMain].includes(sk)) pdfGuidesOrder.sub[activeGuideMain].push(sk);
+      });
+      pdfGuidesOrder.sub[activeGuideMain] = pdfGuidesOrder.sub[activeGuideMain].filter(sk => pdfGuidesTree[activeGuideMain][sk] !== undefined);
+
+      let subKeys = pdfGuidesOrder.sub[activeGuideMain] || [];
       if (!subKeys.includes(activeGuideSub)) {
           activeGuideSub = subKeys[0] || "";
       }
 
-      // Level 1 Main Folders with Reorder, Rename, and Delete
-      mainContainer.innerHTML = Object.keys(pdfGuidesTree).map(mainCat => {
+      // Level 1 Main Folders
+      mainContainer.innerHTML = pdfGuidesOrder.main.map(mainCat => {
         let encMain = encodeURIComponent(mainCat);
         return `
         <div style="display:inline-flex; align-items:center; background:${mainCat === activeGuideMain ? 'var(--primary)' : 'var(--card-bg)'}; border:1px solid var(--card-border); border-radius:20px; padding:2px 8px; gap:4px;">
@@ -3034,7 +3136,7 @@
         `;
       }).join('') + `<button class="toggle-board-btn admin-only" onclick="addMainFolderPrompt()" style="margin-left:auto;">+ Add Main Folder</button>`;
 
-      // Level 2 Sub Tabs with Reorder, Rename, and Delete
+      // Level 2 Sub Tabs
       let subTabsHtml = subKeys.map(subKey => {
         let encSub = encodeURIComponent(subKey);
         return `
@@ -3052,7 +3154,7 @@
 
       subContainer.innerHTML = subTabsHtml || '<span style="font-size:11px; color:var(--text-muted);">No sub-tabs found. Add one above.</span>';
 
-      let guideVal = (subDict[activeGuideSub]) || "";
+      let guideVal = (pdfGuidesTree[activeGuideMain] && pdfGuidesTree[activeGuideMain][activeGuideSub]) || "";
       let displayHtml = guideVal.startsWith("http") ? `<iframe src="${guideVal}" style="width:100%; height:600px; border:none;" title="Playbook Guide"></iframe>` : `<div style="padding:20px; text-align:center; color:var(--text-muted);">No document uploaded for [${activeGuideMain} > ${activeGuideSub}] yet.</div>`;
 
       contentArea.innerHTML = `
@@ -3089,7 +3191,7 @@
 
     function switchGuideMain(mainCat) {
         activeGuideMain = mainCat;
-        let subKeys = Object.keys(pdfGuidesTree[activeGuideMain] || {});
+        let subKeys = (pdfGuidesOrder.sub && pdfGuidesOrder.sub[activeGuideMain]) || Object.keys(pdfGuidesTree[activeGuideMain] || {});
         activeGuideSub = subKeys[0] || "";
         renderGuideTab();
     }
@@ -3105,6 +3207,8 @@
             let clean = name.trim();
             if (!pdfGuidesTree[clean]) {
                 pdfGuidesTree[clean] = { "Full Playbook": "" };
+                pdfGuidesOrder.main.push(clean);
+                pdfGuidesOrder.sub[clean] = ["Full Playbook"];
                 activeGuideMain = clean;
                 activeGuideSub = "Full Playbook";
                 saveState();
@@ -3122,6 +3226,8 @@
             if (!pdfGuidesTree[activeGuideMain]) pdfGuidesTree[activeGuideMain] = {};
             if (!pdfGuidesTree[activeGuideMain][clean]) {
                 pdfGuidesTree[activeGuideMain][clean] = "";
+                if (!pdfGuidesOrder.sub[activeGuideMain]) pdfGuidesOrder.sub[activeGuideMain] = [];
+                pdfGuidesOrder.sub[activeGuideMain].push(clean);
                 activeGuideSub = clean;
                 saveState();
                 renderGuideTab();
@@ -3137,9 +3243,14 @@
         if (newName && newName.trim() !== "" && newName !== oldName) {
             let clean = newName.trim();
             if (pdfGuidesTree[activeGuideMain][clean]) return alert("A sub-tab with that name already exists.");
+            
             let val = pdfGuidesTree[activeGuideMain][oldName];
             delete pdfGuidesTree[activeGuideMain][oldName];
             pdfGuidesTree[activeGuideMain][clean] = val;
+
+            const idx = pdfGuidesOrder.sub[activeGuideMain].indexOf(oldName);
+            if (idx !== -1) pdfGuidesOrder.sub[activeGuideMain][idx] = clean;
+
             activeGuideSub = clean;
             saveState();
             renderGuideTab();
@@ -3153,9 +3264,13 @@
 
         if (confirm(`Delete sub-tab "${subKey}"?`)) {
             delete pdfGuidesTree[activeGuideMain][subKey];
-            let remaining = Object.keys(pdfGuidesTree[activeGuideMain]);
+            if (pdfGuidesOrder.sub[activeGuideMain]) {
+                pdfGuidesOrder.sub[activeGuideMain] = pdfGuidesOrder.sub[activeGuideMain].filter(s => s !== subKey);
+            }
+            let remaining = pdfGuidesOrder.sub[activeGuideMain] || [];
             if (remaining.length === 0) {
                 pdfGuidesTree[activeGuideMain]["General"] = "";
+                pdfGuidesOrder.sub[activeGuideMain] = ["General"];
                 activeGuideSub = "General";
             } else {
                 activeGuideSub = remaining[0];
@@ -3321,18 +3436,19 @@
     }
 
     function createFormationPrompt(unit) {
-      let name = prompt(`Enter ${unit.toUpperCase()} formation name:`);
-      if (name) {
+      let name = prompt(`Enter ${unit.toUpperCase()} formation name (e.g. 32, I-Form):`);
+      if (name && name.trim()) {
         const forms = getWeekFormations(currentWeek);
         const newId = "form_" + Date.now();
-        forms.push({ id: newId, unit, name, rows: [{ id: "row_" + Date.now(), label: "Main Level", slotCount: 7, positions: [null, null, null, null, null, null, null] }] });
-        saveState(); renderActiveBoards();
+        forms.push({ id: newId, unit, name: name.trim(), rows: [{ id: "row_" + Date.now(), label: "Main Level", slotCount: 7, positions: [null, null, null, null, null, null, null] }] });
+        saveState(); 
+        renderActiveBoards();
         selectFormationForRoster(newId);
       }
     }
 
     function exportData() {
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({weeklyData, practiceData, masterPlayLibrary, cascadingDrills, pdfGuidesTree, practiceTemplates, teamCoachesList, savedCoachesList}));
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({weeklyData, practiceData, masterPlayLibrary, cascadingDrills, pdfGuidesTree, pdfGuidesOrder, practiceTemplates, teamCoachesList, savedCoachesList}));
         const dl = document.createElement('a'); dl.setAttribute("href", dataStr); dl.setAttribute("download", `football_backup.json`); dl.click();
     }
 
@@ -3348,6 +3464,7 @@
                 if (parsed.masterPlayLibrary) masterPlayLibrary = parsed.masterPlayLibrary;
                 if (parsed.cascadingDrills) cascadingDrills = parsed.cascadingDrills;
                 if (parsed.pdfGuidesTree) pdfGuidesTree = parsed.pdfGuidesTree;
+                if (parsed.pdfGuidesOrder) pdfGuidesOrder = parsed.pdfGuidesOrder;
                 if (parsed.collapsedFolders) collapsedFolders = parsed.collapsedFolders;
                 if (parsed.savedCoachesList) savedCoachesList = parsed.savedCoachesList;
                 if (parsed.practiceTemplates) practiceTemplates = { ...defaultPracticeTemplates, ...parsed.practiceTemplates };
@@ -3355,9 +3472,9 @@
 
                 for (let w = 0; w <= 8; w++) ensureWeekDataExists(String(w));
                 saveState();
-                if (cloudEnabled && db && userRole === 'admin') {
+                if (cloudEnabled && db) {
                     await db.collection("teamData").doc("depthChartData").set({
-                        weeklyData, practiceData, masterPlayLibrary, cascadingDrills, pdfGuidesTree, collapsedFolders, savedCoachesList, practiceTemplates, teamCoachesList,
+                        weeklyData, practiceData, masterPlayLibrary, cascadingDrills, pdfGuidesTree, pdfGuidesOrder, collapsedFolders, savedCoachesList, practiceTemplates, teamCoachesList,
                         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                     });
                 }
