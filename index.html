@@ -239,7 +239,7 @@
 
     .period-schedule-time { margin-top: 4px; font-weight: bold; color: var(--accent); font-size: 10.5px; }
     .prac-input, .prac-select, .prac-textarea { width: 100%; border: 1px solid var(--card-border); border-radius: 4px; padding: 4px; font-family: inherit; font-size: 11px; box-sizing: border-box; background: #f8fafc; color: var(--text); }
-    .prac-textarea { resize: vertical; min-height: 44px; height: auto; margin-top: 4px; overflow-y: hidden; }
+    .prac-textarea { resize: vertical; min-height: 44px; height: auto; margin-top: 4px; overflow-y: hidden; white-space: pre-wrap; word-wrap: break-word; }
     .prac-input:focus, .prac-select:focus, .prac-textarea:focus { border-color: var(--accent); background: #ffffff; outline: none; }
 
     .add-row-btn { margin-top: 10px; padding: 6px 12px; background: var(--primary); color: white; border: none; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; }
@@ -2043,7 +2043,7 @@
                     </div>
                 `);
 
-                // 2. Coaches Column Part (Horizontally aligned with each station block)
+                // 2. Coaches Column Part (Independently aligned 1:1 with each station block)
                 coachColParts.push(`
                     <div class="station-block coach-popup-container" style="position:relative; display:flex; flex-direction:column; justify-content:flex-start;">
                         <textarea class="prac-textarea" style="min-height:30px; white-space:pre-wrap; word-wrap:break-word; cursor:pointer;" readonly onclick="toggleCoachPopup(${idx}, ${sIdx}, event)" oninput="autoResizeTextarea(this);" placeholder="Click coaches...">${st.coach || ''}</textarea>
@@ -2061,7 +2061,7 @@
                     </div>
                 `);
 
-                // 3. Coaching Focus Column Part (Horizontally aligned with each station block)
+                // 3. Coaching Focus Column Part (Independently aligned 1:1 with each station block)
                 focusColParts.push(`
                     <div class="station-block" style="display:flex; flex-direction:column; justify-content:flex-start;">
                         <textarea class="prac-textarea" style="min-height:30px;" oninput="autoResizeTextarea(this);" onchange="updatePracStation(${idx}, ${sIdx}, 'focus', this.value); syncDrillLibraryFromStation(${idx}, ${sIdx});" placeholder="Key focus...">${st.focus || ''}</textarea>
