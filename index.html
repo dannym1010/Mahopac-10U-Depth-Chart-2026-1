@@ -820,10 +820,9 @@
       ]
     };
 
-    let practiceTemplates = safeJSONParse("footballPracticeTemplates", null) || defaultPracticeTemplates;
-    if (typeof practiceTemplates !== 'object' || Object.keys(practiceTemplates).length === 0) {
-        practiceTemplates = defaultPracticeTemplates;
-    }
+    // Safely merge local/cloud templates with defaults so custom templates are never lost
+    let savedTemplates = safeJSONParse("footballPracticeTemplates", {});
+    let practiceTemplates = { ...defaultPracticeTemplates, ...(typeof savedTemplates === 'object' && savedTemplates !== null ? savedTemplates : {}) };
 
     let pdfGuides = safeJSONParse("footballPdfGuides", { "Offense": "", "53 Defense": "", "44 Defense": "" });
     let activeGuidePos = Object.keys(pdfGuides).length > 0 ? Object.keys(pdfGuides)[0] : null;
@@ -1142,7 +1141,7 @@
         localStorage.setItem("footballPdfGuides", JSON.stringify(pdfGuides));
         localStorage.setItem("footballCollapsedFolders", JSON.stringify(collapsedFolders));
         localStorage.setItem("footballSavedCoaches", JSON.stringify(savedCoachesList));
-        localStorage.setItem("footballPracticeTemplates", JSON.stringify(practiceTemplates));
+        localStorage.setItem("footballPracticeTemplates", JSON.stringify(practiceTemplates)); // Persist templates
         localStorage.setItem("footballTeamCoaches", JSON.stringify(teamCoachesList));
 
         if (cloudEnabled && db && userRole === 'admin') {
@@ -1305,10 +1304,14 @@
         }
         let tName = prompt("Enter a name for this practice template:");
         if (tName && tName.trim() !== "") {
-            practiceTemplates[tName.trim()] = JSON.parse(JSON.stringify(prac.plan));
+            let cleanName = tName.trim();
+            practiceTemplates[cleanName] = JSON.parse(JSON.stringify(prac.plan));
             saveState();
             populateTemplateDropdown();
-            alert(`Practice template "${tName.trim()}" saved successfully!`);
+            if (!document.getElementById("templates-modal").classList.contains("hidden")) {
+                openTemplatesManager();
+            }
+            alert(`Practice template "${cleanName}" saved successfully!`);
         }
     }
 
@@ -1317,18 +1320,24 @@
         if (!container) return;
 
         let html = '';
-        Object.keys(practiceTemplates).forEach(name => {
-            html += `
-              <div style="display:flex; justify-content:space-between; align-items:center; background:#f8fafc; padding:8px; border:1px solid var(--card-border); border-radius:6px;">
-                 <span style="font-weight:bold; font-size:12px; color:var(--primary);">${name}</span>
-                 <div style="display:flex; gap:6px;">
-                    <button class="toggle-board-btn" style="padding:2px 6px; font-size:10px;" onclick="renameTemplate('${name}')">✏️ Rename</button>
-                    <button class="remove-btn" onclick="deleteTemplate('${name}')" style="font-size:14px; padding:0 4px;" title="Delete">&times;</button>
-                 </div>
-              </div>
-            `;
-        });
-        container.innerHTML = html || '<div style="color:var(--text-muted); text-align:center; font-size:11px;">No templates saved.</div>';
+        const templateKeys = Object.keys(practiceTemplates);
+        
+        if (templateKeys.length === 0) {
+            html = '<div style="color:var(--text-muted); text-align:center; font-size:11px;">No templates saved.</div>';
+        } else {
+            templateKeys.forEach(name => {
+                html += `
+                  <div style="display:flex; justify-content:space-between; align-items:center; background:#f8fafc; padding:8px; border:1px solid var(--card-border); border-radius:6px;">
+                     <span style="font-weight:bold; font-size:12px; color:var(--primary);">${name}</span>
+                     <div style="display:flex; gap:6px;">
+                        <button class="toggle-board-btn" style="padding:2px 6px; font-size:10px;" onclick="renameTemplate('${name}')">✏️ Rename</button>
+                        <button class="remove-btn" onclick="deleteTemplate('${name}')" style="font-size:14px; padding:0 4px;" title="Delete">&times;</button>
+                     </div>
+                  </div>
+                `;
+            });
+        }
+        container.innerHTML = html;
         document.getElementById("templates-modal").classList.remove("hidden");
     }
 
@@ -2436,7 +2445,7 @@
               if (data.collapsedFolders) collapsedFolders = data.collapsedFolders;
               if (data.savedCoachesList) savedCoachesList = data.savedCoachesList;
               if (data.practiceTemplates && typeof data.practiceTemplates === 'object' && Object.keys(data.practiceTemplates).length > 0) {
-                  practiceTemplates = data.practiceTemplates;
+                  practiceTemplates = { ...defaultPracticeTemplates, ...data.practiceTemplates };
                   populateTemplateDropdown();
               }
               if (data.teamCoachesList) teamCoachesList = data.teamCoachesList;
@@ -3495,7 +3504,7 @@
                 if (parsed.collapsedFolders) collapsedFolders = parsed.collapsedFolders;
                 if (parsed.savedCoachesList) savedCoachesList = parsed.savedCoachesList;
                 if (parsed.practiceTemplates && typeof parsed.practiceTemplates === 'object' && Object.keys(parsed.practiceTemplates).length > 0) {
-                    practiceTemplates = parsed.practiceTemplates;
+                    practiceTemplates = { ...defaultPracticeTemplates, ...parsed.practiceTemplates };
                     populateTemplateDropdown();
                 }
                 if (parsed.teamCoachesList && Array.isArray(parsed.teamCoachesList)) {
@@ -3633,7 +3642,6 @@
             }];
         }
         
-        // Default to the latest practice plan sorted by date/timestamp
         let sortedPracs = [...practiceData].sort((a, b) => {
             let dateA = a.date || "1970-01-01";
             let dateB = b.date || "1970-01-01";
