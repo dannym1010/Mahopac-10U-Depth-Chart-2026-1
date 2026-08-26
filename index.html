@@ -3293,7 +3293,6 @@
       const contentArea = document.getElementById('guide-content-area');
       if (!mainContainer || !subContainer || !contentArea) return;
       
-      // Ensure main structure exists
       if (!pdfGuidesTree[activeGuideMain]) {
           activeGuideMain = Object.keys(pdfGuidesTree)[0] || "Offense";
       }
@@ -3312,8 +3311,8 @@
       let subTabsHtml = subKeys.map(subKey => `
         <div style="display:flex; align-items:center; background:#fff; border:1px solid var(--card-border); border-radius:15px; padding:2px 8px; gap:4px;">
            <span style="font-size:11px; font-weight:bold; cursor:pointer; color:${subKey === activeGuideSub ? 'var(--accent)' : 'var(--text)'};" onclick="switchGuideSub('${subKey}')">${subKey}</span>
-           <button class="remove-btn admin-only" onclick="renameSubGuideTab('${subKey}', event)" title="Rename" style="font-size:10px; padding:0 2px;">✏️</button>
-           <button class="remove-btn admin-only" onclick="deleteSubGuideTab('${subKey}', event)" title="Delete" style="font-size:12px; padding:0 2px;">&times;</button>
+           <button type="button" class="remove-btn admin-only" onclick="renameSubGuideTab('${subKey}', event)" title="Rename" style="font-size:10px; padding:0 2px;">✏️</button>
+           <button type="button" class="remove-btn admin-only" onclick="deleteSubGuideTab('${subKey}', event)" title="Delete" style="font-size:12px; padding:0 2px;">&times;</button>
         </div>
       `).join('');
 
@@ -3639,7 +3638,6 @@
                 if (parsed.pdfGuidesTree && typeof parsed.pdfGuidesTree === 'object') {
                     pdfGuidesTree = parsed.pdfGuidesTree;
                 } else if (parsed.pdfGuides) {
-                    // Backward compatibility if importing older flat guides
                     pdfGuidesTree = { "Offense": parsed.pdfGuides, "Defense": {}, "Specials": {} };
                 }
                 if (parsed.collapsedFolders) collapsedFolders = parsed.collapsedFolders;
