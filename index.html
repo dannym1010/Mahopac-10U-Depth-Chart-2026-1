@@ -31,6 +31,7 @@
       --accent: #2563eb;
       --text: #0f172a;
       --text-muted: #64748b;
+      --print-font-size: 10px;
     }
 
     body {
@@ -256,10 +257,10 @@
     .full-roster-item { padding: 6px 8px; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; justify-content: space-between; font-size: 11px; cursor: grab; background: #f8fafc; margin-bottom: 4px; border-radius: 4px; border: 1px solid var(--card-border); user-select: none; }
     .full-roster-item:hover { border-color: var(--accent); background: #eff6ff; }
 
-    /* PRINT STYLES - High Contrast Black & White with No Text Cutoffs */
+    /* PRINT STYLES */
     @media print {
       @page { size: letter portrait; margin: 0.3in; }
-      body { background-color: #ffffff !important; color: #000000 !important; padding: 0; margin: 0; font-size: 11px !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; width: 100% !important; overflow: visible !important; }
+      body { background-color: #ffffff !important; color: #000000 !important; padding: 0; margin: 0; font-size: var(--print-font-size, 10px) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; width: 100% !important; overflow: visible !important; }
       .toolbar, #sidebar-container, .remove-btn, .action-group, p.subtitle, .search-box, .tab-navigation, .toggle-board-btn, .week-bar, .board-controls, .add-row-btn, .add-form-btn, .row-actions, .practice-dashboard-info, #print-modal, #new-prac-modal, #scrimmage-print-modal, #scrimmage-filter-modal, #templates-modal, #approval-pending-overlay, .col-resizer, .coach-popup-box, .coach-popup-container > div:last-child, th.no-print, td.no-print, th.admin-only, td.admin-only { display: none !important; }
       
       .no-print-text { display: none !important; }
@@ -279,13 +280,12 @@
       .rank-sub-gold { background: #fef08a !important; color: #000000 !important; border: 2px solid #000 !important; font-weight: 900 !important; opacity: 1 !important; box-shadow: inset 0 0 0 1px #000; }
       .rank-sub-blue { background: #93c5fd !important; color: #000000 !important; border: 2px solid #000 !important; font-weight: 900 !important; opacity: 1 !important; box-shadow: inset 0 0 0 1px #000; }
       
-      /* Practice Table Full Print Visibility */
       h1 { margin-top: 0; font-size: 15px; color: #000000; text-align: center; }
-      #print-practice-header { display: block !important; }
-      .practice-table { font-size: 10px !important; border: 2px solid #000 !important; width: 100% !important; table-layout: fixed !important; border-collapse: collapse !important; }
+      #print-practice-header { display: block !important; font-size: calc(var(--print-font-size, 10px) * 1.35) !important; }
+      .practice-table { font-size: var(--print-font-size, 10px) !important; border: 2px solid #000 !important; width: 100% !important; table-layout: fixed !important; border-collapse: collapse !important; }
       .practice-table thead { display: table-header-group !important; }
-      .practice-table th { font-size: 10.5px !important; background: #e2e8f0 !important; color: #000 !important; border: 1px solid #000 !important; }
-      .practice-table td { font-size: 10px !important; border: 1px solid #000 !important; padding: 6px !important; color: #000 !important; vertical-align: top !important; word-wrap: break-word !important; overflow-wrap: break-word !important; height: auto !important; }
+      .practice-table th { font-size: calc(var(--print-font-size, 10px) * 1.05) !important; background: #e2e8f0 !important; color: #000 !important; border: 1px solid #000 !important; }
+      .practice-table td { font-size: var(--print-font-size, 10px) !important; border: 1px solid #000 !important; padding: 5px !important; color: #000 !important; vertical-align: top !important; word-wrap: break-word !important; overflow-wrap: break-word !important; height: auto !important; }
       .practice-table tr { page-break-inside: avoid !important; break-inside: avoid !important; }
       
       .prac-input, .prac-select, .prac-textarea { display: none !important; }
@@ -295,7 +295,7 @@
         word-wrap: break-word !important;
         overflow-wrap: break-word !important;
         color: #000000 !important;
-        font-size: 10px !important;
+        font-size: var(--print-font-size, 10px) !important;
         line-height: 1.35 !important;
         margin: 0 0 4px 0 !important;
         padding: 0 !important;
@@ -562,6 +562,21 @@
                 <button class="toggle-board-btn" style="padding:2px 6px; font-size:10px;" onclick="saveCurrentAsTemplate()" title="Save current plan as template">💾 Save</button>
                 <button class="toggle-board-btn" style="padding:2px 6px; font-size:10px;" onclick="openTemplatesManager()" title="Edit or delete templates">⚙️ Manage</button>
               </div>
+              
+              <!-- PRINT FONT SIZE SELECTOR -->
+              <div style="display:flex; align-items:center; gap:4px; background:#f8fafc; padding:2px 6px; border-radius:6px; border:1px solid var(--card-border);">
+                <span class="no-print-text" style="font-size:10px; font-weight:bold; color:var(--primary);">🔤 Print Font:</span>
+                <select id="print-font-size-select" class="prac-select" style="width:75px; font-size:11px; padding:2px 4px;" onchange="updatePrintFontSize(this.value)">
+                  <option value="9">9px (Tight)</option>
+                  <option value="10" selected>10px (Def)</option>
+                  <option value="11">11px (Med)</option>
+                  <option value="12">12px (Large)</option>
+                  <option value="13">13px (XL)</option>
+                  <option value="14">14px (2XL)</option>
+                  <option value="15">15px (Huge)</option>
+                </select>
+              </div>
+
               <button class="add-row-btn admin-only" onclick="addPracticeRow()">+ Add Period</button>
               <button class="toolbar button" onclick="window.print()" style="padding:4px 10px;">🖨️ Print Plan</button>
             </div>
@@ -589,7 +604,7 @@
             </label>
           </div>
 
-          <div id="print-practice-header" style="display:none; font-size:14px; font-weight:bold; margin-bottom:10px; border-bottom:2px solid #000; padding-bottom:4px;"></div>
+          <div id="print-practice-header" style="display:none; font-weight:bold; margin-bottom:10px; border-bottom:2px solid #000; padding-bottom:4px;"></div>
           
           <table class="practice-table" id="main-practice-table">
             <colgroup>
@@ -751,6 +766,19 @@
     }
     initFirebase();
 
+    function safeJSONParse(key, fallback) {
+      try { const val = localStorage.getItem(key); if (val) return JSON.parse(val); } catch (e) {}
+      return fallback;
+    }
+
+    let printFontSize = safeJSONParse("footballPrintFontSize", "10");
+
+    function updatePrintFontSize(size) {
+        printFontSize = size;
+        document.documentElement.style.setProperty('--print-font-size', size + 'px');
+        localStorage.setItem("footballPrintFontSize", JSON.stringify(size));
+    }
+
     function reorderObjectKeys(obj, keyToMove, direction) {
         if (!obj || typeof obj !== 'object') return obj;
         const keys = Object.keys(obj);
@@ -765,6 +793,7 @@
         return newObj;
     }
 
+    // Force sync without merge so deletions persist to Firestore
     function forceSyncCloud() {
         if (!cloudEnabled || !db) {
             alert("Cloud sync is not active (running offline mode).");
@@ -773,7 +802,7 @@
         db.collection("teamData").doc("depthChartData").set({
             weeklyData, practiceData, masterPlayLibrary, cascadingDrills, pdfGuidesTree, activeGuideMain, activeGuideSub, collapsedFolders, savedCoachesList, practiceTemplates, teamCoachesList,
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true }).then(() => {
+        }).then(() => {
             alert("Successfully forced all local drill folders and data to live cloud database!");
         }).catch(err => {
             alert("Cloud sync error: " + err.message);
@@ -821,11 +850,6 @@
       if (!event.target.closest('.coach-popup-container') && !event.target.closest('.coach-popup-box')) {
         document.querySelectorAll('.coach-popup-box').forEach(box => box.classList.add('hidden'));
       }
-    }
-
-    function safeJSONParse(key, fallback) {
-      try { const val = localStorage.getItem(key); if (val) return JSON.parse(val); } catch (e) {}
-      return fallback;
     }
 
     let draggedData = null;
@@ -1015,11 +1039,12 @@
         localStorage.setItem("footballPracticeTemplates", JSON.stringify(practiceTemplates));
         localStorage.setItem("footballTeamCoaches", JSON.stringify(teamCoachesList));
 
+        // Overwrite full doc without merge to ensure deleted keys do not resurrect
         if (cloudEnabled && db && userRole === 'admin') {
             db.collection("teamData").doc("depthChartData").set({
                 weeklyData, practiceData, masterPlayLibrary, cascadingDrills, pdfGuidesTree, activeGuideMain, activeGuideSub, collapsedFolders, savedCoachesList, practiceTemplates, teamCoachesList,
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            }, { merge: true }).catch(err => console.error("Firestore sync error:", err));
+            }).catch(err => console.error("Firestore sync error:", err));
         }
     }
 
@@ -2179,7 +2204,15 @@
             if (data.weeklyData) weeklyData = data.weeklyData;
             if (data.practiceData) practiceData = data.practiceData;
             if (data.cascadingDrills) cascadingDrills = data.cascadingDrills;
-            if (data.pdfGuidesTree) pdfGuidesTree = data.pdfGuidesTree;
+            if (data.pdfGuidesTree && typeof data.pdfGuidesTree === 'object') {
+                pdfGuidesTree = data.pdfGuidesTree;
+                if (!pdfGuidesTree[activeGuideMain]) {
+                    activeGuideMain = Object.keys(pdfGuidesTree)[0] || "Offense";
+                }
+                if (!pdfGuidesTree[activeGuideMain] || !pdfGuidesTree[activeGuideMain][activeGuideSub]) {
+                    activeGuideSub = Object.keys(pdfGuidesTree[activeGuideMain] || {})[0] || "";
+                }
+            }
             if (data.savedCoachesList) savedCoachesList = data.savedCoachesList;
             if (data.practiceTemplates) practiceTemplates = { ...defaultPracticeTemplates, ...data.practiceTemplates };
             if (data.teamCoachesList) teamCoachesList = data.teamCoachesList;
@@ -2360,7 +2393,7 @@
     function handlePositionDragStart(e, formId, rIdx, pIdx) {
       if (userRole !== 'admin') return;
       draggedPositionData = { formId, rIdx, pIdx };
-      draggedData = null; // Clear player dragged data
+      draggedData = null;
       e.dataTransfer.setData("text/plain", "position_card");
       e.dataTransfer.effectAllowed = "move";
       e.stopPropagation();
@@ -2390,7 +2423,6 @@
       const srcRIdx = draggedPositionData.rIdx;
       const srcPIdx = draggedPositionData.pIdx;
 
-      // Allow dragging across any level/row in any formation
       const forms = getWeekFormations(currentWeek);
       const srcForm = forms.find(f => f.id === srcFormId);
       const targetForm = forms.find(f => f.id === targetFormId);
@@ -2411,7 +2443,6 @@
           const srcPos = srcRow.positions[srcPIdx];
           const targetPos = targetRow.positions[targetPIdx];
 
-          // Swap positions or move to empty slot across rows/levels
           srcRow.positions[srcPIdx] = targetPos || null;
           targetRow.positions[targetPIdx] = srcPos || null;
 
@@ -2948,13 +2979,17 @@
     function deleteMainFolder(mainCat, e) {
         if (e) e.stopPropagation();
         if (userRole !== 'admin') return alert("Only Head Coach (Admin) can delete folders.");
-        const keys = Object.keys(pdfGuidesTree);
-        if (keys.length <= 1) return alert("Cannot delete the only main folder.");
-        if (confirm(`Delete folder "${mainCat}" and all its sub-tabs?`)) {
+        if (confirm(`Delete main folder "${mainCat}" and all its sub-tabs?`)) {
             delete pdfGuidesTree[mainCat];
             const remaining = Object.keys(pdfGuidesTree);
-            activeGuideMain = remaining[0];
-            activeGuideSub = Object.keys(pdfGuidesTree[activeGuideMain] || {})[0] || "";
+            if (remaining.length === 0) {
+                pdfGuidesTree["Offense"] = { "Full Playbook": "" };
+                activeGuideMain = "Offense";
+                activeGuideSub = "Full Playbook";
+            } else {
+                activeGuideMain = remaining[0];
+                activeGuideSub = Object.keys(pdfGuidesTree[activeGuideMain] || {})[0] || "";
+            }
             saveState();
             renderGuideTab();
         }
@@ -2984,30 +3019,36 @@
       }
 
       // Level 1 Main Folders with Reorder, Rename, and Delete
-      mainContainer.innerHTML = Object.keys(pdfGuidesTree).map(mainCat => `
+      mainContainer.innerHTML = Object.keys(pdfGuidesTree).map(mainCat => {
+        let encMain = encodeURIComponent(mainCat);
+        return `
         <div style="display:inline-flex; align-items:center; background:${mainCat === activeGuideMain ? 'var(--primary)' : 'var(--card-bg)'}; border:1px solid var(--card-border); border-radius:20px; padding:2px 8px; gap:4px;">
-           <span style="font-size:12px; font-weight:bold; cursor:pointer; color:${mainCat === activeGuideMain ? '#fff' : 'var(--text-muted)'}; padding:4px 6px;" onclick="switchGuideMain('${mainCat}')">${mainCat}</span>
+           <span style="font-size:12px; font-weight:bold; cursor:pointer; color:${mainCat === activeGuideMain ? '#fff' : 'var(--text-muted)'}; padding:4px 6px;" onclick="switchGuideMain(decodeURIComponent('${encMain}'))">${mainCat}</span>
            <div class="admin-only" style="display:inline-flex; gap:2px; align-items:center;">
-              <button type="button" class="toggle-board-btn" style="padding:1px 4px; font-size:9px;" onclick="moveGuideMain('${mainCat}', -1, event)" title="Move Left">◀</button>
-              <button type="button" class="toggle-board-btn" style="padding:1px 4px; font-size:9px;" onclick="moveGuideMain('${mainCat}', 1, event)" title="Move Right">▶</button>
-              <button type="button" class="toggle-board-btn" style="padding:1px 4px; font-size:9px;" onclick="renameMainFolder('${mainCat}', event)" title="Rename">✏️</button>
-              <button type="button" class="remove-btn" style="font-size:13px; padding:0 2px; color:${mainCat === activeGuideMain ? '#fca5a5' : '#ef4444'};" onclick="deleteMainFolder('${mainCat}', event)" title="Delete">&times;</button>
+              <button type="button" class="toggle-board-btn" style="padding:1px 4px; font-size:9px;" onclick="moveGuideMain(decodeURIComponent('${encMain}'), -1, event)" title="Move Left">◀</button>
+              <button type="button" class="toggle-board-btn" style="padding:1px 4px; font-size:9px;" onclick="moveGuideMain(decodeURIComponent('${encMain}'), 1, event)" title="Move Right">▶</button>
+              <button type="button" class="toggle-board-btn" style="padding:1px 4px; font-size:9px;" onclick="renameMainFolder(decodeURIComponent('${encMain}'), event)" title="Rename">✏️</button>
+              <button type="button" class="remove-btn" style="font-size:14px; padding:2px 6px; cursor:pointer; color:${mainCat === activeGuideMain ? '#fca5a5' : '#ef4444'};" onclick="deleteMainFolder(decodeURIComponent('${encMain}'), event)" title="Delete">&times;</button>
            </div>
         </div>
-      `).join('') + `<button class="toggle-board-btn admin-only" onclick="addMainFolderPrompt()" style="margin-left:auto;">+ Add Main Folder</button>`;
+        `;
+      }).join('') + `<button class="toggle-board-btn admin-only" onclick="addMainFolderPrompt()" style="margin-left:auto;">+ Add Main Folder</button>`;
 
       // Level 2 Sub Tabs with Reorder, Rename, and Delete
-      let subTabsHtml = subKeys.map(subKey => `
+      let subTabsHtml = subKeys.map(subKey => {
+        let encSub = encodeURIComponent(subKey);
+        return `
         <div style="display:inline-flex; align-items:center; background:#fff; border:1px solid ${subKey === activeGuideSub ? 'var(--accent)' : 'var(--card-border)'}; border-radius:15px; padding:2px 8px; gap:4px;">
-           <span style="font-size:11px; font-weight:bold; cursor:pointer; color:${subKey === activeGuideSub ? 'var(--accent)' : 'var(--text)'};" onclick="switchGuideSub('${subKey}')">${subKey}</span>
+           <span style="font-size:11px; font-weight:bold; cursor:pointer; color:${subKey === activeGuideSub ? 'var(--accent)' : 'var(--text)'};" onclick="switchGuideSub(decodeURIComponent('${encSub}'))">${subKey}</span>
            <div class="admin-only" style="display:inline-flex; gap:2px; align-items:center;">
-              <button type="button" class="toggle-board-btn" style="padding:1px 3px; font-size:8.5px;" onclick="moveGuideSub('${subKey}', -1, event)" title="Move Left">◀</button>
-              <button type="button" class="toggle-board-btn" style="padding:1px 3px; font-size:8.5px;" onclick="moveGuideSub('${subKey}', 1, event)" title="Move Right">▶</button>
-              <button type="button" class="toggle-board-btn" style="padding:1px 3px; font-size:8.5px;" onclick="renameSubGuideTab('${subKey}', event)" title="Rename">✏️</button>
-              <button type="button" class="remove-btn" onclick="deleteSubGuideTab('${subKey}', event)" title="Delete" style="font-size:12px; padding:0 2px;">&times;</button>
+              <button type="button" class="toggle-board-btn" style="padding:1px 3px; font-size:8.5px;" onclick="moveGuideSub(decodeURIComponent('${encSub}'), -1, event)" title="Move Left">◀</button>
+              <button type="button" class="toggle-board-btn" style="padding:1px 3px; font-size:8.5px;" onclick="moveGuideSub(decodeURIComponent('${encSub}'), 1, event)" title="Move Right">▶</button>
+              <button type="button" class="toggle-board-btn" style="padding:1px 3px; font-size:8.5px;" onclick="renameSubGuideTab(decodeURIComponent('${encSub}'), event)" title="Rename">✏️</button>
+              <button type="button" class="remove-btn admin-only" onclick="deleteSubGuideTab(decodeURIComponent('${encSub}'), event)" title="Delete" style="font-size:14px; padding:2px 6px; cursor:pointer; color:#ef4444;">&times;</button>
            </div>
         </div>
-      `).join('');
+        `;
+      }).join('');
 
       subContainer.innerHTML = subTabsHtml || '<span style="font-size:11px; color:var(--text-muted);">No sub-tabs found. Add one above.</span>';
 
@@ -3108,22 +3149,17 @@
     function deleteSubGuideTab(subKey, e) {
         if (e) e.stopPropagation();
         if (userRole !== 'admin') return alert("Only Head Coach (Admin) can delete sub-tabs.");
-        let subDict = pdfGuidesTree[activeGuideMain] || {};
-        let subKeys = Object.keys(subDict);
-        if (subKeys.length <= 1) {
-            if (confirm(`Delete content in "${subKey}" and reset tab?`)) {
-                delete pdfGuidesTree[activeGuideMain][subKey];
-                pdfGuidesTree[activeGuideMain]["General"] = "";
-                activeGuideSub = "General";
-                saveState();
-                renderGuideTab();
-            }
-            return;
-        }
+        if (!pdfGuidesTree[activeGuideMain]) return;
+
         if (confirm(`Delete sub-tab "${subKey}"?`)) {
             delete pdfGuidesTree[activeGuideMain][subKey];
             let remaining = Object.keys(pdfGuidesTree[activeGuideMain]);
-            activeGuideSub = remaining[0] || "";
+            if (remaining.length === 0) {
+                pdfGuidesTree[activeGuideMain]["General"] = "";
+                activeGuideSub = "General";
+            } else {
+                activeGuideSub = remaining[0];
+            }
             saveState();
             renderGuideTab();
         }
@@ -3323,7 +3359,7 @@
                     await db.collection("teamData").doc("depthChartData").set({
                         weeklyData, practiceData, masterPlayLibrary, cascadingDrills, pdfGuidesTree, collapsedFolders, savedCoachesList, practiceTemplates, teamCoachesList,
                         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                    }, { merge: true });
+                    });
                 }
                 isImporting = false;
                 alert("Backup imported successfully!");
@@ -3434,6 +3470,10 @@
         depthChart = getWeekDepthChart(currentWeek);
         const oppInput = document.getElementById("opponent-input");
         if (oppInput) oppInput.value = weeklyData[currentWeek].opponent || "";
+
+        const fontSelect = document.getElementById("print-font-size-select");
+        if (fontSelect) fontSelect.value = printFontSize;
+        document.documentElement.style.setProperty('--print-font-size', printFontSize + 'px');
 
         renderActiveBoards();
         renderMasterRoster();
