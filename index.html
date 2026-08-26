@@ -792,7 +792,11 @@
       ]
     };
 
-    let practiceTemplates = safeJSONParse("footballPracticeTemplates", defaultPracticeTemplates);
+    let practiceTemplates = safeJSONParse("footballPracticeTemplates", null) || defaultPracticeTemplates;
+    if (typeof practiceTemplates !== 'object' || Object.keys(practiceTemplates).length === 0) {
+        practiceTemplates = defaultPracticeTemplates;
+    }
+
     let pdfGuides = safeJSONParse("footballPdfGuides", { "Offense": "", "53 Defense": "", "44 Defense": "" });
     let activeGuidePos = Object.keys(pdfGuides).length > 0 ? Object.keys(pdfGuides)[0] : null;
 
@@ -2238,7 +2242,9 @@
               if (data.pdfGuides) pdfGuides = data.pdfGuides;
               if (data.collapsedFolders) collapsedFolders = data.collapsedFolders;
               if (data.savedCoachesList) savedCoachesList = data.savedCoachesList;
-              if (data.practiceTemplates) practiceTemplates = data.practiceTemplates;
+              if (data.practiceTemplates && typeof data.practiceTemplates === 'object' && Object.keys(data.practiceTemplates).length > 0) {
+                  practiceTemplates = data.practiceTemplates;
+              }
               if (data.teamCoachesList) teamCoachesList = data.teamCoachesList;
 
               if (currentUser && currentUser.email) {
@@ -3209,7 +3215,6 @@
                 isImporting = true; // Lock sync / writes during import
                 const parsed = JSON.parse(evt.target.result);
                 
-                // Bulletproof normalization: support both direct and nested backup keys
                 if (parsed.weeklyData && typeof parsed.weeklyData === 'object') {
                     weeklyData = parsed.weeklyData;
                 } else if (parsed.depthChart || parsed.formations) {
@@ -3225,7 +3230,9 @@
                 if (parsed.pdfGuides) pdfGuides = parsed.pdfGuides;
                 if (parsed.collapsedFolders) collapsedFolders = parsed.collapsedFolders;
                 if (parsed.savedCoachesList) savedCoachesList = parsed.savedCoachesList;
-                if (parsed.practiceTemplates) practiceTemplates = parsed.practiceTemplates;
+                if (parsed.practiceTemplates && typeof parsed.practiceTemplates === 'object' && Object.keys(parsed.practiceTemplates).length > 0) {
+                    practiceTemplates = parsed.practiceTemplates;
+                }
                 if (parsed.teamCoachesList && Array.isArray(parsed.teamCoachesList)) {
                     teamCoachesList = parsed.teamCoachesList;
                     if (!teamCoachesList.some(c => c.email.toLowerCase() === "dannym1010@gmail.com")) {
