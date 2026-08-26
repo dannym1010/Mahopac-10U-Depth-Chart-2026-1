@@ -770,7 +770,7 @@
     let currentUser = null, userRole = 'admin', isSignUpMode = false;
     let scrimmageFilters = safeJSONParse("footballScrimmageFilters", null);
     let collapsedFolders = safeJSONParse("footballCollapsedFolders", {});
-    let savedCoachesList = safeJSONParse("footballSavedCoaches", []);
+    let savedCoachesList = safeJSONParse("footballSavedCoaches", ["Coach Danny", "Coach Mike", "Coach John", "Coach Dave"]);
     let teamCoachesList = safeJSONParse("footballTeamCoaches", [
       { email: "Dannym1010@gmail.com", role: "Head Coach (Admin)", status: "Active" }
     ]);
@@ -1776,40 +1776,39 @@
         }
     }
 
-    function updateCoachInput(rIdx, sIdx, val) {
-        updatePracStation(rIdx, sIdx, 'coach', val);
-        const tokens = val.split(',').map(t => t.trim()).filter(Boolean);
-        let updated = false;
-        tokens.forEach(coachName => {
-            if (coachName && !savedCoachesList.includes(coachName)) {
-                savedCoachesList.push(coachName);
-                updated = true;
-            }
-        });
-        if (updated) {
-            savedCoachesList.sort();
-            saveState();
-        }
-    }
-
-    function addCoachToStation(rIdx, sIdx, coachName) {
+    function toggleCoachCheckbox(rIdx, sIdx, coachName, checkboxEl) {
         const prac = practiceData.find(p => p.id === currentPracticeId);
         if (!prac || !prac.plan[rIdx] || !prac.plan[rIdx].stations[sIdx]) return;
-        
+
         let curVal = prac.plan[rIdx].stations[sIdx].coach || "";
         let tokens = curVal.split(',').map(t => t.trim()).filter(Boolean);
-        if (!tokens.includes(coachName)) {
-            tokens.push(coachName);
-            prac.plan[rIdx].stations[sIdx].coach = tokens.join(', ');
-            saveState();
-            renderPracticePlan();
+
+        if (checkboxEl.checked) {
+            if (!tokens.includes(coachName)) tokens.push(coachName);
+        } else {
+            tokens = tokens.filter(t => t !== coachName);
         }
+
+        prac.plan[rIdx].stations[sIdx].coach = tokens.join(', ');
+        saveState();
+        renderPracticePlan();
     }
 
-    function deleteCoachFromSaved(coachName, e) {
-        if (e) e.stopPropagation();
-        if (confirm(`Remove "${coachName}" from saved coach list?`)) {
-            savedCoachesList = savedCoachesList.filter(c => c !== coachName);
+    function addNewCoachQuick(rIdx, sIdx) {
+        let newName = prompt("Enter new Coach Name:");
+        if (newName && newName.trim() !== "") {
+            let clean = newName.trim();
+            if (!savedCoachesList.includes(clean)) {
+                savedCoachesList.push(clean);
+                savedCoachesList.sort();
+            }
+            const prac = practiceData.find(p => p.id === currentPracticeId);
+            if (prac && prac.plan[rIdx] && prac.plan[rIdx].stations[sIdx]) {
+                let curVal = prac.plan[rIdx].stations[sIdx].coach || "";
+                let tokens = curVal.split(',').map(t => t.trim()).filter(Boolean);
+                if (!tokens.includes(clean)) tokens.push(clean);
+                prac.plan[rIdx].stations[sIdx].coach = tokens.join(', ');
+            }
             saveState();
             renderPracticePlan();
         }
@@ -1840,14 +1839,6 @@
         if (!tbody) return;
         tbody.innerHTML = '';
 
-        let coachDatalistOptions = savedCoachesList.map(c => `<option value="${c}">`).join('');
-        let coachAddDropdownHtml = savedCoachesList.map(c => `
-            <div style="display:flex; justify-content:space-between; align-items:center; padding:3px 6px; font-size:10.5px; border-bottom:1px solid #f1f5f9; cursor:pointer;" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='#fff'">
-               <span onclick="addCoachToStation(%%R%%, %%S%%, '${c}')" style="flex-grow:1; font-weight:bold; color:var(--primary);">${c}</span>
-               <button class="remove-btn" style="font-size:11px;" onclick="deleteCoachFromSaved('${c}', event)" title="Delete Coach">&times;</button>
-            </div>
-        `).join('');
-
         let currentTimeMin = parseTimeString(prac.startTime || "17:05");
         (prac.plan || []).forEach((row, idx) => {
             const rowTime = parseInt(row.time || 0);
@@ -1872,9 +1863,18 @@
             let stationDurationMin = (isRotating && numStations > 0) ? (rowTime / numStations) : rowTime;
 
             let stationsHtml = (row.stations || []).map((st, sIdx) => {
-                let datalistId = `coach_list_${idx}_${sIdx}`;
                 let coachDropdownId = `coach_mgr_${idx}_${sIdx}`;
-                let specificCoachAddHtml = coachAddDropdownHtml.replace(/%%R%%/g, idx).replace(/%%S%%/g, sIdx);
+                let assignedCoaches = (st.coach || "").split(',').map(t => t.trim()).filter(Boolean);
+
+                let coachCheckboxesHtml = savedCoachesList.map(c => {
+                    let isChecked = assignedCoaches.includes(c);
+                    return `
+                        <label style="display:flex; align-items:center; gap:6px; padding:3px 6px; font-size:11px; cursor:pointer;" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='#fff'">
+                           <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleCoachCheckbox(${idx}, ${sIdx}, '${c}', this)">
+                           <span style="font-weight:bold; color:var(--primary);">${c}</span>
+                        </label>
+                    `;
+                }).join('');
 
                 let stationBadgeHtml = '';
                 if (isRotating) {
@@ -1901,13 +1901,13 @@
                            <span style="font-size:9px; color:var(--accent); cursor:pointer; text-decoration:underline;" onclick="document.getElementById('${coachDropdownId}').classList.toggle('hidden')">+ Coach ▾</span>
                         </div>
                         <div style="position:relative;">
-                           <input type="text" class="prac-input" list="${datalistId}" value="${st.coach || ''}" onkeydown="if(event.key==='Enter') this.blur();" onchange="updateCoachInput(${idx}, ${sIdx}, this.value)" placeholder="Coach Name(s)">
-                           <datalist id="${datalistId}">
-                               ${coachDatalistOptions}
-                           </datalist>
-                           <div id="${coachDropdownId}" class="card-search-dropdown hidden" style="width: 100%; max-height: 150px; overflow-y: auto; top: 100%; left: 0; padding:4px; background:#fff; z-index:50000; box-shadow:0 4px 6px rgba(0,0,0,0.15);">
-                              <div style="font-size:9px; font-weight:bold; color:var(--primary); margin-bottom:2px; border-bottom:1px solid #ccc;">Click to Add Coach:</div>
-                              ${specificCoachAddHtml || '<div style="font-size:9px; color:#64748b; padding:4px;">No saved coaches yet. Type in field to add.</div>'}
+                           <input type="text" class="prac-input" value="${st.coach || ''}" onkeydown="if(event.key==='Enter') this.blur();" onchange="updatePracStation(${idx}, ${sIdx}, 'coach', this.value)" placeholder="Select or type...">
+                           <div id="${coachDropdownId}" class="card-search-dropdown hidden" style="width: 100%; max-height: 180px; overflow-y: auto; top: 100%; left: 0; padding:4px; background:#fff; z-index:50000; box-shadow:0 4px 6px rgba(0,0,0,0.15);">
+                              <div style="font-size:9px; font-weight:bold; color:var(--primary); margin-bottom:2px; border-bottom:1px solid #ccc; padding-bottom:2px;">Check Assigned Coaches:</div>
+                              ${coachCheckboxesHtml || '<div style="font-size:9px; color:#64748b; padding:4px;">No saved coaches.</div>'}
+                              <div style="border-top:1px solid #e2e8f0; margin-top:4px; padding-top:4px; text-align:center;">
+                                 <button class="toggle-board-btn" style="font-size:9.5px; width:100%; background:#e0f2fe; color:#0369a1;" onclick="addNewCoachQuick(${idx}, ${sIdx})">+ Add New Coach</button>
+                              </div>
                            </div>
                         </div>
                     </div>
@@ -3121,25 +3121,67 @@
          `;
        }).join('');
 
+       let savedCoachesHtml = savedCoachesList.map((sc, sIdx) => `
+          <div style="display:flex; justify-content:space-between; align-items:center; background:#f8fafc; padding:6px 10px; border:1px solid var(--card-border); border-radius:6px; margin-bottom:4px;">
+             <span style="font-weight:bold; font-size:11px; color:var(--primary);">${sc}</span>
+             <button class="remove-btn" onclick="deleteSavedCoach('${sc}')" style="font-size:13px;" title="Delete">&times;</button>
+          </div>
+       `).join('');
+
        let html = `
-         <div style="margin-bottom:10px;" class="admin-only">
-           <button class="toggle-board-btn" style="background:var(--primary); color:#fff; padding:6px 12px;" onclick="addNewCoachPrompt()">+ Add Coach to Staff</button>
+         <div style="display:grid; grid-template-columns: 2fr 1fr; gap:20px;">
+           <div>
+             <div style="margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+               <strong>Practice Staff & Permissions</strong>
+               <button class="toggle-board-btn admin-only" style="background:var(--primary); color:#fff; padding:6px 12px;" onclick="addNewCoachPrompt()">+ Add Coach to Staff</button>
+             </div>
+             <table style="width:100%; border-collapse:collapse; background:#fff; font-size:11px;">
+               <thead>
+                 <tr style="background:#f1f5f9; color:var(--primary); text-align:left;">
+                   <th style="padding:8px; border:1px solid var(--card-border);">Coach / User Email</th>
+                   <th style="padding:8px; border:1px solid var(--card-border);">Role</th>
+                   <th style="padding:8px; border:1px solid var(--card-border); text-align:center;">Status</th>
+                   <th style="padding:8px; border:1px solid var(--card-border); text-align:center;" class="admin-only">Action</th>
+                 </tr>
+               </thead>
+               <tbody>
+                 ${rowsHtml}
+               </tbody>
+             </table>
+           </div>
+           <div>
+             <div style="margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+               <strong>Saved Practice Coaches</strong>
+               <button class="toggle-board-btn admin-only" style="background:#10b981; color:#fff; padding:4px 8px; font-size:10px;" onclick="addNewSavedCoachPrompt()">+ Add Name</button>
+             </div>
+             <div style="max-height: 250px; overflow-y:auto; border:1px solid var(--card-border); padding:8px; border-radius:6px; background:#fff;">
+               ${savedCoachesHtml || '<div style="color:var(--text-muted); font-size:11px; text-align:center;">No saved coaches.</div>'}
+             </div>
+           </div>
          </div>
-         <table style="width:100%; border-collapse:collapse; background:#fff; font-size:11px;">
-           <thead>
-             <tr style="background:#f1f5f9; color:var(--primary); text-align:left;">
-               <th style="padding:8px; border:1px solid var(--card-border);">Coach / User Email</th>
-               <th style="padding:8px; border:1px solid var(--card-border);">Role</th>
-               <th style="padding:8px; border:1px solid var(--card-border); text-align:center;">Status</th>
-               <th style="padding:8px; border:1px solid var(--card-border); text-align:center;" class="admin-only">Action</th>
-             </tr>
-           </thead>
-           <tbody>
-             ${rowsHtml}
-           </tbody>
-         </table>
        `;
        container.innerHTML = html;
+    }
+
+    function addNewSavedCoachPrompt() {
+        let name = prompt("Enter coach name (e.g. Coach Smith):");
+        if (name && name.trim() !== "") {
+            let clean = name.trim();
+            if (!savedCoachesList.includes(clean)) {
+                savedCoachesList.push(clean);
+                savedCoachesList.sort();
+                saveState();
+                renderUsers();
+            }
+        }
+    }
+
+    function deleteSavedCoach(name) {
+        if (confirm(`Remove "${name}" from saved practice coaches?`)) {
+            savedCoachesList = savedCoachesList.filter(c => c !== name);
+            saveState();
+            renderUsers();
+        }
     }
 
     function updateCoachRole(idx, newRole) {
@@ -3203,7 +3245,7 @@
     }
 
     function exportData() {
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({weeklyData, practiceData, masterPlayLibrary, cascadingDrills, pdfGuides, practiceTemplates, teamCoachesList}));
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({weeklyData, practiceData, masterPlayLibrary, cascadingDrills, pdfGuides, practiceTemplates, teamCoachesList, savedCoachesList}));
         const dl = document.createElement('a'); dl.setAttribute("href", dataStr); dl.setAttribute("download", `football_backup.json`); dl.click();
     }
 
