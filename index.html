@@ -239,7 +239,7 @@
 
     .period-schedule-time { margin-top: 4px; font-weight: bold; color: var(--accent); font-size: 10.5px; }
     .prac-input, .prac-select, .prac-textarea { width: 100%; border: 1px solid var(--card-border); border-radius: 4px; padding: 6px; font-family: inherit; font-size: 11px; box-sizing: border-box; background: #f8fafc; color: var(--text); white-space: pre-wrap; word-wrap: break-word; }
-    .prac-textarea { resize: vertical; min-height: 38px; height: auto; margin-top: 4px; overflow-y: hidden; flex: 1; display: block; }
+    .prac-textarea { resize: vertical; min-height: 44px; height: auto; margin-top: 4px; overflow-y: hidden; display: block; box-sizing: border-box; line-height: 1.4; }
     .prac-input:focus, .prac-select:focus, .prac-textarea:focus { border-color: var(--accent); background: #ffffff; outline: none; }
 
     .add-row-btn { margin-top: 10px; padding: 6px 12px; background: var(--primary); color: white; border: none; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; }
@@ -262,8 +262,15 @@
       @page { size: letter portrait; margin: 0.25in; }
       body { background-color: #ffffff !important; color: #000000 !important; padding: 0; margin: 0; font-size: 11px !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; width: 100% !important; overflow: visible !important; }
       .toolbar, #sidebar-container, .remove-btn, .action-group, p.subtitle, .search-box, .tab-navigation, .toggle-board-btn, .week-bar, .board-controls, .add-row-btn, .add-form-btn, .row-actions, .practice-dashboard-info, #print-modal, #new-prac-modal, #scrimmage-print-modal, #scrimmage-filter-modal, #templates-modal, #approval-pending-overlay, .col-resizer, .coach-popup-box, .coach-popup-container > div:last-child { display: none !important; }
+      
+      /* Hide specific words/triggers in print preview */
+      .no-print-text { display: none !important; }
+
       .app-layout, .boards-container, .unit-panel { display: block !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
       .unit-panel.hidden { display: none !important; }
+      
+      /* Ensure Scrimmage panel and formation containers print correctly */
+      #panel-scrimmage.unit-panel { display: block !important; }
       .formation-container { border: 2px solid #000000 !important; box-shadow: none !important; padding: 6px; page-break-inside: auto !important; margin-bottom: 8px; background: #ffffff !important; width: 100% !important; box-sizing: border-box !important; }
       .formation-container.hidden-print { display: none !important; }
       .formation-row { min-width: 100% !important; page-break-inside: avoid; align-items: start !important; }
@@ -291,9 +298,6 @@
       #panel-practice .station-block { min-height: auto !important; height: auto !important; }
       #panel-practice .station-block input.prac-input { font-weight: bold !important; font-size: 10.5px !important; color: #000 !important; white-space: pre-wrap !important; word-wrap: break-word !important; }
       #panel-practice select.prac-select:not([onchange*="updatePracRowCategory"]):not([onchange*="updatePracRowFormat"]) { display: none !important; }
-      
-      /* Hide coach selection trigger text when printing */
-      .coach-popup-container > div[onclick*="toggleCoachPopup"] { display: none !important; }
     }
   </style>
 </head>
@@ -498,9 +502,15 @@
         <div class="formation-container">
           <div class="board-title no-print">
             <span>📋 Playbooks & Positional Guides</span>
-            <button class="add-row-btn admin-only" style="margin:0;" onclick="addGuideCategory()">+ Add Category</button>
+            <div style="display:flex; gap:6px; align-items:center;">
+               <button class="add-row-btn admin-only" style="margin:0;" onclick="addSubGuideTabPrompt()">+ Add Sub-Tab</button>
+            </div>
           </div>
-          <div id="guide-tabs-container" style="display:flex; gap:8px; margin-bottom:15px; flex-wrap:wrap; border-bottom: 2px solid var(--card-border); padding-bottom: 10px;"></div>
+          <!-- Level 1 Main Folders -->
+          <div id="guide-main-folders" style="display:flex; gap:8px; margin-bottom:10px; border-bottom: 2px solid var(--card-border); padding-bottom: 8px; flex-wrap:wrap;"></div>
+          <!-- Level 2 Sub Tabs -->
+          <div id="guide-sub-tabs" style="display:flex; gap:6px; margin-bottom:15px; flex-wrap:wrap; background:#f8fafc; padding:8px; border-radius:6px; border:1px solid var(--card-border);"></div>
+          
           <div id="guide-content-area" style="min-height: 500px; display:flex; flex-direction:column; gap: 10px;"></div>
         </div>
       </div>
@@ -543,7 +553,7 @@
             </div>
             <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
               <div style="display:flex; gap:4px; align-items:center; background:#f1f5f9; padding:2px 6px; border-radius:6px; border:1px solid var(--card-border);" class="admin-only">
-                <span style="font-size:10px; font-weight:bold; color:var(--primary);">Template:</span>
+                <span class="no-print-text" style="font-size:10px; font-weight:bold; color:var(--primary);">Template:</span>
                 <select id="practice-template-select" class="prac-select" style="width:130px; font-size:11px;" onchange="applyPracticeTemplate(this.value)"></select>
                 <button class="toggle-board-btn" style="padding:2px 6px; font-size:10px;" onclick="saveCurrentAsTemplate()" title="Save current plan as template">💾 Save</button>
                 <button class="toggle-board-btn" style="padding:2px 6px; font-size:10px;" onclick="openTemplatesManager()" title="Edit or delete templates">⚙️ Manage</button>
@@ -744,7 +754,7 @@
             return;
         }
         db.collection("teamData").doc("depthChartData").set({
-            weeklyData, practiceData, masterPlayLibrary, cascadingDrills, pdfGuides, collapsedFolders, savedCoachesList, practiceTemplates, teamCoachesList,
+            weeklyData, practiceData, masterPlayLibrary, cascadingDrills, pdfGuidesTree, activeGuideMain, activeGuideSub, collapsedFolders, savedCoachesList, practiceTemplates, teamCoachesList,
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         }, { merge: true }).then(() => {
             alert("Successfully forced all local drill folders and data to live cloud database!");
@@ -768,7 +778,11 @@
     function openGuideFullScreen() {
       const modal = document.getElementById("pdf-fullscreen-modal");
       const container = document.getElementById("pdf-fullscreen-content");
-      const guideVal = pdfGuides[activeGuidePos] || "";
+      
+      let guideVal = "";
+      if (pdfGuidesTree[activeGuideMain] && pdfGuidesTree[activeGuideMain][activeGuideSub]) {
+          guideVal = pdfGuidesTree[activeGuideMain][activeGuideSub];
+      }
       if (!guideVal) { alert("No document selected."); return; }
 
       container.innerHTML = `<iframe src="${guideVal}" style="width:100%; height:100%; border:none;" title="Playbook Guide Full Screen"></iframe>`;
@@ -829,12 +843,18 @@
       ]
     };
 
-    // Safely merge local/cloud templates with defaults so custom templates are never lost
     let savedTemplates = safeJSONParse("footballPracticeTemplates", {});
     let practiceTemplates = { ...defaultPracticeTemplates, ...(typeof savedTemplates === 'object' && savedTemplates !== null ? savedTemplates : {}) };
 
-    let pdfGuides = safeJSONParse("footballPdfGuides", { "Offense": "", "53 Defense": "", "44 Defense": "" });
-    let activeGuidePos = Object.keys(pdfGuides).length > 0 ? Object.keys(pdfGuides)[0] : null;
+    let defaultPdfGuidesTree = {
+      "Offense": { "Full Playbook": "", "Quarterbacks": "", "Running Backs": "", "Wide Receivers": "", "Offensive Line": "" },
+      "Defense": { "Full Playbook": "", "Defensive Line": "", "Linebackers": "", "Secondary": "" },
+      "Specials": { "Special Teams": "", "Kicking & Punting": "" }
+    };
+    let savedGuidesTree = safeJSONParse("footballPdfGuidesTree", null);
+    let pdfGuidesTree = (savedGuidesTree && typeof savedGuidesTree === 'object') ? savedGuidesTree : defaultPdfGuidesTree;
+    let activeGuideMain = "Offense";
+    let activeGuideSub = Object.keys(pdfGuidesTree["Offense"] || {})[0] || "Full Playbook";
 
     const masterRoster = [
       { num: "2", firstName: "Mohammed", lastName: "Ibrahim" },
@@ -1147,15 +1167,15 @@
         localStorage.setItem("footballPracticeData", JSON.stringify(practiceData));
         localStorage.setItem("footballMasterPlays", JSON.stringify(masterPlayLibrary));
         localStorage.setItem("footballCascadingDrills", JSON.stringify(cascadingDrills));
-        localStorage.setItem("footballPdfGuides", JSON.stringify(pdfGuides));
+        localStorage.setItem("footballPdfGuidesTree", JSON.stringify(pdfGuidesTree));
         localStorage.setItem("footballCollapsedFolders", JSON.stringify(collapsedFolders));
         localStorage.setItem("footballSavedCoaches", JSON.stringify(savedCoachesList));
-        localStorage.setItem("footballPracticeTemplates", JSON.stringify(practiceTemplates)); // Persist templates
+        localStorage.setItem("footballPracticeTemplates", JSON.stringify(practiceTemplates));
         localStorage.setItem("footballTeamCoaches", JSON.stringify(teamCoachesList));
 
         if (cloudEnabled && db && userRole === 'admin') {
             db.collection("teamData").doc("depthChartData").set({
-                weeklyData, practiceData, masterPlayLibrary, cascadingDrills, pdfGuides, collapsedFolders, savedCoachesList, practiceTemplates, teamCoachesList,
+                weeklyData, practiceData, masterPlayLibrary, cascadingDrills, pdfGuidesTree, activeGuideMain, activeGuideSub, collapsedFolders, savedCoachesList, practiceTemplates, teamCoachesList,
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             }, { merge: true }).catch(err => console.error("Firestore sync error:", err));
         }
@@ -1237,7 +1257,7 @@
     function autoResizeTextarea(el) {
         if (!el) return;
         el.style.height = 'auto';
-        el.style.height = (el.scrollHeight + 6) + 'px';
+        el.style.height = (el.scrollHeight + 8) + 'px';
     }
 
     function ensureWeekDataExists(week) {
@@ -2087,7 +2107,7 @@
                             </select>
                         </div>
                         <input type="text" class="prac-input" value="${st.name || ''}" onkeydown="if(event.key==='Enter') this.blur();" onchange="updatePracStation(${idx}, ${sIdx}, 'name', this.value); syncDrillLibraryFromStation(${idx}, ${sIdx});" placeholder="Group / Drill Name">
-                        <textarea class="prac-textarea" style="white-space:pre-wrap; word-wrap:break-word;" oninput="autoResizeTextarea(this);" onchange="autoResizeTextarea(this); updatePracStation(${idx}, ${sIdx}, 'desc', this.value); syncDrillLibraryFromStation(${idx}, ${sIdx});" placeholder="Details...">${st.desc || ''}</textarea>
+                        <textarea class="prac-textarea" oninput="autoResizeTextarea(this);" onchange="autoResizeTextarea(this); updatePracStation(${idx}, ${sIdx}, 'desc', this.value); syncDrillLibraryFromStation(${idx}, ${sIdx});" placeholder="Details...">${st.desc || ''}</textarea>
                         <div class="no-print admin-only" style="position:absolute; right:0; top:0;">
                             ${numStations > 1 ? `<button class="remove-btn" onclick="removeStation(${idx}, ${sIdx})" title="Delete Station">&times;</button>` : ''}
                         </div>
@@ -2096,8 +2116,8 @@
 
                 let coachCellContent = `
                     <div id="${stationBoxId}" class="station-block coach-popup-container" style="position:relative;">
-                        <textarea class="prac-textarea coach-textarea" style="white-space:pre-wrap; word-wrap:break-word;" oninput="autoResizeTextarea(this); updatePracStation(${idx}, ${sIdx}, 'coach', this.value);" placeholder="Type or click dropdown...">${st.coach || ''}</textarea>
-                        <div style="font-size:9.5px; color:var(--accent); cursor:pointer; margin-top:2px;" onclick="toggleCoachPopup(${idx}, ${sIdx}, event)">▼ Select Coaches</div>
+                        <textarea class="prac-textarea coach-textarea" oninput="autoResizeTextarea(this); updatePracStation(${idx}, ${sIdx}, 'coach', this.value);" placeholder="Type or click dropdown...">${st.coach || ''}</textarea>
+                        <div class="no-print-text" style="font-size:9.5px; color:var(--accent); cursor:pointer; margin-top:2px;" onclick="toggleCoachPopup(${idx}, ${sIdx}, event)">▼ Select Coaches</div>
                         
                         <div id="${coachPopupId}" class="coach-popup-box card-search-dropdown hidden" style="width: 220px; max-height: 220px; overflow-y: auto; top: 100%; left: 0; padding:8px; background:#fff; z-index:50000; box-shadow:0 4px 12px rgba(0,0,0,0.15);" onclick="event.stopPropagation()">
                            <div style="font-size:10px; font-weight:bold; color:var(--primary); margin-bottom:6px; border-bottom:1px solid #ccc; padding-bottom:3px; display:flex; justify-content:space-between; align-items:center;">
@@ -2114,7 +2134,7 @@
 
                 let focusCellContent = `
                     <div class="station-block">
-                        <textarea class="prac-textarea" style="white-space:pre-wrap; word-wrap:break-word;" oninput="autoResizeTextarea(this);" onchange="autoResizeTextarea(this); updatePracStation(${idx}, ${sIdx}, 'focus', this.value); syncDrillLibraryFromStation(${idx}, ${sIdx});" placeholder="Key focus...">${st.focus || ''}</textarea>
+                        <textarea class="prac-textarea" oninput="autoResizeTextarea(this);" onchange="autoResizeTextarea(this); updatePracStation(${idx}, ${sIdx}, 'focus', this.value); syncDrillLibraryFromStation(${idx}, ${sIdx});" placeholder="Key focus...">${st.focus || ''}</textarea>
                     </div>
                 `;
 
@@ -2175,7 +2195,7 @@
             currentTimeMin = endTimeMin;
         });
 
-        // Trigger auto-resize immediately and after a short delay to ensure multi-line textareas expand fully
+        // Trigger immediate and delayed auto-resizing across all textareas
         setTimeout(() => {
           document.querySelectorAll('#main-practice-table .prac-textarea').forEach(ta => autoResizeTextarea(ta));
         }, 10);
@@ -2454,7 +2474,7 @@
               if (data.practiceData && data.practiceData.length > 0) practiceData = data.practiceData;
               if (data.masterPlayLibrary && data.masterPlayLibrary.length > 0) masterPlayLibrary = data.masterPlayLibrary;
               if (data.cascadingDrills && data.cascadingDrills.length > 0) cascadingDrills = data.cascadingDrills;
-              if (data.pdfGuides) pdfGuides = data.pdfGuides;
+              if (data.pdfGuidesTree && typeof data.pdfGuidesTree === 'object') pdfGuidesTree = data.pdfGuidesTree;
               if (data.collapsedFolders) collapsedFolders = data.collapsedFolders;
               if (data.savedCoachesList) savedCoachesList = data.savedCoachesList;
               if (data.practiceTemplates && typeof data.practiceTemplates === 'object' && Object.keys(data.practiceTemplates).length > 0) {
@@ -2488,6 +2508,7 @@
               if (activeUnit === 'drills') renderDrillsTab();
               if (activeUnit === 'scrimmage') renderScrimmageTab();
               if (activeUnit === 'users') renderUsers();
+              if (activeUnit === 'guide') renderGuideTab();
             }
           });
     }
@@ -2898,6 +2919,7 @@
       forms.forEach(form => {
           const formDiv = document.createElement("div");
           formDiv.className = "formation-container";
+          formDiv.dataset.formId = form.id;
           formDiv.innerHTML = `
             <div class="board-title"><span>[${form.unit.toUpperCase()}] ${form.name}</span></div>
             <div class="formation-scaler">
@@ -3266,19 +3288,45 @@
     }
 
     function renderGuideTab() {
-      const tabsContainer = document.getElementById('guide-tabs-container');
+      const mainContainer = document.getElementById('guide-main-folders');
+      const subContainer = document.getElementById('guide-sub-tabs');
       const contentArea = document.getElementById('guide-content-area');
-      if (!tabsContainer || !contentArea) return;
+      if (!mainContainer || !subContainer || !contentArea) return;
       
-      tabsContainer.innerHTML = Object.keys(pdfGuides).map(cat => `<button class="nav-tab ${cat === activeGuidePos ? 'active' : ''}" onclick="switchGuidePos('${cat}')">${cat}</button>`).join('');
-      
-      let guideVal = pdfGuides[activeGuidePos] || "";
-      let displayHtml = guideVal.startsWith("http") ? `<iframe src="${guideVal}" style="width:100%; height:600px; border:none;" title="Playbook Guide"></iframe>` : `<div style="padding:20px; text-align:center; color:var(--text-muted);">No document uploaded for this category yet.</div>`;
+      // Ensure main structure exists
+      if (!pdfGuidesTree[activeGuideMain]) {
+          activeGuideMain = Object.keys(pdfGuidesTree)[0] || "Offense";
+      }
+      let subDict = pdfGuidesTree[activeGuideMain] || {};
+      let subKeys = Object.keys(subDict);
+      if (!subKeys.includes(activeGuideSub)) {
+          activeGuideSub = subKeys[0] || "";
+      }
+
+      // 1. Render Main Folders (Offense, Defense, Specials)
+      mainContainer.innerHTML = Object.keys(pdfGuidesTree).map(mainCat => `
+        <button class="nav-tab ${mainCat === activeGuideMain ? 'active' : ''}" onclick="switchGuideMain('${mainCat}')">${mainCat}</button>
+      `).join('') + `<button class="toggle-board-btn admin-only" onclick="addMainFolderPrompt()" style="margin-left:auto;">+ Add Main Folder</button>`;
+
+      // 2. Render Sub-Tabs (Positions or Full Guides under active main folder)
+      let subTabsHtml = subKeys.map(subKey => `
+        <div style="display:flex; align-items:center; background:#fff; border:1px solid var(--card-border); border-radius:15px; padding:2px 8px; gap:4px;">
+           <span style="font-size:11px; font-weight:bold; cursor:pointer; color:${subKey === activeGuideSub ? 'var(--accent)' : 'var(--text)'};" onclick="switchGuideSub('${subKey}')">${subKey}</span>
+           <button class="remove-btn admin-only" onclick="renameSubGuideTab('${subKey}', event)" title="Rename" style="font-size:10px; padding:0 2px;">✏️</button>
+           <button class="remove-btn admin-only" onclick="deleteSubGuideTab('${subKey}', event)" title="Delete" style="font-size:12px; padding:0 2px;">&times;</button>
+        </div>
+      `).join('');
+
+      subContainer.innerHTML = subTabsHtml || '<span style="font-size:11px; color:var(--text-muted);">No sub-tabs found. Add one below.</span>';
+
+      // 3. Render Content Area for active sub-tab
+      let guideVal = (subDict[activeGuideSub]) || "";
+      let displayHtml = guideVal.startsWith("http") ? `<iframe src="${guideVal}" style="width:100%; height:600px; border:none;" title="Playbook Guide"></iframe>` : `<div style="padding:20px; text-align:center; color:var(--text-muted);">No document uploaded for [${activeGuideMain} > ${activeGuideSub}] yet.</div>`;
 
       contentArea.innerHTML = `
         <div class="admin-only" style="padding: 10px; background: #f8fafc; border: 1px solid var(--card-border); border-radius: 6px; margin-bottom: 10px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:space-between;">
            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-             <label style="font-size:12px; font-weight:bold; color:var(--primary);">Upload PDF / Document for [${activeGuidePos}]:</label>
+             <label style="font-size:12px; font-weight:bold; color:var(--primary);">Upload Document for [${activeGuideMain} / ${activeGuideSub}]:</label>
              <input type="file" id="guide-file-input" accept=".pdf,.doc,.docx" onchange="uploadGuideFile(event)" />
            </div>
            <div>
@@ -3293,23 +3341,98 @@
 
     async function uploadGuideFile(e) {
         const file = e.target.files[0];
-        if (!file || !activeGuidePos) return;
+        if (!file || !activeGuideMain || !activeGuideSub) return;
         if (!storage) { alert("Cloud storage is offline."); return; }
         try {
             const storageRef = storage.ref(`playbook_guides/${Date.now()}_${file.name}`);
             const snapshot = await storageRef.put(file);
             const downloadUrl = await snapshot.ref.getDownloadURL();
-            pdfGuides[activeGuidePos] = downloadUrl;
+            
+            if (!pdfGuidesTree[activeGuideMain]) pdfGuidesTree[activeGuideMain] = {};
+            pdfGuidesTree[activeGuideMain][activeGuideSub] = downloadUrl;
+            
             saveState();
             renderGuideTab();
             alert("Guide uploaded successfully!");
         } catch (err) { alert("Upload failed: " + err.message); }
     }
 
-    function switchGuidePos(cat) { activeGuidePos = cat; renderGuideTab(); }
-    function addGuideCategory() {
-      let cat = prompt("Enter new Guide Category:");
-      if (cat && cat.trim() !== "") { pdfGuides[cat.trim()] = ""; activeGuidePos = cat.trim(); saveState(); renderGuideTab(); }
+    function switchGuideMain(mainCat) {
+        activeGuideMain = mainCat;
+        let subKeys = Object.keys(pdfGuidesTree[activeGuideMain] || {});
+        activeGuideSub = subKeys[0] || "";
+        renderGuideTab();
+    }
+
+    function switchGuideSub(subKey) {
+        activeGuideSub = subKey;
+        renderGuideTab();
+    }
+
+    function addMainFolderPrompt() {
+        let name = prompt("Enter new Main Folder Name (e.g. Special Teams, Youth Install):");
+        if (name && name.trim() !== "") {
+            let clean = name.trim();
+            if (!pdfGuidesTree[clean]) {
+                pdfGuidesTree[clean] = { "Full Playbook": "" };
+                activeGuideMain = clean;
+                activeGuideSub = "Full Playbook";
+                saveState();
+                renderGuideTab();
+            } else {
+                alert("Main folder already exists.");
+            }
+        }
+    }
+
+    function addSubGuideTabPrompt() {
+        let name = prompt("Enter Position or Guide Sub-Tab Name (e.g. Wide Receivers, Blitz Schemes):");
+        if (name && name.trim() !== "") {
+            let clean = name.trim();
+            if (!pdfGuidesTree[activeGuideMain]) pdfGuidesTree[activeGuideMain] = {};
+            if (!pdfGuidesTree[activeGuideMain][clean]) {
+                pdfGuidesTree[activeGuideMain][clean] = "";
+                activeGuideSub = clean;
+                saveState();
+                renderGuideTab();
+            } else {
+                alert("Sub-tab already exists under this folder.");
+            }
+        }
+    }
+
+    function renameSubGuideTab(oldName, e) {
+        if (e) e.stopPropagation();
+        let newName = prompt("Rename Sub-Tab:", oldName);
+        if (newName && newName.trim() !== "" && newName !== oldName) {
+            let clean = newName.trim();
+            if (pdfGuidesTree[activeGuideMain][clean]) {
+                alert("A sub-tab with that name already exists.");
+                return;
+            }
+            let val = pdfGuidesTree[activeGuideMain][oldName];
+            delete pdfGuidesTree[activeGuideMain][oldName];
+            pdfGuidesTree[activeGuideMain][clean] = val;
+            activeGuideSub = clean;
+            saveState();
+            renderGuideTab();
+        }
+    }
+
+    function deleteSubGuideTab(subKey, e) {
+        if (e) e.stopPropagation();
+        let subKeys = Object.keys(pdfGuidesTree[activeGuideMain] || {});
+        if (subKeys.length <= 1) {
+            alert("Cannot delete the last sub-tab in this folder.");
+            return;
+        }
+        if (confirm(`Delete sub-tab "${subKey}"?`)) {
+            delete pdfGuidesTree[activeGuideMain][subKey];
+            let remaining = Object.keys(pdfGuidesTree[activeGuideMain]);
+            activeGuideSub = remaining[0];
+            saveState();
+            renderGuideTab();
+        }
     }
 
     function renderUsers() {
@@ -3489,7 +3612,7 @@
     }
 
     function exportData() {
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({weeklyData, practiceData, masterPlayLibrary, cascadingDrills, pdfGuides, practiceTemplates, teamCoachesList, savedCoachesList}));
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({weeklyData, practiceData, masterPlayLibrary, cascadingDrills, pdfGuidesTree, practiceTemplates, teamCoachesList, savedCoachesList}));
         const dl = document.createElement('a'); dl.setAttribute("href", dataStr); dl.setAttribute("download", `football_backup.json`); dl.click();
     }
 
@@ -3513,7 +3636,12 @@
                 if (parsed.practiceData) practiceData = parsed.practiceData;
                 if (parsed.masterPlayLibrary) masterPlayLibrary = parsed.masterPlayLibrary;
                 if (parsed.cascadingDrills) cascadingDrills = parsed.cascadingDrills;
-                if (parsed.pdfGuides) pdfGuides = parsed.pdfGuides;
+                if (parsed.pdfGuidesTree && typeof parsed.pdfGuidesTree === 'object') {
+                    pdfGuidesTree = parsed.pdfGuidesTree;
+                } else if (parsed.pdfGuides) {
+                    // Backward compatibility if importing older flat guides
+                    pdfGuidesTree = { "Offense": parsed.pdfGuides, "Defense": {}, "Specials": {} };
+                }
                 if (parsed.collapsedFolders) collapsedFolders = parsed.collapsedFolders;
                 if (parsed.savedCoachesList) savedCoachesList = parsed.savedCoachesList;
                 if (parsed.practiceTemplates && typeof parsed.practiceTemplates === 'object' && Object.keys(parsed.practiceTemplates).length > 0) {
@@ -3535,7 +3663,7 @@
                 localStorage.setItem("footballPracticeData", JSON.stringify(practiceData));
                 localStorage.setItem("footballMasterPlays", JSON.stringify(masterPlayLibrary));
                 localStorage.setItem("footballCascadingDrills", JSON.stringify(cascadingDrills));
-                localStorage.setItem("footballPdfGuides", JSON.stringify(pdfGuides));
+                localStorage.setItem("footballPdfGuidesTree", JSON.stringify(pdfGuidesTree));
                 localStorage.setItem("footballCollapsedFolders", JSON.stringify(collapsedFolders));
                 localStorage.setItem("footballSavedCoaches", JSON.stringify(savedCoachesList));
                 localStorage.setItem("footballPracticeTemplates", JSON.stringify(practiceTemplates));
@@ -3543,7 +3671,7 @@
 
                 if (cloudEnabled && db && userRole === 'admin') {
                     await db.collection("teamData").doc("depthChartData").set({
-                        weeklyData, practiceData, masterPlayLibrary, cascadingDrills, pdfGuides, collapsedFolders, savedCoachesList, practiceTemplates, teamCoachesList,
+                        weeklyData, practiceData, masterPlayLibrary, cascadingDrills, pdfGuidesTree, collapsedFolders, savedCoachesList, practiceTemplates, teamCoachesList,
                         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                     }, { merge: true });
                 }
