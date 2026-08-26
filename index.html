@@ -1794,7 +1794,7 @@
         renderPracticePlan();
     }
 
-    function addNewCoachQuick(rIdx, sIdx) {
+    function addCoachFromPopupPrompt(rIdx, sIdx) {
         let newName = prompt("Enter new Coach Name:");
         if (newName && newName.trim() !== "") {
             let clean = newName.trim();
@@ -1809,6 +1809,14 @@
                 if (!tokens.includes(clean)) tokens.push(clean);
                 prac.plan[rIdx].stations[sIdx].coach = tokens.join(', ');
             }
+            saveState();
+            renderPracticePlan();
+        }
+    }
+
+    function deleteCoachFromPopup(coachName) {
+        if (confirm(`Remove "${coachName}" from saved coaches?`)) {
+            savedCoachesList = savedCoachesList.filter(c => c !== coachName);
             saveState();
             renderPracticePlan();
         }
@@ -1869,10 +1877,13 @@
                 let coachCheckboxesHtml = savedCoachesList.map(c => {
                     let isChecked = assignedCoaches.includes(c);
                     return `
-                        <label style="display:flex; align-items:center; gap:6px; padding:3px 6px; font-size:11px; cursor:pointer;" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='#fff'">
-                           <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleCoachCheckbox(${idx}, ${sIdx}, '${c}', this)">
-                           <span style="font-weight:bold; color:var(--primary);">${c}</span>
-                        </label>
+                        <div style="display:flex; align-items:center; justify-content:space-between; padding:3px 6px; font-size:11px;" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='#fff'">
+                           <label style="display:flex; align-items:center; gap:6px; cursor:pointer; flex-grow:1;">
+                              <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleCoachCheckbox(${idx}, ${sIdx}, '${c}', this)">
+                              <span style="font-weight:bold; color:var(--primary);">${c}</span>
+                           </label>
+                           <button class="remove-btn" onclick="deleteCoachFromPopup('${c}')" style="font-size:12px; padding:0 4px;" title="Delete Coach">&times;</button>
+                        </div>
                     `;
                 }).join('');
 
@@ -1901,12 +1912,12 @@
                            <span style="font-size:9px; color:var(--accent); cursor:pointer; text-decoration:underline;" onclick="document.getElementById('${coachDropdownId}').classList.toggle('hidden')">+ Coach ▾</span>
                         </div>
                         <div style="position:relative;">
-                           <input type="text" class="prac-input" value="${st.coach || ''}" onkeydown="if(event.key==='Enter') this.blur();" onchange="updatePracStation(${idx}, ${sIdx}, 'coach', this.value)" placeholder="Select or type...">
-                           <div id="${coachDropdownId}" class="card-search-dropdown hidden" style="width: 100%; max-height: 180px; overflow-y: auto; top: 100%; left: 0; padding:4px; background:#fff; z-index:50000; box-shadow:0 4px 6px rgba(0,0,0,0.15);">
-                              <div style="font-size:9px; font-weight:bold; color:var(--primary); margin-bottom:2px; border-bottom:1px solid #ccc; padding-bottom:2px;">Check Assigned Coaches:</div>
+                           <input type="text" class="prac-input" value="${st.coach || ''}" onkeydown="if(event.key==='Enter') this.blur();" onchange="updatePracStation(${idx}, ${sIdx}, 'coach', this.value)" placeholder="Click to type coaches...">
+                           <div id="${coachDropdownId}" class="card-search-dropdown hidden" style="width: 100%; max-height: 200px; overflow-y: auto; top: 100%; left: 0; padding:6px; background:#fff; z-index:50000; box-shadow:0 4px 6px rgba(0,0,0,0.15);">
+                              <div style="font-size:9px; font-weight:bold; color:var(--primary); margin-bottom:4px; border-bottom:1px solid #ccc; padding-bottom:2px;">Select or Manage Coaches:</div>
                               ${coachCheckboxesHtml || '<div style="font-size:9px; color:#64748b; padding:4px;">No saved coaches.</div>'}
                               <div style="border-top:1px solid #e2e8f0; margin-top:4px; padding-top:4px; text-align:center;">
-                                 <button class="toggle-board-btn" style="font-size:9.5px; width:100%; background:#e0f2fe; color:#0369a1;" onclick="addNewCoachQuick(${idx}, ${sIdx})">+ Add New Coach</button>
+                                 <button class="toggle-board-btn" style="font-size:9.5px; width:100%; background:#e0f2fe; color:#0369a1;" onclick="addCoachFromPopupPrompt(${idx}, ${sIdx})">+ Add New Coach</button>
                               </div>
                            </div>
                         </div>
