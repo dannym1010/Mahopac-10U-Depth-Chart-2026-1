@@ -226,7 +226,7 @@
     .practice-dashboard-info { background: #f1f5f9; padding: 10px 12px; border-radius: 6px; border: 1px solid var(--card-border); margin-bottom: 12px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; font-size: 11.5px; }
 
     .practice-table { width: 100%; border-collapse: collapse; margin-top: 10px; background: #ffffff; font-size: 11px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); table-layout: fixed; }
-    .practice-table th, .practice-table td { border: 1px solid var(--card-border); padding: 6px 8px; text-align: left; vertical-align: top; box-sizing: border-box; position: relative; word-wrap: break-word; }
+    .practice-table th, .practice-table td { border: 1px solid var(--card-border); padding: 6px 8px; text-align: left; vertical-align: top; box-sizing: border-box; position: relative; word-wrap: break-word; height: 1px; }
     .practice-table th { background: #f1f5f9; color: var(--primary); user-select: none; position: relative; }
     .practice-table tbody tr.period-odd td { background-color: #ffffff; }
     .practice-table tbody tr.period-even td { background-color: #f4f6f9; }
@@ -238,14 +238,14 @@
     .col-resizer:hover { background-color: rgba(37, 99, 235, 0.3); }
 
     .period-schedule-time { margin-top: 4px; font-weight: bold; color: var(--accent); font-size: 10.5px; }
-    .prac-input, .prac-select, .prac-textarea { width: 100%; border: 1px solid var(--card-border); border-radius: 4px; padding: 4px; font-family: inherit; font-size: 11px; box-sizing: border-box; background: #f8fafc; color: var(--text); white-space: pre-wrap; word-wrap: break-word; }
-    .prac-textarea { resize: vertical; min-height: 44px; height: auto; margin-top: 4px; overflow-y: hidden; }
+    .prac-input, .prac-select, .prac-textarea { width: 100%; border: 1px solid var(--card-border); border-radius: 4px; padding: 6px; font-family: inherit; font-size: 11px; box-sizing: border-box; background: #f8fafc; color: var(--text); white-space: pre-wrap; word-wrap: break-word; }
+    .prac-textarea { resize: vertical; min-height: 38px; height: auto; margin-top: 4px; overflow-y: hidden; flex: 1; display: block; }
     .prac-input:focus, .prac-select:focus, .prac-textarea:focus { border-color: var(--accent); background: #ffffff; outline: none; }
 
     .add-row-btn { margin-top: 10px; padding: 6px 12px; background: var(--primary); color: white; border: none; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; }
     .add-row-btn:hover { background: var(--accent); }
 
-    .station-block { margin-bottom: 0px; display: flex; flex-direction: column; justify-content: flex-start; min-height: 55px; box-sizing: border-box; width: 100%; }
+    .station-block { margin-bottom: 0px; display: flex; flex-direction: column; justify-content: flex-start; height: 100%; min-height: 55px; box-sizing: border-box; width: 100%; }
 
     /* Sidebar Wrapper & Panels */
     #sidebar-container { flex: 1; min-width: 220px; max-width: 280px; position: sticky; top: 15px; max-height: calc(100vh - 30px); display: flex; flex-direction: column; }
@@ -288,7 +288,7 @@
       .period-schedule-time { font-size: 11px !important; color: #000 !important; font-weight: bold !important; }
       .prac-input, .prac-select, .prac-textarea { font-size: 11.5px !important; border: none !important; background: transparent !important; padding: 0 !important; color: #000 !important; text-transform: uppercase !important; white-space: pre-wrap !important; word-wrap: break-word !important; }
       
-      #panel-practice .station-block { min-height: auto !important; }
+      #panel-practice .station-block { min-height: auto !important; height: auto !important; }
       #panel-practice .station-block input.prac-input { font-weight: bold !important; font-size: 12px !important; color: #000 !important; white-space: pre-wrap !important; word-wrap: break-word !important; }
 
       #panel-practice select.prac-select:not([onchange*="updatePracRowCategory"]):not([onchange*="updatePracRowFormat"]) { display: none !important; }
@@ -1227,8 +1227,9 @@
     }
 
     function autoResizeTextarea(el) {
+        if (!el) return;
         el.style.height = 'auto';
-        el.style.height = (el.scrollHeight) + 'px';
+        el.style.height = (el.scrollHeight + 6) + 'px';
     }
 
     function ensureWeekDataExists(week) {
@@ -1804,7 +1805,9 @@
        const wrapper = document.getElementById("drills-wrapper");
        if (!wrapper) return;
        wrapper.innerHTML = renderFolderTreeHTML(cascadingDrills);
-       document.querySelectorAll('#panel-drills .prac-textarea').forEach(ta => autoResizeTextarea(ta));
+       setTimeout(() => {
+         document.querySelectorAll('#panel-drills .prac-textarea').forEach(ta => autoResizeTextarea(ta));
+       }, 50);
     }
 
     function collectAllDrillsFlat(nodeList, list = []) {
@@ -1912,8 +1915,15 @@
 
         prac.plan[rIdx].stations[sIdx].coach = tokens.join(', ');
         saveState();
-        renderPracticePlan();
         
+        // Update the textarea display directly without destroying the open popup container
+        const stationEl = document.getElementById(`station_box_${rIdx}_${sIdx}`);
+        if (stationEl) {
+            const ta = stationEl.querySelector('.coach-textarea');
+            if (ta) ta.value = prac.plan[rIdx].stations[sIdx].coach;
+        }
+        
+        // Keep popup open and focused
         const popup = document.getElementById(`coach_popup_${rIdx}_${sIdx}`);
         if (popup) popup.classList.remove('hidden');
     }
@@ -2004,6 +2014,7 @@
 
             stationsList.forEach((st, sIdx) => {
                 let coachPopupId = `coach_popup_${idx}_${sIdx}`;
+                let stationBoxId = `station_box_${idx}_${sIdx}`;
                 let assignedCoaches = (st.coach || "").split(',').map(t => t.trim()).filter(Boolean);
 
                 let coachCheckboxesHtml = savedCoachesList.map(c => {
@@ -2035,7 +2046,7 @@
                             </select>
                         </div>
                         <input type="text" class="prac-input" value="${st.name || ''}" onkeydown="if(event.key==='Enter') this.blur();" onchange="updatePracStation(${idx}, ${sIdx}, 'name', this.value); syncDrillLibraryFromStation(${idx}, ${sIdx});" placeholder="Group / Drill Name">
-                        <textarea class="prac-textarea" style="min-height:30px; white-space:pre-wrap; word-wrap:break-word;" oninput="autoResizeTextarea(this);" onchange="updatePracStation(${idx}, ${sIdx}, 'desc', this.value); syncDrillLibraryFromStation(${idx}, ${sIdx});" placeholder="Details...">${st.desc || ''}</textarea>
+                        <textarea class="prac-textarea" style="white-space:pre-wrap; word-wrap:break-word;" oninput="autoResizeTextarea(this);" onchange="autoResizeTextarea(this); updatePracStation(${idx}, ${sIdx}, 'desc', this.value); syncDrillLibraryFromStation(${idx}, ${sIdx});" placeholder="Details...">${st.desc || ''}</textarea>
                         <div class="no-print admin-only" style="position:absolute; right:0; top:0;">
                             ${numStations > 1 ? `<button class="remove-btn" onclick="removeStation(${idx}, ${sIdx})" title="Delete Station">&times;</button>` : ''}
                         </div>
@@ -2043,8 +2054,8 @@
                 `;
 
                 let coachCellContent = `
-                    <div class="station-block coach-popup-container" style="position:relative; display:flex; flex-direction:column; justify-content:flex-start;">
-                        <textarea class="prac-textarea" style="min-height:30px; white-space:pre-wrap; word-wrap:break-word; cursor:pointer;" readonly onclick="toggleCoachPopup(${idx}, ${sIdx}, event)" oninput="autoResizeTextarea(this);" placeholder="Click coaches...">${st.coach || ''}</textarea>
+                    <div id="${stationBoxId}" class="station-block coach-popup-container" style="position:relative;">
+                        <textarea class="prac-textarea coach-textarea" style="white-space:pre-wrap; word-wrap:break-word; cursor:pointer;" readonly onclick="toggleCoachPopup(${idx}, ${sIdx}, event)" oninput="autoResizeTextarea(this);" placeholder="Click coaches...">${st.coach || ''}</textarea>
                         
                         <div id="${coachPopupId}" class="coach-popup-box card-search-dropdown hidden" style="width: 220px; max-height: 220px; overflow-y: auto; top: 100%; left: 0; padding:8px; background:#fff; z-index:50000; box-shadow:0 4px 12px rgba(0,0,0,0.15);" onclick="event.stopPropagation()">
                            <div style="font-size:10px; font-weight:bold; color:var(--primary); margin-bottom:6px; border-bottom:1px solid #ccc; padding-bottom:3px; display:flex; justify-content:space-between; align-items:center;">
@@ -2060,8 +2071,8 @@
                 `;
 
                 let focusCellContent = `
-                    <div class="station-block" style="display:flex; flex-direction:column; justify-content:flex-start;">
-                        <textarea class="prac-textarea" style="min-height:30px; white-space:pre-wrap; word-wrap:break-word;" oninput="autoResizeTextarea(this);" onchange="updatePracStation(${idx}, ${sIdx}, 'focus', this.value); syncDrillLibraryFromStation(${idx}, ${sIdx});" placeholder="Key focus...">${st.focus || ''}</textarea>
+                    <div class="station-block">
+                        <textarea class="prac-textarea" style="white-space:pre-wrap; word-wrap:break-word;" oninput="autoResizeTextarea(this);" onchange="autoResizeTextarea(this); updatePracStation(${idx}, ${sIdx}, 'focus', this.value); syncDrillLibraryFromStation(${idx}, ${sIdx});" placeholder="Key focus...">${st.focus || ''}</textarea>
                     </div>
                 `;
 
@@ -2121,7 +2132,11 @@
             });
             currentTimeMin = endTimeMin;
         });
-        document.querySelectorAll('#main-practice-table .prac-textarea').forEach(ta => autoResizeTextarea(ta));
+
+        // Immediate height expansion on render
+        setTimeout(() => {
+          document.querySelectorAll('#main-practice-table .prac-textarea').forEach(ta => autoResizeTextarea(ta));
+        }, 10);
     }
 
     function movePracticeRow(rIdx, direction) {
@@ -3559,51 +3574,31 @@
       });
     }
 
-    function sanitizePracticeData() {
-      if (!Array.isArray(practiceData) || practiceData.length === 0) {
-        let defaultCat = cascadingDrills.length > 0 ? cascadingDrills[0].name : "General";
-        practiceData = [{
-          id: "prac_1", year: "2026", weekFolder: "Week 1", title: "Practice #1", date: new Date().toISOString().split('T')[0],
-          day: "Wednesday", startTime: "17:05", endTime: "20:00", lastEdited: Date.now(),
-          plan: [{ time: 25, category: defaultCat, format: "static", stations: [{ name: "GROUP 1: QB & Center", desc: "", coach: "", focus: "" }] }]
-        }];
-      } else {
-        practiceData.process = practiceData.forEach(p => {
-          if (!p.year) p.year = "2026";
-          if (!p.weekFolder) p.weekFolder = "Week 1";
-          if (!p.date) p.date = new Date().toISOString().split('T')[0];
-          if (!p.lastEdited) p.lastEdited = Date.now();
-        });
-      }
-    }
-
     function initializeApp() {
-      sanitizePracticeData();
-      
-      for (let w = 0; w <= 8; w++) {
-          ensureWeekDataExists(String(w));
-      }
+        for (let w = 0; w <= 8; w++) {
+            ensureWeekDataExists(String(w));
+        }
+        if (practiceData.length === 0) {
+            let defaultCat = cascadingDrills.length > 0 ? cascadingDrills[0].name : "General";
+            practiceData = [{
+                id: "prac_1", year: "2026", weekFolder: "Week 1", title: "Practice #1", 
+                date: new Date().toISOString().split('T')[0], day: "Wednesday", startTime: "17:05", endTime: "20:00", lastEdited: Date.now(),
+                plan: [{ time: 25, category: defaultCat, format: "static", stations: [{ name: "Warm-Up", desc: "Dynamic stretch", coach: "Coach Danny", focus: "Stance & Agility" }] }]
+            }];
+        }
+        currentPracticeId = practiceData[0].id;
+        depthChart = getWeekDepthChart(currentWeek);
+        const oppInput = document.getElementById("opponent-input");
+        if (oppInput) oppInput.value = weeklyData[currentWeek].opponent || "";
 
-      ensureWeekDataExists(currentWeek);
-      depthChart = getWeekDepthChart(currentWeek);
-      
-      const oppInput = document.getElementById("opponent-input");
-      if (oppInput) oppInput.value = weeklyData[currentWeek].opponent || "";
-
-      if (practiceData.length > 0) {
-          let latest = practiceData.reduce((prev, curr) => (curr.lastEdited || 0) > (prev.lastEdited || 0) ? curr : prev);
-          currentPracticeId = latest.id;
-      }
-
-      renderActiveBoards();
-      renderMasterRoster();
-      populatePracticeDropdown();
-      populateTemplateDropdown();
-      renderPracticePlan();
+        renderActiveBoards();
+        renderMasterRoster();
+        populatePracticeDropdown();
+        populateTemplateDropdown();
     }
 
     if (!auth) {
-      bypassLogin();
+        bypassLogin();
     }
   </script>
 </body>
