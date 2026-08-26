@@ -95,7 +95,6 @@
     .app-layout { display: flex; gap: 12px; max-width: 1400px; margin: 0 auto; flex-direction: row; align-items: flex-start; }
     .boards-container { flex: 3; min-width: 0; display: flex; flex-direction: column; gap: 15px; width: 100%; overflow: visible; }
     .unit-panel { display: flex; flex-direction: column; gap: 20px; width: 100%; overflow: visible; }
-
     .formation-scaler { width: 100%; overflow-x: auto; }
 
     @media (max-width: 768px) {
@@ -126,7 +125,6 @@
     .toggle-board-btn, .add-pos-btn, .add-form-btn, .row-action-btn, .pos-hdr-btn { background: #f1f5f9; border: 1px solid var(--card-border); color: var(--primary); font-size: 11px; font-weight: bold; padding: 3px 8px; border-radius: 4px; cursor: pointer; }
     .add-form-btn { background: var(--primary); color: #ffffff; padding: 6px 12px; margin-bottom: 5px; align-self: flex-start; }
 
-    .formation-body.collapsed { display: none !important; }
     .row-container { margin-bottom: 12px; }
     .level-header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; border-bottom: 1px solid #e2e8f0; padding-bottom: 2px; }
     .level-label { font-size: 10px; font-weight: bold; color: var(--text-muted); text-transform: uppercase; cursor: pointer; }
@@ -153,7 +151,7 @@
       position: relative;
       background: #ffffff;
     }
-    .row-slot.drag-over { background-color: #dbeafe; border-color: var(--accent); }
+    .row-slot.drag-over { background-color: #dbeafe !important; border-color: var(--accent) !important; }
 
     .position-card { background: var(--card-bg); border-radius: 6px; border: 2px solid var(--card-border); width: 100%; position: relative; transition: transform 0.1s; cursor: pointer; }
     .position-card.drag-over { border-color: var(--accent) !important; background: #eff6ff !important; transform: scale(1.02); }
@@ -194,7 +192,7 @@
     .wb-play-cell { padding-left: 4px; font-family: "Times New Roman", Times, serif; font-size: 14px; text-transform: uppercase; position: relative; }
     .wb-play-input { width: calc(100% - 20px); height: 100%; border: none; background: transparent; font-family: inherit; font-size: inherit; outline: none; font-weight: bold; color: #000; }
 
-    /* Practice Plan Collapsible Folder Tree Styles */
+    /* Practice Plan Folder Tree Styles */
     .tree-root { list-style: none; margin: 0; padding: 0; }
     .tree-root ul { list-style: none; margin: 0; padding-left: 12px; }
     .tree-folder-header { font-size: 11px; font-weight: bold; color: var(--primary); padding: 4px 6px; margin-top: 4px; cursor: pointer; user-select: none; display: flex; align-items: center; gap: 4px; }
@@ -246,6 +244,7 @@
     .add-row-btn:hover { background: var(--accent); }
 
     .station-block { margin-bottom: 0px; display: flex; flex-direction: column; justify-content: flex-start; height: 100%; box-sizing: border-box; width: 100%; }
+    .print-val { display: none; }
 
     /* Sidebar Wrapper & Panels */
     #sidebar-container { flex: 1; min-width: 220px; max-width: 280px; position: sticky; top: 15px; max-height: calc(100vh - 30px); display: flex; flex-direction: column; }
@@ -259,17 +258,14 @@
 
     /* PRINT STYLES - High Contrast Black & White with No Text Cutoffs */
     @media print {
-      @page { size: letter portrait; margin: 0.25in; }
+      @page { size: letter portrait; margin: 0.3in; }
       body { background-color: #ffffff !important; color: #000000 !important; padding: 0; margin: 0; font-size: 11px !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; width: 100% !important; overflow: visible !important; }
-      .toolbar, #sidebar-container, .remove-btn, .action-group, p.subtitle, .search-box, .tab-navigation, .toggle-board-btn, .week-bar, .board-controls, .add-row-btn, .add-form-btn, .row-actions, .practice-dashboard-info, #print-modal, #new-prac-modal, #scrimmage-print-modal, #scrimmage-filter-modal, #templates-modal, #approval-pending-overlay, .col-resizer, .coach-popup-box, .coach-popup-container > div:last-child { display: none !important; }
+      .toolbar, #sidebar-container, .remove-btn, .action-group, p.subtitle, .search-box, .tab-navigation, .toggle-board-btn, .week-bar, .board-controls, .add-row-btn, .add-form-btn, .row-actions, .practice-dashboard-info, #print-modal, #new-prac-modal, #scrimmage-print-modal, #scrimmage-filter-modal, #templates-modal, #approval-pending-overlay, .col-resizer, .coach-popup-box, .coach-popup-container > div:last-child, th.no-print, td.no-print, th.admin-only, td.admin-only { display: none !important; }
       
-      /* Hide specific words/triggers in print preview */
       .no-print-text { display: none !important; }
-
       .app-layout, .boards-container, .unit-panel { display: block !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
       .unit-panel.hidden { display: none !important; }
       
-      /* Ensure Scrimmage panel and formation containers print correctly */
       #panel-scrimmage.unit-panel { display: block !important; }
       .formation-container { border: 2px solid #000000 !important; box-shadow: none !important; padding: 6px; page-break-inside: auto !important; margin-bottom: 8px; background: #ffffff !important; width: 100% !important; box-sizing: border-box !important; }
       .formation-container.hidden-print { display: none !important; }
@@ -279,25 +275,33 @@
       .position-header { background: #e2e8f0 !important; color: #000000 !important; border-bottom: 2px solid #000000 !important; font-size: 11px !important; padding: 4px 6px; font-weight: bold; }
       .player-item { border: 1px solid #000000 !important; font-size: 11px !important; padding: 4px 6px !important; margin-bottom: 3px; background: #fff !important; color: #000 !important; text-transform: uppercase !important; font-weight: 700 !important; }
       
-      /* High-contrast print badges */
       .rank-starter { background: #000 !important; color: #fff !important; border: 1px solid #000 !important; opacity: 1 !important; }
       .rank-sub-gold { background: #fef08a !important; color: #000000 !important; border: 2px solid #000 !important; font-weight: 900 !important; opacity: 1 !important; box-shadow: inset 0 0 0 1px #000; }
       .rank-sub-blue { background: #93c5fd !important; color: #000000 !important; border: 2px solid #000 !important; font-weight: 900 !important; opacity: 1 !important; box-shadow: inset 0 0 0 1px #000; }
       
-      /* Practice Table Width, Spacing, and Page-Break Fixes for Multi-line Descriptions */
+      /* Practice Table Full Print Visibility */
       h1 { margin-top: 0; font-size: 15px; color: #000000; text-align: center; }
-      .practice-table { font-size: 10px !important; border: 2px solid #000 !important; width: 100% !important; table-layout: fixed !important; word-wrap: break-word !important; overflow-wrap: break-word !important; }
-      .practice-table th { font-size: 10.5px !important; background: #e2e8f0 !important; color: #000 !important; border: 1px solid #000 !important; word-wrap: break-word !important; }
-      .practice-table td { font-size: 10px !important; border: 1px solid #000 !important; padding: 4px 5px !important; color: #000 !important; vertical-align: top !important; word-wrap: break-word !important; overflow-wrap: break-word !important; height: auto !important; }
+      #print-practice-header { display: block !important; }
+      .practice-table { font-size: 10px !important; border: 2px solid #000 !important; width: 100% !important; table-layout: fixed !important; border-collapse: collapse !important; }
+      .practice-table thead { display: table-header-group !important; }
+      .practice-table th { font-size: 10.5px !important; background: #e2e8f0 !important; color: #000 !important; border: 1px solid #000 !important; }
+      .practice-table td { font-size: 10px !important; border: 1px solid #000 !important; padding: 6px !important; color: #000 !important; vertical-align: top !important; word-wrap: break-word !important; overflow-wrap: break-word !important; height: auto !important; }
       .practice-table tr { page-break-inside: avoid !important; break-inside: avoid !important; }
-      .period-schedule-time { font-size: 9.5px !important; color: #000 !important; font-weight: bold !important; }
       
-      .prac-input, .prac-select, .prac-textarea { font-size: 10px !important; border: none !important; background: transparent !important; padding: 0 !important; color: #000 !important; text-transform: uppercase !important; white-space: pre-wrap !important; word-wrap: break-word !important; overflow-wrap: break-word !important; width: 100% !important; box-sizing: border-box !important; }
-      .prac-textarea { height: auto !important; min-height: 0 !important; overflow: visible !important; }
-      
-      #panel-practice .station-block { min-height: auto !important; height: auto !important; }
-      #panel-practice .station-block input.prac-input { font-weight: bold !important; font-size: 10.5px !important; color: #000 !important; white-space: pre-wrap !important; word-wrap: break-word !important; }
-      #panel-practice select.prac-select:not([onchange*="updatePracRowCategory"]):not([onchange*="updatePracRowFormat"]) { display: none !important; }
+      .prac-input, .prac-select, .prac-textarea { display: none !important; }
+      .print-val {
+        display: block !important;
+        white-space: pre-wrap !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+        color: #000000 !important;
+        font-size: 10px !important;
+        line-height: 1.35 !important;
+        margin: 0 0 4px 0 !important;
+        padding: 0 !important;
+      }
+      .print-val.font-bold { font-weight: bold !important; margin-bottom: 2px !important; }
+      .station-block { display: block !important; min-height: auto !important; height: auto !important; margin-bottom: 6px !important; }
     }
   </style>
 </head>
@@ -594,7 +598,7 @@
               <col id="col-2" style="width: 36%;">
               <col id="col-3" style="width: 14%;">
               <col id="col-4" style="width: 16%;">
-              <col id="col-5" style="width: 4%;">
+              <col id="col-5" class="admin-only" style="width: 4%;">
             </colgroup>
             <thead>
               <tr>
@@ -714,7 +718,6 @@
   </div>
 
   <script>
-    // Suppress unhandled extension messaging errors (e.g. SmartLens/Chrome runtime disconnects)
     window.addEventListener('unhandledrejection', function(event) {
         if (event.reason && event.reason.message && event.reason.message.includes('message channel closed')) {
             event.preventDefault();
@@ -732,7 +735,7 @@
     };
 
     let db = null, auth = null, storage = null, cloudEnabled = false;
-    let isImporting = false; // Lock flag to prevent cloud sync from overwriting imports
+    let isImporting = false;
 
     function initFirebase() {
       try {
@@ -747,6 +750,20 @@
       } catch (err) { console.warn("Firebase offline mode.", err); }
     }
     initFirebase();
+
+    function reorderObjectKeys(obj, keyToMove, direction) {
+        if (!obj || typeof obj !== 'object') return obj;
+        const keys = Object.keys(obj);
+        const idx = keys.indexOf(keyToMove);
+        if (idx === -1) return obj;
+        const newIdx = idx + direction;
+        if (newIdx < 0 || newIdx >= keys.length) return obj;
+        const [movedKey] = keys.splice(idx, 1);
+        keys.splice(newIdx, 0, movedKey);
+        const newObj = {};
+        keys.forEach(k => { newObj[k] = obj[k]; });
+        return newObj;
+    }
 
     function forceSyncCloud() {
         if (!cloudEnabled || !db) {
@@ -801,8 +818,6 @@
       if (dropdown && event.target.id !== "selected-practice-display" && !dropdown.contains(event.target)) {
         dropdown.classList.add("hidden");
       }
-      
-      // Close coach popups if clicked outside
       if (!event.target.closest('.coach-popup-container') && !event.target.closest('.coach-popup-box')) {
         document.querySelectorAll('.coach-popup-box').forEach(box => box.classList.add('hidden'));
       }
@@ -937,8 +952,8 @@
         name: "📋 General",
         subfolders: [],
         drills: [
-          { name: "General: Team Install (Chalk Talk)", desc: "Coaches review weekly game plan, formations, audibles, and opponent defensive/offensive tendencies on whiteboard before walking through cards. Gather the offensive unit in front of the whiteboard to install new plays, formations, and signals.", key: "Keep whiteboard sessions extremely brief for 8U/10U. Get them on the field and use visual aids to walk through the fits." },
-          { name: "General: Mandatory Water Break", desc: "Blow whistle twice. Players remove helmets and jog to water stations.", key: "Emphasize fast hydration and hustling back to position groups" }
+          { name: "General: Team Install (Chalk Talk)", desc: "Coaches review weekly game plan, formations, audibles, and opponent defensive/offensive tendencies on whiteboard.", key: "Keep whiteboard sessions brief for 8U/10U." },
+          { name: "General: Mandatory Water Break", desc: "Blow whistle twice. Players remove helmets and jog to water stations.", key: "Emphasize fast hydration and hustling back." }
         ]
       },
       {
@@ -948,30 +963,7 @@
             name: "Warm-Up",
             subfolders: [],
             drills: [
-              { name: "Warm-Up: Dynamic Progression 1 (Expanded)", desc: "Set up 5 lines spaced 5 yards apart. Clap it up, Feet-Sink-Holsters (20s x2), 10 Jumping Jacks, 10 Seal Jacks, 10 Squats", key: "Make sure they understand basic athletic stances (feet, sink, holsters) before rushing through the motions" },
-              { name: "Warm-Up: Dynamic Progression 1 (Extended)", desc: "10 Jump in Place, 10 Push-ups, 10 Leg Raises, Butt Raises w/ wrap, finish with 2 burpees", key: "Keep the tempo fast to maintain the attention of younger athletes" },
-              { name: "Warm-Up: Dynamic Progression 2 (Condensed)", desc: "Breakdown & catch football, High Knees, Butt Kicks, Frankensteins", key: "Proper form on high knees and butt kicks; pump the arms and stay on the balls of the feet" },
-              { name: "Warm-Up: Dynamic Line Cadences", desc: "Line team up on the sideline or hash marks. Coach leads cadence. Perform high knees, karaoke, butt kicks, shuffling, and 10-yard short sprints", key: "Build team unity by having the entire team sound off on the cadence together" }
-            ]
-          },
-          {
-            name: "Agility",
-            subfolders: [],
-            drills: [
-              { name: "Agility: Backpedal & Shuffle", desc: "Long/Short Step Backpedal, Sideways Shuffle", key: "Watch their hips during the transition from shuffle to backpedal. Remind them to stay low in the tunnel" },
-              { name: "Agility: 4-Way Direction Change", desc: "Feet chopping with 4-way direction change", key: "React instantly to the coach's hand signals; keep feet buzzing and center of gravity low" },
-              { name: "Agility: Bear Crawl & Roll", desc: "Bear Crawls into Roll & Pop Up", key: "Builds core strength and teaches kids how to safely fall and pop back into a football stance" },
-              { name: "Agility: Lobsters & Swoop", desc: "Lobsters, Swoop Drill", key: "Swoop into a low coiled contact posture; come to a complete controlled stop" },
-              { name: "Agility: Rip & Swim Warm-Up", desc: "Rip Drill (Elbow-Dip-Rip), Swim Drill (Stagger-Hinge-Swim), Fake Rip Spin", key: "Focus on the violent arm movements to clear blocks vertically, not horizontally" },
-              { name: "Agility: M Drill", desc: "5 cones configured in 'M' pattern (10x10 yds). Athlete sprints to cone 1, shuffles across to cone 2, backpedals diagonally to cone 3, sprints forward to cone 4, and breaks down at cone 5", key: "Plant hard on the outside foot when changing directions. Drop hips to avoid false steps" },
-              { name: "Agility: Timed 40-Yard / 20-Yard Dash", desc: "Stopwatch, cones at 0, 20, and 40 yards. Player starts in 3-point or 2-point sprinter stance behind line. Sprint through finish line at maximum acceleration", key: "Focus on forward arm drive (cheek to pocket) rather than side-to-side rotation" },
-              { name: "Agility: Pro-Agility 5-10-5 Shuttle", desc: "Cones at 5, 10, 15 yards. Sprint 5 yds right, touch line, sprint 10 yds left, touch line, sprint 5 yds through middle", key: "Emphasize touching the line with the outside hand to force them to drop their center of gravity and plant firmly on the outside foot" },
-              { name: "Agility: 3-Cone L-Drill", desc: "Set cones in L-cone shape. Sprint 5 yds, touch line, sprint back, loop outside cone, figure-8 around middle cone", key: "Tight turns around the cones; dip the inside shoulder to maintain speed" },
-              { name: "Agility: Coach Dave Says (Discipline Sprints)", desc: "Full team lined up on goal line / LOS. Team lines up in stance. Coach uses various vocal cadences (Ready Go, Hut 1, Hut 2). Players must sprint 10-15 yards only on the live snap cadence", key: "If anyone jumps offsides, team is pushed back 5 yards. Teach them to key the ball movement or the exact sound, turning discipline into a fun game" },
-              { name: "Agility: Tennis Ball Reaction Drill", desc: "Coach stands with tennis balls in front of the players. Player backpedals or shuffles; coach drops or bounces a tennis ball unpredictably. Player must react, change direction, sprint, and catch the ball before the second bounce", key: "Great for defensive backs and linebackers to develop twitch reflexes. Remind them to break off their outside foot and drive the arms" },
-              { name: "Agility: Agility Ladder", desc: "Set up 2-3 agility ladders. Players run through doing icky shuffle, two-in, and lateral quick steps", key: "Keep the line moving fast. Keep eyes up rather than staring at the ground" },
-              { name: "Agility: Tackle Jack (Shuffle & Change Direction)", desc: "Player starts in breakdown stance circling Tackle Jack circular dummy. 1st whistle = shuffle in circle; 2nd whistle = change direction immediately; 3rd whistle = swoop and tackle", key: "Improves lateral agility and the ability to transition from moving sideways to exploding downhill" },
-              { name: "Agility: W-Drill (Backpedal & Drive)", desc: "5 cones in W shape 5 yards apart. Backpedal with chest over toes to Cone 1, plant outside foot, drive 45 degrees forward to Cone 2", key: "Low center of gravity!. No hopping or clicking heels together during transition" }
+              { name: "Warm-Up: Dynamic Progression 1", desc: "5 lines spaced 5 yards apart. Feet-Sink-Holsters, Jumping Jacks, Squats.", key: "Ensure proper stance." }
             ]
           }
         ],
@@ -984,57 +976,7 @@
             name: "Quarterbacks (QB)",
             subfolders: [],
             drills: [
-              { name: "Offense QB: Under Center Snap & Drop", desc: "Center snaps to QB. QB executes 3-step or 5-step drop on air. Coach watches feet to ensure no false steps or heel clicking", key: "For youth QBs, mastering the snap exchange without fumbling is step one. Ensure the QB is applying firm pressure to the center's backside" },
-              { name: "Offense QB: Shotgun Snap & Quick Game", desc: "QB takes shotgun snap. Instantly sets feet and throws a quick slant or hitch to a target. Focus on catching and throwing in one rhythm", key: "Eliminate the extra pat or wind-up. Catch the lace-up chest delivery, step to the target, and release" },
-              { name: "Offense QB: Play-Action Bootleg Mesh", desc: "QB executes a hard run fake to the back, drops the ball to the hip, snaps head around, and sprints to the edge to deliver a pass", key: "Teach the QB to carry out the fake for two full steps with empty hands to freeze the linebackers before rolling out" },
-              { name: "Offense QB: Target Accuracy Net Drill", desc: "Set up a net or targets at 5, 10, and 15 yards. QBs drop back and throw 5 passes to each target aiming for the center pocket", key: "Focus on the lower body mechanics—ensure the front toe points exactly at the target net upon release" },
-              { name: "Offense QB: On-Run & Off-Platform Throws", desc: "Rolling right and left throwing on the run while squaring shoulders to target", key: "Teach the QB to avoid throwing off their back foot while sprinting to the edge" }
-            ]
-          },
-          {
-            name: "Running Backs (RB)",
-            subfolders: [],
-            drills: [
-              { name: "Offense RB: Handoff Mesh & Ball Security", desc: "QB takes snap, opens to correct side, seats ball in RB's stomach. RB forms proper pocket (inside elbow up, outside elbow down), clamps down softly, and bursts through designed hole", key: "At the 8U/10U level, ball security is paramount. Create a 'no daylight' rule—there should be no space between the ball and the ribcage" },
-              { name: "Offense RB: Downhill A/B Gap Press", desc: "Place bags simulating linemen. RB takes the handoff and attacks the A or B gap immediately. RB must hit the hole without dancing, press downhill, and plant foot to cut off blocker's hip", key: "Stop the youth habit of bouncing every play outside. Emphasize attacking the line of scrimmage with shoulders square" },
-              { name: "Offense RB: Running Back Gauntlet", desc: "Line up 4-6 players holding hit shields creating a tight chute. RB takes handoff, secures football with 4 points of pressure (high and tight), drives knees through heavy contact, maintains balance, and accelerates out", key: "Tell the backs to keep their pad level low and keep their legs churning through the bags. If they stop their feet, they fail the drill" },
-              { name: "Offense RB: Outside Zone / Sweep Track", desc: "Set cones marking a wide track. RB takes a toss or wide handoff, runs flat down the line, and cuts upfield outside the last cone", key: "Force the defense to flow laterally before planting the outside foot and exploding north and south" },
-              { name: "Offense RB: Pass Protection & Blitz Pickup", desc: "RB steps up into A/B gap, square shoulders, strike oncoming linebacker in the chest plate, and anchor", key: "Meet the blitzer at the line of scrimmage; do not wait in the backfield. Strike with the heel of the hands" }
-            ]
-          },
-          {
-            name: "Offensive Line (OL)",
-            subfolders: [],
-            drills: [
-              { name: "Offense OL: 6-Inch Power Step & Board Fit", desc: "O-Linemen align in 3-point stance straddling board with blocker shield. Fire out 6-inch power step, strike chest plate with thumbs up", key: "The 6-inch step prevents kids from over-striding and losing their balance. Teach them to strike with the heels of their hands" },
-              { name: "Offense OL: Drive Blocking & Chute Drills", desc: "Explosion steps staying under the chute. Keep thumbs up, elbows tight, and legs driving through contact", key: "Low man wins. The chute forces them to play with proper pad level, which is critical since young linemen tend to stand straight up off the snap" },
-              { name: "Offense OL: Pulling Guard & Trap Technique", desc: "Execute flat pulling footwork across formation, locate kicking target (DE/LB), and deliver blow with inside shoulder", key: "If they bow out too deep in the backfield, they will collide with the running back. Emphasize staying tight to the center's heels" },
-              { name: "Offense OL: First 2 Steps Progression", desc: "Linemen line up in 3-point stance. Practice first 2 explosive steps on air on cadence: drive block step, reach step, down block step, or scoop step", key: "Muscle memory for footwork. Focus on taking a lateral angle for a reach block without standing up" },
-              { name: "Offense OL: Shock & Shed (Block Defeat)", desc: "Lineman strikes a blocker with violent hands, extends arms to gain leverage, locates ball carrier, and rips off the block to make the tackle", key: "Use for two-way players. Emphasize full arm extension to keep the offensive player off the chest plate" }
-            ]
-          },
-          {
-            name: "Wide Receivers & Tight Ends (WR/TE)",
-            subfolders: [],
-            drills: [
-              { name: "Offense WR: Stance & Release Package", desc: "Receivers line up in proper 2-point stance (inside foot up). Speed release and square cut release off the line of scrimmage against press coverage. Explode off the line for 5 yards without any false steps or rocking", key: "Drive off the front foot instantly. No backwards rocking" },
-              { name: "Offense WR: Route Tree Landmarks", desc: "Run precise depth routes (Slants at 5 yds, Outs at 10 yds, Curls at 12 yds) planting on correct foot", key: "Focus on sharp cuts at the correct yardage depth rather than rounding off the corners" },
-              { name: "Offense WR: Stalk Blocking", desc: "WR sprints 5 yards at a defender, breaks down, buzzes feet, and engages the chest plate to block for a run play", key: "Keep their feet chopping like a basketball defender. If their feet stop, the defender will easily shed the block" },
-              { name: "Offense WR: Catch & Tuck (Gauntlet)", desc: "WR catches a pass over the middle and instantly tucks the ball away while running through two coaches holding pads", key: "Look the ball all the way into the tuck before anticipating contact" },
-              { name: "Offense WR: Receiving Technique & Diamond Hands", desc: "Players run short routes. Catch with hands, never with body. Diamond hand shape (thumbs and index fingers touching) for chest/high balls; pinkies touching for balls below waist", key: "Youth players often try to body-catch everything. Force them to extend their arms and take a picture of the ball through their diamond fingers" },
-              { name: "Offense TE: Inline Drive Block & Seal", desc: "Engage Defensive End with tight base, drive helmet across bow, and seal B-gap on inside runs", key: "Keep a wide base to prevent getting thrown off balance by a slanting defensive end" },
-              { name: "Offense TE: Seam Release & Reroute Read", desc: "Release vertical up the seam past outside linebacker while reading zone coverage dropping underneath", key: "Identify if the LB is playing physical. Use a quick swim move to avoid the jam before looking back for the ball" }
-            ]
-          },
-          {
-            name: "Offensive Group Install",
-            subfolders: [],
-            drills: [
-              { name: "Offense Group: Individual Stance & Alignment", desc: "Skill and line players work on correct 2-point or 3-point stances, splits, and alignment rules", key: "Crucial foundational drill. Do not move to active plays until every player can align legally on the LOS" },
-              { name: "Offense Group: QB & Center Exchange", desc: "Centers and QBs pair up. Execute 20 perfect snaps under center (dead ball snap, firm into QB palm) followed by 20 shotgun snaps", key: "Repetition builds muscle memory. Center immediately assumes pass/run block posture after snap" },
-              { name: "Offense Group: Offensive Play Install (Walkthrough)", desc: "Huddle the full 11-man offensive unit. Walk through new plays vs. garbage cans or scout defense. No pads/helmets", key: "Mental reps. Everyone must know their assignment, alignment, and motion rules before going live" },
-              { name: "Offense Group: Full Offensive Install & Skelly", desc: "Install weekly run scheme and passing concepts against scout team defense in 7-on-7 and 11-on-11 jog-throughs", key: "Timing and spacing. WRs must run to their exact depths, and the QB must read the coverage shell" },
-              { name: "Offense Group: 11-on-11 Run Game Scrimmage", desc: "Live blocking and tackling. Offense runs strictly inside/outside run plays vs the starting defense", key: "Game simulation. Focus on line communication and hitting the correct hole at full speed" }
+              { name: "Offense QB: Under Center Snap & Drop", desc: "Center snaps to QB. QB executes 3-step or 5-step drop on air.", key: "Master snap exchange without fumbling." }
             ]
           }
         ],
@@ -1042,112 +984,12 @@
       },
       {
         name: "🛡️ Defense",
-        subfolders: [
-          {
-            name: "Defensive Line (DL)",
-            subfolders: [],
-            drills: [
-              { name: "Defense DL: DL Stance & Shock (First-Step Strike)", desc: "Line up in low, staggered 3-point stance 6 inches off sled. On ball movement, fire out with 2 short foot-churning steps. Shoot hands upward into blocker's chest right below armpits with thumbs up and elbows in", key: "Reaction time is key. Use a football on a stick to teach them to move on the ball, not on the offense's cadence" },
-              { name: "Defense DL: DL Slant & Rip (Vertical Penetration)", desc: "On snap, take explosive vertical power step across LOS into slanting gap. Strike with inside arm, dip shoulder, execute violent vertical rip with outside arm (bicep-to-earhole)", key: "Execute the move vertically. Clear hip at 1 yard deep, flatten pursuit angle ('pinch'), and tackle" },
-              { name: "Defense DL: DE Containment Stiff-Arm Track", desc: "Fire vertically across LOS. As blocker climbs, strike blocker's outside shoulder with locked-out rigid inside arm. Keep outside arm and shoulder high and completely free", key: "The most important rule for young edge players: Never get reached and never let the ball carrier outside of your outside shoulder" },
-              { name: "Defense DL: DE Backside Squeeze & Settle", desc: "DE takes initial vertical containment read step. On diagnosing flow away, transition immediately to backside rule: squeeze down LOS, settle at containment depth 2 yards deeper than deepest back, shuffle parallel to LOS watching QB", key: "'Squeeze & Check Boot/Reverse': Squeeze down the LOS to the depth of the QB. Do not chase flat from behind" },
-              { name: "Defense DL: Nose Guard Bull & 2-Gap Strike", desc: "NG aligns 0-Tech opposite Center with pad. Fire low, strike breastplate, lock out arms, peek into A-gap of ball flow, and shed", key: "Pad level is king!. The lower man wins the A-gap collision every single time" },
-              { name: "Defense DL: Defensive Tackle Shed & Spill", desc: "DT vs offensive guard with shield attempting base block. Strike with violent hands, drop hips, rip through outside arm into B-gap", key: "'Violent Hands!'. Create separation instantly so the guard cannot reach your chest" },
-              { name: "Defense DL: Down-Block Squeeze & Spill", desc: "OT down-blocks on DL while OG pulls. DL reads down-block, presses into OT hip to squeeze hole, spills play wide", key: "Never get reached!. If DL gets driven backward, interior run lane opens up" }
-            ]
-          },
-          {
-            name: "Linebackers (LB)",
-            subfolders: [],
-            drills: [
-              { name: "Defense LB: ILB 6-Inch Freeze Step", desc: "Pre-snap: balanced knees bent, chest over toes, eyes on near running back. On snap, take rapid 6-inch forward control step (freeze step) keeping low hip level and nose over toes", key: "Do not commit blindly. Diagnose true ball carrier / play-action before committing" },
-              { name: "Defense LB: ILB Mirror & Scrape (Inside-Out Flow)", desc: "RB flows laterally. LB shuffles with short choppy strides keeping shoulders square to field. Stay exactly 1 step behind runner's inside hip. Explode downhill when runner cuts vertical", key: "Teach linebackers not to over-pursue. If they cross the runner's face laterally, cutback lanes open up instantly" },
-              { name: "Defense LB: Shock, Shed & Fill", desc: "LB steps downhill to meet lead blocker, delivers a heavy two-hand strike to the chest, sheds using a rip move, and fills the gap", key: "LBs must attack the blocker on their side of the line of scrimmage. Don't catch blocks; deliver the blow" },
-              { name: "Defense LB: OLB Leverage Step & Key Read (Sweep vs Kickout)", desc: "Take explosive leverage step forward-lateral with inside foot. Read EMOL and near back flow. Sweep: turn hips and sprint to high-outside contain. Kickout: step downhill, squeeze edge, strike kicker", key: "Keep shoulders square to sideline. If you turn your back, ball turns corner" },
-              { name: "Defense LB: 45-Degree Drop & Break Drill", desc: "Coach raises ball (high hat). LBs open hips 45 degrees to zone depth (8-10 yds ILB, 10-12 yds OLB). Coach slaps ball; LBs plant and drive", key: "Do not backpedal!. Opening hips allows maximum speed with vision on QB" },
-              { name: "Defense LB: Pass-Off & Robot Crosser Drill", desc: "OLB jams/reroutes crosser, calls 'In! In!'. ILB picks up crosser, carries across zone, calls 'Out! Out!' to opposite LB", key: "Communication is mandatory!. Never let receiver cross zone untouched" },
-              { name: "Defense LB: Backside Scrape & Cutback Vice", desc: "Playside LB pushes wide; Backside LB takes controlled shuffle steps, reads pulling guard, and mirrors inside hip leverage to execute vice tackle", key: "Do not cross your feet when shuffling!. Keep a wide base to plant and drive instantly" }
-            ]
-          },
-          {
-            name: "Defensive Backs (DB)",
-            subfolders: [],
-            drills: [
-              { name: "Defense DB: Fast Alley Trigger & Breakdown", desc: "FS takes 2 downhill read steps, inside-out pursuit angle, chops feet at 3 yds, clamps near hip", key: "'Never Cross Near Hip!'. Stay inside. If you run too wide, runner cuts back inside" },
-              { name: "Defense DB: Centerfield Post Break & Intercept", desc: "FS in center field vs deep post/seam. FS backpedals. Coach loads to throw. FS plants outside foot, drives 90 degrees across hashes, beats WR to catch point for interception", key: "Break on shoulder turn!. In Cover 3, do not wait for ball release—jump throwing lane early" },
-              { name: "Defense DB: DB Backpedal & Break (45-Degree Drive)", desc: "DB backpedals smoothly for 10 yards with low hips and chest over toes. On coach's visual/verbal signal, plant back foot, drive forward at 45-degree angle with zero false steps, accelerate, and catch", key: "Young DBs tend to stand straight up in their pedal. Emphasize a low center of gravity so they can transition into a sprint without taking false steps" },
-              { name: "Defense DB: Deep 1/3 Cushion & Route Bail", desc: "Corner aligned 6 yds off WR running vertical. Open 45 degrees in side-shuffle bail keeping 3 yds vertical cushion over receiver", key: "'Keep the Roof on!'. If receiver breaks cushion, turn and sprint to regain depth" },
-              { name: "Defense DB: DB / OLB Defeat Stalk Block & Force", desc: "Defender reads run flow, attacks approaching WR's stalk block. Delivers firm two-hand punch to WR's chest, rips outside arm free, and maintains outside leverage to force runner inside", key: "Never get hooked inside!. Maintain outside leverage at all costs to force the ball to pursuing teammates" },
-              { name: "Defense DB: Tip & Overturn Turnover Drill", desc: "3 DBs in tandem line, 5 yards apart. Lead DB jumps and tips high pass. Trailing DB tracks deflection, calls 'Ball! Ball!', catches, and sprints 15 yds", key: "Finish the play!. Every interception ends with two hands high and tight" }
-            ]
-          },
-          {
-            name: "Team Defense & Stunts / Blitzes",
-            subfolders: [],
-            drills: [
-              { name: "Defense Group: 11-Man 'Liz' Pursuit Drill", desc: "Full 11-man defense executes run fits and inside-out pursuit angles on perimeter sweep. Every player must touch runner", key: "Rule number one: 'Never fellow same color jersey'. Take your own lane to the ball carrier to prevent getting walled off" },
-              { name: "Defense Group: Team Pursuit Angle Drill (11 Sideline Cones)", desc: "11 cones spaced 2-3 yards apart along sideline from LOS to deep secondary. Defense fires off on ball movement. Coach blows whistle; all 11 defenders turn and sprint to their designated cone lane to form a wall", key: "This completely cures the 'swarm' mentality typical in youth football by visually teaching them that holding their specific lane creates an inescapable defensive wall" },
-              { name: "Defense Group: Stay at Home Counter Fit Drill", desc: "Defense lines up with Backside DE, Backside ILB, and Backside OLB. Offense runs Counter. Backside ILB shuffles, reads pulling Guard, stays square, and fills counter hole downhill. Backside DE squeezes and contains boot", key: "'Read Linemen, Not Eye Candy!'. If the Guard pulls across face, follow his hip directly to the ball" },
-              { name: "Defense Group: The Alley 'Vice' Tackle Drill", desc: "1 OLB (Force), 1 ILB (Spill), 1 RB with blocker. RB attacks alley. ILB spills RB wide; OLB turns RB in. Both compress and execute two-man vice tackle", key: "Wrap and drive!. Clamp near hip with active driving feet" },
-              { name: "Defense Group: 7-Man Defensive Coverage Drill", desc: "7 defenders align in base Cover 3 or Cover 1. Walk through and execute pass drops (curl-to-hook, curl-to-flat, deep thirds). Communicate route handoffs, pass off crossers, and break on thrown ball", key: "Communication is mandatory!. Never let receiver cross zone untouched" },
-              { name: "Defense Group: Full Defensive Install & Run Fits", desc: "Install base 4-4/5-3 fronts, gap assignments, stunt checks, and secondary coverages against scout offense", key: "Walk through defensive alignments, blitz calls, and gap responsibilities against a scout offense at half-speed" },
-              { name: "Defense Stunt: 4-4 Slant Liz", desc: "Entire defensive line slants one gap to the Liz (left) side on snap. E9 attacks C/D, T3 slants into Left B, T1 slants into Left A, E5 slants inside into Right B. LBs adjust", key: "Call on strong-side run tendency to the Liz (TE) side; shuts down off-tackle power and sweeps" },
-              { name: "Defense Stunt: 4-4 Cross Liz (Interior Tackle Cross)", desc: "T3 slants across Center into Right A-gap. T1 slants across Center into Left A-gap (scissor cross in the middle). DEs fire straight upfield with aggressive outside edge contain", key: "Call against inside zone, ISO, and A-gap trap teams; confuses Center/Guard blocking rules" },
-              { name: "Defense Stunt: 4-4 Fan Liz", desc: "T3 slants outward into Left B-gap; T1 slants outward into Right B-gap (Tackles 'Fan' out away from Center). DEs fire upfield. ILBs read Fan action and shoot downhill into vacant Left and Right A-gaps", key: "Call against off-tackle runs, B-gap power, or QB sneak/A-gap dive tendencies" },
-              { name: "Defense Stunt: 4-4 Pinch Rip", desc: "All 4 DL pinch hard inside (E5 to B/C, T1 to Weak A, T3 to Strong A, E9 to Strong C). OLB Rover rushes/forces weak edge. ILBs fill B/C gap alleys vacated by pinching defensive linemen", key: "Call against interior runs (Fullback dive, Iso, QB sneak) when offense attacks the Rip side" },
-              { name: "Defense Blitz: 4-4 Double Dog 0 Liz", desc: "'Double Dog' - Both ILBs fire downhill on snap through A/B gaps right to the QB in Cover 0 man coverage. DL contain outside rush and slant inside", key: "Call on 3rd & Long passing downs, clear passing sets; forces immediate throw under duress" },
-              { name: "Defense Blitz: 4-4 Blow Sting Liz (Edge Call)", desc: "Edge calls ('You'/'Me') coordinating DE crash and OLB blitz pressure with man coverage assignments across the board. 'ME' = OLB contains outside, DE crashes. 'YOU' = DE contains outside, OLB blitzes inside", key: "Call on high-leverage 3rd down; disrupts protection schemes via edge twist" }
-            ]
-          }
-        ],
+        subfolders: [],
         drills: []
       },
       {
         name: "💥 Tackling",
-        subfolders: [
-          { name: "Tackling: Breakdown Fundamentals (Feet-Squeeze-Sink-Hands)", desc: "Players start in athletic stance. 1. Feet: shoulder-width apart, light on toes. 2. Squeeze: shoulder blades pinched, chest proud. 3. Sink: lower hips into a coiled power position (holsters). 4. Hands: hands up in holsters ready to strike", key: "This is the foundation of safe tackling. Do not let players advance to contact until they can perfectly demonstrate this swooping, coiled posture on command" },
-          { name: "Tackling: Swoop Position Progression", desc: "Start 10 yards back, sprint to cone/dummy, break down, swoop into low coiled contact posture, come to a complete controlled stop straddling dummy", key: "Next progression after progression before making contact. Prevents lunging and dropping the head" },
-          { name: "Tackling: Near Foot Progression", desc: "Tackler approaches ball carrier from an angle or head-on. Enforce stepping violently with the near foot (the foot closest to the runner/strike point) right before contact", key: "Generates maximum power from the ground into the hips. Prevents reaching and arm tackling" },
-          { name: "Tackling: Form Tackle Fit & Uppercuts", desc: "Pair up 2 yards apart. On whistle, tackler takes near-foot step, fits shoulder into target's breastplate/numbers, shoots violent double uppercuts into jersey, grabs cloth on the back, places head on opposite side", key: "Do not take to ground. Focus on the violent double uppercut wrap and grabbing the jersey on the back" },
-          { name: "Tackling: Form Fit & Drive (Thud)", desc: "Players start 2 yards apart. On whistle, step into ball carrier, fit shoulder to numbers, wrap arms tightly around cloth, and drive legs for 3-5 steps at thud tempo", key: "Without taking runner to ground. Leg drive must finish the tackle" },
-          { name: "Tackling: Pop-Up Drill for Form Tackle", desc: "Tackler starts on stomach or knees. On whistle, pop up explosively into breakdown, step with near foot, strike dummy/carrier with shoulder, execute uppercuts, grab jersey, and drive 5 yards", key: "Builds explosive hip power and rapid transition from the ground to a striking position" },
-          { name: "Tackling: Shoot Drill (Hips & Uppercuts)", desc: "Start in 3-point or 2-point breakdown stance. On cadence, explode hips violently forward-upward, shooting uppercuts through target", key: "Feet must not be charged; power generates purely from hip uncoil" },
-          { name: "Tackling: Hawk (Rugby) Roll Tackle", desc: "Defender approaches runner in open field, aims eyes at the runner's thighs/hip, clamps arms tightly around thighs, and rolls laterally with momentum to bring runner down safely", key: "Safety is paramount for 7U-10U. Emphasize taking the head completely out of the tackle ('eyes on the thighs'). Praise kids who wrap tight over those who try to bring big hits" },
-          { name: "Tackling: Angle / Alley Tackle Drill", desc: "Runner aims for pylon or sideline cone. Defender takes an inside-out angle to intersect runner's path, breaks down into swoop position, plants near foot, and drives shoulder through runner's near hip", key: "Enforce stepping with the 'near foot' (the foot closest to the runner) right before contact to generate power and prevent reaching" },
-          { name: "Tackling: Tight Angle Tackle Drill", desc: "Align defender against a down-blocker with a RB running off-tackle. Defender strikes and sheds the down-blocker, maintains inside leverage, takes tight angle, and form tackles RB", key: "Stay square to the line of scrimmage while shedding the block to maintain the correct angle" },
-          { name: "Tackling: Angle Tackle on Green Mat", desc: "Ball carrier runs at half-speed along long edge of mat. Defender approaches on an angle, tracks hip, uses near foot, and completes full shoulder tackle taking runner safely down onto the mat", key: "Great for building confidence in younger players learning how to safely take a runner to the ground" },
-          { name: "Tackling: Tackle Fit Line", desc: "Boys face partners across a line. 1st whistle = plant near foot; 2nd whistle = strike near shoulder to breastplate; 3rd whistle = wrap cloth; 4th whistle = drive legs for 5 yards", key: "Breaks down the tackle into isolated, controlled steps to build perfect muscle memory" },
-          { name: "Tackling: Sideline Pin-And-Squeeze Tackle", desc: "Runner attempts to turn corner down sideline. Defender uses sideline as 12th defender, attacks outside shoulder, and forces runner out of bounds", key: "The sideline is the 12th defender. Never let the runner cut back inside toward the middle of the field" },
-          { name: "Tackling: Leverage Form Tackle (Ring Drill)", desc: "Two lines facing each other 5 yards apart. Ball carrier jogs in place; tackler steps up, establishes inside leverage, and lifts through hips", key: "Low man wins. Teaches leg drive and maintaining a wide, powerful base after contact" },
-          { name: "Tackling: Open-Field Angle Tackle (10x10 Grid)", desc: "Ball carrier runs at 45-degree angle across 10x10 grid. Defender starts opposite, takes pursuit angle, breaks down into swoop, targets near hip, clamps, and drives through", key: "Intersect their path. Aim for the hip, not the shoulders" },
-          { name: "Tackling: Open Field Shimmy (Space)", desc: "10x10 yard grid. Defender tracks an elusive runner, breaks down 2 yards away, and executes a safe open-field wrap", key: "Do not lunge. Buzz the feet, close the distance, and let the runner make the first move" },
-          { name: "Tackling: Thigh & Drive Tackle Drill (Kneeling to Standing)", desc: "Start from kneeling position facing bag. Explode hips, strike bag with shoulder at thigh level, wrap arms, and drive feet forward to finish. Progress from kneeling to standing to moving player", key: "Isolates the hip explosion and reinforces tackling low at the thigh level" },
-          { name: "Tackling: Fill Drill (Half-Rounds / 2 Alleys)", desc: "3 half-round dummies on ground creating 2 distinct running alleys. Ball carrier runs horizontally and chooses alley 1 or 2. Defender shuffles laterally across the bags, reads runner's commitment, swoops downhill into the hole, and makes thud tackle", key: "Add a lead blocker to work on shock & shed while maintaining gap integrity" },
-          { name: "Tackling: Thud, Read, Tackle Donut", desc: "Defender comes up to engage blocker at thud tempo, reads coach rolling tackle donut left or right, sheds block violently, and attacks/tackles the rolling donut", key: "Trains defenders to keep their eyes on the ball carrier while engaged with a blocker" },
-          { name: "Tackling: Turnover Circuit (4 Groups)", desc: "Divide into 4 groups. Rotate every 3-5 mins. Station 1: Strip drill. Station 2: Fumble recovery (fall on it). Station 3: Tip drill (INTs). Station 4: Punch-out from behind", key: "Make this a high-energy, fun circuit. Teach them to cover up a fumble in the fetal position rather than trying to scoop and run in heavy traffic" }
-        ],
-        drills: []
-      },
-      {
-        name: "🧱 Blocking",
-        subfolders: [
-          { name: "Blocking: CUFF Blocking Progression", desc: "1. Coil: low balanced 3-point stance. 2. Uncoil: explosive upward hip explosion. 3. Fit: hands inside breastplate with thumbs up, elbows tucked. 4. Finish: drive legs forward through the whistle", key: "Hands must be inside. If hands land outside the shoulders, it's a holding penalty waiting to happen" },
-          { name: "Blocking: Bridge Blocking Fit", desc: "Pairs fit into bridge blocking position: wide triangle base, elbows in, arms off body, thumbs out, back arched to stand opponent up before feet churn", key: "Teaches the static power position. If the back is rounded, they will lose their balance and get pushed back" },
-          { name: "Blocking: Open-Field Blocking Drill (Space)", desc: "Blocker starts in stance, takes pursuit angle to meet defender in open space, breaks down, swoops, fits hands/shoulder, and drives defender for 5 yards away from play direction", key: "Do not go in like a missile. Break down to mirror the defender's lateral movements before engaging" },
-          { name: "Blocking: King of the Ring (Block Destruction / Leverage)", desc: "Two players start in neutral position inside a 5-yard circle. On whistle, players engage using CUFF/Bridge blocking or shed moves. Winner uses low leverage and leg drive to push opponent out of ring", key: "Promotes physical toughness and shedding blocks in a confined space. Keep reps short and safe" }
-        ],
-        drills: []
-      },
-      {
-        name: "🌟 Specials",
-        subfolders: [
-          { name: "Special Teams: Kickoff Lane Spacing Drill", desc: "Full kickoff team lines up across 40-yard line. On kicker approach/signal, sprint 40 yards downfield maintaining exactly 10 yards of lateral spacing between all players to prevent gaps in coverage", key: "Young players often bunch up and chase the ball immediately. Train them to maintain their lanes until the returner commits" },
-          { name: "Special Teams: Kick Return Wedge", desc: "Front blockers sprint back 15 yards, turn, and form a tight wall shoulder-to-shoulder to block for returner", key: "Do not block in the back. Wait for the coverage team to come to the wall, then engage." },
-          { name: "Special Teams: Punt Formation & Protection Install", desc: "Long snap to punter (12-15 yards). Linemen execute tight slide-and-fan protection, hold blocks for 2 seconds, and release downfield in designated coverage lanes", key: "Focus strictly on the shield blocking technique" },
-          { name: "Special Teams: Punt Shield Protection", desc: "3 players form a shield 5 yards behind line. Step inside to seal gaps, absorb rushers, and hold for 2 seconds", key: "Teach the shield players to step together and form a solid wall, absorbing contact rather than attacking upfield" },
-          { name: "Special Teams: Gunner Release", desc: "Gunner beats jam and forces fair catch", key: "Avoid the jam using a rip or swim move. Sprint to the hip of the returner and force a fair catch" },
-          { name: "Special Teams: Specialists Kicking & Holding", desc: "Snapper, holder, and kicker work independently on snap trajectory, holder placement (laces out, finger on top), and kicker approach steps and follow-through", key: "The holder controls the play. Catch the ball first, then smoothly transition it to the block/tee" }
-        ],
+        subfolders: [],
         drills: []
       }
     ];
@@ -1188,7 +1030,7 @@
         saveTimeout = setTimeout(() => { saveState(); }, 500);
     }
 
-    /* Bidirectional Column Resizing Logic */
+    /* Column Resizing */
     let resizingColIndex = null;
     let startX = 0;
     let startWidths = [];
@@ -1198,16 +1040,10 @@
         e.stopPropagation();
         resizingColIndex = colIndex;
         startX = e.clientX;
-        
         const table = document.getElementById("main-practice-table");
         const cols = table.querySelectorAll("colgroup col");
-        
         startWidths = Array.from(cols).map(col => col.offsetWidth || parseInt(col.style.width) || 100);
-        
-        cols.forEach((col, idx) => {
-            col.style.width = startWidths[idx] + "px";
-        });
-
+        cols.forEach((col, idx) => { col.style.width = startWidths[idx] + "px"; });
         window.addEventListener("mousemove", onColMouseMove, { passive: false });
         window.addEventListener("mouseup", onColMouseUp);
     }
@@ -1215,16 +1051,12 @@
     function onColMouseMove(e) {
         if (resizingColIndex === null) return;
         let diff = e.clientX - startX;
-        
         const table = document.getElementById("main-practice-table");
         const cols = table.querySelectorAll("colgroup col");
-        
         let startWidth = startWidths[resizingColIndex];
         let newWidth = Math.max(30, startWidth + diff);
         let actualDiff = newWidth - startWidth;
-
         cols[resizingColIndex].style.width = newWidth + "px";
-
         let nextColIdx = resizingColIndex + 1;
         if (nextColIdx < cols.length) {
             let nextStartWidth = startWidths[nextColIdx];
@@ -1266,15 +1098,7 @@
       }
       if (!weeklyData[week].formations || !Array.isArray(weeklyData[week].formations) || weeklyData[week].formations.length === 0) {
         weeklyData[week].formations = JSON.parse(JSON.stringify(defaultFormations));
-      } else {
-        const existingUnits = weeklyData[week].formations.map(f => f.unit);
-        defaultFormations.forEach(defF => {
-          if (!existingUnits.includes(defF.unit)) {
-            weeklyData[week].formations.push(JSON.parse(JSON.stringify(defF)));
-          }
-        });
       }
-
       if (!weeklyData[week].depthChart || typeof weeklyData[week].depthChart !== 'object' || Array.isArray(weeklyData[week].depthChart)) {
         weeklyData[week].depthChart = {};
       }
@@ -1315,42 +1139,32 @@
         if (!templateName || !practiceTemplates[templateName]) return;
         const prac = practiceData.find(p => p.id === currentPracticeId);
         if (!prac) return;
-
-        if (confirm(`Apply template "${templateName}" to this practice? This will replace current periods.`)) {
+        if (confirm(`Apply template "${templateName}"? This will replace current periods.`)) {
             prac.plan = JSON.parse(JSON.stringify(practiceTemplates[templateName]));
             saveState();
             renderPracticePlan();
             document.getElementById("practice-template-select").value = "";
-            alert(`Template "${templateName}" applied successfully!`);
         }
     }
 
     function saveCurrentAsTemplate() {
         const prac = practiceData.find(p => p.id === currentPracticeId);
-        if (!prac || !Array.isArray(prac.plan) || prac.plan.length === 0) {
-            alert("No practice plan periods to save.");
-            return;
-        }
+        if (!prac || !Array.isArray(prac.plan) || prac.plan.length === 0) return alert("No practice plan periods to save.");
         let tName = prompt("Enter a name for this practice template:");
         if (tName && tName.trim() !== "") {
             let cleanName = tName.trim();
             practiceTemplates[cleanName] = JSON.parse(JSON.stringify(prac.plan));
             saveState();
             populateTemplateDropdown();
-            if (!document.getElementById("templates-modal").classList.contains("hidden")) {
-                openTemplatesManager();
-            }
-            alert(`Practice template "${cleanName}" saved successfully!`);
+            alert(`Template "${cleanName}" saved!`);
         }
     }
 
     function openTemplatesManager() {
         const container = document.getElementById("templates-list-container");
         if (!container) return;
-
         let html = '';
         const templateKeys = Object.keys(practiceTemplates);
-        
         if (templateKeys.length === 0) {
             html = '<div style="color:var(--text-muted); text-align:center; font-size:11px;">No templates saved.</div>';
         } else {
@@ -1374,10 +1188,6 @@
         let newName = prompt("Rename template:", oldName);
         if (newName && newName.trim() !== "" && newName !== oldName) {
             let cleanName = newName.trim();
-            if (practiceTemplates[cleanName]) {
-                alert("A template with that name already exists.");
-                return;
-            }
             practiceTemplates[cleanName] = practiceTemplates[oldName];
             delete practiceTemplates[oldName];
             saveState();
@@ -1397,10 +1207,7 @@
 
     function exportDrillsJSON() {
         let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(cascadingDrills, null, 2));
-        let dl = document.createElement('a'); 
-        dl.setAttribute("href", dataStr); 
-        dl.setAttribute("download", `drill_folders_structure.json`); 
-        dl.click();
+        let dl = document.createElement('a'); dl.setAttribute("href", dataStr); dl.setAttribute("download", `drill_folders_structure.json`); dl.click();
     }
 
     function importDrillsJSON(e) {
@@ -1414,9 +1221,7 @@
                     cascadingDrills = parsed;
                     saveState();
                     renderDrillsTab();
-                    alert("Drill folders structure imported successfully!");
-                } else {
-                    alert("Invalid drill folders JSON file format.");
+                    alert("Drills imported successfully!");
                 }
             } catch (err) { alert("Error parsing JSON: " + err.message); }
             e.target.value = '';
@@ -1432,25 +1237,19 @@
 
     function exportDrillsCSV() {
         let rows = [["Top Folder", "Subfolder", "Drill Name", "Setup & Instructions", "Coaching Focus"]];
-
         function traverseFolders(folders, topFolderName = "", subfolderName = "") {
             folders.forEach(f => {
                 let curTop = topFolderName || f.name;
                 let curSub = topFolderName ? (subfolderName ? `${subfolderName} > ${f.name}` : f.name) : "";
-
                 if (f.drills && f.drills.length > 0) {
-                    f.drills.forEach(d => {
-                        rows.push([curTop, curSub, d.name || "", d.desc || "", d.key || ""]);
-                    });
+                    f.drills.forEach(d => { rows.push([curTop, curSub, d.name || "", d.desc || "", d.key || ""]); });
                 }
                 if (f.subfolders && f.subfolders.length > 0) {
                     traverseFolders(f.subfolders, curTop, curSub);
                 }
             });
         }
-
         traverseFolders(cascadingDrills);
-
         let csvContent = rows.map(r => r.map(escapeCSV).join(",")).join("\r\n");
         let blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
         let url = URL.createObjectURL(blob);
@@ -1463,9 +1262,7 @@
     }
 
     function parseCSV(text) {
-        let p = '', c = '', r = [];
-        let q = false;
-        let row = [''];
+        let p = '', c = '', r = [], q = false, row = [''];
         for (let i = 0; i < text.length; i++) {
             c = text[i];
             let next = text[i + 1];
@@ -1493,11 +1290,7 @@
         reader.onload = function(evt) {
             try {
                 let parsedRows = parseCSV(evt.target.result);
-                if (parsedRows.length < 2) {
-                    alert("CSV file is empty or missing data rows.");
-                    return;
-                }
-
+                if (parsedRows.length < 2) return alert("CSV file empty.");
                 let newDrillsTree = [];
                 function getOrCreateFolder(tree, name) {
                     let found = tree.find(item => item.name.toLowerCase() === name.toLowerCase());
@@ -1507,51 +1300,34 @@
                     }
                     return found;
                 }
-
-                let startIdx = 0;
-                if (parsedRows[0][0] && parsedRows[0][0].toLowerCase().includes("folder")) {
-                    startIdx = 1;
-                }
-
+                let startIdx = (parsedRows[0][0] && parsedRows[0][0].toLowerCase().includes("folder")) ? 1 : 0;
                 for (let i = startIdx; i < parsedRows.length; i++) {
                     let r = parsedRows[i];
                     if (!r || r.length < 3) continue;
-
                     let topFolderName = (r[0] || "General").trim() || "General";
                     let subfolderName = (r[1] || "").trim();
                     let drillName = (r[2] || "").trim();
                     let drillDesc = (r[3] || "").trim();
                     let drillKey = (r[4] || "").trim();
-
                     if (!drillName) continue;
-
                     let topFolder = getOrCreateFolder(newDrillsTree, topFolderName);
                     let targetFolder = topFolder;
-
                     if (subfolderName) {
                         let subParts = subfolderName.split(">").map(s => s.trim()).filter(Boolean);
                         let curParent = topFolder;
-                        subParts.forEach(sp => {
-                            curParent = getOrCreateFolder(curParent.subfolders, sp);
-                        });
+                        subParts.forEach(sp => { curParent = getOrCreateFolder(curParent.subfolders, sp); });
                         targetFolder = curParent;
                     }
-
                     if (!targetFolder.drills) targetFolder.drills = [];
                     targetFolder.drills.push({ name: drillName, desc: drillDesc, key: drillKey });
                 }
-
                 if (newDrillsTree.length > 0) {
                     cascadingDrills = newDrillsTree;
                     saveState();
                     renderDrillsTab();
-                    alert("Drill Library imported from CSV successfully!");
-                } else {
-                    alert("No valid drill rows could be read from the CSV.");
+                    alert("Drills imported successfully!");
                 }
-            } catch (err) {
-                alert("Error importing CSV: " + err.message);
-            }
+            } catch (err) { alert("Error importing CSV: " + err.message); }
             e.target.value = '';
         };
         reader.readAsText(file);
@@ -1565,12 +1341,11 @@
     }
 
     function forceResetDefaultDrills() {
-        if (userRole !== 'admin') { alert("Only Head Coach (Admin) can reset default drills."); return; }
-        if (confirm("Reset drill library to default cascading folder structure?")) {
+        if (userRole !== 'admin') return alert("Only Head Coach (Admin) can reset drills.");
+        if (confirm("Reset drill library to default structure?")) {
             cascadingDrills = JSON.parse(JSON.stringify(defaultCascadingDrills));
             saveState();
             renderDrillsTab();
-            alert("Drill library reset successfully!");
         }
     }
 
@@ -1621,37 +1396,27 @@
 
     function deleteFolderAtPath(pathKey, e) {
         if (e) e.stopPropagation();
-        if (userRole !== 'admin') { alert("Only Head Coach (Admin) can delete folders."); return; }
+        if (userRole !== 'admin') return alert("Only Head Coach (Admin) can delete folders.");
         if (confirm("Delete this folder and all its contents?")) {
             removeFolderByPath(cascadingDrills, pathKey);
             saveState(); renderDrillsTab();
         }
     }
 
-    function moveFolderUp(pathKey, e) {
-        if (e) e.stopPropagation();
-        moveFolderPosition(pathKey, -1);
-    }
-
-    function moveFolderDown(pathKey, e) {
-        if (e) e.stopPropagation();
-        moveFolderPosition(pathKey, 1);
-    }
+    function moveFolderUp(pathKey, e) { if (e) e.stopPropagation(); moveFolderPosition(pathKey, -1); }
+    function moveFolderDown(pathKey, e) { if (e) e.stopPropagation(); moveFolderPosition(pathKey, 1); }
 
     function moveFolderPosition(pathKey, direction) {
         let parts = pathKey.split('_');
         let idx = parseInt(parts.pop());
         let parentPath = parts.join('_');
-
         let list = cascadingDrills;
         if (parentPath !== '') {
             let parentFolder = findFolderByPath(cascadingDrills, parentPath);
             if (parentFolder && parentFolder.subfolders) list = parentFolder.subfolders;
         }
-
         let newIdx = idx + direction;
         if (newIdx < 0 || newIdx >= list.length) return;
-
         let [moved] = list.splice(idx, 1);
         list.splice(newIdx, 0, moved);
         saveState();
@@ -1668,10 +1433,8 @@
 
     function moveDrillToFolder(sourcePath, drillIndex, targetPath) {
         if (sourcePath === targetPath) return;
-
         let sourceFolder = findFolderByPath(cascadingDrills, sourcePath);
         let targetFolder = findFolderByPath(cascadingDrills, targetPath);
-
         if (sourceFolder && targetFolder && sourceFolder.drills && drillIndex < sourceFolder.drills.length) {
             let [movedDrill] = sourceFolder.drills.splice(drillIndex, 1);
             if (!targetFolder.drills) targetFolder.drills = [];
@@ -1684,7 +1447,7 @@
 
     function deleteDrillFromPath(pathKey, index, e) {
         if (e) e.stopPropagation();
-        if (userRole !== 'admin') { alert("Only Head Coach (Admin) can delete drills."); return; }
+        if (userRole !== 'admin') return alert("Only Head Coach (Admin) can delete drills.");
         if (confirm("Delete this drill?")) {
             let folder = findFolderByPath(cascadingDrills, pathKey);
             if (folder && folder.drills) {
@@ -1714,7 +1477,6 @@
         e.preventDefault();
         e.stopPropagation();
         e.currentTarget.classList.remove("drag-over");
-
         if (!draggedDrillData) return;
         moveDrillToFolder(draggedDrillData.sourcePath, draggedDrillData.drillIndex, targetPath);
         draggedDrillData = null;
@@ -1772,7 +1534,6 @@
             let isCollapsed = collapsedFolders[pathKey];
             let icon = isCollapsed ? '📁' : '📂';
             let displayStyle = isCollapsed ? 'none' : 'block';
-
             let deleteFolderBtnHtml = userRole === 'admin' ? `<button onclick="deleteFolderAtPath('${pathKey}', event)" class="toggle-board-btn" style="color:red;" title="Delete Folder">🗑️</button>` : '';
 
             html += `
@@ -1880,10 +1641,8 @@
     function onDrillSelected(rIdx, sIdx, selectEl) {
         const drillName = selectEl.value;
         if (!drillName) return;
-        
         let allDrills = collectAllDrillsFlat(cascadingDrills);
         let foundDrill = allDrills.find(d => d.name === drillName);
-
         if (foundDrill) {
             const prac = practiceData.find(p => p.id === currentPracticeId);
             if (prac && Array.isArray(prac.plan) && prac.plan[rIdx] && prac.plan[rIdx].stations[sIdx]) {
@@ -1899,11 +1658,9 @@
     function syncDrillLibraryFromStation(rIdx, sIdx) {
         const prac = practiceData.find(p => p.id === currentPracticeId);
         if (!prac || !Array.isArray(prac.plan) || !prac.plan[rIdx] || !prac.plan[rIdx].stations[sIdx]) return;
-
         const st = prac.plan[rIdx].stations[sIdx];
         const drillName = (st.name || "").trim();
         if (!drillName) return;
-
         const categoryName = prac.plan[rIdx].category || (cascadingDrills[0] ? cascadingDrills[0].name : "General");
         
         let folder = cascadingDrills.find(f => f.name.toLowerCase() === categoryName.toLowerCase());
@@ -1918,11 +1675,7 @@
             existingDrill.desc = st.desc || "";
             existingDrill.key = st.focus || "";
         } else {
-            folder.drills.push({
-                name: drillName,
-                desc: st.desc || "",
-                key: st.focus || ""
-            });
+            folder.drills.push({ name: drillName, desc: st.desc || "", key: st.focus || "" });
         }
         saveState();
     }
@@ -1933,35 +1686,29 @@
             if (box.id !== `coach_popup_${rIdx}_${sIdx}`) box.classList.add('hidden');
         });
         const popup = document.getElementById(`coach_popup_${rIdx}_${sIdx}`);
-        if (popup) {
-            popup.classList.toggle('hidden');
-        }
+        if (popup) popup.classList.toggle('hidden');
     }
 
     function toggleCoachCheckbox(rIdx, sIdx, coachName, checkboxEl) {
         const prac = practiceData.find(p => p.id === currentPracticeId);
         if (!prac || !Array.isArray(prac.plan) || !prac.plan[rIdx] || !prac.plan[rIdx].stations[sIdx]) return;
-
         let curVal = prac.plan[rIdx].stations[sIdx].coach || "";
         let tokens = curVal.split(',').map(t => t.trim()).filter(Boolean);
-
-        let hasName = tokens.includes(coachName) || tokens.includes("Coach " + coachName) || (coachName.startsWith("Coach ") && tokens.includes(coachName.replace("Coach ", "")));
+        let hasName = tokens.includes(coachName) || tokens.includes("Coach " + coachName);
 
         if (checkboxEl.checked) {
             if (!hasName) tokens.push(coachName);
         } else {
-            tokens = tokens.filter(t => t !== coachName && t !== "Coach " + coachName && t !== coachName.replace("Coach ", ""));
+            tokens = tokens.filter(t => t !== coachName && t !== "Coach " + coachName);
         }
 
         prac.plan[rIdx].stations[sIdx].coach = tokens.join(', ');
         saveState();
-        
         const stationEl = document.getElementById(`station_box_${rIdx}_${sIdx}`);
         if (stationEl) {
             const ta = stationEl.querySelector('.coach-textarea');
             if (ta) ta.value = prac.plan[rIdx].stations[sIdx].coach;
         }
-        
         const popup = document.getElementById(`coach_popup_${rIdx}_${sIdx}`);
         if (popup) popup.classList.remove('hidden');
     }
@@ -1983,7 +1730,6 @@
             }
             saveState();
             renderPracticePlan();
-            
             const popup = document.getElementById(`coach_popup_${rIdx}_${sIdx}`);
             if (popup) popup.classList.remove('hidden');
         }
@@ -1993,7 +1739,6 @@
         if (e) e.stopPropagation();
         if (confirm(`Remove "${coachName}" from saved coaches?`)) {
             savedCoachesList = savedCoachesList.filter(c => c !== coachName);
-            
             practiceData.forEach(p => {
                 if (Array.isArray(p.plan)) {
                     p.plan.forEach(row => {
@@ -2001,7 +1746,7 @@
                             row.stations.forEach(st => {
                                 if (st.coach) {
                                     let tokens = st.coach.split(',').map(t => t.trim()).filter(Boolean);
-                                    tokens = tokens.filter(t => t !== coachName && t !== "Coach " + coachName && t !== coachName.replace("Coach ", ""));
+                                    tokens = tokens.filter(t => t !== coachName && t !== "Coach " + coachName);
                                     st.coach = tokens.join(', ');
                                 }
                             });
@@ -2009,7 +1754,6 @@
                     });
                 }
             });
-
             saveState();
             renderPracticePlan();
             if (activeUnit === 'users') renderUsers();
@@ -2019,10 +1763,7 @@
     function renderPracticePlan() {
         const prac = practiceData.find(p => p.id === currentPracticeId);
         if (!prac) return;
-        
-        if (!Array.isArray(prac.plan)) {
-            prac.plan = [];
-        }
+        if (!Array.isArray(prac.plan)) prac.plan = [];
         
         const yearInput = document.getElementById("prac-year-input");
         const weekInput = document.getElementById("prac-week-input");
@@ -2079,7 +1820,7 @@
                 let assignedCoaches = (st.coach || "").split(',').map(t => t.trim()).filter(Boolean);
 
                 let coachCheckboxesHtml = savedCoachesList.map(c => {
-                    let isChecked = assignedCoaches.includes(c) || assignedCoaches.includes("Coach " + c) || (c.startsWith("Coach ") && assignedCoaches.includes(c.replace("Coach ", "")));
+                    let isChecked = assignedCoaches.includes(c) || assignedCoaches.includes("Coach " + c);
                     return `
                         <div style="display:flex; align-items:center; justify-content:space-between; padding:3px 6px; font-size:11px;" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='#fff'">
                            <label style="display:flex; align-items:center; gap:6px; cursor:pointer; flex-grow:1;">
@@ -2092,10 +1833,12 @@
                 }).join('');
 
                 let stationBadgeHtml = '';
+                let printStationTiming = '';
                 if (isRotating) {
                     let stStartTimeMin = currentTimeMin + (sIdx * stationDurationMin);
                     let stEndTimeMin = stStartTimeMin + stationDurationMin;
                     stationBadgeHtml = `<div style="font-size:10px; font-weight:bold; color:#0284c7; background:#e0f2fe; padding:2px 6px; border-radius:4px; margin-bottom:4px; display:inline-block;">⏱️ Station Time: ${formatTime(stStartTimeMin)} - ${formatTime(stEndTimeMin)} (${Math.round(stationDurationMin)} min)</div>`;
+                    printStationTiming = `<div class="print-val font-bold" style="color:#0369a1;">⏱️ ${formatTime(stStartTimeMin)} - ${formatTime(stEndTimeMin)} (${Math.round(stationDurationMin)} min)</div>`;
                 }
 
                 let stationCellContent = `
@@ -2108,6 +1851,12 @@
                         </div>
                         <input type="text" class="prac-input" value="${st.name || ''}" onkeydown="if(event.key==='Enter') this.blur();" onchange="updatePracStation(${idx}, ${sIdx}, 'name', this.value); syncDrillLibraryFromStation(${idx}, ${sIdx});" placeholder="Group / Drill Name">
                         <textarea class="prac-textarea" oninput="autoResizeTextarea(this);" onchange="autoResizeTextarea(this); updatePracStation(${idx}, ${sIdx}, 'desc', this.value); syncDrillLibraryFromStation(${idx}, ${sIdx});" placeholder="Details...">${st.desc || ''}</textarea>
+                        
+                        <!-- Print Friendly Expanded Views -->
+                        ${printStationTiming}
+                        <div class="print-val font-bold">${st.name || ''}</div>
+                        <div class="print-val">${st.desc || ''}</div>
+
                         <div class="no-print admin-only" style="position:absolute; right:0; top:0;">
                             ${numStations > 1 ? `<button class="remove-btn" onclick="removeStation(${idx}, ${sIdx})" title="Delete Station">&times;</button>` : ''}
                         </div>
@@ -2119,6 +1868,9 @@
                         <textarea class="prac-textarea coach-textarea" oninput="autoResizeTextarea(this); updatePracStation(${idx}, ${sIdx}, 'coach', this.value);" placeholder="Type or click dropdown...">${st.coach || ''}</textarea>
                         <div class="no-print-text" style="font-size:9.5px; color:var(--accent); cursor:pointer; margin-top:2px;" onclick="toggleCoachPopup(${idx}, ${sIdx}, event)">▼ Select Coaches</div>
                         
+                        <!-- Print Friendly Coach View -->
+                        <div class="print-val font-bold">${st.coach || ''}</div>
+
                         <div id="${coachPopupId}" class="coach-popup-box card-search-dropdown hidden" style="width: 220px; max-height: 220px; overflow-y: auto; top: 100%; left: 0; padding:8px; background:#fff; z-index:50000; box-shadow:0 4px 12px rgba(0,0,0,0.15);" onclick="event.stopPropagation()">
                            <div style="font-size:10px; font-weight:bold; color:var(--primary); margin-bottom:6px; border-bottom:1px solid #ccc; padding-bottom:3px; display:flex; justify-content:space-between; align-items:center;">
                               <span>Select Coaches:</span>
@@ -2135,6 +1887,8 @@
                 let focusCellContent = `
                     <div class="station-block">
                         <textarea class="prac-textarea" oninput="autoResizeTextarea(this);" onchange="autoResizeTextarea(this); updatePracStation(${idx}, ${sIdx}, 'focus', this.value); syncDrillLibraryFromStation(${idx}, ${sIdx});" placeholder="Key focus...">${st.focus || ''}</textarea>
+                        <!-- Print Friendly Focus View -->
+                        <div class="print-val">${st.focus || ''}</div>
                     </div>
                 `;
 
@@ -2156,11 +1910,13 @@
                     tr.innerHTML = `
                         <td rowspan="${numStations}">
                             <div style="font-weight:bold; font-size:12px;">Period ${idx + 1}</div>
-                            <div style="margin-top:4px;"><input type="number" class="prac-input" style="width:50px; display:inline-block;" value="${row.time}" onkeydown="if(event.key==='Enter') this.blur();" onchange="updatePracRow(${idx}, 'time', this.value)"> mins</div>
+                            <div style="margin-top:4px;" class="no-print"><input type="number" class="prac-input" style="width:50px; display:inline-block;" value="${row.time}" onkeydown="if(event.key==='Enter') this.blur();" onchange="updatePracRow(${idx}, 'time', this.value)"> mins</div>
                             <div class="period-schedule-time">${timeStr}</div>
+                            <div class="print-val font-bold" style="margin-top:4px;">${row.time} mins</div>
                         </td>
                         <td rowspan="${numStations}">
-                            ${categorySelectHtml}
+                            <div class="no-print">${categorySelectHtml}</div>
+                            <div class="print-val font-bold">${row.category || ''}</div>
                             <div style="margin-top:8px;" class="no-print admin-only">
                                 <label style="font-size:9.5px; font-weight:bold; color:var(--text-muted); display:block; margin-bottom:2px;">Format:</label>
                                 <select class="prac-select" onchange="updatePracRowFormat(${idx}, this.value)">
@@ -2168,11 +1924,12 @@
                                     <option value="rotating" ${row.format === 'rotating' ? 'selected' : ''}>Rotating</option>
                                 </select>
                             </div>
+                            <div class="print-val" style="font-size:9px; font-style:italic;">Format: ${row.format === 'rotating' ? 'Rotating' : 'Static'}</div>
                         </td>
                         <td>${stationCellContent}</td>
                         <td>${coachCellContent}</td>
                         <td>${focusCellContent}</td>
-                        <td rowspan="${numStations}" class="admin-only" style="text-align:center; vertical-align:middle;">
+                        <td rowspan="${numStations}" class="admin-only no-print" style="text-align:center; vertical-align:middle;">
                             <div style="display:flex; flex-direction:column; gap:4px; align-items:center;">
                               <div style="display:flex; gap:2px;">
                                 <button class="toggle-board-btn" style="padding:1px 4px; font-size:9px;" onclick="movePracticeRow(${idx}, -1)" title="Move Up">▲</button>
@@ -2195,13 +1952,9 @@
             currentTimeMin = endTimeMin;
         });
 
-        // Trigger immediate and delayed auto-resizing across all textareas
         setTimeout(() => {
           document.querySelectorAll('#main-practice-table .prac-textarea').forEach(ta => autoResizeTextarea(ta));
-        }, 10);
-        setTimeout(() => {
-          document.querySelectorAll('#main-practice-table .prac-textarea').forEach(ta => autoResizeTextarea(ta));
-        }, 150);
+        }, 50);
     }
 
     function movePracticeRow(rIdx, direction) {
@@ -2209,7 +1962,6 @@
         if (!prac || !Array.isArray(prac.plan)) return;
         const newIndex = rIdx + direction;
         if (newIndex < 0 || newIndex >= prac.plan.length) return;
-        
         const item = prac.plan.splice(rIdx, 1)[0];
         prac.plan.splice(newIndex, 0, item);
         saveState();
@@ -2263,24 +2015,18 @@
 
     function addStationToRow(rIdx) {
         const prac = practiceData.find(p => p.id === currentPracticeId);
-        if (prac) {
-            if (!Array.isArray(prac.plan)) prac.plan = [];
-            if (prac.plan[rIdx]) {
-                if (!prac.plan[rIdx].stations) prac.plan[rIdx].stations = [];
-                prac.plan[rIdx].stations.push({ name: "New Station / Group", desc: "", coach: "", focus: "" });
-                saveState();
-                renderPracticePlan();
-            }
+        if (prac && Array.isArray(prac.plan) && prac.plan[rIdx]) {
+            if (!prac.plan[rIdx].stations) prac.plan[rIdx].stations = [];
+            prac.plan[rIdx].stations.push({ name: "New Station / Group", desc: "", coach: "", focus: "" });
+            saveState();
+            renderPracticePlan();
         }
     }
 
     function removeStation(rIdx, sIdx) {
         const prac = practiceData.find(p => p.id === currentPracticeId);
         if (prac && Array.isArray(prac.plan) && prac.plan[rIdx] && prac.plan[rIdx].stations) {
-            if (prac.plan[rIdx].stations.length <= 1) {
-                alert("A period must have at least one station/group.");
-                return;
-            }
+            if (prac.plan[rIdx].stations.length <= 1) return alert("Period must have at least one station.");
             prac.plan[rIdx].stations.splice(sIdx, 1);
             saveState();
             renderPracticePlan();
@@ -2311,11 +2057,7 @@
         if (!dropdown || !display) return;
         
         let tree = {};
-        let sortedPractices = [...practiceData].sort((a, b) => {
-            let dateA = a.date || "1970-01-01";
-            let dateB = b.date || "1970-01-01";
-            return dateA.localeCompare(dateB);
-        });
+        let sortedPractices = [...practiceData].sort((a, b) => (a.date || "1970-01-01").localeCompare(b.date || "1970-01-01"));
 
         sortedPractices.forEach((p) => {
             let yr = p.year || "2026";
@@ -2385,9 +2127,9 @@
     function editPracticeDetails() {
         const prac = practiceData.find(p => p.id === currentPracticeId);
         if (!prac) return;
-        let yr = prompt("Edit Year Folder (e.g. 2026):", prac.year || "2026");
+        let yr = prompt("Edit Year Folder:", prac.year || "2026");
         if (yr === null) return;
-        let wk = prompt("Edit Week Folder (e.g. Week 1):", prac.weekFolder || "Week 1");
+        let wk = prompt("Edit Week Folder:", prac.weekFolder || "Week 1");
         if (wk === null) return;
         let title = prompt("Edit Practice Title:", prac.title);
         if (title === null) return;
@@ -2402,19 +2144,14 @@
     }
 
     function autoNumberPractices() {
-        if (confirm("Automatically rename all practice plans sequentially as Practice #1, Practice #2, etc.?")) {
-            practiceData.forEach((p, index) => {
-                p.title = `Practice #${index + 1}`;
-            });
-            saveState();
-            populatePracticeDropdown();
-            renderPracticePlan();
-            alert("Practice plans successfully auto-numbered!");
+        if (confirm("Auto-number practice plans sequentially?")) {
+            practiceData.forEach((p, index) => { p.title = `Practice #${index + 1}`; });
+            saveState(); populatePracticeDropdown(); renderPracticePlan();
         }
     }
 
     function deletePractice() {
-        if (practiceData.length <= 1) return alert("Cannot delete the last practice plan.");
+        if (practiceData.length <= 1) return alert("Cannot delete the last plan.");
         if (confirm("Delete this practice plan?")) {
             practiceData = practiceData.filter(p => p.id !== currentPracticeId);
             currentPracticeId = practiceData[0].id;
@@ -2424,18 +2161,7 @@
 
     function checkUserApprovalStatus(email) {
         if (!email) return true;
-        
-        if (email.toLowerCase() === "dannym1010@gmail.com") {
-            let found = teamCoachesList.find(c => c.email.toLowerCase() === email.toLowerCase());
-            if (!found) {
-                teamCoachesList.push({ email, role: "Head Coach (Admin)", status: "Active" });
-            } else {
-                found.role = "Head Coach (Admin)";
-                found.status = "Active";
-            }
-            return true;
-        }
-
+        if (email.toLowerCase() === "dannym1010@gmail.com") return true;
         let coachRecord = teamCoachesList.find(c => c.email.toLowerCase() === email.toLowerCase());
         if (!coachRecord) {
             teamCoachesList.push({ email, role: "Assistant Coach", status: "Pending" });
@@ -2447,70 +2173,26 @@
 
     function listenToLiveUpdates() {
         if (!cloudEnabled || !db) return;
-        db.collection("teamData").doc("depthChartData")
-          .onSnapshot((doc) => {
-            if (isImporting) return;
-            if (doc.exists) {
-              const data = doc.data();
-              
-              if (data.weeklyData && typeof data.weeklyData === 'object') {
-                  Object.keys(data.weeklyData).forEach(wkKey => {
-                      if (!weeklyData[wkKey]) weeklyData[wkKey] = {};
-                      if (data.weeklyData[wkKey].formations && Array.isArray(data.weeklyData[wkKey].formations) && data.weeklyData[wkKey].formations.length > 0) {
-                          weeklyData[wkKey].formations = data.weeklyData[wkKey].formations;
-                      }
-                      if (data.weeklyData[wkKey].depthChart && typeof data.weeklyData[wkKey].depthChart === 'object') {
-                          weeklyData[wkKey].depthChart = data.weeklyData[wkKey].depthChart;
-                      }
-                      if (data.weeklyData[wkKey].scrimmageChart && typeof data.weeklyData[wkKey].scrimmageChart === 'object') {
-                          weeklyData[wkKey].scrimmageChart = data.weeklyData[wkKey].scrimmageChart;
-                      }
-                      if (data.weeklyData[wkKey].opponent) {
-                          weeklyData[wkKey].opponent = data.weeklyData[wkKey].opponent;
-                      }
-                  });
-              }
+        db.collection("teamData").doc("depthChartData").onSnapshot((doc) => {
+            if (isImporting || !doc.exists) return;
+            const data = doc.data();
+            if (data.weeklyData) weeklyData = data.weeklyData;
+            if (data.practiceData) practiceData = data.practiceData;
+            if (data.cascadingDrills) cascadingDrills = data.cascadingDrills;
+            if (data.pdfGuidesTree) pdfGuidesTree = data.pdfGuidesTree;
+            if (data.savedCoachesList) savedCoachesList = data.savedCoachesList;
+            if (data.practiceTemplates) practiceTemplates = { ...defaultPracticeTemplates, ...data.practiceTemplates };
+            if (data.teamCoachesList) teamCoachesList = data.teamCoachesList;
 
-              if (data.practiceData && data.practiceData.length > 0) practiceData = data.practiceData;
-              if (data.masterPlayLibrary && data.masterPlayLibrary.length > 0) masterPlayLibrary = data.masterPlayLibrary;
-              if (data.cascadingDrills && data.cascadingDrills.length > 0) cascadingDrills = data.cascadingDrills;
-              if (data.pdfGuidesTree && typeof data.pdfGuidesTree === 'object') pdfGuidesTree = data.pdfGuidesTree;
-              if (data.collapsedFolders) collapsedFolders = data.collapsedFolders;
-              if (data.savedCoachesList) savedCoachesList = data.savedCoachesList;
-              if (data.practiceTemplates && typeof data.practiceTemplates === 'object' && Object.keys(data.practiceTemplates).length > 0) {
-                  practiceTemplates = { ...defaultPracticeTemplates, ...data.practiceTemplates };
-                  populateTemplateDropdown();
-              }
-              if (data.teamCoachesList) teamCoachesList = data.teamCoachesList;
-
-              if (currentUser && currentUser.email) {
-                  let isApproved = checkUserApprovalStatus(currentUser.email);
-                  if (!isApproved) {
-                      document.getElementById("approval-pending-overlay").classList.remove("hidden");
-                      document.getElementById("pending-user-email-display").textContent = currentUser.email;
-                      return;
-                  } else {
-                      document.getElementById("approval-pending-overlay").classList.add("hidden");
-                  }
-              }
-
-              depthChart = getWeekDepthChart(currentWeek);
-              renderActiveBoards();
-              renderMasterRoster();
-              populatePracticeDropdown();
-
-              if (activeUnit === 'practice') {
-                  const isTyping = document.activeElement && document.activeElement.closest('#main-practice-table');
-                  if (!isTyping) renderPracticePlan();
-              }
-              if (activeUnit === 'wristband') renderWristband();
-              if (activeUnit === 'scouting') renderScouting();
-              if (activeUnit === 'drills') renderDrillsTab();
-              if (activeUnit === 'scrimmage') renderScrimmageTab();
-              if (activeUnit === 'users') renderUsers();
-              if (activeUnit === 'guide') renderGuideTab();
+            depthChart = getWeekDepthChart(currentWeek);
+            renderActiveBoards();
+            renderMasterRoster();
+            populatePracticeDropdown();
+            if (activeUnit === 'practice' && (!document.activeElement || !document.activeElement.closest('#main-practice-table'))) {
+                renderPracticePlan();
             }
-          });
+            if (activeUnit === 'guide') renderGuideTab();
+        });
     }
 
     function selectFormationForRoster(formId) {
@@ -2523,23 +2205,16 @@
 
     function addFormationRow(formId) {
       if (userRole !== 'admin') return;
-      let label = prompt("Enter new level/row label (e.g. Defensive Secondary, Backfield):", "Additional Level");
+      let label = prompt("Enter new row label:", "Additional Level");
       if (!label) return;
-      let slotCountStr = prompt("Enter number of columns/slots for this row (1 to 10):", "7");
-      let slotCount = parseInt(slotCountStr) || 7;
-      if (slotCount < 1) slotCount = 1;
-      if (slotCount > 10) slotCount = 10;
-
+      let slotCount = parseInt(prompt("Enter slot count (1 to 10):", "7")) || 7;
       const forms = getWeekFormations(currentWeek);
       const form = forms.find(f => f.id === formId);
       if (form) {
         if (!form.rows) form.rows = [];
-        let newRowId = "row_" + Date.now();
-        let positions = [];
-        for(let i=0; i<slotCount; i++) { positions.push(null); }
-        form.rows.push({ id: newRowId, label: label.trim(), slotCount, positions });
-        saveState();
-        renderActiveBoards();
+        let positions = Array(slotCount).fill(null);
+        form.rows.push({ id: "row_" + Date.now(), label: label.trim(), slotCount, positions });
+        saveState(); renderActiveBoards();
       }
     }
 
@@ -2548,12 +2223,10 @@
       const forms = getWeekFormations(currentWeek);
       const form = forms.find(f => f.id === formId);
       if (form && form.rows && form.rows[rIdx]) {
-        let currentLabel = form.rows[rIdx].label || "";
-        let newLabel = prompt("Edit Row/Level Name:", currentLabel);
+        let newLabel = prompt("Edit Row Name:", form.rows[rIdx].label || "");
         if (newLabel !== null && newLabel.trim() !== "") {
           form.rows[rIdx].label = newLabel.trim();
-          saveState();
-          renderActiveBoards();
+          saveState(); renderActiveBoards();
         }
       }
     }
@@ -2564,20 +2237,14 @@
       const form = forms.find(f => f.id === formId);
       if (form && form.rows && form.rows[rIdx]) {
         let row = form.rows[rIdx];
-        let currentCount = row.positions ? row.positions.length : (row.slotCount || 7);
-        let newCountStr = prompt("Edit number of position slots for this row (1 to 10):", currentCount);
-        let newCount = parseInt(newCountStr);
+        let currentCount = row.positions ? row.positions.length : 7;
+        let newCount = parseInt(prompt("Edit number of position slots (1 to 10):", currentCount));
         if (isNaN(newCount) || newCount < 1 || newCount > 10) return;
-
         if (!row.positions) row.positions = [];
-        if (newCount > row.positions.length) {
-          while(row.positions.length < newCount) { row.positions.push(null); }
-        } else if (newCount < row.positions.length) {
-          row.positions = row.positions.slice(0, newCount);
-        }
+        while(row.positions.length < newCount) row.positions.push(null);
+        if (newCount < row.positions.length) row.positions = row.positions.slice(0, newCount);
         row.slotCount = newCount;
-        saveState();
-        renderActiveBoards();
+        saveState(); renderActiveBoards();
       }
     }
 
@@ -2591,8 +2258,7 @@
         let newName = prompt("Edit Position Name:", pos.name);
         if (newName !== null && newName.trim() !== "") {
           pos.name = newName.trim();
-          saveState();
-          renderActiveBoards();
+          saveState(); renderActiveBoards();
         }
       }
     }
@@ -2602,33 +2268,22 @@
       const forms = getWeekFormations(currentWeek);
       const form = forms.find(f => f.id === formId);
       if (!form || !form.rows || !form.rows[rIdx] || !form.rows[rIdx].positions) return;
-
       let pos = form.rows[rIdx].positions[pIdx];
       if (!pos) return;
 
       let rowOptions = form.rows.map((r, i) => `${i}: ${r.label || 'Row ' + (i+1)}`).join('\n');
-      let targetRowStr = prompt(`Select target row index (0 to ${form.rows.length - 1}) for position [${pos.name}]:\n\n${rowOptions}`);
-      if (targetRowStr === null) return;
+      let targetRowStr = prompt(`Select target row index (0 to ${form.rows.length - 1}):\n\n${rowOptions}`);
       let targetRIdx = parseInt(targetRowStr);
-      if (isNaN(targetRIdx) || targetRIdx < 0 || targetRIdx >= form.rows.length) {
-        alert("Invalid row index.");
-        return;
-      }
+      if (isNaN(targetRIdx) || targetRIdx < 0 || targetRIdx >= form.rows.length) return;
 
       form.rows[rIdx].positions[pIdx] = null;
-
       let targetRow = form.rows[targetRIdx];
       if (!targetRow.positions) targetRow.positions = [];
       let emptyIdx = targetRow.positions.indexOf(null);
-      if (emptyIdx !== -1) {
-        targetRow.positions[emptyIdx] = pos;
-      } else {
-        targetRow.positions.push(pos);
-        targetRow.slotCount = targetRow.positions.length;
-      }
-
-      saveState();
-      renderActiveBoards();
+      if (emptyIdx !== -1) targetRow.positions[emptyIdx] = pos;
+      else targetRow.positions.push(pos);
+      targetRow.slotCount = targetRow.positions.length;
+      saveState(); renderActiveBoards();
     }
 
     function copyPositionToFormation(formId, rIdx, pIdx) {
@@ -2636,82 +2291,52 @@
       const forms = getWeekFormations(currentWeek);
       const srcForm = forms.find(f => f.id === formId);
       if (!srcForm || !srcForm.rows || !srcForm.rows[rIdx] || !srcForm.rows[rIdx].positions) return;
-
       let pos = srcForm.rows[rIdx].positions[pIdx];
       if (!pos) return;
 
       let otherForms = forms.filter(f => f.id !== formId);
-      if (otherForms.length === 0) {
-        alert("No other formations available to copy to.");
-        return;
-      }
-
-      let formOptions = otherForms.map((f, i) => `${i + 1}. ${f.name} (${f.unit})`).join('\n');
-      let choiceStr = prompt(`Copy position [${pos.name}] to which formation?\n\n${formOptions}\n\nEnter number:`);
-      if (!choiceStr) return;
-      let choiceIdx = parseInt(choiceStr) - 1;
-      if (isNaN(choiceIdx) || choiceIdx < 0 || choiceIdx >= otherForms.length) {
-        alert("Invalid selection.");
-        return;
-      }
+      if (otherForms.length === 0) return alert("No other formations available.");
+      let formOptions = otherForms.map((f, i) => `${i + 1}. ${f.name}`).join('\n');
+      let choiceIdx = parseInt(prompt(`Copy position [${pos.name}] to:\n\n${formOptions}\n\nEnter number:`)) - 1;
+      if (isNaN(choiceIdx) || choiceIdx < 0 || choiceIdx >= otherForms.length) return;
 
       let targetForm = otherForms[choiceIdx];
-      if (!targetForm.rows || targetForm.rows.length === 0) {
-        alert("Target formation has no rows.");
-        return;
-      }
-
       let targetRow = targetForm.rows[0];
       let newPosId = targetForm.id + "-" + pos.name + "-" + Date.now();
       let newPos = { id: newPosId, name: pos.name };
-
       if (!targetRow.positions) targetRow.positions = [];
-      let emptyIdx = targetRow.positions.indexOf(null);
-      if (emptyIdx !== -1) {
-        targetRow.positions[emptyIdx] = newPos;
-      } else {
-        targetRow.positions.push(newPos);
-        targetRow.slotCount = targetRow.positions.length;
-      }
+      targetRow.positions.push(newPos);
+      targetRow.slotCount = targetRow.positions.length;
 
       let dc = getWeekDepthChart(currentWeek);
-      if (dc[pos.id] && Array.isArray(dc[pos.id])) {
-        dc[newPosId] = JSON.parse(JSON.stringify(dc[pos.id]));
-      }
-
-      saveState();
-      renderActiveBoards();
-      alert(`Successfully copied [${pos.name}] and its players to formation: ${targetForm.name}!`);
+      if (dc[pos.id]) dc[newPosId] = JSON.parse(JSON.stringify(dc[pos.id]));
+      saveState(); renderActiveBoards();
     }
 
     function deleteFormationRow(formId, rIdx) {
       if (userRole !== 'admin') return;
-      if (!confirm("Delete this entire row and its positions?")) return;
+      if (!confirm("Delete this entire row?")) return;
       const forms = getWeekFormations(currentWeek);
       const form = forms.find(f => f.id === formId);
       if (form && form.rows) {
         form.rows.splice(rIdx, 1);
-        saveState();
-        renderActiveBoards();
+        saveState(); renderActiveBoards();
       }
     }
 
     function addPositionToRow(formId, rIdx) {
       if (userRole !== 'admin') return;
-      let posName = prompt("Enter position name (e.g., CB, FS, WR):");
+      let posName = prompt("Enter position name:");
       if (!posName || !posName.trim()) return;
       let cleanName = posName.trim();
-      let posId = `${formId}-${cleanName}-${Date.now()}`;
-
       const forms = getWeekFormations(currentWeek);
       const form = forms.find(f => f.id === formId);
       if (form && form.rows && form.rows[rIdx]) {
         let row = form.rows[rIdx];
         if (!row.positions) row.positions = [];
-        row.positions.push({ id: posId, name: cleanName });
+        row.positions.push({ id: `${formId}-${cleanName}-${Date.now()}`, name: cleanName });
         row.slotCount = row.positions.length;
-        saveState();
-        renderActiveBoards();
+        saveState(); renderActiveBoards();
       }
     }
 
@@ -2722,27 +2347,28 @@
       if (form && form.rows && form.rows[rIdx] && form.rows[rIdx].positions) {
         let pos = form.rows[rIdx].positions[pIdx];
         if (pos && pos.id) {
-          let dc = getWeekDepthChart(currentWeek);
-          if (dc[pos.id]) delete dc[pos.id];
-          let sc = getWeekScrimmageChart(currentWeek);
-          if (sc[pos.id]) delete sc[pos.id];
+          delete getWeekDepthChart(currentWeek)[pos.id];
+          delete getWeekScrimmageChart(currentWeek)[pos.id];
         }
         form.rows[rIdx].positions.splice(pIdx, 1);
         form.rows[rIdx].slotCount = form.rows[rIdx].positions.length;
-        saveState();
-        renderActiveBoards();
+        saveState(); renderActiveBoards();
       }
     }
 
+    /* DRAG AND DROP HANDLERS FOR POSITION CARDS ACROSS LEVELS */
     function handlePositionDragStart(e, formId, rIdx, pIdx) {
       if (userRole !== 'admin') return;
       draggedPositionData = { formId, rIdx, pIdx };
+      draggedData = null; // Clear player dragged data
       e.dataTransfer.setData("text/plain", "position_card");
+      e.dataTransfer.effectAllowed = "move";
       e.stopPropagation();
     }
 
     function handlePositionSlotDragOver(e) {
       if (userRole !== 'admin') return;
+      if (!draggedPositionData) return;
       e.preventDefault();
       e.stopPropagation();
       e.currentTarget.classList.add("drag-over");
@@ -2755,29 +2381,43 @@
 
     function handlePositionSlotDrop(e, targetFormId, targetRIdx, targetPIdx) {
       if (userRole !== 'admin') return;
+      if (!draggedPositionData) return;
       e.preventDefault();
       e.stopPropagation();
       e.currentTarget.classList.remove("drag-over");
 
-      if (!draggedPositionData) return;
-      if (draggedPositionData.formId !== targetFormId || draggedPositionData.rIdx !== targetRIdx) {
-        draggedPositionData = null;
-        return;
-      }
+      const srcFormId = draggedPositionData.formId;
+      const srcRIdx = draggedPositionData.rIdx;
+      const srcPIdx = draggedPositionData.pIdx;
 
+      // Allow dragging across any level/row in any formation
       const forms = getWeekFormations(currentWeek);
-      const form = forms.find(f => f.id === targetFormId);
-      if (form && form.rows && form.rows[targetRIdx]) {
-        let row = form.rows[targetRIdx];
-        let srcIdx = draggedPositionData.pIdx;
-        if (srcIdx === targetPIdx) return;
+      const srcForm = forms.find(f => f.id === srcFormId);
+      const targetForm = forms.find(f => f.id === targetFormId);
 
-        let temp = row.positions[srcIdx];
-        row.positions[srcIdx] = row.positions[targetPIdx];
-        row.positions[targetPIdx] = temp;
+      if (srcForm && targetForm && srcForm.rows && targetForm.rows) {
+        const srcRow = srcForm.rows[srcRIdx];
+        const targetRow = targetForm.rows[targetRIdx];
 
-        saveState();
-        renderActiveBoards();
+        if (srcRow && targetRow) {
+          if (srcFormId === targetFormId && srcRIdx === targetRIdx && srcPIdx === targetPIdx) {
+            draggedPositionData = null;
+            return;
+          }
+
+          if (!srcRow.positions) srcRow.positions = [];
+          if (!targetRow.positions) targetRow.positions = [];
+
+          const srcPos = srcRow.positions[srcPIdx];
+          const targetPos = targetRow.positions[targetPIdx];
+
+          // Swap positions or move to empty slot across rows/levels
+          srcRow.positions[srcPIdx] = targetPos || null;
+          targetRow.positions[targetPIdx] = srcPos || null;
+
+          saveState();
+          renderActiveBoards();
+        }
       }
       draggedPositionData = null;
     }
@@ -2838,7 +2478,6 @@
           (row.positions || []).forEach((pos, pIdx) => {
             const slotDiv = document.createElement("div");
             slotDiv.className = "row-slot";
-            
             if (userRole === 'admin') {
               slotDiv.ondragover = handlePositionSlotDragOver;
               slotDiv.ondragleave = handlePositionSlotDragLeave;
@@ -2849,9 +2488,18 @@
               const card = document.createElement("div");
               card.className = "position-card";
               if (userRole === 'admin') {
-                card.ondragover = (e) => { e.preventDefault(); card.classList.add("drag-over"); };
-                card.ondragleave = () => card.classList.remove("drag-over");
-                card.ondrop = (e) => handleCardDrop(e, form.id, row.id, pos.id, false);
+                card.ondragover = (e) => { 
+                  if (draggedPositionData) { handlePositionSlotDragOver(e); return; }
+                  if (draggedData) { e.preventDefault(); card.classList.add("drag-over"); }
+                };
+                card.ondragleave = (e) => {
+                  if (draggedPositionData) { handlePositionSlotDragLeave(e); return; }
+                  card.classList.remove("drag-over");
+                };
+                card.ondrop = (e) => {
+                  if (draggedPositionData) { handlePositionSlotDrop(e, form.id, rIdx, pIdx); return; }
+                  handleCardDrop(e, form.id, row.id, pos.id, false);
+                };
               }
 
               const players = (depthChart && Array.isArray(depthChart[pos.id])) ? depthChart[pos.id].filter(p => p) : [];
@@ -2872,24 +2520,19 @@
               }).join("");
 
               let cardHeaderHtml = userRole === 'admin' ? `
-                <div class="position-header" draggable="true" ondragstart="handlePositionDragStart(event, '${form.id}', ${rIdx}, ${pIdx})" title="Drag header to reorder position">
+                <div class="position-header" draggable="true" ondragstart="handlePositionDragStart(event, '${form.id}', ${rIdx}, ${pIdx})" title="Drag header to move to any row/level">
                    <span onclick="editPositionName('${form.id}', ${rIdx}, ${pIdx})" title="Click to edit position name">${pos.name} ✏️</span>
                    <div style="display:flex; gap:3px; align-items:center;">
-                     <button class="toggle-board-btn" style="font-size:8.5px; padding:1px 3px;" onclick="movePositionToRow('${form.id}', ${rIdx}, ${pIdx})" title="Move position to different row">🚚 Move</button>
-                     <button class="toggle-board-btn" style="font-size:8.5px; padding:1px 3px;" onclick="copyPositionToFormation('${form.id}', ${rIdx}, ${pIdx})" title="Copy position and players to another formation">📋 Copy</button>
+                     <button class="toggle-board-btn" style="font-size:8.5px; padding:1px 3px;" onclick="movePositionToRow('${form.id}', ${rIdx}, ${pIdx})" title="Move position to different row">🚚</button>
+                     <button class="toggle-board-btn" style="font-size:8.5px; padding:1px 3px;" onclick="copyPositionToFormation('${form.id}', ${rIdx}, ${pIdx})" title="Copy position">📋</button>
                      <button class="remove-btn" style="font-size:11px; padding:0 3px; line-height:14px;" onclick="removePositionFromRow('${form.id}', ${rIdx}, ${pIdx})" title="Delete Position">&times;</button>
                    </div>
                 </div>
               ` : `
-                <div class="position-header">
-                   <span>${pos.name}</span>
-                </div>
+                <div class="position-header"><span>${pos.name}</span></div>
               `;
 
-              card.innerHTML = `
-                ${cardHeaderHtml}
-                <ul class="player-list">${playersHtml || '<div style="color:var(--text-muted); font-size:10px; padding:6px; text-align:center;">Drop Player</div>'}</ul>
-              `;
+              card.innerHTML = `${cardHeaderHtml}<ul class="player-list">${playersHtml || '<div style="color:var(--text-muted); font-size:10px; padding:6px; text-align:center;">Drop Player</div>'}</ul>`;
               slotDiv.appendChild(card);
             }
             posRowEl.appendChild(slotDiv);
@@ -2905,13 +2548,12 @@
       const container = document.getElementById("boards-scrimmage");
       if (!container) return;
       container.innerHTML = "";
-
       const scrimmageChart = getWeekScrimmageChart(currentWeek);
       const allForms = getWeekFormations(currentWeek).filter(f => f && (f.unit === 'offense' || f.unit === 'defense'));
       const forms = allForms.filter(f => !scrimmageFilters || scrimmageFilters.includes(f.id));
 
       if (forms.length === 0) {
-          container.innerHTML = `<div style="padding:4px; text-align:center; color:var(--text-muted);">No scrimmage boards selected.</div>`;
+          container.innerHTML = `<div style="padding:40px; text-align:center; color:var(--text-muted);">No scrimmage boards selected.</div>`;
           renderMasterRoster();
           return;
       }
@@ -2922,11 +2564,7 @@
           formDiv.dataset.formId = form.id;
           formDiv.innerHTML = `
             <div class="board-title"><span>[${form.unit.toUpperCase()}] ${form.name}</span></div>
-            <div class="formation-scaler">
-              <div class="formation-scaler-inner">
-                <div class="formation-body"></div>
-              </div>
-            </div>
+            <div class="formation-scaler"><div class="formation-scaler-inner"><div class="formation-body"></div></div></div>
           `;
           const bodyDiv = formDiv.querySelector(".formation-body");
 
@@ -2991,7 +2629,6 @@
         const fName = (player.firstName || "").toLowerCase();
         const lName = (player.lastName || "").toLowerCase();
         const pNum = (player.num || "").toString().toLowerCase();
-
         if (searchTerm && !fName.includes(searchTerm) && !lName.includes(searchTerm) && !pNum.includes(searchTerm)) return;
 
         let placements = [];
@@ -3100,11 +2737,8 @@
         
         document.querySelectorAll("#boards-scrimmage .formation-container").forEach(el => {
             let fId = el.dataset.formId;
-            if (selectedIds.includes(fId)) {
-                el.classList.remove("hidden-print");
-            } else {
-                el.classList.add("hidden-print");
-            }
+            if (selectedIds.includes(fId)) el.classList.remove("hidden-print");
+            else el.classList.add("hidden-print");
         });
 
         document.getElementById("scrimmage-print-modal").classList.add("hidden");
@@ -3132,11 +2766,8 @@
         const containerId = "boards-" + activeUnit;
         document.querySelectorAll(`#${containerId} .formation-container`).forEach(el => {
             let fId = el.dataset.formId;
-            if (selectedIds.includes(fId)) {
-                el.classList.remove("hidden-print");
-            } else {
-                el.classList.add("hidden-print");
-            }
+            if (selectedIds.includes(fId)) el.classList.remove("hidden-print");
+            else el.classList.add("hidden-print");
         });
 
         document.getElementById("print-modal").classList.add("hidden");
@@ -3174,7 +2805,6 @@
       }
 
       if (movedPlayer) chart[targetPosId].push(movedPlayer);
-
       draggedData = null; saveState();
       if (isScrimmage) renderScrimmageTab(); else renderActiveBoards();
       renderMasterRoster();
@@ -3196,7 +2826,6 @@
       activeUnit = unit;
       document.querySelectorAll('.nav-tab').forEach(btn => btn.classList.remove('active'));
       document.getElementById('tab-btn-' + unit)?.classList.add('active');
-      
       document.querySelectorAll('.unit-panel').forEach(panel => panel.classList.add('hidden'));
       document.getElementById('panel-' + unit)?.classList.remove('hidden');
 
@@ -3287,6 +2916,58 @@
       triggerDebouncedSave();
     }
 
+    /* PLAYBOOKS & POSITIONAL GUIDES - FULL TAB MANAGEMENT */
+    function moveGuideMain(mainCat, direction, e) {
+        if (e) e.stopPropagation();
+        if (userRole !== 'admin') return;
+        pdfGuidesTree = reorderObjectKeys(pdfGuidesTree, mainCat, direction);
+        saveState();
+        renderGuideTab();
+    }
+
+    function renameMainFolder(mainCat, e) {
+        if (e) e.stopPropagation();
+        if (userRole !== 'admin') return;
+        let newName = prompt("Rename Main Folder:", mainCat);
+        if (newName && newName.trim() !== "" && newName.trim() !== mainCat) {
+            let clean = newName.trim();
+            if (pdfGuidesTree[clean]) return alert("A main folder with that name already exists.");
+            const keys = Object.keys(pdfGuidesTree);
+            const newTree = {};
+            keys.forEach(k => {
+                if (k === mainCat) newTree[clean] = pdfGuidesTree[mainCat];
+                else newTree[k] = pdfGuidesTree[k];
+            });
+            pdfGuidesTree = newTree;
+            if (activeGuideMain === mainCat) activeGuideMain = clean;
+            saveState();
+            renderGuideTab();
+        }
+    }
+
+    function deleteMainFolder(mainCat, e) {
+        if (e) e.stopPropagation();
+        if (userRole !== 'admin') return alert("Only Head Coach (Admin) can delete folders.");
+        const keys = Object.keys(pdfGuidesTree);
+        if (keys.length <= 1) return alert("Cannot delete the only main folder.");
+        if (confirm(`Delete folder "${mainCat}" and all its sub-tabs?`)) {
+            delete pdfGuidesTree[mainCat];
+            const remaining = Object.keys(pdfGuidesTree);
+            activeGuideMain = remaining[0];
+            activeGuideSub = Object.keys(pdfGuidesTree[activeGuideMain] || {})[0] || "";
+            saveState();
+            renderGuideTab();
+        }
+    }
+
+    function moveGuideSub(subKey, direction, e) {
+        if (e) e.stopPropagation();
+        if (userRole !== 'admin' || !pdfGuidesTree[activeGuideMain]) return;
+        pdfGuidesTree[activeGuideMain] = reorderObjectKeys(pdfGuidesTree[activeGuideMain], subKey, direction);
+        saveState();
+        renderGuideTab();
+    }
+
     function renderGuideTab() {
       const mainContainer = document.getElementById('guide-main-folders');
       const subContainer = document.getElementById('guide-sub-tabs');
@@ -3302,23 +2983,34 @@
           activeGuideSub = subKeys[0] || "";
       }
 
-      // 1. Render Main Folders (Offense, Defense, Specials)
+      // Level 1 Main Folders with Reorder, Rename, and Delete
       mainContainer.innerHTML = Object.keys(pdfGuidesTree).map(mainCat => `
-        <button class="nav-tab ${mainCat === activeGuideMain ? 'active' : ''}" onclick="switchGuideMain('${mainCat}')">${mainCat}</button>
+        <div style="display:inline-flex; align-items:center; background:${mainCat === activeGuideMain ? 'var(--primary)' : 'var(--card-bg)'}; border:1px solid var(--card-border); border-radius:20px; padding:2px 8px; gap:4px;">
+           <span style="font-size:12px; font-weight:bold; cursor:pointer; color:${mainCat === activeGuideMain ? '#fff' : 'var(--text-muted)'}; padding:4px 6px;" onclick="switchGuideMain('${mainCat}')">${mainCat}</span>
+           <div class="admin-only" style="display:inline-flex; gap:2px; align-items:center;">
+              <button type="button" class="toggle-board-btn" style="padding:1px 4px; font-size:9px;" onclick="moveGuideMain('${mainCat}', -1, event)" title="Move Left">◀</button>
+              <button type="button" class="toggle-board-btn" style="padding:1px 4px; font-size:9px;" onclick="moveGuideMain('${mainCat}', 1, event)" title="Move Right">▶</button>
+              <button type="button" class="toggle-board-btn" style="padding:1px 4px; font-size:9px;" onclick="renameMainFolder('${mainCat}', event)" title="Rename">✏️</button>
+              <button type="button" class="remove-btn" style="font-size:13px; padding:0 2px; color:${mainCat === activeGuideMain ? '#fca5a5' : '#ef4444'};" onclick="deleteMainFolder('${mainCat}', event)" title="Delete">&times;</button>
+           </div>
+        </div>
       `).join('') + `<button class="toggle-board-btn admin-only" onclick="addMainFolderPrompt()" style="margin-left:auto;">+ Add Main Folder</button>`;
 
-      // 2. Render Sub-Tabs (Positions or Full Guides under active main folder)
+      // Level 2 Sub Tabs with Reorder, Rename, and Delete
       let subTabsHtml = subKeys.map(subKey => `
-        <div style="display:flex; align-items:center; background:#fff; border:1px solid var(--card-border); border-radius:15px; padding:2px 8px; gap:4px;">
+        <div style="display:inline-flex; align-items:center; background:#fff; border:1px solid ${subKey === activeGuideSub ? 'var(--accent)' : 'var(--card-border)'}; border-radius:15px; padding:2px 8px; gap:4px;">
            <span style="font-size:11px; font-weight:bold; cursor:pointer; color:${subKey === activeGuideSub ? 'var(--accent)' : 'var(--text)'};" onclick="switchGuideSub('${subKey}')">${subKey}</span>
-           <button type="button" class="remove-btn admin-only" onclick="renameSubGuideTab('${subKey}', event)" title="Rename" style="font-size:10px; padding:0 2px;">✏️</button>
-           <button type="button" class="remove-btn admin-only" onclick="deleteSubGuideTab('${subKey}', event)" title="Delete" style="font-size:12px; padding:0 2px;">&times;</button>
+           <div class="admin-only" style="display:inline-flex; gap:2px; align-items:center;">
+              <button type="button" class="toggle-board-btn" style="padding:1px 3px; font-size:8.5px;" onclick="moveGuideSub('${subKey}', -1, event)" title="Move Left">◀</button>
+              <button type="button" class="toggle-board-btn" style="padding:1px 3px; font-size:8.5px;" onclick="moveGuideSub('${subKey}', 1, event)" title="Move Right">▶</button>
+              <button type="button" class="toggle-board-btn" style="padding:1px 3px; font-size:8.5px;" onclick="renameSubGuideTab('${subKey}', event)" title="Rename">✏️</button>
+              <button type="button" class="remove-btn" onclick="deleteSubGuideTab('${subKey}', event)" title="Delete" style="font-size:12px; padding:0 2px;">&times;</button>
+           </div>
         </div>
       `).join('');
 
-      subContainer.innerHTML = subTabsHtml || '<span style="font-size:11px; color:var(--text-muted);">No sub-tabs found. Add one below.</span>';
+      subContainer.innerHTML = subTabsHtml || '<span style="font-size:11px; color:var(--text-muted);">No sub-tabs found. Add one above.</span>';
 
-      // 3. Render Content Area for active sub-tab
       let guideVal = (subDict[activeGuideSub]) || "";
       let displayHtml = guideVal.startsWith("http") ? `<iframe src="${guideVal}" style="width:100%; height:600px; border:none;" title="Playbook Guide"></iframe>` : `<div style="padding:20px; text-align:center; color:var(--text-muted);">No document uploaded for [${activeGuideMain} > ${activeGuideSub}] yet.</div>`;
 
@@ -3341,15 +3033,13 @@
     async function uploadGuideFile(e) {
         const file = e.target.files[0];
         if (!file || !activeGuideMain || !activeGuideSub) return;
-        if (!storage) { alert("Cloud storage is offline."); return; }
+        if (!storage) return alert("Cloud storage is offline.");
         try {
             const storageRef = storage.ref(`playbook_guides/${Date.now()}_${file.name}`);
             const snapshot = await storageRef.put(file);
             const downloadUrl = await snapshot.ref.getDownloadURL();
-            
             if (!pdfGuidesTree[activeGuideMain]) pdfGuidesTree[activeGuideMain] = {};
             pdfGuidesTree[activeGuideMain][activeGuideSub] = downloadUrl;
-            
             saveState();
             renderGuideTab();
             alert("Guide uploaded successfully!");
@@ -3395,7 +3085,7 @@
                 saveState();
                 renderGuideTab();
             } else {
-                alert("Sub-tab already exists under this folder.");
+                alert("Sub-tab already exists.");
             }
         }
     }
@@ -3405,10 +3095,7 @@
         let newName = prompt("Rename Sub-Tab:", oldName);
         if (newName && newName.trim() !== "" && newName !== oldName) {
             let clean = newName.trim();
-            if (pdfGuidesTree[activeGuideMain][clean]) {
-                alert("A sub-tab with that name already exists.");
-                return;
-            }
+            if (pdfGuidesTree[activeGuideMain][clean]) return alert("A sub-tab with that name already exists.");
             let val = pdfGuidesTree[activeGuideMain][oldName];
             delete pdfGuidesTree[activeGuideMain][oldName];
             pdfGuidesTree[activeGuideMain][clean] = val;
@@ -3420,15 +3107,23 @@
 
     function deleteSubGuideTab(subKey, e) {
         if (e) e.stopPropagation();
-        let subKeys = Object.keys(pdfGuidesTree[activeGuideMain] || {});
+        if (userRole !== 'admin') return alert("Only Head Coach (Admin) can delete sub-tabs.");
+        let subDict = pdfGuidesTree[activeGuideMain] || {};
+        let subKeys = Object.keys(subDict);
         if (subKeys.length <= 1) {
-            alert("Cannot delete the last sub-tab in this folder.");
+            if (confirm(`Delete content in "${subKey}" and reset tab?`)) {
+                delete pdfGuidesTree[activeGuideMain][subKey];
+                pdfGuidesTree[activeGuideMain]["General"] = "";
+                activeGuideSub = "General";
+                saveState();
+                renderGuideTab();
+            }
             return;
         }
         if (confirm(`Delete sub-tab "${subKey}"?`)) {
             delete pdfGuidesTree[activeGuideMain][subKey];
             let remaining = Object.keys(pdfGuidesTree[activeGuideMain]);
-            activeGuideSub = remaining[0];
+            activeGuideSub = remaining[0] || "";
             saveState();
             renderGuideTab();
         }
@@ -3469,7 +3164,7 @@
          `;
        }).join('');
 
-       let savedCoachesHtml = savedCoachesList.map((sc, sIdx) => `
+       let savedCoachesHtml = savedCoachesList.map((sc) => `
           <div style="display:flex; justify-content:space-between; align-items:center; background:#f8fafc; padding:6px 10px; border:1px solid var(--card-border); border-radius:6px; margin-bottom:4px;">
              <span style="font-weight:bold; font-size:11px; color:var(--primary);">${sc}</span>
              <button class="remove-btn" onclick="deleteSavedCoach('${sc}')" style="font-size:13px;" title="Delete">&times;</button>
@@ -3492,9 +3187,7 @@
                    <th style="padding:8px; border:1px solid var(--card-border); text-align:center;" class="admin-only">Action</th>
                  </tr>
                </thead>
-               <tbody>
-                 ${rowsHtml}
-               </tbody>
+               <tbody>${rowsHtml}</tbody>
              </table>
            </div>
            <div>
@@ -3527,7 +3220,6 @@
     function deleteSavedCoach(name) {
         if (confirm(`Remove "${name}" from saved practice coaches?`)) {
             savedCoachesList = savedCoachesList.filter(c => c !== name);
-            
             practiceData.forEach(p => {
                 if (Array.isArray(p.plan)) {
                     p.plan.forEach(row => {
@@ -3535,7 +3227,7 @@
                             row.stations.forEach(st => {
                                 if (st.coach) {
                                     let tokens = st.coach.split(',').map(t => t.trim()).filter(Boolean);
-                                    tokens = tokens.filter(t => t !== name && t !== "Coach " + name && t !== name.replace("Coach ", ""));
+                                    tokens = tokens.filter(t => t !== name && t !== "Coach " + name);
                                     st.coach = tokens.join(', ');
                                 }
                             });
@@ -3543,7 +3235,6 @@
                     });
                 }
             });
-
             saveState();
             renderUsers();
             if (activeUnit === 'practice') renderPracticePlan();
@@ -3571,10 +3262,7 @@
     function addNewCoachPrompt() {
        let email = prompt("Enter assistant coach email address:");
        if (email && email.trim() !== "") {
-           if (teamCoachesList.some(c => c.email.toLowerCase() === email.trim().toLowerCase())) {
-               alert("Coach already exists in staff list.");
-               return;
-           }
+           if (teamCoachesList.some(c => c.email.toLowerCase() === email.trim().toLowerCase())) return alert("Coach already exists.");
            teamCoachesList.push({ email: email.trim(), role: "Assistant Coach", status: "Active" });
            saveState();
            renderUsers();
@@ -3582,11 +3270,8 @@
     }
 
     function removeCoachFromStaff(idx) {
-       if (teamCoachesList[idx].email.toLowerCase() === "dannym1010@gmail.com") {
-           alert("Cannot remove master admin account.");
-           return;
-       }
-       if (confirm(`Remove coach ${teamCoachesList[idx].email} from the staff list?`)) {
+       if (teamCoachesList[idx].email.toLowerCase() === "dannym1010@gmail.com") return alert("Cannot remove master admin.");
+       if (confirm(`Remove coach ${teamCoachesList[idx].email}?`)) {
            teamCoachesList.splice(idx, 1);
            saveState();
            renderUsers();
@@ -3622,60 +3307,26 @@
             try {
                 isImporting = true;
                 const parsed = JSON.parse(evt.target.result);
-                
-                if (parsed.weeklyData && typeof parsed.weeklyData === 'object') {
-                    weeklyData = parsed.weeklyData;
-                } else if (parsed.depthChart || parsed.formations) {
-                    ensureWeekDataExists(currentWeek);
-                    if (parsed.formations) weeklyData[currentWeek].formations = parsed.formations;
-                    if (parsed.depthChart) weeklyData[currentWeek].depthChart = parsed.depthChart;
-                    if (parsed.scrimmageChart) weeklyData[currentWeek].scrimmageChart = parsed.scrimmageChart;
-                }
-
+                if (parsed.weeklyData && typeof parsed.weeklyData === 'object') weeklyData = parsed.weeklyData;
                 if (parsed.practiceData) practiceData = parsed.practiceData;
                 if (parsed.masterPlayLibrary) masterPlayLibrary = parsed.masterPlayLibrary;
                 if (parsed.cascadingDrills) cascadingDrills = parsed.cascadingDrills;
-                if (parsed.pdfGuidesTree && typeof parsed.pdfGuidesTree === 'object') {
-                    pdfGuidesTree = parsed.pdfGuidesTree;
-                } else if (parsed.pdfGuides) {
-                    pdfGuidesTree = { "Offense": parsed.pdfGuides, "Defense": {}, "Specials": {} };
-                }
+                if (parsed.pdfGuidesTree) pdfGuidesTree = parsed.pdfGuidesTree;
                 if (parsed.collapsedFolders) collapsedFolders = parsed.collapsedFolders;
                 if (parsed.savedCoachesList) savedCoachesList = parsed.savedCoachesList;
-                if (parsed.practiceTemplates && typeof parsed.practiceTemplates === 'object' && Object.keys(parsed.practiceTemplates).length > 0) {
-                    practiceTemplates = { ...defaultPracticeTemplates, ...parsed.practiceTemplates };
-                    populateTemplateDropdown();
-                }
-                if (parsed.teamCoachesList && Array.isArray(parsed.teamCoachesList)) {
-                    teamCoachesList = parsed.teamCoachesList;
-                    if (!teamCoachesList.some(c => c.email.toLowerCase() === "dannym1010@gmail.com")) {
-                        teamCoachesList.push({ email: "Dannym1010@gmail.com", role: "Head Coach (Admin)", status: "Active" });
-                    }
-                }
-                
-                for (let w = 0; w <= 8; w++) {
-                    ensureWeekDataExists(String(w));
-                }
+                if (parsed.practiceTemplates) practiceTemplates = { ...defaultPracticeTemplates, ...parsed.practiceTemplates };
+                if (parsed.teamCoachesList) teamCoachesList = parsed.teamCoachesList;
 
-                localStorage.setItem("footballWeeklyData", JSON.stringify(weeklyData));
-                localStorage.setItem("footballPracticeData", JSON.stringify(practiceData));
-                localStorage.setItem("footballMasterPlays", JSON.stringify(masterPlayLibrary));
-                localStorage.setItem("footballCascadingDrills", JSON.stringify(cascadingDrills));
-                localStorage.setItem("footballPdfGuidesTree", JSON.stringify(pdfGuidesTree));
-                localStorage.setItem("footballCollapsedFolders", JSON.stringify(collapsedFolders));
-                localStorage.setItem("footballSavedCoaches", JSON.stringify(savedCoachesList));
-                localStorage.setItem("footballPracticeTemplates", JSON.stringify(practiceTemplates));
-                localStorage.setItem("footballTeamCoaches", JSON.stringify(teamCoachesList));
-
+                for (let w = 0; w <= 8; w++) ensureWeekDataExists(String(w));
+                saveState();
                 if (cloudEnabled && db && userRole === 'admin') {
                     await db.collection("teamData").doc("depthChartData").set({
                         weeklyData, practiceData, masterPlayLibrary, cascadingDrills, pdfGuidesTree, collapsedFolders, savedCoachesList, practiceTemplates, teamCoachesList,
                         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                     }, { merge: true });
                 }
-
                 isImporting = false;
-                alert("Data and backup imported successfully!");
+                alert("Backup imported successfully!");
                 location.reload();
             } catch (err) { 
                 isImporting = false;
@@ -3760,7 +3411,6 @@
 
           let coachEntry = teamCoachesList.find(c => c.email.toLowerCase() === user.email.toLowerCase());
           let isHeadAdmin = (user.email.toLowerCase() === "dannym1010@gmail.com" || (coachEntry && coachEntry.role && coachEntry.role.includes("Admin")));
-          
           applyRole(isHeadAdmin ? 'admin' : 'assistant');
           initializeApp();
           listenToLiveUpdates();
@@ -3769,9 +3419,7 @@
     }
 
     function initializeApp() {
-        for (let w = 0; w <= 8; w++) {
-            ensureWeekDataExists(String(w));
-        }
+        for (let w = 0; w <= 8; w++) ensureWeekDataExists(String(w));
         if (practiceData.length === 0) {
             let defaultCat = cascadingDrills.length > 0 ? cascadingDrills[0].name : "General";
             practiceData = [{
@@ -3781,16 +3429,8 @@
             }];
         }
         
-        let sortedPracs = [...practiceData].sort((a, b) => {
-            let dateA = a.date || "1970-01-01";
-            let dateB = b.date || "1970-01-01";
-            if (dateA === dateB) {
-                return (b.lastEdited || 0) - (a.lastEdited || 0);
-            }
-            return dateB.localeCompare(dateA);
-        });
+        let sortedPracs = [...practiceData].sort((a, b) => (b.lastEdited || 0) - (a.lastEdited || 0));
         currentPracticeId = sortedPracs[0].id;
-
         depthChart = getWeekDepthChart(currentWeek);
         const oppInput = document.getElementById("opponent-input");
         if (oppInput) oppInput.value = weeklyData[currentWeek].opponent || "";
