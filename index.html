@@ -231,7 +231,7 @@
     .practice-table tbody tr.period-odd td { background-color: #ffffff; }
     .practice-table tbody tr.period-even td { background-color: #f4f6f9; }
 
-    /* Resizable Column Handle - allows bidirectional resizing */
+    /* Resizable Column Handle */
     .col-resizer {
       position: absolute; right: -5px; top: 0; bottom: 0; width: 12px; cursor: col-resize; z-index: 10;
     }
@@ -575,16 +575,20 @@
           
           <table class="practice-table" id="main-practice-table">
             <colgroup>
-              <col id="col-0" style="width: 15%;">
-              <col id="col-1" style="width: 25%;">
-              <col id="col-2" style="width: 54%;">
-              <col id="col-3" style="width: 6%;">
+              <col id="col-0" style="width: 12%;">
+              <col id="col-1" style="width: 18%;">
+              <col id="col-2" style="width: 36%;">
+              <col id="col-3" style="width: 14%;">
+              <col id="col-4" style="width: 16%;">
+              <col id="col-5" style="width: 4%;">
             </colgroup>
             <thead>
               <tr>
                 <th style="position:relative;">Time / Period<div class="col-resizer" onmousedown="initColResize(event, 0)"></div></th>
                 <th style="position:relative;">Category<div class="col-resizer" onmousedown="initColResize(event, 1)"></div></th>
-                <th style="position:relative;">Stations / Drills, Coaches & Focus<div class="col-resizer" onmousedown="initColResize(event, 2)"></div></th>
+                <th style="position:relative;">Stations / Drills<div class="col-resizer" onmousedown="initColResize(event, 2)"></div></th>
+                <th style="position:relative;">Coaches<div class="col-resizer" onmousedown="initColResize(event, 3)"></div></th>
+                <th style="position:relative;">Coaching Focus<div class="col-resizer" onmousedown="initColResize(event, 4)"></div></th>
                 <th style="text-align:center;" class="no-print admin-only">Actions</th>
               </tr>
             </thead>
@@ -1073,7 +1077,7 @@
         subfolders: [],
         drills: [
           { name: "Tackling: Breakdown Fundamentals (Feet-Squeeze-Sink-Hands)", desc: "Players start in athletic stance. 1. Feet: shoulder-width apart, light on toes. 2. Squeeze: shoulder blades pinched, chest proud. 3. Sink: lower hips into a coiled power position (holsters). 4. Hands: hands up in holsters ready to strike", key: "This is the foundation of safe tackling. Do not let players advance to contact until they can perfectly demonstrate this swooping, coiled posture on command" },
-          { name: "Tackling: Swoop Position Progression", desc: "Start 10 yards back, sprint to cone/dummy, break down, swoop into low coiled contact posture, come to a complete controlled stop straddling dummy", key: "Next progression after breakdown before making contact. Prevents lunging and dropping the head" },
+          { name: "Tackling: Swoop Position Progression", desc: "Start 10 yards back, sprint to cone/dummy, break down, swoop into low coiled contact posture, come to a complete controlled stop straddling dummy", key: "Next progression after progression before making contact. Prevents lunging and dropping the head" },
           { name: "Tackling: Near Foot Progression", desc: "Tackler approaches ball carrier from an angle or head-on. Enforce stepping violently with the near foot (the foot closest to the runner/strike point) right before contact", key: "Generates maximum power from the ground into the hips. Prevents reaching and arm tackling" },
           { name: "Tackling: Form Tackle Fit & Uppercuts", desc: "Pair up 2 yards apart. On whistle, tackler takes near-foot step, fits shoulder into target's breastplate/numbers, shoots violent double uppercuts into jersey, grabs cloth on the back, places head on opposite side", key: "Do not take to ground. Focus on the violent double uppercut wrap and grabbing the jersey on the back" },
           { name: "Tackling: Form Fit & Drive (Thud)", desc: "Players start 2 yards apart. On whistle, step into ball carrier, fit shoulder to numbers, wrap arms tightly around cloth, and drive legs for 3-5 steps at thud tempo", key: "Without taking runner to ground. Leg drive must finish the tackle" },
@@ -1154,10 +1158,10 @@
         saveTimeout = setTimeout(() => { saveState(); }, 500);
     }
 
-    /* Bidirectional Column Resizing Logic (Expand or shrink from any side handle) */
+    /* Bidirectional Column Resizing Logic */
     let resizingColIndex = null;
     let startX = 0;
-    let startWidth = 0;
+    let startWidths = [];
 
     function initColResize(e, colIndex) {
         e.preventDefault();
@@ -1167,9 +1171,12 @@
         
         const table = document.getElementById("main-practice-table");
         const cols = table.querySelectorAll("colgroup col");
-        if (cols[colIndex]) {
-            startWidth = cols[colIndex].offsetWidth;
-        }
+        
+        startWidths = Array.from(cols).map(col => col.offsetWidth || parseInt(col.style.width) || 100);
+        
+        cols.forEach((col, idx) => {
+            col.style.width = startWidths[idx] + "px";
+        });
 
         window.addEventListener("mousemove", onColMouseMove, { passive: false });
         window.addEventListener("mouseup", onColMouseUp);
@@ -1178,12 +1185,21 @@
     function onColMouseMove(e) {
         if (resizingColIndex === null) return;
         let diff = e.clientX - startX;
-        let newWidth = Math.max(50, startWidth + diff);
-
+        
         const table = document.getElementById("main-practice-table");
         const cols = table.querySelectorAll("colgroup col");
-        if (cols[resizingColIndex]) {
-            cols[resizingColIndex].style.width = newWidth + "px";
+        
+        let startWidth = startWidths[resizingColIndex];
+        let newWidth = Math.max(30, startWidth + diff);
+        let actualDiff = newWidth - startWidth;
+
+        cols[resizingColIndex].style.width = newWidth + "px";
+
+        let nextColIdx = resizingColIndex + 1;
+        if (nextColIdx < cols.length) {
+            let nextStartWidth = startWidths[nextColIdx];
+            let newNextWidth = Math.max(50, nextStartWidth - actualDiff);
+            cols[nextColIdx].style.width = newNextWidth + "px";
         }
     }
 
@@ -1837,7 +1853,6 @@
         }
     }
 
-    /* Auto-save & sync drill changes from practice plan station name, description, or focus */
     function syncDrillLibraryFromStation(rIdx, sIdx) {
         const prac = practiceData.find(p => p.id === currentPracticeId);
         if (!prac || !prac.plan[rIdx] || !prac.plan[rIdx].stations[sIdx]) return;
@@ -1980,7 +1995,11 @@
             let numStations = (row.stations || []).length;
             let stationDurationMin = (isRotating && numStations > 0) ? (rowTime / numStations) : rowTime;
 
-            let stationsHtml = (row.stations || []).map((st, sIdx) => {
+            let stationColParts = [];
+            let coachColParts = [];
+            let focusColParts = [];
+
+            (row.stations || []).forEach((st, sIdx) => {
                 let coachPopupId = `coach_popup_${idx}_${sIdx}`;
                 let assignedCoaches = (st.coach || "").split(',').map(t => t.trim()).filter(Boolean);
 
@@ -2004,9 +2023,9 @@
                     stationBadgeHtml = `<div style="font-size:10px; font-weight:bold; color:#0284c7; background:#e0f2fe; padding:2px 6px; border-radius:4px; margin-bottom:4px; display:inline-block;">⏱️ Station Time: ${formatTime(stStartTimeMin)} - ${formatTime(stEndTimeMin)} (${Math.round(stationDurationMin)} min)</div>`;
                 }
 
-                return `
-                <div class="station-block" style="display:grid; grid-template-columns: 1fr 200px 180px 30px; gap:8px; align-items:start;">
-                    <div>
+                // 1. Station / Drill Column Part
+                stationColParts.push(`
+                    <div class="station-block" style="position:relative;">
                         ${stationBadgeHtml}
                         <div style="margin-bottom:4px;" class="no-print">
                             <select class="prac-select" style="font-weight:bold; color:var(--primary);" onchange="onDrillSelected(${idx}, ${sIdx}, this)">
@@ -2015,10 +2034,16 @@
                         </div>
                         <input type="text" class="prac-input" value="${st.name || ''}" onkeydown="if(event.key==='Enter') this.blur();" onchange="updatePracStation(${idx}, ${sIdx}, 'name', this.value); syncDrillLibraryFromStation(${idx}, ${sIdx});" placeholder="Group / Drill Name">
                         <textarea class="prac-textarea" style="min-height:30px;" oninput="autoResizeTextarea(this);" onchange="updatePracStation(${idx}, ${sIdx}, 'desc', this.value); syncDrillLibraryFromStation(${idx}, ${sIdx});" placeholder="Details...">${st.desc || ''}</textarea>
+                        <div class="no-print admin-only" style="position:absolute; right:0; top:0;">
+                            <button class="remove-btn" onclick="removeStation(${idx}, ${sIdx})" title="Delete Station">&times;</button>
+                        </div>
                     </div>
-                    <div class="coach-popup-container" style="position:relative;">
-                        <label style="font-size:9.5px; font-weight:bold; color:var(--text-muted); display:block; margin-bottom:2px;" class="no-print">Coaches:</label>
-                        <input type="text" class="prac-input" readonly value="${st.coach || ''}" onclick="toggleCoachPopup(${idx}, ${sIdx}, event)" placeholder="Click to select coaches..." style="cursor:pointer; background:#fff;">
+                `);
+
+                // 2. Coaches Column Part
+                coachColParts.push(`
+                    <div class="station-block coach-popup-container" style="position:relative; display:flex; flex-direction:column; justify-content:center;">
+                        <input type="text" class="prac-input" readonly value="${st.coach || ''}" onclick="toggleCoachPopup(${idx}, ${sIdx}, event)" placeholder="Click coaches..." style="cursor:pointer; background:#fff;">
                         
                         <div id="${coachPopupId}" class="coach-popup-box card-search-dropdown hidden" style="width: 220px; max-height: 220px; overflow-y: auto; top: 100%; left: 0; padding:8px; background:#fff; z-index:50000; box-shadow:0 4px 12px rgba(0,0,0,0.15);" onclick="event.stopPropagation()">
                            <div style="font-size:10px; font-weight:bold; color:var(--primary); margin-bottom:6px; border-bottom:1px solid #ccc; padding-bottom:3px; display:flex; justify-content:space-between; align-items:center;">
@@ -2031,16 +2056,15 @@
                            </div>
                         </div>
                     </div>
-                    <div>
-                        <label style="font-size:9.5px; font-weight:bold; color:var(--text-muted); display:block; margin-bottom:2px;" class="no-print">Coaching Focus:</label>
+                `);
+
+                // 3. Coaching Focus Column Part
+                focusColParts.push(`
+                    <div class="station-block" style="display:flex; flex-direction:column; justify-content:center;">
                         <textarea class="prac-textarea" style="min-height:30px;" oninput="autoResizeTextarea(this);" onchange="updatePracStation(${idx}, ${sIdx}, 'focus', this.value); syncDrillLibraryFromStation(${idx}, ${sIdx});" placeholder="Key focus...">${st.focus || ''}</textarea>
                     </div>
-                    <div class="admin-only" style="padding-top:20px; text-align:center;">
-                        <button class="remove-btn" onclick="removeStation(${idx}, ${sIdx})" title="Delete Station">&times;</button>
-                    </div>
-                </div>
-            `;
-            }).join('');
+                `);
+            });
 
             let currentCat = row.category || "";
             let categorySelectHtml = `<select class="prac-select" onchange="updatePracRowCategory(${idx}, this.value)">`;
@@ -2072,10 +2096,16 @@
                     </div>
                 </td>
                 <td>
-                    ${stationsHtml}
+                    ${stationColParts.join('')}
                     <div class="no-print admin-only" style="margin-top:6px;">
                         <button class="toggle-board-btn" style="background:#e0f2fe; color:#0369a1; padding:3px 8px; font-size:10px;" onclick="addStationToRow(${idx})">+ Add Station / Group</button>
                     </div>
+                </td>
+                <td>
+                    ${coachColParts.join('')}
+                </td>
+                <td>
+                    ${focusColParts.join('')}
                 </td>
                 <td class="admin-only" style="text-align:center;">
                     <div style="display:flex; flex-direction:column; gap:2px; align-items:center;">
@@ -3374,7 +3404,7 @@
         const reader = new FileReader();
         reader.onload = async function(evt) {
             try {
-                isImporting = true; // Lock sync / writes during import
+                isImporting = true;
                 const parsed = JSON.parse(evt.target.result);
                 
                 if (parsed.weeklyData && typeof parsed.weeklyData === 'object') {
@@ -3406,7 +3436,6 @@
                     ensureWeekDataExists(String(w));
                 }
 
-                // Save locally first
                 localStorage.setItem("footballWeeklyData", JSON.stringify(weeklyData));
                 localStorage.setItem("footballPracticeData", JSON.stringify(practiceData));
                 localStorage.setItem("footballMasterPlays", JSON.stringify(masterPlayLibrary));
@@ -3417,7 +3446,6 @@
                 localStorage.setItem("footballPracticeTemplates", JSON.stringify(practiceTemplates));
                 localStorage.setItem("footballTeamCoaches", JSON.stringify(teamCoachesList));
 
-                // Push to cloud and await confirmation before reloading
                 if (cloudEnabled && db && userRole === 'admin') {
                     await db.collection("teamData").doc("depthChartData").set({
                         weeklyData, practiceData, masterPlayLibrary, cascadingDrills, pdfGuides, collapsedFolders, savedCoachesList, practiceTemplates, teamCoachesList,
