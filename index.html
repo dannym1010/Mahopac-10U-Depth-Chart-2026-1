@@ -1027,7 +1027,7 @@
             name: "Defensive Line (DL)",
             subfolders: [],
             drills: [
-              { name: "Defense DL: DL Stance & Shock (First-Step Strike)", desc: "Line up in low, staggered 3-point stance 6 inches off sled. On ball movement, fire out with 2 short foot-churning steps. Shoot hands violently upward into blocker's chest right below armpits with thumbs up and elbows in", key: "Reaction time is key. Use a football on a stick to teach them to move on the ball, not on the offense's cadence" },
+              { name: "Defense DL: DL Stance & Shock (First-Step Strike)", desc: "Line up in low, staggered 3-point stance 6 inches off sled. On ball movement, fire out with 2 short foot-churning steps. Shoot hands upward into blocker's chest right below armpits with thumbs up and elbows in", key: "Reaction time is key. Use a football on a stick to teach them to move on the ball, not on the offense's cadence" },
               { name: "Defense DL: DL Slant & Rip (Vertical Penetration)", desc: "On snap, take explosive vertical power step across LOS into slanting gap. Strike with inside arm, dip shoulder, execute violent vertical rip with outside arm (bicep-to-earhole)", key: "Execute the move vertically. Clear hip at 1 yard deep, flatten pursuit angle ('pinch'), and tackle" },
               { name: "Defense DL: DE Containment Stiff-Arm Track", desc: "Fire vertically across LOS. As blocker climbs, strike blocker's outside shoulder with locked-out rigid inside arm. Keep outside arm and shoulder high and completely free", key: "The most important rule for young edge players: Never get reached and never let the ball carrier outside of your outside shoulder" },
               { name: "Defense DL: DE Backside Squeeze & Settle", desc: "DE takes initial vertical containment read step. On diagnosing flow away, transition immediately to backside rule: squeeze down LOS, settle at containment depth 2 yards deeper than deepest back, shuffle parallel to LOS watching QB", key: "'Squeeze & Check Boot/Reverse': Squeeze down the LOS to the depth of the QB. Do not chase flat from behind" },
@@ -1799,7 +1799,7 @@
                       <div class="drill-item-row" draggable="true" ondragstart="handleDrillDragStart(event, '${pathKey}', ${dIdx})">
                          <div><input type="text" class="prac-input" value="${d.name || ''}" onkeydown="if(event.key==='Enter') this.blur();" onchange="updateDrillInPath('${pathKey}', ${dIdx}, 'name', this.value)" placeholder="Drill Name"></div>
                          <div><textarea class="prac-textarea" style="min-height:30px;" oninput="autoResizeTextarea(this);" onchange="updateDrillInPath('${pathKey}', ${dIdx}, 'desc', this.value);">${d.desc || ''}</textarea></div>
-                         <div><input type="text" class="prac-input" value="${d.key || ''}" onkeydown="if(event.key==='Enter') this.blur();" onchange="updateDrillInPath('${pathKey}', ${dIdx}, 'key', this.value)" placeholder="Focus..."></div>
+                         <div><textarea class="prac-textarea" style="min-height:30px;" oninput="autoResizeTextarea(this);" onchange="updateDrillInPath('${pathKey}', ${dIdx}, 'key', this.value);" placeholder="Focus...">${d.key || ''}</textarea></div>
                          <div>
                             <select class="prac-select" style="font-size:10px; padding:2px;" onchange="moveDrillToFolder('${pathKey}', ${dIdx}, this.value)">
                                ${moveOptions}
@@ -2175,9 +2175,13 @@
             currentTimeMin = endTimeMin;
         });
 
+        // Trigger auto-resize immediately and after a short delay to ensure multi-line textareas expand fully
         setTimeout(() => {
           document.querySelectorAll('#main-practice-table .prac-textarea').forEach(ta => autoResizeTextarea(ta));
         }, 10);
+        setTimeout(() => {
+          document.querySelectorAll('#main-practice-table .prac-textarea').forEach(ta => autoResizeTextarea(ta));
+        }, 150);
     }
 
     function movePracticeRow(rIdx, direction) {
