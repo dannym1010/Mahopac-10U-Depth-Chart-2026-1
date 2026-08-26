@@ -238,15 +238,14 @@
     .col-resizer:hover { background-color: rgba(37, 99, 235, 0.3); }
 
     .period-schedule-time { margin-top: 4px; font-weight: bold; color: var(--accent); font-size: 10.5px; }
-    .prac-input, .prac-select, .prac-textarea { width: 100%; border: 1px solid var(--card-border); border-radius: 4px; padding: 4px; font-family: inherit; font-size: 11px; box-sizing: border-box; background: #f8fafc; color: var(--text); }
-    .prac-textarea { resize: vertical; min-height: 44px; height: auto; margin-top: 4px; overflow-y: hidden; white-space: pre-wrap; word-wrap: break-word; }
+    .prac-input, .prac-select, .prac-textarea { width: 100%; border: 1px solid var(--card-border); border-radius: 4px; padding: 4px; font-family: inherit; font-size: 11px; box-sizing: border-box; background: #f8fafc; color: var(--text); white-space: pre-wrap; word-wrap: break-word; }
+    .prac-textarea { resize: vertical; min-height: 44px; height: auto; margin-top: 4px; overflow-y: hidden; }
     .prac-input:focus, .prac-select:focus, .prac-textarea:focus { border-color: var(--accent); background: #ffffff; outline: none; }
 
     .add-row-btn { margin-top: 10px; padding: 6px 12px; background: var(--primary); color: white; border: none; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; }
     .add-row-btn:hover { background: var(--accent); }
 
-    .station-block { margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed #cbd5e1; display: flex; flex-direction: column; justify-content: flex-start; min-height: 75px; box-sizing: border-box; }
-    .station-block:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+    .station-block { margin-bottom: 0px; display: flex; flex-direction: column; justify-content: flex-start; min-height: 55px; box-sizing: border-box; width: 100%; }
 
     /* Sidebar Wrapper & Panels */
     #sidebar-container { flex: 1; min-width: 220px; max-width: 280px; position: sticky; top: 15px; max-height: calc(100vh - 30px); display: flex; flex-direction: column; }
@@ -285,7 +284,7 @@
       h1 { margin-top: 0; font-size: 16px; color: #000000; text-align: center; }
       .practice-table { font-size: 11.5px !important; border: 2px solid #000 !important; width: 100% !important; table-layout: fixed !important; }
       .practice-table th { font-size: 12px !important; background: #e2e8f0 !important; color: #000 !important; border: 1px solid #000 !important; }
-      .practice-table td { font-size: 11.5px !important; border: 1px solid #000 !important; padding: 6px !important; color: #000 !important; }
+      .practice-table td { font-size: 11.5px !important; border: 1px solid #000 !important; padding: 6px !important; color: #000 !important; vertical-align: middle !important; }
       .period-schedule-time { font-size: 11px !important; color: #000 !important; font-weight: bold !important; }
       .prac-input, .prac-select, .prac-textarea { font-size: 11.5px !important; border: none !important; background: transparent !important; padding: 0 !important; color: #000 !important; text-transform: uppercase !important; white-space: pre-wrap !important; word-wrap: break-word !important; }
       
@@ -1077,8 +1076,7 @@
       },
       {
         name: "💥 Tackling",
-        subfolders: [],
-        drills: [
+        subfolders: [
           { name: "Tackling: Breakdown Fundamentals (Feet-Squeeze-Sink-Hands)", desc: "Players start in athletic stance. 1. Feet: shoulder-width apart, light on toes. 2. Squeeze: shoulder blades pinched, chest proud. 3. Sink: lower hips into a coiled power position (holsters). 4. Hands: hands up in holsters ready to strike", key: "This is the foundation of safe tackling. Do not let players advance to contact until they can perfectly demonstrate this swooping, coiled posture on command" },
           { name: "Tackling: Swoop Position Progression", desc: "Start 10 yards back, sprint to cone/dummy, break down, swoop into low coiled contact posture, come to a complete controlled stop straddling dummy", key: "Next progression after progression before making contact. Prevents lunging and dropping the head" },
           { name: "Tackling: Near Foot Progression", desc: "Tackler approaches ball carrier from an angle or head-on. Enforce stepping violently with the near foot (the foot closest to the runner/strike point) right before contact", key: "Generates maximum power from the ground into the hips. Prevents reaching and arm tackling" },
@@ -1099,29 +1097,30 @@
           { name: "Tackling: Fill Drill (Half-Rounds / 2 Alleys)", desc: "3 half-round dummies on ground creating 2 distinct running alleys. Ball carrier runs horizontally and chooses alley 1 or 2. Defender shuffles laterally across the bags, reads runner's commitment, swoops downhill into the hole, and makes thud tackle", key: "Add a lead blocker to work on shock & shed while maintaining gap integrity" },
           { name: "Tackling: Thud, Read, Tackle Donut", desc: "Defender comes up to engage blocker at thud tempo, reads coach rolling tackle donut left or right, sheds block violently, and attacks/tackles the rolling donut", key: "Trains defenders to keep their eyes on the ball carrier while engaged with a blocker" },
           { name: "Tackling: Turnover Circuit (4 Groups)", desc: "Divide into 4 groups. Rotate every 3-5 mins. Station 1: Strip drill. Station 2: Fumble recovery (fall on it). Station 3: Tip drill (INTs). Station 4: Punch-out from behind", key: "Make this a high-energy, fun circuit. Teach them to cover up a fumble in the fetal position rather than trying to scoop and run in heavy traffic" }
-        ]
+        ],
+        drills: []
       },
       {
         name: "🧱 Blocking",
-        subfolders: [],
-        drills: [
+        subfolders: [
           { name: "Blocking: CUFF Blocking Progression", desc: "1. Coil: low balanced 3-point stance. 2. Uncoil: explosive upward hip explosion. 3. Fit: hands inside breastplate with thumbs up, elbows tucked. 4. Finish: drive legs forward through the whistle", key: "Hands must be inside. If hands land outside the shoulders, it's a holding penalty waiting to happen" },
           { name: "Blocking: Bridge Blocking Fit", desc: "Pairs fit into bridge blocking position: wide triangle base, elbows in, arms off body, thumbs out, back arched to stand opponent up before feet churn", key: "Teaches the static power position. If the back is rounded, they will lose their balance and get pushed back" },
           { name: "Blocking: Open-Field Blocking Drill (Space)", desc: "Blocker starts in stance, takes pursuit angle to meet defender in open space, breaks down, swoops, fits hands/shoulder, and drives defender for 5 yards away from play direction", key: "Do not go in like a missile. Break down to mirror the defender's lateral movements before engaging" },
           { name: "Blocking: King of the Ring (Block Destruction / Leverage)", desc: "Two players start in neutral position inside a 5-yard circle. On whistle, players engage using CUFF/Bridge blocking or shed moves. Winner uses low leverage and leg drive to push opponent out of ring", key: "Promotes physical toughness and shedding blocks in a confined space. Keep reps short and safe" }
-        ]
+        ],
+        drills: []
       },
       {
         name: "🌟 Specials",
-        subfolders: [],
-        drills: [
+        subfolders: [
           { name: "Special Teams: Kickoff Lane Spacing Drill", desc: "Full kickoff team lines up across 40-yard line. On kicker approach/signal, sprint 40 yards downfield maintaining exactly 10 yards of lateral spacing between all players to prevent gaps in coverage", key: "Young players often bunch up and chase the ball immediately. Train them to maintain their lanes until the returner commits" },
           { name: "Special Teams: Kick Return Wedge", desc: "Front blockers sprint back 15 yards, turn, and form a tight wall shoulder-to-shoulder to block for returner", key: "Do not block in the back. Wait for the coverage team to come to the wall, then engage." },
           { name: "Special Teams: Punt Formation & Protection Install", desc: "Long snap to punter (12-15 yards). Linemen execute tight slide-and-fan protection, hold blocks for 2 seconds, and release downfield in designated coverage lanes", key: "Focus strictly on the shield blocking technique" },
           { name: "Special Teams: Punt Shield Protection", desc: "3 players form a shield 5 yards behind line. Step inside to seal gaps, absorb rushers, and hold for 2 seconds", key: "Teach the shield players to step together and form a solid wall, absorbing contact rather than attacking upfield" },
           { name: "Special Teams: Gunner Release", desc: "Gunner beats jam and forces fair catch", key: "Avoid the jam using a rip or swim move. Sprint to the hip of the returner and force a fair catch" },
           { name: "Special Teams: Specialists Kicking & Holding", desc: "Snapper, holder, and kicker work independently on snap trajectory, holder placement (laces out, finger on top), and kicker approach steps and follow-through", key: "The holder controls the play. Catch the ball first, then smoothly transition it to the block/tee" }
-        ]
+        ],
+        drills: []
       }
     ];
 
@@ -1995,14 +1994,15 @@
             });
 
             let isRotating = (row.format === 'rotating');
-            let numStations = (row.stations || []).length;
+            let stationsList = row.stations || [];
+            if (stationsList.length === 0) {
+                stationsList = [{ name: "", desc: "", coach: "", focus: "" }];
+                row.stations = stationsList;
+            }
+            let numStations = stationsList.length;
             let stationDurationMin = (isRotating && numStations > 0) ? (rowTime / numStations) : rowTime;
 
-            let stationColParts = [];
-            let coachColParts = [];
-            let focusColParts = [];
-
-            (row.stations || []).forEach((st, sIdx) => {
+            stationsList.forEach((st, sIdx) => {
                 let coachPopupId = `coach_popup_${idx}_${sIdx}`;
                 let assignedCoaches = (st.coach || "").split(',').map(t => t.trim()).filter(Boolean);
 
@@ -2026,8 +2026,7 @@
                     stationBadgeHtml = `<div style="font-size:10px; font-weight:bold; color:#0284c7; background:#e0f2fe; padding:2px 6px; border-radius:4px; margin-bottom:4px; display:inline-block;">⏱️ Station Time: ${formatTime(stStartTimeMin)} - ${formatTime(stEndTimeMin)} (${Math.round(stationDurationMin)} min)</div>`;
                 }
 
-                // 1. Station / Drill Column Part
-                stationColParts.push(`
+                let stationCellContent = `
                     <div class="station-block" style="position:relative;">
                         ${stationBadgeHtml}
                         <div style="margin-bottom:4px;" class="no-print">
@@ -2036,15 +2035,14 @@
                             </select>
                         </div>
                         <input type="text" class="prac-input" value="${st.name || ''}" onkeydown="if(event.key==='Enter') this.blur();" onchange="updatePracStation(${idx}, ${sIdx}, 'name', this.value); syncDrillLibraryFromStation(${idx}, ${sIdx});" placeholder="Group / Drill Name">
-                        <textarea class="prac-textarea" style="min-height:30px;" oninput="autoResizeTextarea(this);" onchange="updatePracStation(${idx}, ${sIdx}, 'desc', this.value); syncDrillLibraryFromStation(${idx}, ${sIdx});" placeholder="Details...">${st.desc || ''}</textarea>
+                        <textarea class="prac-textarea" style="min-height:30px; white-space:pre-wrap; word-wrap:break-word;" oninput="autoResizeTextarea(this);" onchange="updatePracStation(${idx}, ${sIdx}, 'desc', this.value); syncDrillLibraryFromStation(${idx}, ${sIdx});" placeholder="Details...">${st.desc || ''}</textarea>
                         <div class="no-print admin-only" style="position:absolute; right:0; top:0;">
-                            <button class="remove-btn" onclick="removeStation(${idx}, ${sIdx})" title="Delete Station">&times;</button>
+                            ${numStations > 1 ? `<button class="remove-btn" onclick="removeStation(${idx}, ${sIdx})" title="Delete Station">&times;</button>` : ''}
                         </div>
                     </div>
-                `);
+                `;
 
-                // 2. Coaches Column Part (Independently aligned 1:1 with each station block)
-                coachColParts.push(`
+                let coachCellContent = `
                     <div class="station-block coach-popup-container" style="position:relative; display:flex; flex-direction:column; justify-content:flex-start;">
                         <textarea class="prac-textarea" style="min-height:30px; white-space:pre-wrap; word-wrap:break-word; cursor:pointer;" readonly onclick="toggleCoachPopup(${idx}, ${sIdx}, event)" oninput="autoResizeTextarea(this);" placeholder="Click coaches...">${st.coach || ''}</textarea>
                         
@@ -2059,68 +2057,68 @@
                            </div>
                         </div>
                     </div>
-                `);
+                `;
 
-                // 3. Coaching Focus Column Part (Independently aligned 1:1 with each station block)
-                focusColParts.push(`
+                let focusCellContent = `
                     <div class="station-block" style="display:flex; flex-direction:column; justify-content:flex-start;">
-                        <textarea class="prac-textarea" style="min-height:30px;" oninput="autoResizeTextarea(this);" onchange="updatePracStation(${idx}, ${sIdx}, 'focus', this.value); syncDrillLibraryFromStation(${idx}, ${sIdx});" placeholder="Key focus...">${st.focus || ''}</textarea>
+                        <textarea class="prac-textarea" style="min-height:30px; white-space:pre-wrap; word-wrap:break-word;" oninput="autoResizeTextarea(this);" onchange="updatePracStation(${idx}, ${sIdx}, 'focus', this.value); syncDrillLibraryFromStation(${idx}, ${sIdx});" placeholder="Key focus...">${st.focus || ''}</textarea>
                     </div>
-                `);
-            });
+                `;
 
-            let currentCat = row.category || "";
-            let categorySelectHtml = `<select class="prac-select" onchange="updatePracRowCategory(${idx}, this.value)">`;
-            cascadingDrills.forEach(folder => {
-                let cName = folder.name;
-                categorySelectHtml += `<option value="${cName}" ${currentCat === cName ? 'selected' : ''}>${cName}</option>`;
-            });
-            if (!cascadingDrills.some(f => f.name === currentCat) && currentCat) {
-                categorySelectHtml += `<option value="${currentCat}" selected>${currentCat}</option>`;
-            }
-            categorySelectHtml += `</select>`;
+                const tr = document.createElement('tr');
+                tr.className = idx % 2 === 0 ? 'period-even' : 'period-odd';
 
-            const tr = document.createElement('tr');
-            tr.className = idx % 2 === 0 ? 'period-even' : 'period-odd';
-            tr.innerHTML = `
-                <td>
-                    <div style="font-weight:bold; font-size:12px;">Period ${idx + 1}</div>
-                    <div style="margin-top:4px;"><input type="number" class="prac-input" style="width:50px; display:inline-block;" value="${row.time}" onkeydown="if(event.key==='Enter') this.blur();" onchange="updatePracRow(${idx}, 'time', this.value)"> mins</div>
-                    <div class="period-schedule-time">${timeStr}</div>
-                </td>
-                <td>
-                    ${categorySelectHtml}
-                    <div style="margin-top:8px;" class="no-print admin-only">
-                        <label style="font-size:9.5px; font-weight:bold; color:var(--text-muted); display:block; margin-bottom:2px;">Format:</label>
-                        <select class="prac-select" onchange="updatePracRowFormat(${idx}, this.value)">
-                            <option value="static" ${row.format === 'static' ? 'selected' : ''}>Static</option>
-                            <option value="rotating" ${row.format === 'rotating' ? 'selected' : ''}>Rotating</option>
-                        </select>
-                    </div>
-                </td>
-                <td>
-                    ${stationColParts.join('')}
-                    <div class="no-print admin-only" style="margin-top:6px;">
-                        <button class="toggle-board-btn" style="background:#e0f2fe; color:#0369a1; padding:3px 8px; font-size:10px;" onclick="addStationToRow(${idx})">+ Add Station / Group</button>
-                    </div>
-                </td>
-                <td style="vertical-align: top;">
-                    ${coachColParts.join('')}
-                </td>
-                <td style="vertical-align: top;">
-                    ${focusColParts.join('')}
-                </td>
-                <td class="admin-only" style="text-align:center;">
-                    <div style="display:flex; flex-direction:column; gap:2px; align-items:center;">
-                      <div style="display:flex; gap:2px;">
-                        <button class="toggle-board-btn" style="padding:1px 4px; font-size:9px;" onclick="movePracticeRow(${idx}, -1)" title="Move Up">▲</button>
-                        <button class="toggle-board-btn" style="padding:1px 4px; font-size:9px;" onclick="movePracticeRow(${idx}, 1)" title="Move Down">▼</button>
-                      </div>
-                      <button class="remove-btn" onclick="removePracticeRow(${idx})" title="Delete Period">&times;</button>
-                    </div>
-                </td>
-            `;
-            tbody.appendChild(tr);
+                if (sIdx === 0) {
+                    let currentCat = row.category || "";
+                    let categorySelectHtml = `<select class="prac-select" onchange="updatePracRowCategory(${idx}, this.value)">`;
+                    cascadingDrills.forEach(folder => {
+                        let cName = folder.name;
+                        categorySelectHtml += `<option value="${cName}" ${currentCat === cName ? 'selected' : ''}>${cName}</option>`;
+                    });
+                    if (!cascadingDrills.some(f => f.name === currentCat) && currentCat) {
+                        categorySelectHtml += `<option value="${currentCat}" selected>${currentCat}</option>`;
+                    }
+                    categorySelectHtml += `</select>`;
+
+                    tr.innerHTML = `
+                        <td rowspan="${numStations}">
+                            <div style="font-weight:bold; font-size:12px;">Period ${idx + 1}</div>
+                            <div style="margin-top:4px;"><input type="number" class="prac-input" style="width:50px; display:inline-block;" value="${row.time}" onkeydown="if(event.key==='Enter') this.blur();" onchange="updatePracRow(${idx}, 'time', this.value)"> mins</div>
+                            <div class="period-schedule-time">${timeStr}</div>
+                        </td>
+                        <td rowspan="${numStations}">
+                            ${categorySelectHtml}
+                            <div style="margin-top:8px;" class="no-print admin-only">
+                                <label style="font-size:9.5px; font-weight:bold; color:var(--text-muted); display:block; margin-bottom:2px;">Format:</label>
+                                <select class="prac-select" onchange="updatePracRowFormat(${idx}, this.value)">
+                                    <option value="static" ${row.format === 'static' ? 'selected' : ''}>Static</option>
+                                    <option value="rotating" ${row.format === 'rotating' ? 'selected' : ''}>Rotating</option>
+                                </select>
+                            </div>
+                        </td>
+                        <td>${stationCellContent}</td>
+                        <td>${coachCellContent}</td>
+                        <td>${focusCellContent}</td>
+                        <td rowspan="${numStations}" class="admin-only" style="text-align:center; vertical-align:middle;">
+                            <div style="display:flex; flex-direction:column; gap:4px; align-items:center;">
+                              <div style="display:flex; gap:2px;">
+                                <button class="toggle-board-btn" style="padding:1px 4px; font-size:9px;" onclick="movePracticeRow(${idx}, -1)" title="Move Up">▲</button>
+                                <button class="toggle-board-btn" style="padding:1px 4px; font-size:9px;" onclick="movePracticeRow(${idx}, 1)" title="Move Down">▼</button>
+                              </div>
+                              <button class="toggle-board-btn" style="background:#e0f2fe; color:#0369a1; padding:3px 6px; font-size:9px;" onclick="addStationToRow(${idx})" title="Add Station">+ Station</button>
+                              <button class="remove-btn" onclick="removePracticeRow(${idx})" title="Delete Period">&times;</button>
+                            </div>
+                        </td>
+                    `;
+                } else {
+                    tr.innerHTML = `
+                        <td>${stationCellContent}</td>
+                        <td>${coachCellContent}</td>
+                        <td>${focusCellContent}</td>
+                    `;
+                }
+                tbody.appendChild(tr);
+            });
             currentTimeMin = endTimeMin;
         });
         document.querySelectorAll('#main-practice-table .prac-textarea').forEach(ta => autoResizeTextarea(ta));
