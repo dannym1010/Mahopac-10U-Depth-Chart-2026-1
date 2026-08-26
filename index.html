@@ -245,7 +245,7 @@
     .add-row-btn { margin-top: 10px; padding: 6px 12px; background: var(--primary); color: white; border: none; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; }
     .add-row-btn:hover { background: var(--accent); }
 
-    .station-block { margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed #cbd5e1; }
+    .station-block { margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed #cbd5e1; display: flex; flex-direction: column; justify-content: flex-start; min-height: 75px; box-sizing: border-box; }
     .station-block:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
 
     /* Sidebar Wrapper & Panels */
@@ -289,6 +289,7 @@
       .period-schedule-time { font-size: 11px !important; color: #000 !important; font-weight: bold !important; }
       .prac-input, .prac-select, .prac-textarea { font-size: 11.5px !important; border: none !important; background: transparent !important; padding: 0 !important; color: #000 !important; text-transform: uppercase !important; white-space: pre-wrap !important; word-wrap: break-word !important; }
       
+      #panel-practice .station-block { min-height: auto !important; }
       #panel-practice .station-block input.prac-input { font-weight: bold !important; font-size: 12px !important; color: #000 !important; white-space: pre-wrap !important; word-wrap: break-word !important; }
 
       #panel-practice select.prac-select:not([onchange*="updatePracRowCategory"]):not([onchange*="updatePracRowFormat"]) { display: none !important; }
@@ -2042,9 +2043,9 @@
                     </div>
                 `);
 
-                // 2. Coaches Column Part (Horizontally Aligned per Station Block, with text-wrapping enabled)
+                // 2. Coaches Column Part (Horizontally aligned with each station block)
                 coachColParts.push(`
-                    <div class="station-block coach-popup-container" style="position:relative; display:flex; flex-direction:column; justify-content:center;">
+                    <div class="station-block coach-popup-container" style="position:relative; display:flex; flex-direction:column; justify-content:flex-start;">
                         <textarea class="prac-textarea" style="min-height:30px; white-space:pre-wrap; word-wrap:break-word; cursor:pointer;" readonly onclick="toggleCoachPopup(${idx}, ${sIdx}, event)" oninput="autoResizeTextarea(this);" placeholder="Click coaches...">${st.coach || ''}</textarea>
                         
                         <div id="${coachPopupId}" class="coach-popup-box card-search-dropdown hidden" style="width: 220px; max-height: 220px; overflow-y: auto; top: 100%; left: 0; padding:8px; background:#fff; z-index:50000; box-shadow:0 4px 12px rgba(0,0,0,0.15);" onclick="event.stopPropagation()">
@@ -2060,9 +2061,9 @@
                     </div>
                 `);
 
-                // 3. Coaching Focus Column Part (Horizontally Aligned per Station Block)
+                // 3. Coaching Focus Column Part (Horizontally aligned with each station block)
                 focusColParts.push(`
-                    <div class="station-block" style="display:flex; flex-direction:column; justify-content:center;">
+                    <div class="station-block" style="display:flex; flex-direction:column; justify-content:flex-start;">
                         <textarea class="prac-textarea" style="min-height:30px;" oninput="autoResizeTextarea(this);" onchange="updatePracStation(${idx}, ${sIdx}, 'focus', this.value); syncDrillLibraryFromStation(${idx}, ${sIdx});" placeholder="Key focus...">${st.focus || ''}</textarea>
                     </div>
                 `);
