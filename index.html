@@ -231,11 +231,11 @@
     .practice-table tbody tr.period-odd td { background-color: #ffffff; }
     .practice-table tbody tr.period-even td { background-color: #f4f6f9; }
 
-    /* Resizable Column Handle */
+    /* Resizable Column Handle - allows bidirectional resizing */
     .col-resizer {
-      position: absolute; right: 0; top: 0; bottom: 0; width: 6px; cursor: col-resize; z-index: 10;
+      position: absolute; right: -5px; top: 0; bottom: 0; width: 12px; cursor: col-resize; z-index: 10;
     }
-    .col-resizer:hover { background-color: var(--accent); }
+    .col-resizer:hover { background-color: rgba(37, 99, 235, 0.3); }
 
     .period-schedule-time { margin-top: 4px; font-weight: bold; color: var(--accent); font-size: 10.5px; }
     .prac-input, .prac-select, .prac-textarea { width: 100%; border: 1px solid var(--card-border); border-radius: 4px; padding: 4px; font-family: inherit; font-size: 11px; box-sizing: border-box; background: #f8fafc; color: var(--text); }
@@ -575,10 +575,10 @@
           
           <table class="practice-table" id="main-practice-table">
             <colgroup>
-              <col id="col-time" style="width: 15%;">
-              <col id="col-cat" style="width: 25%;">
-              <col id="col-stations" style="width: 54%;">
-              <col id="col-actions" style="width: 6%;">
+              <col id="col-0" style="width: 15%;">
+              <col id="col-1" style="width: 25%;">
+              <col id="col-2" style="width: 54%;">
+              <col id="col-3" style="width: 6%;">
             </colgroup>
             <thead>
               <tr>
@@ -1154,7 +1154,7 @@
         saveTimeout = setTimeout(() => { saveState(); }, 500);
     }
 
-    /* Column Resizing Logic */
+    /* Bidirectional Column Resizing Logic (Expand or shrink from any side handle) */
     let resizingColIndex = null;
     let startX = 0;
     let startWidth = 0;
@@ -1171,8 +1171,8 @@
             startWidth = cols[colIndex].offsetWidth;
         }
 
-        document.addEventListener("mousemove", onColMouseMove);
-        document.addEventListener("mouseup", onColMouseUp);
+        window.addEventListener("mousemove", onColMouseMove, { passive: false });
+        window.addEventListener("mouseup", onColMouseUp);
     }
 
     function onColMouseMove(e) {
@@ -1189,8 +1189,8 @@
 
     function onColMouseUp() {
         resizingColIndex = null;
-        document.removeEventListener("mousemove", onColMouseMove);
-        document.removeEventListener("mouseup", onColMouseUp);
+        window.removeEventListener("mousemove", onColMouseMove);
+        window.removeEventListener("mouseup", onColMouseUp);
     }
 
     function parseTimeString(str) {
@@ -1848,7 +1848,6 @@
 
         const categoryName = prac.plan[rIdx].category || (cascadingDrills[0] ? cascadingDrills[0].name : "General");
         
-        // Find or create category folder
         let folder = cascadingDrills.find(f => f.name.toLowerCase() === categoryName.toLowerCase());
         if (!folder) {
             folder = { name: categoryName, subfolders: [], drills: [] };
@@ -1856,7 +1855,6 @@
         }
         if (!folder.drills) folder.drills = [];
 
-        // Check if drill exists by name in this folder
         let existingDrill = folder.drills.find(d => d.name.toLowerCase() === drillName.toLowerCase());
         if (existingDrill) {
             existingDrill.desc = st.desc || "";
@@ -1873,7 +1871,6 @@
 
     function toggleCoachPopup(rIdx, sIdx, e) {
         if (e) e.stopPropagation();
-        // Hide all other open popups first
         document.querySelectorAll('.coach-popup-box').forEach(box => {
             if (box.id !== `coach_popup_${rIdx}_${sIdx}`) box.classList.add('hidden');
         });
@@ -1900,7 +1897,6 @@
         saveState();
         renderPracticePlan();
         
-        // Keep popup open after click
         const popup = document.getElementById(`coach_popup_${rIdx}_${sIdx}`);
         if (popup) popup.classList.remove('hidden');
     }
@@ -1923,7 +1919,6 @@
             saveState();
             renderPracticePlan();
             
-            // Keep popup open
             const popup = document.getElementById(`coach_popup_${rIdx}_${sIdx}`);
             if (popup) popup.classList.remove('hidden');
         }
