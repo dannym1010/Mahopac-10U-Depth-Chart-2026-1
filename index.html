@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Football Depth Chart & Practice Manager</title>
+  <title>Mahopac 10U Depth Chart & Practice Manager</title>
   
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -257,14 +257,14 @@
     .full-roster-item { padding: 6px 8px; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; justify-content: space-between; font-size: 11px; cursor: grab; background: #f8fafc; margin-bottom: 4px; border-radius: 4px; border: 1px solid var(--card-border); user-select: none; }
     .full-roster-item:hover { border-color: var(--accent); background: #eff6ff; }
 
-    /* PRINT STYLES - High Contrast Black & White */
+    /* PRINT STYLES - High Contrast Black & White with No Text Cutoffs */
     @media print {
       @page { size: letter portrait; margin: 0.25in; }
-      body { background-color: #ffffff !important; color: #000000 !important; padding: 0; margin: 0; font-size: 12px !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      body { background-color: #ffffff !important; color: #000000 !important; padding: 0; margin: 0; font-size: 11px !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; width: 100% !important; overflow: visible !important; }
       .toolbar, #sidebar-container, .remove-btn, .action-group, p.subtitle, .search-box, .tab-navigation, .toggle-board-btn, .week-bar, .board-controls, .add-row-btn, .add-form-btn, .row-actions, .practice-dashboard-info, #print-modal, #new-prac-modal, #scrimmage-print-modal, #scrimmage-filter-modal, #templates-modal, #approval-pending-overlay, .col-resizer { display: none !important; }
-      .app-layout, .boards-container, .unit-panel { display: block !important; }
+      .app-layout, .boards-container, .unit-panel { display: block !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
       .unit-panel.hidden { display: none !important; }
-      .formation-container { border: 2px solid #000000 !important; box-shadow: none !important; padding: 6px; page-break-inside: auto !important; margin-bottom: 8px; background: #ffffff !important; }
+      .formation-container { border: 2px solid #000000 !important; box-shadow: none !important; padding: 6px; page-break-inside: auto !important; margin-bottom: 8px; background: #ffffff !important; width: 100% !important; box-sizing: border-box !important; }
       .formation-container.hidden-print { display: none !important; }
       .formation-row { min-width: 100% !important; page-break-inside: avoid; align-items: start !important; }
       .row-slot { align-items: flex-start !important; border: none !important; background: transparent !important; min-height: auto !important; }
@@ -272,25 +272,22 @@
       .position-header { background: #e2e8f0 !important; color: #000000 !important; border-bottom: 2px solid #000000 !important; font-size: 11px !important; padding: 4px 6px; font-weight: bold; }
       .player-item { border: 1px solid #000000 !important; font-size: 11px !important; padding: 4px 6px !important; margin-bottom: 3px; background: #fff !important; color: #000 !important; text-transform: uppercase !important; font-weight: 700 !important; }
       
-      /* High-contrast print badges - Capitalized Names & Gold/Blue Highlights */
+      /* High-contrast print badges */
       .rank-starter { background: #000 !important; color: #fff !important; border: 1px solid #000 !important; opacity: 1 !important; }
       .rank-sub-gold { background: #fef08a !important; color: #000000 !important; border: 2px solid #000 !important; font-weight: 900 !important; opacity: 1 !important; box-shadow: inset 0 0 0 1px #000; }
       .rank-sub-blue { background: #93c5fd !important; color: #000000 !important; border: 2px solid #000 !important; font-weight: 900 !important; opacity: 1 !important; box-shadow: inset 0 0 0 1px #000; }
       
-      /* High-contrast alternating practice rows */
-      tbody tr.period-odd td { background-color: #ffffff !important; color: #000000 !important; }
-      tbody tr.period-even td { background-color: #f1f5f9 !important; color: #000000 !important; }
-
-      h1 { margin-top: 0; font-size: 16px; color: #000000; text-align: center; }
-      .practice-table { font-size: 11.5px !important; border: 2px solid #000 !important; width: 100% !important; table-layout: fixed !important; }
-      .practice-table th { font-size: 12px !important; background: #e2e8f0 !important; color: #000 !important; border: 1px solid #000 !important; }
-      .practice-table td { font-size: 11.5px !important; border: 1px solid #000 !important; padding: 6px !important; color: #000 !important; vertical-align: middle !important; }
-      .period-schedule-time { font-size: 11px !important; color: #000 !important; font-weight: bold !important; }
-      .prac-input, .prac-select, .prac-textarea { font-size: 11.5px !important; border: none !important; background: transparent !important; padding: 0 !important; color: #000 !important; text-transform: uppercase !important; white-space: pre-wrap !important; word-wrap: break-word !important; }
+      /* Practice Table Width & Word Wrapping Fix */
+      h1 { margin-top: 0; font-size: 15px; color: #000000; text-align: center; }
+      .practice-table { font-size: 10.5px !important; border: 2px solid #000 !important; width: 100% !important; table-layout: fixed !important; word-wrap: break-word !important; overflow-wrap: break-word !important; }
+      .practice-table th { font-size: 11px !important; background: #e2e8f0 !important; color: #000 !important; border: 1px solid #000 !important; word-wrap: break-word !important; }
+      .practice-table td { font-size: 10.5px !important; border: 1px solid #000 !important; padding: 5px !important; color: #000 !important; vertical-align: middle !important; word-wrap: break-word !important; overflow-wrap: break-word !important; }
+      .period-schedule-time { font-size: 10px !important; color: #000 !important; font-weight: bold !important; }
+      
+      .prac-input, .prac-select, .prac-textarea { font-size: 10.5px !important; border: none !important; background: transparent !important; padding: 0 !important; color: #000 !important; text-transform: uppercase !important; white-space: pre-wrap !important; word-wrap: break-word !important; overflow-wrap: break-word !important; width: 100% !important; box-sizing: border-box !important; }
       
       #panel-practice .station-block { min-height: auto !important; height: auto !important; }
-      #panel-practice .station-block input.prac-input { font-weight: bold !important; font-size: 12px !important; color: #000 !important; white-space: pre-wrap !important; word-wrap: break-word !important; }
-
+      #panel-practice .station-block input.prac-input { font-weight: bold !important; font-size: 11px !important; color: #000 !important; white-space: pre-wrap !important; word-wrap: break-word !important; }
       #panel-practice select.prac-select:not([onchange*="updatePracRowCategory"]):not([onchange*="updatePracRowFormat"]) { display: none !important; }
     }
   </style>
@@ -335,7 +332,7 @@
     </div>
   </div>
 
-  <h1>🏈 Football Operations Manager</h1>
+  <h1>🏈 Mahopac 10U Operations Manager</h1>
   <p class="subtitle">Manage Depth Charts, Custom Formations, and Resizable Practice Plans.</p>
 
   <!-- Toolbar -->
@@ -702,6 +699,13 @@
   </div>
 
   <script>
+    // Suppress unhandled extension messaging errors (e.g. SmartLens/Chrome runtime disconnects)
+    window.addEventListener('unhandledrejection', function(event) {
+        if (event.reason && event.reason.message && event.reason.message.includes('message channel closed')) {
+            event.preventDefault();
+        }
+    });
+
     const firebaseConfig = {
        apiKey: "AIzaSyBxAet3UzgBNuMUyUgj2MDWgrK5X63IPvg",
        authDomain: "u-depth-chart.firebaseapp.com",
