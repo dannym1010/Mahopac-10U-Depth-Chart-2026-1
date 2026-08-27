@@ -409,36 +409,60 @@
       
       <!-- OFFENSE PANEL -->
       <div class="unit-panel" id="panel-offense">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-           <button class="add-form-btn admin-only" onclick="createFormationPrompt('offense')">+ Add Offensive Formation</button>
-           <button class="toggle-board-btn no-print" onclick="openPrintModal('offense')" style="padding:6px 12px; background:var(--primary); color:#fff;">🖨️ Print Formations</button>
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+           <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+             <button class="add-form-btn admin-only" style="margin:0;" onclick="createFormationPrompt('offense')">+ Add Offensive Formation</button>
+             <div style="display:flex; align-items:center; gap:4px; background:#fff; padding:3px 8px; border-radius:6px; border:1px solid var(--card-border);">
+               <span style="font-size:10.5px; font-weight:bold; color:var(--primary);">👁️ Filter View:</span>
+               <select id="formation-filter-offense" class="prac-select" style="width:150px; font-size:11px; padding:2px 4px;" onchange="filterBoardView('offense', this.value)"></select>
+             </div>
+           </div>
+           <button class="toggle-board-btn no-print" onclick="openPrintModal('offense')" style="padding:6px 12px; background:var(--primary); color:#fff;">🖨️ Selective Print</button>
         </div>
         <div id="boards-offense"></div>
       </div>
 
       <!-- DEFENSE PANEL -->
       <div class="unit-panel hidden" id="panel-defense">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-           <button class="add-form-btn admin-only" onclick="createFormationPrompt('defense')">+ Add Defensive Formation</button>
-           <button class="toggle-board-btn no-print" onclick="openPrintModal('defense')" style="padding:6px 12px; background:var(--primary); color:#fff;">🖨️ Print Formations</button>
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+           <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+             <button class="add-form-btn admin-only" style="margin:0;" onclick="createFormationPrompt('defense')">+ Add Defensive Formation</button>
+             <div style="display:flex; align-items:center; gap:4px; background:#fff; padding:3px 8px; border-radius:6px; border:1px solid var(--card-border);">
+               <span style="font-size:10.5px; font-weight:bold; color:var(--primary);">👁️ Filter View:</span>
+               <select id="formation-filter-defense" class="prac-select" style="width:150px; font-size:11px; padding:2px 4px;" onchange="filterBoardView('defense', this.value)"></select>
+             </div>
+           </div>
+           <button class="toggle-board-btn no-print" onclick="openPrintModal('defense')" style="padding:6px 12px; background:var(--primary); color:#fff;">🖨️ Selective Print</button>
         </div>
         <div id="boards-defense"></div>
       </div>
 
       <!-- SPECIAL TEAMS PANEL -->
       <div class="unit-panel hidden" id="panel-st">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-           <button class="add-form-btn admin-only" onclick="createFormationPrompt('st')">+ Add Special Teams Board</button>
-           <button class="toggle-board-btn no-print" onclick="openPrintModal('st')" style="padding:6px 12px; background:var(--primary); color:#fff;">🖨️ Print Boards</button>
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+           <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+             <button class="add-form-btn admin-only" style="margin:0;" onclick="createFormationPrompt('st')">+ Add Special Teams Board</button>
+             <div style="display:flex; align-items:center; gap:4px; background:#fff; padding:3px 8px; border-radius:6px; border:1px solid var(--card-border);">
+               <span style="font-size:10.5px; font-weight:bold; color:var(--primary);">👁️ Filter View:</span>
+               <select id="formation-filter-st" class="prac-select" style="width:150px; font-size:11px; padding:2px 4px;" onchange="filterBoardView('st', this.value)"></select>
+             </div>
+           </div>
+           <button class="toggle-board-btn no-print" onclick="openPrintModal('st')" style="padding:6px 12px; background:var(--primary); color:#fff;">🖨️ Selective Print</button>
         </div>
         <div id="boards-st"></div>
       </div>
 
       <!-- DEPTH CHART PANEL -->
       <div class="unit-panel hidden" id="panel-groups">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-           <button class="add-form-btn admin-only" onclick="createFormationPrompt('groups')">+ Add Depth Chart Board</button>
-           <button class="toggle-board-btn no-print" onclick="openPrintModal('groups')" style="padding:6px 12px; background:var(--primary); color:#fff;">🖨️ Print Boards</button>
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+           <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+             <button class="add-form-btn admin-only" style="margin:0;" onclick="createFormationPrompt('groups')">+ Add Depth Chart Board</button>
+             <div style="display:flex; align-items:center; gap:4px; background:#fff; padding:3px 8px; border-radius:6px; border:1px solid var(--card-border);">
+               <span style="font-size:10.5px; font-weight:bold; color:var(--primary);">👁️ Filter View:</span>
+               <select id="formation-filter-groups" class="prac-select" style="width:150px; font-size:11px; padding:2px 4px;" onchange="filterBoardView('groups', this.value)"></select>
+             </div>
+           </div>
+           <button class="toggle-board-btn no-print" onclick="openPrintModal('groups')" style="padding:6px 12px; background:var(--primary); color:#fff;">🖨️ Selective Print</button>
         </div>
         <div id="boards-groups"></div>
       </div>
@@ -693,6 +717,10 @@
   <div id="print-modal" class="custom-modal hidden">
     <div class="print-modal-card">
        <h3>Select Boards to Print</h3>
+       <div style="display:flex; gap:6px; margin-bottom:10px;">
+          <button type="button" class="toggle-board-btn" style="font-size:10px; padding:3px 8px;" onclick="togglePrintModalSelection(true)">Select All</button>
+          <button type="button" class="toggle-board-btn" style="font-size:10px; padding:3px 8px;" onclick="togglePrintModalSelection(false)">Clear All</button>
+       </div>
        <div id="print-modal-list" style="max-height: 200px; overflow-y: auto; margin-bottom: 15px; text-align: left; font-size: 12px; display: flex; flex-direction: column; gap: 6px;"></div>
        <div style="display: flex; gap: 8px; justify-content: flex-end;">
           <button class="toggle-board-btn" onclick="document.getElementById('print-modal').classList.add('hidden')">Cancel</button>
@@ -1142,7 +1170,6 @@
       }
       
       if (!weeklyData[week].formations || !Array.isArray(weeklyData[week].formations) || weeklyData[week].formations.length === 0) {
-        // Inherit formations from Week 0 or defaults cleanly
         let templateForms = (weeklyData["0"] && Array.isArray(weeklyData["0"].formations) && weeklyData["0"].formations.length > 0)
           ? weeklyData["0"].formations
           : defaultFormations;
@@ -2263,7 +2290,6 @@
 
             const data = doc.data();
             
-            // Accept cloud weeklyData without additive resurrection
             if (data.weeklyData && typeof data.weeklyData === 'object') {
                 weeklyData = data.weeklyData;
             }
@@ -2486,7 +2512,6 @@
       if (newName && newName.trim() !== "") {
           let clean = newName.trim();
           let oldName = form.name.toLowerCase();
-          // Rename across all weeks
           Object.keys(weeklyData).forEach(w => {
               if (weeklyData[w] && Array.isArray(weeklyData[w].formations)) {
                   weeklyData[w].formations.forEach(f => {
@@ -2502,7 +2527,6 @@
       }
     }
 
-    // Complete purge of formation across all game weeks to prevent resurrection
     function deleteFormation(formId) {
       if (userRole !== 'admin') return;
       const forms = getWeekFormations(currentWeek);
@@ -2511,8 +2535,6 @@
       
       if (confirm(`Delete formation "${form.name}" across all game weeks?`)) {
           const targetName = form.name.toLowerCase();
-          
-          // Remove from all weeks cleanly
           for (let w = 0; w <= 8; w++) {
               let wkKey = String(w);
               if (weeklyData[wkKey] && Array.isArray(weeklyData[wkKey].formations)) {
@@ -2536,7 +2558,6 @@
         let cleanName = name.trim();
         let newBaseId = "form_" + Date.now();
 
-        // Create in all game weeks so it stays permanently
         for (let w = 0; w <= 8; w++) {
             let wkKey = String(w);
             ensureWeekDataExists(wkKey);
@@ -2556,6 +2577,124 @@
         renderActiveBoards();
         selectFormationForRoster(newBaseId);
       }
+    }
+
+    /* DUPLICATE FORMATION WITH ALL PLAYERS */
+    function copyFullFormation(formId) {
+      if (userRole !== 'admin') return;
+      const forms = getWeekFormations(currentWeek);
+      const form = forms.find(f => f.id === formId);
+      if (!form) return;
+
+      let newName = prompt("Enter name for duplicated formation:", form.name + " (Copy)");
+      if (!newName || !newName.trim()) return;
+
+      let cleanName = newName.trim();
+      let newFormId = "form_" + Date.now();
+      let clonedForm = {
+        id: newFormId,
+        unit: form.unit,
+        name: cleanName,
+        collapsed: false,
+        rows: []
+      };
+
+      const dc = getWeekDepthChart(currentWeek);
+      const sc = getWeekScrimmageChart(currentWeek);
+
+      (form.rows || []).forEach((row, rIdx) => {
+        let newRowId = "row_" + Date.now() + "_" + rIdx;
+        let newPositions = [];
+
+        (row.positions || []).forEach((pos, pIdx) => {
+          if (pos) {
+            let newPosId = `${newFormId}-${pos.name}-${Date.now()}_${pIdx}`;
+            newPositions.push({ id: newPosId, name: pos.name });
+
+            if (dc[pos.id] && Array.isArray(dc[pos.id])) {
+              dc[newPosId] = JSON.parse(JSON.stringify(dc[pos.id]));
+            }
+            if (sc[pos.id] && Array.isArray(sc[pos.id])) {
+              sc[newPosId] = JSON.parse(JSON.stringify(sc[pos.id]));
+            }
+          } else {
+            newPositions.push(null);
+          }
+        });
+
+        clonedForm.rows.push({
+          id: newRowId,
+          label: row.label || ("Row " + (rIdx + 1)),
+          slotCount: row.slotCount || row.positions.length,
+          positions: newPositions
+        });
+      });
+
+      const srcIdx = forms.findIndex(f => f.id === formId);
+      if (srcIdx !== -1) {
+        forms.splice(srcIdx + 1, 0, clonedForm);
+      } else {
+        forms.push(clonedForm);
+      }
+
+      if (saveTimeout) clearTimeout(saveTimeout);
+      saveState();
+      renderActiveBoards();
+      selectFormationForRoster(newFormId);
+      alert(`Formation "${cleanName}" duplicated with all players successfully!`);
+    }
+
+    /* REORDER FORMATIONS (MOVE UP / DOWN) */
+    function moveFormation(formId, direction) {
+      if (userRole !== 'admin') return;
+      const forms = getWeekFormations(currentWeek);
+      const unitForms = forms.filter(f => f.unit === activeUnit);
+      const uIdx = unitForms.findIndex(f => f.id === formId);
+      if (uIdx === -1) return;
+
+      const targetUIdx = uIdx + direction;
+      if (targetUIdx < 0 || targetUIdx >= unitForms.length) return;
+
+      const targetFormId = unitForms[targetUIdx].id;
+      const globalIdx1 = forms.findIndex(f => f.id === formId);
+      const globalIdx2 = forms.findIndex(f => f.id === targetFormId);
+
+      if (globalIdx1 !== -1 && globalIdx2 !== -1) {
+        const temp = forms[globalIdx1];
+        forms[globalIdx1] = forms[globalIdx2];
+        forms[globalIdx2] = temp;
+
+        if (saveTimeout) clearTimeout(saveTimeout);
+        saveState();
+        renderActiveBoards();
+      }
+    }
+
+    /* ON-SCREEN FILTERING OF FORMATION BOARDS */
+    function filterBoardView(unit, selectedId) {
+      const container = document.getElementById("boards-" + unit);
+      if (!container) return;
+
+      container.querySelectorAll('.formation-container').forEach(card => {
+        const fId = card.dataset.formId;
+        if (selectedId === "ALL" || fId === selectedId) {
+          card.classList.remove("hidden");
+        } else {
+          card.classList.add("hidden");
+        }
+      });
+    }
+
+    function populateFormationFilters(unit, forms) {
+      const select = document.getElementById("formation-filter-" + unit);
+      if (!select) return;
+      let currentVal = select.value || "ALL";
+
+      let html = '<option value="ALL">All Formations</option>';
+      forms.forEach(f => {
+        html += `<option value="${f.id}" ${f.id === currentVal ? 'selected' : ''}>${f.name}</option>`;
+      });
+      select.innerHTML = html;
     }
 
     /* DRAG AND DROP HANDLERS FOR POSITION CARDS ACROSS LEVELS */
@@ -2629,6 +2768,8 @@
       const forms = getWeekFormations(currentWeek).filter(f => f && f.unit === activeUnit);
       container.innerHTML = "";
 
+      populateFormationFilters(activeUnit, forms);
+
       if (forms.length === 0) {
           container.innerHTML = `<div style="padding:40px; text-align:center; color:var(--text-muted);">No boards found for ${activeUnit.toUpperCase()}.</div>`;
           return;
@@ -2649,7 +2790,10 @@
           <div class="board-title">
              <span>${form.name}</span>
              <div class="admin-only" style="display:flex; gap:4px; align-items:center; flex-wrap:wrap;">
+                <button class="toggle-board-btn" onclick="moveFormation('${form.id}', -1)" title="Move Board Up">▲</button>
+                <button class="toggle-board-btn" onclick="moveFormation('${form.id}', 1)" title="Move Board Down">▼</button>
                 <button class="toggle-board-btn" onclick="addFormationRow('${form.id}')">+ Add Row</button>
+                <button class="toggle-board-btn" onclick="copyFullFormation('${form.id}')" title="Duplicate formation with all players">📋 Duplicate</button>
                 <button class="toggle-board-btn" onclick="renameFormation('${form.id}')" title="Rename formation">✏️</button>
                 <button class="remove-btn" onclick="deleteFormation('${form.id}')" title="Delete formation" style="font-size:14px; padding:2px 4px;">&times;</button>
              </div>
@@ -2744,6 +2888,12 @@
         });
         container.appendChild(formDiv);
       });
+
+      const filterSelect = document.getElementById("formation-filter-" + activeUnit);
+      if (filterSelect && filterSelect.value !== "ALL") {
+        filterBoardView(activeUnit, filterSelect.value);
+      }
+
       renderMasterRoster();
     }
 
@@ -2959,6 +3109,12 @@
             </label>
         `).join('');
         document.getElementById("print-modal").classList.remove("hidden");
+    }
+
+    function togglePrintModalSelection(select) {
+        document.querySelectorAll(".print-cb").forEach(cb => {
+            cb.checked = select;
+        });
     }
 
     function executeCustomPrint() {
