@@ -750,32 +750,24 @@
        <h3>📋 Copy Week Formations & Depth Chart</h3>
        <label style="font-size:11px; font-weight:bold; color:var(--primary); display:block; margin-bottom:4px;">Copy From (Source Week):</label>
        <select id="copy-src-week-select" class="prac-select" style="margin-bottom:12px;">
-         <option value="0">Week 0</option>
-         <option value="1">Week 1</option>
-         <option value="2">Week 2</option>
-         <option value="3">Week 3</option>
-         <option value="4">Week 4</option>
-         <option value="5">Week 5</option>
-         <option value="6">Week 6</option>
-         <option value="7">Week 7</option>
+         <option value="0">Week 0</option><option value="1">Week 1</option>
+         <option value="2">Week 2</option><option value="3">Week 3</option>
+         <option value="4">Week 4</option><option value="5">Week 5</option>
+         <option value="6">Week 6</option><option value="7">Week 7</option>
          <option value="8">Week 8</option>
        </select>
 
        <label style="font-size:11px; font-weight:bold; color:var(--primary); display:block; margin-bottom:4px;">Copy To (Target Week):</label>
        <select id="copy-target-week-select" class="prac-select" style="margin-bottom:15px;">
-         <option value="0">Week 0</option>
-         <option value="1">Week 1</option>
-         <option value="2">Week 2</option>
-         <option value="3">Week 3</option>
-         <option value="4">Week 4</option>
-         <option value="5">Week 5</option>
-         <option value="6">Week 6</option>
-         <option value="7">Week 7</option>
+         <option value="0">Week 0</option><option value="1">Week 1</option>
+         <option value="2">Week 2</option><option value="3">Week 3</option>
+         <option value="4">Week 4</option><option value="5">Week 5</option>
+         <option value="6">Week 6</option><option value="7">Week 7</option>
          <option value="8">Week 8</option>
        </select>
 
        <div style="font-size:11px; color:#92400e; margin-bottom:15px; background:#fef3c7; padding:10px; border-radius:6px; border:1px solid #fde68a; line-height:1.4;">
-         ⚠️ <strong>Note:</strong> This will overwrite all formations, position card layouts, starter/sub depth charts, and scrimmage rotations in the target week with the source week's data.
+         ⚠️ <strong>Note:</strong> This will copy all formations, position card layouts, and starter/sub depth chart assignments from the source week into the target week.
        </div>
 
        <div style="display: flex; gap: 8px; justify-content: flex-end;">
@@ -902,6 +894,97 @@
         printFontSize = size;
         document.documentElement.style.setProperty('--print-font-size', size + 'px');
         localStorage.setItem("footballPrintFontSize", JSON.stringify(size));
+    }
+
+    /* GRANULAR SCOPED SYNC (Prevents cross-tab state overwrites) */
+    function saveState(scope = 'all') {
+        if (isImporting) return;
+        const prac = practiceData.find(p => p.id === currentPracticeId);
+        if (prac) prac.lastEdited = Date.now();
+
+        if (scope === 'all' || scope === 'depthChart') {
+            localStorage.setItem("footballWeeklyData", JSON.stringify(weeklyData));
+            localStorage.setItem("footballDefaultFormations", JSON.stringify(defaultFormations));
+        }
+        if (scope === 'all' || scope === 'practice') {
+            localStorage.setItem("footballPracticeData", JSON.stringify(practiceData));
+            localStorage.setItem("footballPracticeTemplates", JSON.stringify(practiceTemplates));
+        }
+        if (scope === 'all' || scope === 'drills') {
+            localStorage.setItem("footballCascadingDrills", JSON.stringify(cascadingDrills));
+            localStorage.setItem("footballMasterPlays", JSON.stringify(masterPlayLibrary));
+        }
+        if (scope === 'all' || scope === 'guides') {
+            localStorage.setItem("footballPdfGuidesTree", JSON.stringify(pdfGuidesTree));
+            localStorage.setItem("footballPdfGuidesOrder", JSON.stringify(pdfGuidesOrder));
+        }
+        if (scope === 'all' || scope === 'users') {
+            localStorage.setItem("footballSavedCoaches", JSON.stringify(savedCoachesList));
+            if (userRole === 'admin') {
+                localStorage.setItem("footballTeamCoaches", JSON.stringify(teamCoachesList));
+            }
+        }
+        localStorage.setItem("footballCollapsedFolders", JSON.stringify(collapsedFolders));
+
+        if (cloudEnabled && db) {
+            setSyncStatus("☁️ Saving...", "#d97706");
+            
+            let updatePayload = {
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                collapsedFolders: collapsedFolders
+            };
+
+            if (scope === 'all' || scope === 'depthChart') {
+                updatePayload.weeklyData = weeklyData;
+                updatePayload.defaultFormations = defaultFormations;
+            }
+            if (scope === 'all' || scope === 'practice') {
+                updatePayload.practiceData = practiceData;
+                updatePayload.practiceTemplates = practiceTemplates;
+            }
+            if (scope === 'all' || scope === 'drills') {
+                updatePayload.cascadingDrills = cascadingDrills;
+                updatePayload.masterPlayLibrary = masterPlayLibrary;
+            }
+            if (scope === 'all' || scope === 'guides') {
+                updatePayload.pdfGuidesTree = pdfGuidesTree;
+                updatePayload.pdfGuidesOrder = pdfGuidesOrder;
+                updatePayload.activeGuideMain = activeGuideMain;
+                updatePayload.activeGuideSub = activeGuideSub;
+            }
+            if (scope === 'all' || scope === 'users') {
+                updatePayload.savedCoachesList = savedCoachesList;
+                if (userRole === 'admin' || (currentUser && currentUser.email && currentUser.email.toLowerCase() === "dannym1010@gmail.com")) {
+                    updatePayload.teamCoachesList = teamCoachesList;
+                }
+            }
+
+            db.collection("teamData").doc("depthChartData").set(updatePayload, { merge: true }).then(() => {
+                setSyncStatus("✅ Live Cloud Synced", "#16a34a");
+            }).catch(err => {
+                console.error("Firestore sync error:", err);
+                setSyncStatus("⚠️ Cloud Error", "#ef4444");
+            });
+        }
+    }
+
+    let saveTimeout = null;
+    function triggerDebouncedSave(scope = 'all') {
+        if (isImporting) return;
+        if (saveTimeout) clearTimeout(saveTimeout);
+        saveTimeout = setTimeout(() => { saveState(scope); }, 300);
+    }
+
+    window.addEventListener("beforeunload", () => {
+        if (saveTimeout) {
+            clearTimeout(saveTimeout);
+            saveState('all');
+        }
+    });
+
+    function forceSyncCloud() {
+        saveState('all');
+        alert("Successfully forced all local formations, drill folders, and data to live cloud database!");
     }
 
     function toggleFullScreen() {
@@ -1133,97 +1216,6 @@
     let cascadingDrills = safeJSONParse("footballCascadingDrills", defaultCascadingDrills);
     let depthChart = null, currentPracticeId = null;
 
-    /* GRANULAR SCOPED SYNC (Prevents cross-tab state overwrites) */
-    function saveState(scope = 'all') {
-        if (isImporting) return;
-        const prac = practiceData.find(p => p.id === currentPracticeId);
-        if (prac) prac.lastEdited = Date.now();
-
-        if (scope === 'all' || scope === 'depthChart') {
-            localStorage.setItem("footballWeeklyData", JSON.stringify(weeklyData));
-            localStorage.setItem("footballDefaultFormations", JSON.stringify(defaultFormations));
-        }
-        if (scope === 'all' || scope === 'practice') {
-            localStorage.setItem("footballPracticeData", JSON.stringify(practiceData));
-            localStorage.setItem("footballPracticeTemplates", JSON.stringify(practiceTemplates));
-        }
-        if (scope === 'all' || scope === 'drills') {
-            localStorage.setItem("footballCascadingDrills", JSON.stringify(cascadingDrills));
-            localStorage.setItem("footballMasterPlays", JSON.stringify(masterPlayLibrary));
-        }
-        if (scope === 'all' || scope === 'guides') {
-            localStorage.setItem("footballPdfGuidesTree", JSON.stringify(pdfGuidesTree));
-            localStorage.setItem("footballPdfGuidesOrder", JSON.stringify(pdfGuidesOrder));
-        }
-        if (scope === 'all' || scope === 'users') {
-            localStorage.setItem("footballSavedCoaches", JSON.stringify(savedCoachesList));
-            if (userRole === 'admin') {
-                localStorage.setItem("footballTeamCoaches", JSON.stringify(teamCoachesList));
-            }
-        }
-        localStorage.setItem("footballCollapsedFolders", JSON.stringify(collapsedFolders));
-
-        if (cloudEnabled && db) {
-            setSyncStatus("☁️ Saving...", "#d97706");
-            
-            let updatePayload = {
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            };
-
-            if (scope === 'all' || scope === 'depthChart') {
-                updatePayload.weeklyData = weeklyData;
-                updatePayload.defaultFormations = defaultFormations;
-            }
-            if (scope === 'all' || scope === 'practice') {
-                updatePayload.practiceData = practiceData;
-                updatePayload.practiceTemplates = practiceTemplates;
-            }
-            if (scope === 'all' || scope === 'drills') {
-                updatePayload.cascadingDrills = cascadingDrills;
-                updatePayload.masterPlayLibrary = masterPlayLibrary;
-            }
-            if (scope === 'all' || scope === 'guides') {
-                updatePayload.pdfGuidesTree = pdfGuidesTree;
-                updatePayload.pdfGuidesOrder = pdfGuidesOrder;
-                updatePayload.activeGuideMain = activeGuideMain;
-                updatePayload.activeGuideSub = activeGuideSub;
-            }
-            if (scope === 'all' || scope === 'users') {
-                updatePayload.savedCoachesList = savedCoachesList;
-                if (userRole === 'admin' || (currentUser && currentUser.email && currentUser.email.toLowerCase() === "dannym1010@gmail.com")) {
-                    updatePayload.teamCoachesList = teamCoachesList;
-                }
-            }
-            updatePayload.collapsedFolders = collapsedFolders;
-
-            db.collection("teamData").doc("depthChartData").set(updatePayload, { merge: true }).then(() => {
-                setSyncStatus("✅ Live Cloud Synced", "#16a34a");
-            }).catch(err => {
-                console.error("Firestore sync error:", err);
-                setSyncStatus("⚠️ Cloud Error", "#ef4444");
-            });
-        }
-    }
-
-    let saveTimeout = null;
-    function triggerDebouncedSave(scope = 'all') {
-        if (isImporting) return;
-        if (saveTimeout) clearTimeout(saveTimeout);
-        saveTimeout = setTimeout(() => { saveState(scope); }, 300);
-    }
-
-    window.addEventListener("beforeunload", () => {
-        if (saveTimeout) {
-            clearTimeout(saveTimeout);
-            saveState('all');
-        }
-    });
-
-    function forceSyncCloud() {
-        saveState('all');
-        alert("Successfully forced all local formations, drill folders, and data to live cloud database!");
-    }
-
     /* Column Resizing */
     let resizingColIndex = null;
     let startX = 0;
@@ -1360,7 +1352,6 @@
 
         const srcData = weeklyData[srcWeek];
 
-        // Deep copy formations, depth chart, and scrimmage chart
         weeklyData[targetWeek].formations = JSON.parse(JSON.stringify(srcData.formations || []));
         weeklyData[targetWeek].depthChart = JSON.parse(JSON.stringify(srcData.depthChart || {}));
         weeklyData[targetWeek].scrimmageChart = JSON.parse(JSON.stringify(srcData.scrimmageChart || {}));
@@ -3476,7 +3467,7 @@
       ensureWeekDataExists(currentWeek);
       depthChart = getWeekDepthChart(currentWeek);
       const oppInput = document.getElementById("opponent-input");
-      if (oppInput) oppInput.value = weeklyData[currentWeek]?.opponent || "";
+      if (oppInput) oppInput.value = weeklyData[currentWeek].opponent || "";
       renderActiveBoards();
       renderMasterRoster();
     }
@@ -3903,4 +3894,280 @@
                    <th style="padding:8px; border:1px solid var(--card-border);">Coach / User Email</th>
                    <th style="padding:8px; border:1px solid var(--card-border);">Role</th>
                    <th style="padding:8px; border:1px solid var(--card-border); text-align:center;">Status</th>
-                   <th style="padding:8px; border:1px solid var(--card-border); text-align:center;" class="admin-only">ActionI seem to be encountering an error. Can I try something else for you?
+                   <th style="padding:8px; border:1px solid var(--card-border); text-align:center;" class="admin-only">Action</th>
+                 </tr>
+               </thead>
+               <tbody>${rowsHtml}</tbody>
+             </table>
+           </div>
+           <div>
+             <div style="margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+               <strong>Saved Practice Coaches</strong>
+               <button class="toggle-board-btn admin-only" style="background:#10b981; color:#fff; padding:4px 8px; font-size:10px;" onclick="addNewSavedCoachPrompt()">+ Add Name</button>
+             </div>
+             <div style="max-height: 250px; overflow-y:auto; border:1px solid var(--card-border); padding:8px; border-radius:6px; background:#fff;">
+               ${savedCoachesHtml || '<div style="color:var(--text-muted); font-size:11px; text-align:center;">No saved coaches.</div>'}
+             </div>
+           </div>
+         </div>
+       `;
+       container.innerHTML = html;
+    }
+
+    function addNewSavedCoachPrompt() {
+        let name = prompt("Enter coach name (e.g. Coach Smith):");
+        if (name && name.trim() !== "") {
+            let clean = name.trim();
+            if (!savedCoachesList.includes(clean)) {
+                savedCoachesList.push(clean);
+                savedCoachesList.sort();
+                if (saveTimeout) clearTimeout(saveTimeout);
+                saveState('users');
+                renderUsers();
+            }
+        }
+    }
+
+    function deleteSavedCoach(name) {
+        if (confirm(`Remove "${name}" from saved practice coaches?`)) {
+            savedCoachesList = savedCoachesList.filter(c => c !== name);
+            practiceData.forEach(p => {
+                if (Array.isArray(p.plan)) {
+                    p.plan.forEach(row => {
+                        if (row.stations) {
+                            row.stations.forEach(st => {
+                                if (st.coach) {
+                                    let tokens = st.coach.split(',').map(t => t.trim()).filter(Boolean);
+                                    tokens = tokens.filter(t => t !== name && t !== "Coach " + name);
+                                    st.coach = tokens.join(', ');
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+            if (saveTimeout) clearTimeout(saveTimeout);
+            saveState('users');
+            renderPracticePlan();
+            if (activeUnit === 'users') renderUsers();
+        }
+    }
+
+    function updateCoachRole(idx, newRole) {
+        if (teamCoachesList[idx]) {
+            if (teamCoachesList[idx].email.trim().toLowerCase() === "dannym1010@gmail.com") return;
+            teamCoachesList[idx].role = newRole;
+            if (saveTimeout) clearTimeout(saveTimeout);
+            saveState('users');
+            renderUsers();
+        }
+    }
+
+    function toggleCoachApproval(idx) {
+        if (teamCoachesList[idx]) {
+            if (teamCoachesList[idx].email.trim().toLowerCase() === "dannym1010@gmail.com") return;
+            teamCoachesList[idx].status = (teamCoachesList[idx].status === 'Active') ? 'Pending' : 'Active';
+            if (saveTimeout) clearTimeout(saveTimeout);
+            saveState('users');
+            renderUsers();
+        }
+    }
+
+    function addNewCoachPrompt() {
+       let email = prompt("Enter assistant coach email address:");
+       if (email && email.trim() !== "") {
+           let cleanEmail = email.trim().toLowerCase();
+           if (teamCoachesList.some(c => c.email && c.email.trim().toLowerCase() === cleanEmail)) {
+               return alert("Coach already exists.");
+           }
+           teamCoachesList.push({ email: email.trim(), role: "Assistant Coach", status: "Active" });
+           if (saveTimeout) clearTimeout(saveTimeout);
+           saveState('users');
+           renderUsers();
+       }
+    }
+
+    function removeCoachFromStaff(idx) {
+       if (teamCoachesList[idx].email.trim().toLowerCase() === "dannym1010@gmail.com") return alert("Cannot remove master admin.");
+       if (confirm(`Remove coach ${teamCoachesList[idx].email}?`)) {
+           teamCoachesList.splice(idx, 1);
+           if (saveTimeout) clearTimeout(saveTimeout);
+           saveState('users');
+           renderUsers();
+       }
+    }
+
+    function filterRoster() { renderMasterRoster(); }
+    function renderPlayLibrary() {
+      const container = document.getElementById("play-library-list");
+      if (container) container.innerHTML = masterPlayLibrary.map(p => `<li class="full-roster-item"><span>${p}</span></li>`).join('');
+    }
+
+    function exportData() {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({weeklyData, defaultFormations, practiceData, masterPlayLibrary, cascadingDrills, pdfGuidesTree, pdfGuidesOrder, practiceTemplates, teamCoachesList, savedCoachesList}));
+        const dl = document.createElement('a'); dl.setAttribute("href", dataStr); dl.setAttribute("download", `football_backup.json`); dl.click();
+    }
+
+    function importData(e) {
+        const file = e.target.files[0]; if (!file) return;
+        const reader = new FileReader();
+        reader.onload = async function(evt) {
+            try {
+                isImporting = true;
+                const parsed = JSON.parse(evt.target.result);
+                if (parsed.defaultFormations && Array.isArray(parsed.defaultFormations)) defaultFormations = parsed.defaultFormations;
+                if (parsed.weeklyData && typeof parsed.weeklyData === 'object') weeklyData = parsed.weeklyData;
+                if (parsed.practiceData) practiceData = parsed.practiceData;
+                if (parsed.masterPlayLibrary) masterPlayLibrary = parsed.masterPlayLibrary;
+                if (parsed.cascadingDrills) cascadingDrills = parsed.cascadingDrills;
+                if (parsed.pdfGuidesTree) pdfGuidesTree = parsed.pdfGuidesTree;
+                if (parsed.pdfGuidesOrder) pdfGuidesOrder = parsed.pdfGuidesOrder;
+                if (parsed.collapsedFolders) collapsedFolders = parsed.collapsedFolders;
+                if (parsed.savedCoachesList) savedCoachesList = parsed.savedCoachesList;
+                if (parsed.practiceTemplates) practiceTemplates = { ...defaultPracticeTemplates, ...parsed.practiceTemplates };
+                if (parsed.teamCoachesList) teamCoachesList = parsed.teamCoachesList;
+
+                for (let w = 0; w <= 8; w++) ensureWeekDataExists(String(w));
+                saveState('all');
+                if (cloudEnabled && db) {
+                    await db.collection("teamData").doc("depthChartData").set({
+                        weeklyData, defaultFormations, practiceData, masterPlayLibrary, cascadingDrills, pdfGuidesTree, pdfGuidesOrder, collapsedFolders, savedCoachesList, practiceTemplates, teamCoachesList,
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    }, { merge: true });
+                }
+                isImporting = false;
+                alert("Backup imported successfully!");
+                location.reload();
+            } catch (err) { 
+                isImporting = false;
+                alert("Invalid backup file: " + err.message); 
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    function resetDefault() { if (confirm("Wipe all data?")) { localStorage.clear(); location.reload(); } }
+
+    function applyRole(role) {
+       userRole = role;
+       const badge = document.getElementById("user-role-badge");
+       const selectEl = document.getElementById("role-switcher-select");
+       if (selectEl) selectEl.value = role;
+
+       if (role === 'admin') {
+          document.body.classList.remove('view-only');
+          if (badge) { badge.textContent = "ADMIN"; badge.className = "role-badge role-admin"; }
+       } else {
+          document.body.classList.add('view-only');
+          if (badge) { badge.textContent = "ASSISTANT"; badge.className = "role-badge role-viewer"; }
+       }
+
+       if (activeUnit === 'drills') renderDrillsTab();
+       else if (activeUnit === 'scrimmage') renderScrimmageTab();
+       else if (['offense', 'defense', 'st', 'groups'].includes(activeUnit)) renderActiveBoards();
+       renderMasterRoster();
+    }
+
+    function bypassLogin() {
+      cloudEnabled = false;
+      document.getElementById("auth-overlay").style.display = "none";
+      document.getElementById("approval-pending-overlay").classList.add("hidden");
+      applyRole('admin');
+      document.getElementById("user-display-email").textContent = "Local Admin (Offline)";
+      setSyncStatus("Local Storage Mode (Offline)", "#16a34a");
+      initializeApp();
+    }
+
+    function switchAuthTab(mode) {
+      isSignUpMode = (mode === 'register');
+      document.getElementById("tab-login").classList.toggle('active', !isSignUpMode);
+      document.getElementById("tab-register").classList.toggle('active', isSignUpMode);
+      document.getElementById("auth-submit-btn").textContent = isSignUpMode ? "Create Account" : "Sign In";
+    }
+
+    async function handleEmailAuth(e) {
+      if (e) { e.preventDefault(); e.stopPropagation(); }
+      if (!auth) { bypassLogin(); return false; }
+      const email = document.getElementById("auth-email").value.trim();
+      const pass = document.getElementById("auth-password").value;
+      try {
+        if (isSignUpMode) await auth.createUserWithEmailAndPassword(email, pass);
+        else await auth.signInWithEmailAndPassword(email, pass);
+      } catch (err) { alert(err.message); }
+      return false;
+    }
+
+    async function signInWithGoogle() {
+      if (!auth) { bypassLogin(); return; }
+      try {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        await auth.signInWithPopup(provider);
+      } catch (err) { alert(err.message); }
+    }
+
+    function signOutUser() { if (auth) auth.signOut().then(() => location.reload()); else location.reload(); }
+
+    if (auth) {
+      auth.onAuthStateChanged(async (user) => {
+        if (user) {
+          currentUser = user;
+          cloudEnabled = true;
+          document.getElementById("user-display-email").textContent = user.email || "Coach";
+
+          listenToLiveUpdates();
+
+          let isApproved = checkUserApprovalStatus(user.email);
+          if (!isApproved) {
+              document.getElementById("auth-overlay").style.display = "none";
+              document.getElementById("approval-pending-overlay").classList.remove("hidden");
+              document.getElementById("pending-user-email-display").textContent = user.email;
+              setSyncStatus("Approval Pending", "#d97706");
+              return;
+          } else {
+              document.getElementById("auth-overlay").style.display = "none";
+              document.getElementById("approval-pending-overlay").classList.add("hidden");
+              setSyncStatus("Live Cloud Sync Active", "#16a34a");
+          }
+
+          let coachEntry = teamCoachesList.find(c => c.email && c.email.trim().toLowerCase() === user.email.trim().toLowerCase());
+          let isHeadAdmin = (user.email.trim().toLowerCase() === "dannym1010@gmail.com" || (coachEntry && coachEntry.role && coachEntry.role.includes("Admin")));
+          applyRole(isHeadAdmin ? 'admin' : 'assistant');
+          initializeApp();
+        }
+      });
+    }
+
+    function initializeApp() {
+        for (let w = 0; w <= 8; w++) ensureWeekDataExists(String(w));
+        if (practiceData.length === 0) {
+            let defaultCat = cascadingDrills.length > 0 ? cascadingDrills[0].name : "General";
+            practiceData = [{
+                id: "prac_1", year: "2026", weekFolder: "Week 1", title: "Practice #1", 
+                date: new Date().toISOString().split('T')[0], day: "Wednesday", startTime: "17:05", endTime: "20:00", lastEdited: Date.now(),
+                plan: [{ time: 25, category: defaultCat, format: "static", stations: [{ name: "Warm-Up", desc: "Dynamic stretch", coach: "Coach Danny", focus: "Stance & Agility" }] }]
+            }];
+        }
+        
+        let sortedPracs = [...practiceData].sort((a, b) => (b.lastEdited || 0) - (a.lastEdited || 0));
+        currentPracticeId = sortedPracs[0].id;
+        depthChart = getWeekDepthChart(currentWeek);
+        
+        const weekSelect = document.getElementById("week-select");
+        if (weekSelect) weekSelect.value = currentWeek;
+
+        const oppInput = document.getElementById("opponent-input");
+        if (oppInput) oppInput.value = weeklyData[currentWeek]?.opponent || "";
+
+        const fontSelect = document.getElementById("print-font-size-select");
+        if (fontSelect) fontSelect.value = printFontSize;
+        document.documentElement.style.setProperty('--print-font-size', printFontSize + 'px');
+
+        switchUnitTab(activeUnit);
+    }
+
+    if (!auth) {
+        bypassLogin();
+    }
+  </script>
+</body>
+</html>
