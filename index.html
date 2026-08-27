@@ -351,7 +351,7 @@
   <!-- Toolbar -->
   <div class="toolbar">
     <div style="display:flex; align-items:center; gap:10px;">
-      <div class="sync-status"><div class="sync-dot"></div><span id="sync-text">Local Storage Mode</span></div>
+      <div class="sync-status"><div class="sync-dot" id="sync-dot-el"></div><span id="sync-text">Local Storage Mode</span></div>
       <div class="user-profile-bar">
         <span id="user-display-email" style="font-weight:bold; color:var(--primary);">Head Coach</span>
         <select id="role-switcher-select" class="prac-select" style="width: 140px; font-size: 11px; font-weight: bold;" onchange="applyRole(this.value)">
@@ -766,6 +766,13 @@
     }
     initFirebase();
 
+    function setSyncStatus(text, color = "#16a34a") {
+        const textEl = document.getElementById("sync-text");
+        const dotEl = document.getElementById("sync-dot-el");
+        if (textEl) textEl.textContent = text;
+        if (dotEl) dotEl.style.backgroundColor = color;
+    }
+
     function safeJSONParse(key, fallback) {
       try { const val = localStorage.getItem(key); if (val) return JSON.parse(val); } catch (e) {}
       return fallback;
@@ -777,6 +784,68 @@
         printFontSize = size;
         document.documentElement.style.setProperty('--print-font-size', size + 'px');
         localStorage.setItem("footballPrintFontSize", JSON.stringify(size));
+    }
+
+    // Force sync without merge so deletions and new formations persist to Firestore
+    function forceSyncCloud() {
+        if (!cloudEnabled || !db) {
+            alert("Cloud sync is not active (running offline mode).");
+            return;
+        }
+        setSyncStatus("☁️ Syncing...", "#d97706");
+        db.collection("teamData").doc("depthChartData").set({
+            weeklyData, practiceData, masterPlayLibrary, cascadingDrills, pdfGuidesTree, pdfGuidesOrder, activeGuideMain, activeGuideSub, collapsedFolders, savedCoachesList, practiceTemplates, teamCoachesList,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }).then(() => {
+            setSyncStatus("✅ Live Cloud Synced", "#16a34a");
+            alert("Successfully forced all local formations, drill folders, and data to live cloud database!");
+        }).catch(err => {
+            setSyncStatus("⚠️ Cloud Error", "#ef4444");
+            alert("Cloud sync error: " + err.message);
+        });
+    }
+
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+          alert("Error attempting to enable full-screen mode: " + err.message);
+        });
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+    }
+
+    function openGuideFullScreen() {
+      const modal = document.getElementById("pdf-fullscreen-modal");
+      const container = document.getElementById("pdf-fullscreen-content");
+      
+      let guideVal = "";
+      if (pdfGuidesTree[activeGuideMain] && pdfGuidesTree[activeGuideMain][activeGuideSub]) {
+          guideVal = pdfGuidesTree[activeGuideMain][activeGuideSub];
+      }
+      if (!guideVal) { alert("No document selected."); return; }
+
+      container.innerHTML = `<iframe src="${guideVal}" style="width:100%; height:100%; border:none;" title="Playbook Guide Full Screen"></iframe>`;
+      modal.classList.remove("hidden");
+    }
+
+    function closeGuideFullScreen() {
+      const modal = document.getElementById("pdf-fullscreen-modal");
+      const container = document.getElementById("pdf-fullscreen-content");
+      container.innerHTML = "";
+      modal.classList.add("hidden");
+    }
+
+    function closeAllDropdowns(event) {
+      const dropdown = document.getElementById("practice-tree-dropdown");
+      if (dropdown && event.target.id !== "selected-practice-display" && !dropdown.contains(event.target)) {
+        dropdown.classList.add("hidden");
+      }
+      if (!event.target.closest('.coach-popup-container') && !event.target.closest('.coach-popup-box')) {
+        document.querySelectorAll('.coach-popup-box').forEach(box => box.classList.add('hidden'));
+      }
     }
 
     let draggedData = null;
@@ -820,7 +889,6 @@
     let savedGuidesTree = safeJSONParse("footballPdfGuidesTree", null);
     let pdfGuidesTree = (savedGuidesTree && typeof savedGuidesTree === 'object') ? savedGuidesTree : defaultPdfGuidesTree;
 
-    // Explicit order tracking arrays to preserve tab ordering independently of Firestore's Map serialization
     let defaultPdfGuidesOrder = {
       main: ["Offense", "Defense", "Specials"],
       sub: {
@@ -963,17 +1031,17 @@
     let cascadingDrills = safeJSONParse("footballCascadingDrills", defaultCascadingDrills);
     let depthChart = null, currentPracticeId = null;
 
-    // Intelligent formation merger that keeps user-created formations like '32' intact
+    // Intelligent formation merger that prevents new formations from being erased by incoming cloud updates
     function mergeWeeklyData(cloudWeekly) {
         if (!cloudWeekly || typeof cloudWeekly !== 'object') return weeklyData;
         Object.keys(cloudWeekly).forEach(wk => {
             if (!weeklyData[wk]) {
                 weeklyData[wk] = cloudWeekly[wk];
             } else {
-                // Merge formations by ID so local additions are never deleted by incoming cloud sync
                 let cloudForms = cloudWeekly[wk].formations || [];
                 let localForms = weeklyData[wk].formations || [];
                 let formMap = {};
+                // Preserve all unique formations from both cloud and local state
                 cloudForms.forEach(f => { if(f && f.id) formMap[f.id] = f; });
                 localForms.forEach(f => { if(f && f.id) formMap[f.id] = f; });
                 weeklyData[wk].formations = Object.values(formMap);
@@ -1021,12 +1089,17 @@
         localStorage.setItem("footballPracticeTemplates", JSON.stringify(practiceTemplates));
         localStorage.setItem("footballTeamCoaches", JSON.stringify(teamCoachesList));
 
-        // Overwrite Firestore document cleanly so tab deletions and template changes persist
         if (cloudEnabled && db) {
+            setSyncStatus("☁️ Saving...", "#d97706");
             db.collection("teamData").doc("depthChartData").set({
                 weeklyData, practiceData, masterPlayLibrary, cascadingDrills, pdfGuidesTree, pdfGuidesOrder, activeGuideMain, activeGuideSub, collapsedFolders, savedCoachesList, practiceTemplates, teamCoachesList,
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            }).catch(err => console.error("Firestore sync error:", err));
+            }).then(() => {
+                setSyncStatus("✅ Live Cloud Synced", "#16a34a");
+            }).catch(err => {
+                console.error("Firestore sync error:", err);
+                setSyncStatus("⚠️ Cloud Error", "#ef4444");
+            });
         }
     }
 
@@ -1106,13 +1179,39 @@
         el.style.height = (el.scrollHeight + 8) + 'px';
     }
 
+    // Collect all unique formations across all weeks to prevent custom formations from being lost
+    function getMasterFormationsList() {
+        let masterMap = {};
+        defaultFormations.forEach(f => { masterMap[f.name.toLowerCase()] = JSON.parse(JSON.stringify(f)); });
+        Object.keys(weeklyData).forEach(w => {
+            if (weeklyData[w] && Array.isArray(weeklyData[w].formations)) {
+                weeklyData[w].formations.forEach(f => {
+                    if (f && f.name) masterMap[f.name.toLowerCase()] = JSON.parse(JSON.stringify(f));
+                });
+            }
+        });
+        return Object.values(masterMap);
+    }
+
     function ensureWeekDataExists(week) {
       if (!weeklyData[week] || typeof weeklyData[week] !== 'object') {
         weeklyData[week] = {};
       }
+      
+      let masterFormations = getMasterFormationsList();
       if (!weeklyData[week].formations || !Array.isArray(weeklyData[week].formations) || weeklyData[week].formations.length === 0) {
-        weeklyData[week].formations = JSON.parse(JSON.stringify(defaultFormations));
+        weeklyData[week].formations = JSON.parse(JSON.stringify(masterFormations));
+      } else {
+        // Ensure any custom formations added to other weeks exist in this week too
+        masterFormations.forEach(mf => {
+          if (!weeklyData[week].formations.some(f => f.name.toLowerCase() === mf.name.toLowerCase())) {
+            let cloned = JSON.parse(JSON.stringify(mf));
+            cloned.id = cloned.id + "_" + week;
+            weeklyData[week].formations.push(cloned);
+          }
+        });
       }
+
       if (!weeklyData[week].depthChart || typeof weeklyData[week].depthChart !== 'object' || Array.isArray(weeklyData[week].depthChart)) {
         weeklyData[week].depthChart = {};
       }
@@ -2199,7 +2298,6 @@
         if (!cloudEnabled || !db) return;
         db.collection("teamData").doc("depthChartData").onSnapshot((doc) => {
             if (isImporting || !doc.exists) return;
-            // Shield local state from immediate echo writes
             if (doc.metadata && doc.metadata.hasPendingWrites) return;
 
             const data = doc.data();
@@ -2431,25 +2529,31 @@
       }
     }
 
-    function copyFormationToAllWeeks(formId) {
-      if (userRole !== 'admin') return;
-      const forms = getWeekFormations(currentWeek);
-      const form = forms.find(f => f.id === formId);
-      if (!form) return;
+    // Automatically propagates newly added formations to all game weeks
+    function createFormationPrompt(unit) {
+      let name = prompt(`Enter ${unit.toUpperCase()} formation name (e.g. 32, I-Form):`);
+      if (name && name.trim()) {
+        let cleanName = name.trim();
+        let newBaseId = "form_" + Date.now();
 
-      if (confirm(`Copy formation "${form.name}" to all weeks (Week 0 through Week 8)?`)) {
-          for (let w = 0; w <= 8; w++) {
-              let wkKey = String(w);
-              ensureWeekDataExists(wkKey);
-              let wkForms = weeklyData[wkKey].formations;
-              if (!wkForms.some(f => f.name.toLowerCase() === form.name.toLowerCase())) {
-                  let clonedForm = JSON.parse(JSON.stringify(form));
-                  clonedForm.id = "form_" + Date.now() + "_" + w;
-                  wkForms.push(clonedForm);
-              }
-          }
-          saveState();
-          alert(`Formation "${form.name}" copied across all weeks successfully!`);
+        // Create the formation in all 9 game weeks (0 - 8) so it never gets lost
+        for (let w = 0; w <= 8; w++) {
+            let wkKey = String(w);
+            ensureWeekDataExists(wkKey);
+            let wkForms = weeklyData[wkKey].formations;
+            if (!wkForms.some(f => f.name.toLowerCase() === cleanName.toLowerCase())) {
+                wkForms.push({
+                    id: newBaseId + (w === 0 ? "" : "_" + w),
+                    unit: unit,
+                    name: cleanName,
+                    rows: [{ id: "row_" + Date.now() + "_" + w, label: "Main Level", slotCount: 7, positions: [null, null, null, null, null, null, null] }]
+                });
+            }
+        }
+        
+        saveState(); 
+        renderActiveBoards();
+        selectFormationForRoster(newBaseId);
       }
     }
 
@@ -2544,7 +2648,6 @@
              <span>${form.name}</span>
              <div class="admin-only" style="display:flex; gap:4px; align-items:center; flex-wrap:wrap;">
                 <button class="toggle-board-btn" onclick="addFormationRow('${form.id}')">+ Add Row</button>
-                <button class="toggle-board-btn" onclick="copyFormationToAllWeeks('${form.id}')" title="Copy this formation to all game weeks">📅 To All Weeks</button>
                 <button class="toggle-board-btn" onclick="renameFormation('${form.id}')" title="Rename formation">✏️</button>
                 <button class="remove-btn" onclick="deleteFormation('${form.id}')" title="Delete formation" style="font-size:14px; padding:2px 4px;">&times;</button>
              </div>
@@ -3092,11 +3195,9 @@
       const contentArea = document.getElementById('guide-content-area');
       if (!mainContainer || !subContainer || !contentArea) return;
       
-      // Ensure sync between tree and deterministic order array
       if (!pdfGuidesOrder.main || pdfGuidesOrder.main.length === 0) {
           pdfGuidesOrder.main = Object.keys(pdfGuidesTree);
       }
-      // Add any missing keys to order array
       Object.keys(pdfGuidesTree).forEach(k => {
           if (!pdfGuidesOrder.main.includes(k)) pdfGuidesOrder.main.push(k);
       });
@@ -3435,18 +3536,6 @@
       if (container) container.innerHTML = masterPlayLibrary.map(p => `<li class="full-roster-item"><span>${p}</span></li>`).join('');
     }
 
-    function createFormationPrompt(unit) {
-      let name = prompt(`Enter ${unit.toUpperCase()} formation name (e.g. 32, I-Form):`);
-      if (name && name.trim()) {
-        const forms = getWeekFormations(currentWeek);
-        const newId = "form_" + Date.now();
-        forms.push({ id: newId, unit, name: name.trim(), rows: [{ id: "row_" + Date.now(), label: "Main Level", slotCount: 7, positions: [null, null, null, null, null, null, null] }] });
-        saveState(); 
-        renderActiveBoards();
-        selectFormationForRoster(newId);
-      }
-    }
-
     function exportData() {
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({weeklyData, practiceData, masterPlayLibrary, cascadingDrills, pdfGuidesTree, pdfGuidesOrder, practiceTemplates, teamCoachesList, savedCoachesList}));
         const dl = document.createElement('a'); dl.setAttribute("href", dataStr); dl.setAttribute("download", `football_backup.json`); dl.click();
@@ -3549,7 +3638,7 @@
         if (user) {
           currentUser = user;
           document.getElementById("user-display-email").textContent = user.email || "Coach";
-          document.getElementById("sync-text").textContent = "Live Cloud Sync Active";
+          setSyncStatus("Live Cloud Sync Active", "#16a34a");
 
           let isApproved = checkUserApprovalStatus(user.email);
           if (!isApproved) {
