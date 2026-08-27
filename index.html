@@ -83,7 +83,7 @@
     .toolbar button:not(.btn-primary) { padding: 6px 12px; border: 1px solid var(--card-border); border-radius: 6px; font-size: 11px; font-weight: bold; background: #fff; color: var(--primary); cursor: pointer; }
     
     .week-bar { max-width: 1400px; margin: 0 auto 12px auto; background: #ffffff; border: 1px solid var(--card-border); padding: 8px 12px; border-radius: 8px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; }
-    .week-controls { display: flex; align-items: center; gap: 8px; }
+    .week-controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
     .week-select { padding: 5px 8px; border-radius: 6px; border: 1px solid var(--card-border); font-size: 12px; font-weight: bold; color: var(--primary); }
     .opponent-input { padding: 5px 10px; border-radius: 6px; border: 1px solid var(--card-border); font-size: 12px; width: 200px; }
 
@@ -176,7 +176,7 @@
     .custom-modal {
       position: fixed; inset: 0; background: rgba(15,23,42,0.7); display: flex; align-items: center; justify-content: center; z-index: 20000;
     }
-    .custom-modal-card, .print-modal-card { background: #fff; padding: 20px; border-radius: 8px; width: 380px; max-width: 90%; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+    .custom-modal-card, .print-modal-card { background: #fff; padding: 20px; border-radius: 8px; width: 440px; max-width: 92%; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
     .custom-modal-card h3, .print-modal-card h3 { margin-top: 0; color: var(--primary); font-size: 16px; margin-bottom: 15px;}
 
     /* FULLSCREEN PDF MODAL OVERLAY (Tablet & iPad Touch Friendly) */
@@ -185,10 +185,7 @@
     }
     #pdf-fullscreen-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; color: #fff; flex-shrink: 0; }
     #pdf-fullscreen-content {
-      flex: 1; width: 100%; height: 100%; background: #ffffff; border-radius: 8px; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; position: relative;
-    }
-    #pdf-fullscreen-content iframe, #guide-content-area iframe {
-      width: 100%; height: 100%; min-height: 80vh; border: none; display: block;
+      flex: 1; width: 100%; height: 100%; background: #525659; border-radius: 8px; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; padding: 10px; box-sizing: border-box; text-align: center;
     }
 
     /* PLAYBOOK HORIZONTAL SCROLLING PILL BARS */
@@ -208,6 +205,14 @@
     }
     .guide-sub-pill.active {
       background: var(--accent); color: #ffffff; border-color: var(--accent); box-shadow: 0 2px 4px rgba(37,99,235,0.2);
+    }
+
+    /* Canvas Container for Multi-page Touch PDF */
+    .pdf-canvas-container {
+      width: 100%; background: #525659; border-radius: 6px; padding: 12px 0; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; display: flex; flex-direction: column; align-items: center; gap: 14px; min-height: 520px; box-sizing: border-box;
+    }
+    .pdf-canvas-container canvas {
+      max-width: 98%; height: auto !important; box-shadow: 0 4px 10px rgba(0,0,0,0.3); border-radius: 4px; background: #ffffff;
     }
 
     /* Wristband Builder */
@@ -285,7 +290,7 @@
     @media print {
       @page { size: letter portrait; margin: 0.3in; }
       body { background-color: #ffffff !important; color: #000000 !important; padding: 0; margin: 0; font-size: var(--print-font-size, 10px) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; width: 100% !important; overflow: visible !important; }
-      .toolbar, #sidebar-container, .remove-btn, .action-group, p.subtitle, .search-box, .tab-navigation, .toggle-board-btn, .week-bar, .board-controls, .add-row-btn, .add-form-btn, .row-actions, .practice-dashboard-info, #print-modal, #new-prac-modal, #scrimmage-print-modal, #scrimmage-filter-modal, #templates-modal, #guide-manager-modal, #approval-pending-overlay, .col-resizer, .coach-popup-box, .coach-popup-container > div:last-child, th.no-print, td.no-print, th.admin-only, td.admin-only { display: none !important; }
+      .toolbar, #sidebar-container, .remove-btn, .action-group, p.subtitle, .search-box, .tab-navigation, .toggle-board-btn, .week-bar, .board-controls, .add-row-btn, .add-form-btn, .row-actions, .practice-dashboard-info, #print-modal, #new-prac-modal, #scrimmage-print-modal, #scrimmage-filter-modal, #templates-modal, #guide-manager-modal, #week-manager-modal, #approval-pending-overlay, .col-resizer, .coach-popup-box, .coach-popup-container > div:last-child, th.no-print, td.no-print, th.admin-only, td.admin-only { display: none !important; }
       
       .no-print-text { display: none !important; }
       .app-layout, .boards-container, .unit-panel { display: block !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
@@ -398,9 +403,9 @@
   <!-- Week Schedule Control Bar -->
   <div class="week-bar" id="main-week-bar">
     <div class="week-controls">
-      <span class="week-label">Game Week:</span>
+      <span class="week-label" style="font-weight:bold; color:var(--primary);">Game Week:</span>
       <select id="week-select" class="week-select" onchange="changeWeek(this.value)">
-        <option value="0">Week 0</option><option value="1">Week 1</option>
+        <option value="0">Week 0 (Scrimmage)</option><option value="1">Week 1</option>
         <option value="2">Week 2</option><option value="3">Week 3</option>
         <option value="4">Week 4</option><option value="5">Week 5</option>
         <option value="6">Week 6</option><option value="7">Week 7</option>
@@ -408,8 +413,12 @@
       </select>
     </div>
     <div class="week-controls">
-      <span class="week-label">Opponent / Label:</span>
-      <input type="text" id="opponent-input" class="opponent-input" placeholder="e.g., vs. Patriots / Preseason" oninput="updateOpponentLabel(this.value)" />
+      <span class="week-label" style="font-weight:bold;">Opponent:</span>
+      <input type="text" id="opponent-input" class="opponent-input" placeholder="e.g., vs. Somers / Scrimmage" oninput="updateOpponentLabel(this.value)" />
+    </div>
+    <div class="week-controls admin-only">
+      <button type="button" class="toggle-board-btn" style="background:#e0f2fe; color:#0369a1;" onclick="copyFromPreviousWeekPrompt()" title="Copy all formations and player position assignments from the previous week">📋 Copy from Prev Week</button>
+      <button type="button" class="toggle-board-btn" onclick="openWeekManagerModal()" title="Manage full season game schedule and copy rosters between any weeks">📅 Game Schedule</button>
     </div>
   </div>
 
@@ -741,7 +750,41 @@
     </div>
   </div>
 
-  <!-- GUIDE TAB ORGANIZER MODAL (Clean, Dedicated Management) -->
+  <!-- GAME SCHEDULE & WEEK MANAGER MODAL -->
+  <div id="week-manager-modal" class="custom-modal hidden">
+    <div class="custom-modal-card" style="width: 480px;">
+       <h3>📅 Season Schedule & Week Cloning</h3>
+       <p style="font-size:11px; color:var(--text-muted); margin-bottom:12px;">Copy formations and roster assignments from one week to another, or edit opponents:</p>
+       
+       <div style="background:#eff6ff; border:1px solid #bfdbfe; padding:10px; border-radius:6px; margin-bottom:15px;">
+          <div style="font-size:11.5px; font-weight:bold; color:var(--primary); margin-bottom:6px;">⚡ Quick Clone Week Roster:</div>
+          <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+             <span>Copy from:</span>
+             <select id="modal-copy-src-week" class="prac-select" style="width:100px; font-size:11px;">
+                <option value="0">Week 0</option><option value="1">Week 1</option><option value="2">Week 2</option>
+                <option value="3">Week 3</option><option value="4">Week 4</option><option value="5">Week 5</option>
+                <option value="6">Week 6</option><option value="7">Week 7</option><option value="8">Week 8</option>
+             </select>
+             <span>into:</span>
+             <select id="modal-copy-dest-week" class="prac-select" style="width:100px; font-size:11px;">
+                <option value="1">Week 1</option><option value="2">Week 2</option><option value="3">Week 3</option>
+                <option value="4">Week 4</option><option value="5">Week 5</option><option value="6">Week 6</option>
+                <option value="7">Week 7</option><option value="8">Week 8</option><option value="0">Week 0</option>
+             </select>
+             <button class="add-row-btn" style="margin:0; padding:5px 10px;" onclick="executeWeekCloneModal()">Clone Week</button>
+          </div>
+       </div>
+
+       <div style="font-size:11.5px; font-weight:bold; color:var(--primary); margin-bottom:6px;">Game Opponents List:</div>
+       <div id="week-manager-schedule-list" style="max-height: 220px; overflow-y: auto; display:flex; flex-direction:column; gap:6px; margin-bottom:15px; border:1px solid #e2e8f0; padding:6px; border-radius:6px;"></div>
+
+       <div style="display: flex; gap: 8px; justify-content: flex-end;">
+          <button class="toggle-board-btn" onclick="document.getElementById('week-manager-modal').classList.add('hidden')">Close</button>
+       </div>
+    </div>
+  </div>
+
+  <!-- GUIDE TAB ORGANIZER MODAL -->
   <div id="guide-manager-modal" class="custom-modal hidden">
     <div class="custom-modal-card" style="width: 460px;">
        <h3>⚙️ Organize Playbook Folders & Tabs</h3>
@@ -797,11 +840,11 @@
     </div>
   </div>
 
-  <!-- FULLSCREEN PDF MODAL OVERLAY -->
+  <!-- FULLSCREEN PDF MODAL OVERLAY (Tablet & iPad Touch Canvas Viewer) -->
   <div id="pdf-fullscreen-modal" class="hidden">
     <div id="pdf-fullscreen-header">
-      <span id="pdf-fullscreen-title" style="font-weight:bold; font-size:14px;">Playbook Document Full Screen</span>
-      <button class="toggle-board-btn" style="background:#ef4444; color:#fff;" onclick="closeGuideFullScreen()">✕ Close Full Screen</button>
+      <span id="pdf-fullscreen-title" style="font-weight:bold; font-size:14px;">Playbook Document Viewer</span>
+      <button class="toggle-board-btn" style="background:#ef4444; color:#fff;" onclick="closeGuideFullScreen()">✕ Close</button>
     </div>
     <div id="pdf-fullscreen-content"></div>
   </div>
@@ -848,7 +891,13 @@
     }
 
     function safeJSONParse(key, fallback) {
-      try { const val = localStorage.getItem(key); if (val) return JSON.parse(val); } catch (e) {}
+      try {
+        const val = localStorage.getItem(key);
+        if (val) {
+          const parsed = JSON.parse(val);
+          if (parsed !== null && parsed !== undefined) return parsed;
+        }
+      } catch (e) {}
       return fallback;
     }
 
@@ -860,81 +909,93 @@
         localStorage.setItem("footballPrintFontSize", JSON.stringify(size));
     }
 
-    function forceSyncCloud() {
-        if (!cloudEnabled || !db) {
-            alert("Cloud sync is not active (running offline mode).");
-            return;
-        }
-        setSyncStatus("☁️ Syncing...", "#d97706");
-        db.collection("teamData").doc("depthChartData").set({
-            weeklyData, practiceData, masterPlayLibrary, cascadingDrills, pdfGuidesTree, pdfGuidesOrder, activeGuideMain, activeGuideSub, collapsedFolders, savedCoachesList, practiceTemplates, teamCoachesList,
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        }).then(() => {
-            setSyncStatus("✅ Live Cloud Synced", "#16a34a");
-            alert("Successfully forced all local formations, drill folders, and data to live cloud database!");
-        }).catch(err => {
-            setSyncStatus("⚠️ Cloud Error", "#ef4444");
-            alert("Cloud sync error: " + err.message);
-        });
-    }
-
-    function toggleFullScreen() {
-      if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(err => {
-          alert("Error attempting to enable full-screen mode: " + err.message);
-        });
-      } else {
-        if (document.exitFullscreen) {
-          document.exitFullscreen();
-        }
+    /* BUILT-IN INITIAL DEFAULTS INCLUDING 11, 22, AND 32 OFFENSIVE FORMATIONS */
+    const initialDefaultFormations = [
+      {
+        id: "form_11", unit: "offense", name: "11 Offense", collapsed: false,
+        rows: [
+          { id: "row_11_ol", label: "Offensive Line & TE (Y1)", slotCount: 7, positions: [
+            { id: "11-LT", name: "LT" }, { id: "11-LG", name: "LG" }, { id: "11-C", name: "C" }, { id: "11-RG", name: "RG" }, { id: "11-RT", name: "RT" }, { id: "11-Y1", name: "Y1" }, null
+          ]},
+          { id: "row_11_wr", label: "Wide Receivers (X, W, Z)", slotCount: 7, positions: [
+            { id: "11-X", name: "X" }, null, null, null, { id: "11-W", name: "W" }, null, { id: "11-Z", name: "Z" }
+          ]},
+          { id: "row_11_bk", label: "Backfield (1 - 4)", slotCount: 7, positions: [
+            null, null, { id: "11-1", name: "1 (QB)" }, null, { id: "11-4", name: "4 (RB)" }, null, null
+          ]}
+        ]
+      },
+      {
+        id: "form_22", unit: "offense", name: "22 Offense", collapsed: false,
+        rows: [
+          { id: "row_22_ol", label: "Offensive Line & TEs (Y1, Y2)", slotCount: 7, positions: [
+            { id: "22-LT", name: "LT" }, { id: "22-LG", name: "LG" }, { id: "22-C", name: "C" }, { id: "22-RG", name: "RG" }, { id: "22-RT", name: "RT" }, { id: "22-Y1", name: "Y1" }, { id: "22-Y2", name: "Y2" }
+          ]},
+          { id: "row_22_wr", label: "Wide Receivers (X, Z)", slotCount: 7, positions: [
+            { id: "22-X", name: "X" }, null, null, null, null, null, { id: "22-Z", name: "Z" }
+          ]},
+          { id: "row_22_bk", label: "Backfield (1, 2, 4)", slotCount: 7, positions: [
+            null, null, { id: "22-1", name: "1 (QB)" }, { id: "22-2", name: "2 (FB)" }, { id: "22-4", name: "4 (RB)" }, null, null
+          ]}
+        ]
+      },
+      {
+        id: "form_32", unit: "offense", name: "32 Offense", collapsed: false,
+        rows: [
+          { id: "row_32_ol", label: "Offensive Line & TEs (Y1, Y2)", slotCount: 7, positions: [
+            { id: "32-LT", name: "LT" }, { id: "32-LG", name: "LG" }, { id: "32-C", name: "C" }, { id: "32-RG", name: "RG" }, { id: "32-RT", name: "RT" }, { id: "32-Y1", name: "Y1" }, { id: "32-Y2", name: "Y2" }
+          ]},
+          { id: "row_32_wr", label: "Wide Receivers / Wings", slotCount: 7, positions: [
+            { id: "32-X", name: "X" }, null, null, null, null, null, { id: "32-Z", name: "Z" }
+          ]},
+          { id: "row_32_bk", label: "Backfield (1, 2, 3, 4)", slotCount: 7, positions: [
+            null, { id: "32-2", name: "2 (FB)" }, { id: "32-1", name: "1 (QB)" }, { id: "32-3", name: "3 (WB)" }, { id: "32-4", name: "4 (RB)" }, null, null
+          ]}
+        ]
+      },
+      {
+        id: "form_44_base", unit: "defense", name: "4-4 Base Defense", collapsed: false,
+        rows: [
+          { id: "row_44_dl", label: "Defensive Line (E9, T3, T1, E5)", slotCount: 7, positions: [
+            { id: "def-e9", name: "E9" }, { id: "def-t3", name: "T3" }, { id: "def-t1", name: "T1" }, { id: "def-e5", name: "E5" }, null, null, null
+          ]},
+          { id: "row_44_lb", label: "Linebackers (M, W, S, R)", slotCount: 7, positions: [
+            { id: "def-m", name: "M" }, { id: "def-w", name: "W" }, { id: "def-s", name: "S" }, { id: "def-r", name: "R" }, null, null, null
+          ]},
+          { id: "row_44_sec", label: "Secondary (CB, FS)", slotCount: 7, positions: [
+            { id: "def-lcb", name: "LCB" }, { id: "def-fs", name: "FS" }, { id: "def-rcb", name: "RCB" }, null, null, null, null
+          ]}
+        ]
+      },
+      {
+        id: "form_st_base", unit: "st", name: "Kickoff Return / Coverage", collapsed: false,
+        rows: [
+          { id: "row_st_unit", label: "Special Teams Positions", slotCount: 10, positions: [
+            { id: "st-k", name: "K" }, { id: "st-p", name: "P" }, { id: "st-ls", name: "LS" }, { id: "st-h", name: "H" }, { id: "st-ret", name: "RET" }, null, null, null, null, null
+          ]}
+        ]
+      },
+      {
+        id: "form_groups_base", unit: "groups", name: "Depth Chart Groups", collapsed: false,
+        rows: [
+          { id: "row_group_qb", label: "Quarterbacks", slotCount: 5, positions: [
+            { id: "grp-qb1", name: "QB1" }, { id: "grp-qb2", name: "QB2" }, null, null, null
+          ]}
+        ]
       }
-    }
+    ];
 
-    function openGuideFullScreen() {
-      const modal = document.getElementById("pdf-fullscreen-modal");
-      const container = document.getElementById("pdf-fullscreen-content");
-      
-      let guideVal = "";
-      if (pdfGuidesTree[activeGuideMain] && pdfGuidesTree[activeGuideMain][activeGuideSub]) {
-          guideVal = pdfGuidesTree[activeGuideMain][activeGuideSub];
+    let savedDefaults = safeJSONParse("footballMasterDefaultFormations", null);
+    let defaultFormations = (savedDefaults && Array.isArray(savedDefaults) && savedDefaults.length > 0) ? savedDefaults : initialDefaultFormations;
+
+    // Ensure 22 and 32 are in defaultFormations even if older cache exists
+    initialDefaultFormations.forEach(initF => {
+      if (!defaultFormations.some(df => df.name.toLowerCase() === initF.name.toLowerCase())) {
+        defaultFormations.push(JSON.parse(JSON.stringify(initF)));
       }
-      if (!guideVal) { alert("No document uploaded for this playbook section."); return; }
+    });
 
-      container.innerHTML = `<iframe src="${guideVal}" style="width:100%; height:100%; border:none;" title="Playbook Guide Full Screen"></iframe>`;
-      modal.classList.remove("hidden");
-    }
-
-    function closeGuideFullScreen() {
-      const modal = document.getElementById("pdf-fullscreen-modal");
-      const container = document.getElementById("pdf-fullscreen-content");
-      container.innerHTML = "";
-      modal.classList.add("hidden");
-    }
-
-    function closeAllDropdowns(event) {
-      const dropdown = document.getElementById("practice-tree-dropdown");
-      if (dropdown && event.target.id !== "selected-practice-display" && !dropdown.contains(event.target)) {
-        dropdown.classList.add("hidden");
-      }
-      if (!event.target.closest('.coach-popup-container') && !event.target.closest('.coach-popup-box')) {
-        document.querySelectorAll('.coach-popup-box').forEach(box => box.classList.add('hidden'));
-      }
-    }
-
-    let draggedData = null;
-    let draggedDrillData = null;
-    let draggedPositionData = null;
-    let activeUnit = "offense", currentWeek = "0";
-    let selectedFormationFilterId = null;
-    let currentUser = null, userRole = 'admin', isSignUpMode = false;
-    let scrimmageFilters = safeJSONParse("footballScrimmageFilters", null);
-    let collapsedFolders = safeJSONParse("footballCollapsedFolders", {});
-    let savedCoachesList = safeJSONParse("footballSavedCoaches", ["Coach Danny", "Coach Mike", "Coach John", "Coach Dave"]);
-    let teamCoachesList = safeJSONParse("footballTeamCoaches", [
-      { email: "Dannym1010@gmail.com", role: "Head Coach (Admin)", status: "Active" }
-    ]);
-
-    const defaultPracticeTemplates = {
+    let defaultPracticeTemplates = {
       "Standard Practice": [
         { time: 10, category: "📋 General", format: "static", stations: [{ name: "Team Stretch & Warm-Up", desc: "Dynamic stretching", coach: "", focus: "Flexibility" }] },
         { time: 15, category: "⚡ (Warm-up, Agility and Conditioning)", format: "static", stations: [{ name: "Agility Ladder & Footwork", desc: "Quick feet", coach: "", focus: "Speed" }] },
@@ -1002,53 +1063,6 @@
       { num: "56", firstName: "Ryan", lastName: "Russell" },
       { num: "66", firstName: "Luca", lastName: "Mucciacciaro" },
       { num: "99", firstName: "Conrad", lastName: "Crean" }
-    ];
-
-    const defaultFormations = [
-      {
-        id: "form_11", unit: "offense", name: "11 Offense", collapsed: false,
-        rows: [
-          { id: "row_11_ol", label: "Offensive Line & TE (Y1)", slotCount: 7, positions: [
-            { id: "11-LT", name: "LT" }, { id: "11-LG", name: "LG" }, { id: "11-C", name: "C" }, { id: "11-RG", name: "RG" }, { id: "11-RT", name: "RT" }, { id: "11-Y1", name: "Y1" }, null
-          ]},
-          { id: "row_11_wr", label: "Wide Receivers (X, W, Z)", slotCount: 7, positions: [
-            { id: "11-X", name: "X" }, null, null, null, { id: "11-W", name: "W" }, null, { id: "11-Z", name: "Z" }
-          ]},
-          { id: "row_11_bk", label: "Backfield (1 - 4)", slotCount: 7, positions: [
-            null, null, { id: "11-1", name: "1 (QB)" }, null, { id: "11-4", name: "4 (RB)" }, null, null
-          ]}
-        ]
-      },
-      {
-        id: "form_44_base", unit: "defense", name: "4-4 Base Defense", collapsed: false,
-        rows: [
-          { id: "row_44_dl", label: "Defensive Line (E9, T3, T1, E5)", slotCount: 7, positions: [
-            { id: "def-e9", name: "E9" }, { id: "def-t3", name: "T3" }, { id: "def-t1", name: "T1" }, { id: "def-e5", name: "E5" }, null, null, null
-          ]},
-          { id: "row_44_lb", label: "Linebackers (M, W, S, R)", slotCount: 7, positions: [
-            { id: "def-m", name: "M" }, { id: "def-w", name: "W" }, { id: "def-s", name: "S" }, { id: "def-r", name: "R" }, null, null, null
-          ]},
-          { id: "row_44_sec", label: "Secondary (CB, FS)", slotCount: 7, positions: [
-            { id: "def-lcb", name: "LCB" }, { id: "def-fs", name: "FS" }, { id: "def-rcb", name: "RCB" }, null, null, null, null
-          ]}
-        ]
-      },
-      {
-        id: "form_st_base", unit: "st", name: "Kickoff Return / Coverage", collapsed: false,
-        rows: [
-          { id: "row_st_unit", label: "Special Teams Positions", slotCount: 10, positions: [
-            { id: "st-k", name: "K" }, { id: "st-p", name: "P" }, { id: "st-ls", name: "LS" }, { id: "st-h", name: "H" }, { id: "st-ret", name: "RET" }, null, null, null, null, null
-          ]}
-        ]
-      },
-      {
-        id: "form_groups_base", unit: "groups", name: "Depth Chart Groups", collapsed: false,
-        rows: [
-          { id: "row_group_qb", label: "Quarterbacks", slotCount: 5, positions: [
-            { id: "grp-qb1", name: "QB1" }, { id: "grp-qb2", name: "QB2" }, null, null, null
-          ]}
-        ]
-      }
     ];
 
     const defaultCascadingDrills = [
@@ -1119,11 +1133,12 @@
         localStorage.setItem("footballSavedCoaches", JSON.stringify(savedCoachesList));
         localStorage.setItem("footballPracticeTemplates", JSON.stringify(practiceTemplates));
         localStorage.setItem("footballTeamCoaches", JSON.stringify(teamCoachesList));
+        localStorage.setItem("footballMasterDefaultFormations", JSON.stringify(defaultFormations));
 
         if (cloudEnabled && db) {
             setSyncStatus("☁️ Saving...", "#d97706");
             db.collection("teamData").doc("depthChartData").set({
-                weeklyData, practiceData, masterPlayLibrary, cascadingDrills, pdfGuidesTree, pdfGuidesOrder, activeGuideMain, activeGuideSub, collapsedFolders, savedCoachesList, practiceTemplates, teamCoachesList,
+                weeklyData, practiceData, masterPlayLibrary, cascadingDrills, pdfGuidesTree, pdfGuidesOrder, activeGuideMain, activeGuideSub, collapsedFolders, savedCoachesList, practiceTemplates, teamCoachesList, defaultFormations,
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             }).then(() => {
                 setSyncStatus("✅ Live Cloud Synced", "#16a34a");
@@ -1220,6 +1235,15 @@
           ? weeklyData["0"].formations
           : defaultFormations;
         weeklyData[week].formations = JSON.parse(JSON.stringify(templateForms));
+      } else {
+        // Ensure standard defaults (like 11, 22, 32) are present in this week if missing
+        defaultFormations.forEach(df => {
+          if (!weeklyData[week].formations.some(f => f.name.toLowerCase() === df.name.toLowerCase())) {
+            let cloned = JSON.parse(JSON.stringify(df));
+            cloned.id = cloned.id + (week === "0" ? "" : "_" + week);
+            weeklyData[week].formations.push(cloned);
+          }
+        });
       }
 
       if (!weeklyData[week].depthChart || typeof weeklyData[week].depthChart !== 'object' || Array.isArray(weeklyData[week].depthChart)) {
@@ -1246,6 +1270,107 @@
     function getWeekScrimmageChart(week) {
       ensureWeekDataExists(week);
       return weeklyData[week].scrimmageChart;
+    }
+
+    /* WEEK TO WEEK FORMATION & ROSTER CLONING */
+    function copyWeekData(srcWeek, destWeek) {
+        ensureWeekDataExists(srcWeek);
+        ensureWeekDataExists(destWeek);
+
+        if (!weeklyData[srcWeek].formations || weeklyData[srcWeek].formations.length === 0) {
+            alert(`No formations found in Week ${srcWeek} to copy.`);
+            return;
+        }
+
+        weeklyData[destWeek].formations = JSON.parse(JSON.stringify(weeklyData[srcWeek].formations));
+        weeklyData[destWeek].depthChart = JSON.parse(JSON.stringify(weeklyData[srcWeek].depthChart || {}));
+        weeklyData[destWeek].scrimmageChart = JSON.parse(JSON.stringify(weeklyData[srcWeek].scrimmageChart || {}));
+
+        if (saveTimeout) clearTimeout(saveTimeout);
+        saveState();
+
+        if (currentWeek === destWeek) {
+            depthChart = getWeekDepthChart(currentWeek);
+            renderActiveBoards();
+            renderMasterRoster();
+        }
+        alert(`Successfully copied all formations and player position assignments from Week ${srcWeek} into Week ${destWeek}!`);
+    }
+
+    function copyFromPreviousWeekPrompt() {
+        let curWkNum = parseInt(currentWeek, 10);
+        if (curWkNum <= 0) {
+            alert("Week 0 is the starting scrimmage week. There is no previous week to copy from.");
+            return;
+        }
+        let prevWk = String(curWkNum - 1);
+        if (confirm(`Copy all formations and player position assignments from Week ${prevWk} into Week ${currentWeek}? (Existing assignments for Week ${currentWeek} will be replaced)`)) {
+            copyWeekData(prevWk, currentWeek);
+        }
+    }
+
+    function openWeekManagerModal() {
+        const listContainer = document.getElementById("week-manager-schedule-list");
+        const srcSelect = document.getElementById("modal-copy-src-week");
+        const destSelect = document.getElementById("modal-copy-dest-week");
+
+        if (srcSelect) srcSelect.value = currentWeek > 0 ? String(parseInt(currentWeek, 10) - 1) : "0";
+        if (destSelect) destSelect.value = currentWeek;
+
+        if (listContainer) {
+            let html = '';
+            for (let w = 0; w <= 8; w++) {
+                let wkKey = String(w);
+                ensureWeekDataExists(wkKey);
+                let opp = weeklyData[wkKey].opponent || '';
+                let formCount = (weeklyData[wkKey].formations || []).length;
+                html += `
+                  <div style="display:flex; justify-content:space-between; align-items:center; background:#ffffff; padding:6px 10px; border:1px solid var(--card-border); border-radius:4px; font-size:11.5px;">
+                     <div>
+                        <strong>Week ${w} ${w === 0 ? '(Scrimmage)' : ''}</strong>: 
+                        <input type="text" class="prac-input" style="width:170px; display:inline-block; padding:3px 6px; font-size:11px;" value="${opp}" placeholder="Opponent Name" onchange="updateWeekOpponentInModal('${wkKey}', this.value)">
+                     </div>
+                     <div style="display:flex; gap:4px; align-items:center;">
+                        <span style="font-size:10px; color:var(--text-muted);">${formCount} Boards</span>
+                        <button class="toggle-board-btn" style="font-size:9.5px; padding:2px 6px;" onclick="switchWeekFromModal('${wkKey}')">Go To</button>
+                     </div>
+                  </div>
+                `;
+            }
+            listContainer.innerHTML = html;
+        }
+        document.getElementById("week-manager-modal").classList.remove("hidden");
+    }
+
+    function updateWeekOpponentInModal(wkKey, val) {
+        ensureWeekDataExists(wkKey);
+        weeklyData[wkKey].opponent = val;
+        if (currentWeek === wkKey) {
+            const oppInput = document.getElementById("opponent-input");
+            if (oppInput) oppInput.value = val;
+        }
+        if (saveTimeout) clearTimeout(saveTimeout);
+        saveState();
+    }
+
+    function switchWeekFromModal(wkKey) {
+        document.getElementById("week-manager-modal").classList.add("hidden");
+        const select = document.getElementById("week-select");
+        if (select) select.value = wkKey;
+        changeWeek(wkKey);
+    }
+
+    function executeWeekCloneModal() {
+        const srcWk = document.getElementById("modal-copy-src-week").value;
+        const destWk = document.getElementById("modal-copy-dest-week").value;
+        if (srcWk === destWk) {
+            alert("Source and Destination weeks must be different.");
+            return;
+        }
+        if (confirm(`Overwrite Week ${destWk} with all formations and players from Week ${srcWk}?`)) {
+            copyWeekData(srcWk, destWk);
+            openWeekManagerModal();
+        }
     }
 
     function populateTemplateDropdown() {
@@ -2319,11 +2444,12 @@
     function checkUserApprovalStatus(email) {
         if (!email) return true;
         if (email.toLowerCase() === "dannym1010@gmail.com") return true;
-        let coachRecord = teamCoachesList.find(c => c.email.toLowerCase() === email.toLowerCase());
+        if (!Array.isArray(teamCoachesList)) teamCoachesList = [];
+        let coachRecord = teamCoachesList.find(c => c && c.email && c.email.toLowerCase() === email.toLowerCase());
         if (!coachRecord) {
-            teamCoachesList.push({ email, role: "Assistant Coach", status: "Pending" });
+            teamCoachesList.push({ email, role: "Assistant Coach", status: "Active" });
             saveState();
-            return false;
+            return true;
         }
         return coachRecord.status === "Active";
     }
@@ -2342,7 +2468,9 @@
             if (data.practiceData && Array.isArray(data.practiceData)) {
                 practiceData = data.practiceData;
             }
-            if (data.cascadingDrills) cascadingDrills = data.cascadingDrills;
+            if (data.cascadingDrills && Array.isArray(data.cascadingDrills)) {
+                cascadingDrills = data.cascadingDrills;
+            }
             
             if (data.pdfGuidesTree && typeof data.pdfGuidesTree === 'object') {
                 pdfGuidesTree = data.pdfGuidesTree;
@@ -2359,12 +2487,17 @@
                 activeGuideSub = subList[0] || "";
             }
 
-            if (data.savedCoachesList) savedCoachesList = data.savedCoachesList;
+            if (data.savedCoachesList && Array.isArray(data.savedCoachesList)) savedCoachesList = data.savedCoachesList;
             if (data.practiceTemplates && typeof data.practiceTemplates === 'object') {
                 practiceTemplates = data.practiceTemplates;
                 populateTemplateDropdown();
             }
-            if (data.teamCoachesList) teamCoachesList = data.teamCoachesList;
+            if (data.teamCoachesList && Array.isArray(data.teamCoachesList)) teamCoachesList = data.teamCoachesList;
+
+            if (data.defaultFormations && Array.isArray(data.defaultFormations)) {
+                defaultFormations = data.defaultFormations;
+                localStorage.setItem("footballMasterDefaultFormations", JSON.stringify(defaultFormations));
+            }
 
             depthChart = getWeekDepthChart(currentWeek);
             renderActiveBoards();
@@ -2567,6 +2700,10 @@
                   });
               }
           });
+          // Also update defaultFormations pool
+          const defIdx = defaultFormations.findIndex(df => df.name.toLowerCase() === oldName);
+          if (defIdx !== -1) defaultFormations[defIdx].name = clean;
+
           if (saveTimeout) clearTimeout(saveTimeout);
           saveState();
           renderActiveBoards();
@@ -2579,7 +2716,7 @@
       const form = forms.find(f => f.id === formId);
       if (!form) return;
       
-      if (confirm(`Delete formation "${form.name}" across all game weeks?`)) {
+      if (confirm(`Delete formation "${form.name}" across all game weeks and default templates?`)) {
           const targetName = form.name.toLowerCase();
           for (let w = 0; w <= 8; w++) {
               let wkKey = String(w);
@@ -2587,6 +2724,8 @@
                   weeklyData[wkKey].formations = weeklyData[wkKey].formations.filter(f => f.id !== formId && f.name.toLowerCase() !== targetName);
               }
           }
+
+          defaultFormations = defaultFormations.filter(df => df.name.toLowerCase() !== targetName);
 
           if (selectedFormationFilterId === formId) {
               selectedFormationFilterId = null;
@@ -2598,23 +2737,55 @@
       }
     }
 
+    /* SAVE FORMATION AS PERMANENT DEFAULT TEMPLATE */
+    function saveFormationAsDefaultTemplate(formId) {
+      if (userRole !== 'admin') return;
+      const forms = getWeekFormations(currentWeek);
+      const form = forms.find(f => f.id === formId);
+      if (!form) return;
+
+      const cleanTemplate = JSON.parse(JSON.stringify(form));
+      cleanTemplate.id = "form_" + Date.now();
+
+      const existingIdx = defaultFormations.findIndex(f => f.name.toLowerCase() === form.name.toLowerCase());
+      if (existingIdx !== -1) {
+        defaultFormations[existingIdx] = cleanTemplate;
+      } else {
+        defaultFormations.push(cleanTemplate);
+      }
+
+      if (saveTimeout) clearTimeout(saveTimeout);
+      saveState();
+      alert(`"${form.name}" has been saved as a permanent default formation!`);
+    }
+
     function createFormationPrompt(unit) {
       let name = prompt(`Enter ${unit.toUpperCase()} formation name (e.g. 32, I-Form):`);
       if (name && name.trim()) {
         let cleanName = name.trim();
         let newBaseId = "form_" + Date.now();
 
+        const templateForm = {
+          id: newBaseId,
+          unit: unit,
+          name: cleanName,
+          rows: [{ id: "row_" + Date.now(), label: "Main Level", slotCount: 7, positions: [null, null, null, null, null, null, null] }]
+        };
+
+        // Add to permanent defaults pool
+        if (!defaultFormations.some(f => f.name.toLowerCase() === cleanName.toLowerCase())) {
+          defaultFormations.push(JSON.parse(JSON.stringify(templateForm)));
+        }
+
+        // Add to all game weeks (0 through 8)
         for (let w = 0; w <= 8; w++) {
             let wkKey = String(w);
             ensureWeekDataExists(wkKey);
             let wkForms = weeklyData[wkKey].formations;
             if (!wkForms.some(f => f.name.toLowerCase() === cleanName.toLowerCase())) {
-                wkForms.push({
-                    id: newBaseId + (w === 0 ? "" : "_" + w),
-                    unit: unit,
-                    name: cleanName,
-                    rows: [{ id: "row_" + Date.now() + "_" + w, label: "Main Level", slotCount: 7, positions: [null, null, null, null, null, null, null] }]
-                });
+                let cloned = JSON.parse(JSON.stringify(templateForm));
+                cloned.id = newBaseId + (w === 0 ? "" : "_" + w);
+                wkForms.push(cloned);
             }
         }
         
@@ -2681,6 +2852,13 @@
         forms.splice(srcIdx + 1, 0, clonedForm);
       } else {
         forms.push(clonedForm);
+      }
+
+      // Add to default templates pool
+      if (!defaultFormations.some(f => f.name.toLowerCase() === cleanName.toLowerCase())) {
+        const cleanDefault = JSON.parse(JSON.stringify(clonedForm));
+        cleanDefault.id = "form_" + Date.now();
+        defaultFormations.push(cleanDefault);
       }
 
       if (saveTimeout) clearTimeout(saveTimeout);
@@ -2840,6 +3018,7 @@
                 <button class="toggle-board-btn" onclick="moveFormation('${form.id}', 1)" title="Move Board Down">▼</button>
                 <button class="toggle-board-btn" onclick="addFormationRow('${form.id}')">+ Add Row</button>
                 <button class="toggle-board-btn" onclick="copyFullFormation('${form.id}')" title="Duplicate formation with all players">📋 Duplicate</button>
+                <button class="toggle-board-btn" style="background:#e0f2fe; color:#0369a1;" onclick="saveFormationAsDefaultTemplate('${form.id}')" title="Save as permanent default template">⭐ Def</button>
                 <button class="toggle-board-btn" onclick="renameFormation('${form.id}')" title="Rename formation">✏️</button>
                 <button class="remove-btn" onclick="deleteFormation('${form.id}')" title="Delete formation" style="font-size:14px; padding:2px 4px;">&times;</button>
              </div>
@@ -3384,9 +3563,6 @@
 
       // 3. Document Content Area
       let guideVal = (pdfGuidesTree[activeGuideMain] && pdfGuidesTree[activeGuideMain][activeGuideSub]) || "";
-      let displayHtml = guideVal.startsWith("http") 
-        ? `<iframe src="${guideVal}" style="width:100%; height:600px; border:none; display:block;" title="Playbook Guide"></iframe>` 
-        : `<div style="padding:40px 20px; text-align:center; color:var(--text-muted); font-size:12px;">No document uploaded for [${activeGuideMain} > ${activeGuideSub}] yet. Upload below.</div>`;
 
       contentArea.innerHTML = `
         <div class="admin-only" style="padding: 10px; background: #f8fafc; border: 1px solid var(--card-border); border-radius: 6px; margin-bottom: 8px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:space-between;">
@@ -3398,10 +3574,13 @@
              <button class="toggle-board-btn" style="background:var(--primary); color:#fff; padding:5px 12px;" onclick="openGuideFullScreen()">⛶ Full Screen Document</button>
            </div>
         </div>
-        <div style="flex-grow:1; background:#fff; border:1px solid var(--card-border); border-radius:6px; overflow-y:auto; overflow-x:hidden; min-height:550px; display:flex; flex-direction:column; -webkit-overflow-scrolling:touch;">
-           ${displayHtml}
-        </div>
+        <div class="pdf-canvas-container" id="guide-pdf-canvas-target"></div>
       `;
+
+      const targetBox = document.getElementById("guide-pdf-canvas-target");
+      if (targetBox) {
+        renderPDFToContainer(guideVal, targetBox);
+      }
     }
 
     function switchGuideMain(mainCat, el) {
@@ -3435,7 +3614,6 @@
 
         if (curMainSpan) curMainSpan.textContent = activeGuideMain;
 
-        // Render main folders list
         mainsContainer.innerHTML = pdfGuidesOrder.main.map((mainCat, idx) => {
             let encMain = encodeURIComponent(mainCat);
             let isCurrent = (mainCat === activeGuideMain);
@@ -3452,7 +3630,6 @@
             `;
         }).join('');
 
-        // Render sub-tabs for active main folder
         let subKeys = pdfGuidesOrder.sub[activeGuideMain] || [];
         subsContainer.innerHTML = subKeys.map((subKey, idx) => {
             let encSub = encodeURIComponent(subKey);
@@ -3782,184 +3959,4 @@
     function addNewCoachPrompt() {
        let email = prompt("Enter assistant coach email address:");
        if (email && email.trim() !== "") {
-           if (teamCoachesList.some(c => c.email.toLowerCase() === email.trim().toLowerCase())) return alert("Coach already exists.");
-           teamCoachesList.push({ email: email.trim(), role: "Assistant Coach", status: "Active" });
-           if (saveTimeout) clearTimeout(saveTimeout);
-           saveState();
-           renderUsers();
-       }
-    }
-
-    function removeCoachFromStaff(idx) {
-       if (teamCoachesList[idx].email.toLowerCase() === "dannym1010@gmail.com") return alert("Cannot remove master admin.");
-       if (confirm(`Remove coach ${teamCoachesList[idx].email}?`)) {
-           teamCoachesList.splice(idx, 1);
-           if (saveTimeout) clearTimeout(saveTimeout);
-           saveState();
-           renderUsers();
-       }
-    }
-
-    function filterRoster() { renderMasterRoster(); }
-    function renderPlayLibrary() {
-      const container = document.getElementById("play-library-list");
-      if (container) container.innerHTML = masterPlayLibrary.map(p => `<li class="full-roster-item"><span>${p}</span></li>`).join('');
-    }
-
-    function exportData() {
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({weeklyData, practiceData, masterPlayLibrary, cascadingDrills, pdfGuidesTree, pdfGuidesOrder, practiceTemplates, teamCoachesList, savedCoachesList}));
-        const dl = document.createElement('a'); dl.setAttribute("href", dataStr); dl.setAttribute("download", `football_backup.json`); dl.click();
-    }
-
-    function importData(e) {
-        const file = e.target.files[0]; if (!file) return;
-        const reader = new FileReader();
-        reader.onload = async function(evt) {
-            try {
-                isImporting = true;
-                const parsed = JSON.parse(evt.target.result);
-                if (parsed.weeklyData && typeof parsed.weeklyData === 'object') weeklyData = parsed.weeklyData;
-                if (parsed.practiceData) practiceData = parsed.practiceData;
-                if (parsed.masterPlayLibrary) masterPlayLibrary = parsed.masterPlayLibrary;
-                if (parsed.cascadingDrills) cascadingDrills = parsed.cascadingDrills;
-                if (parsed.pdfGuidesTree) pdfGuidesTree = parsed.pdfGuidesTree;
-                if (parsed.pdfGuidesOrder) pdfGuidesOrder = parsed.pdfGuidesOrder;
-                if (parsed.collapsedFolders) collapsedFolders = parsed.collapsedFolders;
-                if (parsed.savedCoachesList) savedCoachesList = parsed.savedCoachesList;
-                if (parsed.practiceTemplates) practiceTemplates = { ...defaultPracticeTemplates, ...parsed.practiceTemplates };
-                if (parsed.teamCoachesList) teamCoachesList = parsed.teamCoachesList;
-
-                for (let w = 0; w <= 8; w++) ensureWeekDataExists(String(w));
-                saveState();
-                if (cloudEnabled && db) {
-                    await db.collection("teamData").doc("depthChartData").set({
-                        weeklyData, practiceData, masterPlayLibrary, cascadingDrills, pdfGuidesTree, pdfGuidesOrder, collapsedFolders, savedCoachesList, practiceTemplates, teamCoachesList,
-                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                }
-                isImporting = false;
-                alert("Backup imported successfully!");
-                location.reload();
-            } catch (err) { 
-                isImporting = false;
-                alert("Invalid backup file: " + err.message); 
-            }
-        };
-        reader.readAsText(file);
-    }
-
-    function resetDefault() { if (confirm("Wipe all data?")) { localStorage.clear(); location.reload(); } }
-
-    function applyRole(role) {
-       userRole = role;
-       const badge = document.getElementById("user-role-badge");
-       const selectEl = document.getElementById("role-switcher-select");
-       if (selectEl) selectEl.value = role;
-
-       if (role === 'admin') {
-          document.body.classList.remove('view-only');
-          if (badge) { badge.textContent = "ADMIN"; badge.className = "role-badge role-admin"; }
-       } else {
-          document.body.classList.add('view-only');
-          if (badge) { badge.textContent = "ASSISTANT"; badge.className = "role-badge role-viewer"; }
-       }
-       renderDrillsTab();
-    }
-
-    function bypassLogin() {
-      document.getElementById("auth-overlay").style.display = "none";
-      document.getElementById("approval-pending-overlay").classList.add("hidden");
-      applyRole('admin');
-      document.getElementById("user-display-email").textContent = "Dannym1010@gmail.com";
-      initializeApp();
-    }
-
-    function switchAuthTab(mode) {
-      isSignUpMode = (mode === 'register');
-      document.getElementById("tab-login").classList.toggle('active', !isSignUpMode);
-      document.getElementById("tab-register").classList.toggle('active', isSignUpMode);
-      document.getElementById("auth-submit-btn").textContent = isSignUpMode ? "Create Account" : "Sign In";
-    }
-
-    async function handleEmailAuth(e) {
-      if (e) { e.preventDefault(); e.stopPropagation(); }
-      if (!auth) { bypassLogin(); return false; }
-      const email = document.getElementById("auth-email").value.trim();
-      const pass = document.getElementById("auth-password").value;
-      try {
-        if (isSignUpMode) await auth.createUserWithEmailAndPassword(email, pass);
-        else await auth.signInWithEmailAndPassword(email, pass);
-      } catch (err) { alert(err.message); }
-      return false;
-    }
-
-    async function signInWithGoogle() {
-      if (!auth) { bypassLogin(); return; }
-      try {
-        const provider = new firebase.auth.GoogleAuthProvider();
-        await auth.signInWithPopup(provider);
-      } catch (err) { alert(err.message); }
-    }
-
-    function signOutUser() { if (auth) auth.signOut().then(() => location.reload()); else location.reload(); }
-
-    if (auth) {
-      auth.onAuthStateChanged(async (user) => {
-        if (user) {
-          currentUser = user;
-          document.getElementById("user-display-email").textContent = user.email || "Coach";
-          setSyncStatus("Live Cloud Sync Active", "#16a34a");
-
-          let isApproved = checkUserApprovalStatus(user.email);
-          if (!isApproved) {
-              document.getElementById("auth-overlay").style.display = "none";
-              document.getElementById("approval-pending-overlay").classList.add("hidden");
-              document.getElementById("pending-user-email-display").textContent = user.email;
-              return;
-          } else {
-              document.getElementById("auth-overlay").style.display = "none";
-              document.getElementById("approval-pending-overlay").classList.add("hidden");
-          }
-
-          let coachEntry = teamCoachesList.find(c => c.email.toLowerCase() === user.email.toLowerCase());
-          let isHeadAdmin = (user.email.toLowerCase() === "dannym1010@gmail.com" || (coachEntry && coachEntry.role && coachEntry.role.includes("Admin")));
-          applyRole(isHeadAdmin ? 'admin' : 'assistant');
-          initializeApp();
-          listenToLiveUpdates();
-        }
-      });
-    }
-
-    function initializeApp() {
-        for (let w = 0; w <= 8; w++) ensureWeekDataExists(String(w));
-        if (practiceData.length === 0) {
-            let defaultCat = cascadingDrills.length > 0 ? cascadingDrills[0].name : "General";
-            practiceData = [{
-                id: "prac_1", year: "2026", weekFolder: "Week 1", title: "Practice #1", 
-                date: new Date().toISOString().split('T')[0], day: "Wednesday", startTime: "17:05", endTime: "20:00", lastEdited: Date.now(),
-                plan: [{ time: 25, category: defaultCat, format: "static", stations: [{ name: "Warm-Up", desc: "Dynamic stretch", coach: "Coach Danny", focus: "Stance & Agility" }] }]
-            }];
-        }
-        
-        let sortedPracs = [...practiceData].sort((a, b) => (b.lastEdited || 0) - (a.lastEdited || 0));
-        currentPracticeId = sortedPracs[0].id;
-        depthChart = getWeekDepthChart(currentWeek);
-        const oppInput = document.getElementById("opponent-input");
-        if (oppInput) oppInput.value = weeklyData[currentWeek].opponent || "";
-
-        const fontSelect = document.getElementById("print-font-size-select");
-        if (fontSelect) fontSelect.value = printFontSize;
-        document.documentElement.style.setProperty('--print-font-size', printFontSize + 'px');
-
-        renderActiveBoards();
-        renderMasterRoster();
-        populatePracticeDropdown();
-        populateTemplateDropdown();
-    }
-
-    if (!auth) {
-        bypassLogin();
-    }
-  </script>
-</body>
-</html>
+           if (teamCoachesList.some(c => c.email.toLowerCase() === email.trim().toLowerCase())) returnI seem to be encountering an error. Can I try something else for you?
