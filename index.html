@@ -101,7 +101,6 @@
     @media (max-width: 768px) {
       .app-layout { flex-direction: column; }
       #sidebar-container { width: 100% !important; max-width: 100% !important; position: static !important; margin-top: 15px; }
-      .formation-scaler-inner { min-width: 600px; }
     }
 
     /* Formation Cards */
@@ -131,19 +130,23 @@
     .level-label { font-size: 10px; font-weight: bold; color: var(--text-muted); text-transform: uppercase; cursor: pointer; }
     .level-label:hover { color: var(--accent); text-decoration: underline; }
 
+    /* Formation Grid & Scaled Responsive Cards */
     .formation-row {
       display: grid;
-      gap: 6px;
+      gap: 4px;
       min-height: 65px;
       padding: 6px;
       background: #f8fafc;
       border: 1px solid var(--card-border);
       border-radius: 8px;
       align-items: start;
+      width: 100%;
+      box-sizing: border-box;
     }
 
     .row-slot {
       min-height: 55px;
+      min-width: 0;
       border: 1px dashed #cbd5e1;
       border-radius: 6px;
       display: flex;
@@ -154,23 +157,64 @@
     }
     .row-slot.drag-over { background-color: #dbeafe !important; border-color: var(--accent) !important; }
 
-    .position-card { background: var(--card-bg); border-radius: 6px; border: 2px solid var(--card-border); width: 100%; position: relative; transition: transform 0.1s; cursor: pointer; }
+    .position-card { 
+      background: var(--card-bg); 
+      border-radius: 6px; 
+      border: 2px solid var(--card-border); 
+      width: 100%; 
+      min-width: 0;
+      position: relative; 
+      transition: transform 0.1s; 
+      cursor: pointer; 
+      box-sizing: border-box;
+    }
     .position-card.drag-over { border-color: var(--accent) !important; background: #eff6ff !important; transform: scale(1.02); }
-    .position-header { background: #f1f5f9; padding: 3px 6px; font-weight: bold; font-size: 11px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border); color: var(--primary); cursor: grab; }
+    .position-header { 
+      background: #f1f5f9; 
+      padding: 3px 4px; 
+      font-weight: bold; 
+      font-size: 10px; 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      border-bottom: 1px solid var(--card-border); 
+      color: var(--primary); 
+      cursor: grab;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
     .position-header:active { cursor: grabbing; }
     .position-header span:first-child:hover { color: var(--accent); text-decoration: underline; cursor: pointer; }
 
-    .player-list { list-style: none; padding: 4px; margin: 0; min-height: 45px; }
-    .player-item { background: #f8fafc; border: 1px solid var(--card-border); padding: 4px 6px; margin-bottom: 4px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; cursor: grab; font-size: 11px; user-select: none; z-index:100; position:relative; text-transform: uppercase; font-weight: 700; }
-    .player-info { display: flex; gap: 4px; align-items: center; pointer-events: none; }
-    .num-tag { font-weight: bold; display: inline-block; min-width: 26px; }
+    .player-list { list-style: none; padding: 2px; margin: 0; min-height: 45px; }
+    .player-item { 
+      background: #f8fafc; 
+      border: 1px solid var(--card-border); 
+      padding: 3px 4px; 
+      margin-bottom: 3px; 
+      border-radius: 4px; 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      cursor: grab; 
+      font-size: 10px; 
+      user-select: none; 
+      z-index: 100; 
+      position: relative; 
+      text-transform: uppercase; 
+      font-weight: 700;
+      overflow: hidden;
+    }
+    .player-info { display: flex; gap: 3px; align-items: center; pointer-events: none; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+    .num-tag { font-weight: bold; display: inline-block; min-width: 20px; }
     
-    .rank-badge { font-size: 8px; font-weight: bold; padding: 2px 4px; border-radius: 3px; text-transform: uppercase; }
+    .rank-badge { font-size: 8px; font-weight: bold; padding: 1px 3px; border-radius: 3px; text-transform: uppercase; flex-shrink: 0; }
     .rank-starter { background: #000000; color: #ffffff; }
     .rank-sub-gold { background: #facc15; color: #000000; font-weight: 800; border: 1px solid #ca8a04; }
     .rank-sub-blue { background: #3b82f6; color: #ffffff; font-weight: 800; border: 1px solid #1d4ed8; }
 
-    .remove-btn { background: none; border: none; color: #ef4444; font-weight: bold; cursor: pointer; font-size: 13px; }
+    .remove-btn { background: none; border: none; color: #ef4444; font-weight: bold; cursor: pointer; font-size: 12px; padding: 0 2px; flex-shrink: 0; }
 
     /* Modals */
     .custom-modal {
@@ -777,7 +821,7 @@
     </div>
   </div>
 
-  <!-- GUIDE TAB ORGANIZER MODAL (Clean, Dedicated Management) -->
+  <!-- GUIDE TAB ORGANIZER MODAL -->
   <div id="guide-manager-modal" class="custom-modal hidden">
     <div class="custom-modal-card" style="width: 460px;">
        <h3>⚙️ Organize Playbook Folders & Tabs</h3>
@@ -920,9 +964,7 @@
         }
         if (scope === 'all' || scope === 'users') {
             localStorage.setItem("footballSavedCoaches", JSON.stringify(savedCoachesList));
-            if (userRole === 'admin') {
-                localStorage.setItem("footballTeamCoaches", JSON.stringify(teamCoachesList));
-            }
+            localStorage.setItem("footballTeamCoaches", JSON.stringify(teamCoachesList));
         }
         localStorage.setItem("footballCollapsedFolders", JSON.stringify(collapsedFolders));
 
@@ -954,9 +996,7 @@
             }
             if (scope === 'all' || scope === 'users') {
                 updatePayload.savedCoachesList = savedCoachesList;
-                if (userRole === 'admin' || (currentUser && currentUser.email && currentUser.email.toLowerCase() === "dannym1010@gmail.com")) {
-                    updatePayload.teamCoachesList = teamCoachesList;
-                }
+                updatePayload.teamCoachesList = teamCoachesList;
             }
 
             db.collection("teamData").doc("depthChartData").set(updatePayload, { merge: true }).then(() => {
@@ -2442,6 +2482,7 @@
         }
     }
 
+    /* REALTIME PERSISTENT ACCOUNT APPROVAL AND SYNC */
     function checkUserApprovalStatus(email) {
         if (!email) return false;
         const cleanEmail = email.trim().toLowerCase();
@@ -2449,7 +2490,9 @@
         
         let coachRecord = teamCoachesList.find(c => c.email && c.email.trim().toLowerCase() === cleanEmail);
         if (!coachRecord) {
-            teamCoachesList.push({ email: email.trim(), role: "Assistant Coach", status: "Pending" });
+            coachRecord = { email: email.trim(), role: "Assistant Coach", status: "Pending" };
+            teamCoachesList.push(coachRecord);
+            saveState('users');
             return false;
         }
         return coachRecord.status === "Active";
@@ -3845,6 +3888,7 @@
 
        if (currentUser && currentUser.email && currentUser.email.toLowerCase() !== "dannym1010@gmail.com" && !teamCoachesList.some(c => c.email && c.email.trim().toLowerCase() === currentUser.email.trim().toLowerCase())) {
            teamCoachesList.push({ email: currentUser.email, role: "Assistant Coach", status: "Pending" });
+           saveState('users');
        }
 
        let rowsHtml = teamCoachesList.map((coach, idx) => {
