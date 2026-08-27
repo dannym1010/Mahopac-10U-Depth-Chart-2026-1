@@ -256,7 +256,7 @@
 
     /* Resizable Column Handle */
     .col-resizer {
-      position: absolute; right: -5px; top: 0; bottom: 0; width: 12px; cursor: col-resize; z-index: 10;
+      position: absolute right: -5px; top: 0; bottom: 0; width: 12px; cursor: col-resize; z-index: 10;
     }
     .col-resizer:hover { background-color: rgba(37, 99, 235, 0.3); }
 
@@ -2321,12 +2321,14 @@
     }
 
     function checkUserApprovalStatus(email) {
-        if (!email) return true;
+        if (!email) return false;
         if (email.toLowerCase() === "dannym1010@gmail.com") return true;
-        let coachRecord = teamCoachesList.find(c => c.email.toLowerCase() === email.toLowerCase());
+        let coachRecord = teamCoachesList.find(c => c.email && c.email.toLowerCase() === email.toLowerCase());
         if (!coachRecord) {
             teamCoachesList.push({ email, role: "Assistant Coach", status: "Pending" });
-            saveState();
+            if (cloudEnabled && db) {
+                db.collection("teamData").doc("depthChartData").update({ teamCoachesList }).catch(() => {});
+            }
             return false;
         }
         return coachRecord.status === "Active";
@@ -2379,7 +2381,30 @@
                 practiceTemplates = data.practiceTemplates;
                 populateTemplateDropdown();
             }
-            if (data.teamCoachesList) teamCoachesList = data.teamCoachesList;
+            if (data.teamCoachesList && Array.isArray(data.teamCoachesList)) {
+                teamCoachesList = data.teamCoachesList;
+                localStorage.setItem("footballTeamCoaches", JSON.stringify(teamCoachesList));
+            }
+
+            // Real-time approval & permission check
+            if (currentUser && currentUser.email) {
+                let isApproved = checkUserApprovalStatus(currentUser.email);
+                if (!isApproved) {
+                    document.getElementById("auth-overlay").style.display = "none";
+                    document.getElementById("approval-pending-overlay").classList.remove("hidden");
+                    document.getElementById("pending-user-email-display").textContent = currentUser.email;
+                    setSyncStatus("Approval Pending", "#d97706");
+                    return;
+                } else {
+                    document.getElementById("auth-overlay").style.display = "none";
+                    document.getElementById("approval-pending-overlay").classList.add("hidden");
+                    setSyncStatus("Live Cloud Sync Active", "#16a34a");
+                    
+                    let coachEntry = teamCoachesList.find(c => c.email && c.email.toLowerCase() === currentUser.email.toLowerCase());
+                    let isHeadAdmin = (currentUser.email.toLowerCase() === "dannym1010@gmail.com" || (coachEntry && coachEntry.role && coachEntry.role.includes("Admin")));
+                    applyRole(isHeadAdmin ? 'admin' : 'assistant');
+                }
+            }
 
             depthChart = getWeekDepthChart(currentWeek);
             renderActiveBoards();
@@ -2390,10 +2415,11 @@
             if (activeUnit === 'practice' && (!document.activeElement || !document.activeElement.closest('#main-practice-table'))) {
                 renderPracticePlan();
             }
+            if (activeUnit === 'scrimmage') renderScrimmageTab();
             if (activeUnit === 'guide') renderGuideTab();
         }, (error) => {
             console.warn("Live sync error, continuing in local mode:", error);
-            setSyncStatus("⚠️ Cloud Sync Disabled (Local Only)", "#d97706");
+            setSyncStatus("⚠️ Cloud Sync Error", "#ef4444");
         });
     }
 
@@ -3910,7 +3936,11 @@
           document.body.classList.add('view-only');
           if (badge) { badge.textContent = "ASSISTANT"; badge.className = "role-badge role-viewer"; }
        }
-       renderDrillsTab();
+
+       if (activeUnit === 'drills') renderDrillsTab();
+       else if (activeUnit === 'scrimmage') renderScrimmageTab();
+       else if (['offense', 'defense', 'st', 'groups'].includes(activeUnit)) renderActiveBoards();
+       renderMasterRoster();
     }
 
     function bypassLogin() {
@@ -3952,29 +3982,136 @@
 
     function signOutUser() { if (auth) auth.signOut().then(() => location.reload()); else location.reload(); }
 
+    function checkUserApprovalStatus(email) {
+        if (!email) return false;
+        if (email.toLowerCase() === "dannym1010@gmail.com") return true;
+        let coachRecord = teamCoachesList.find(c => c.email && c.email.toLowerCase() === email.toLowerCase());
+        if (!coachRecord) {
+            teamCoachesList.push({ email, role: "Assistant Coach", status: "Pending" });
+            if (cloudEnabled && db) {
+                db.collection("teamData").doc("depthChartData").update({ teamCoachesList }).catch(() => {});
+            }
+            return false;
+        }
+        return coachRecord.status === "Active";
+    }
+
+    function listenToLiveUpdates() {
+        if (!cloudEnabled || !db) return;
+        db.collection("teamData").doc("depthChartData").onSnapshot((doc) => {
+            if (isImporting || !doc.exists) return;
+            if (doc.metadata && doc.metadata.hasPendingWrites) return;
+
+            const data = doc.data();
+            
+            if (data.defaultFormations && Array.isArray(data.defaultFormations)) {
+                defaultFormations = data.defaultFormations;
+                localStorage.setItem("footballDefaultFormations", JSON.stringify(defaultFormations));
+            }
+            if (data.weeklyData && typeof data.weeklyData === 'object') {
+                weeklyData = data.weeklyData;
+                localStorage.setItem("footballWeeklyData", JSON.stringify(weeklyData));
+            }
+            if (data.practiceData && Array.isArray(data.practiceData)) {
+                practiceData = data.practiceData;
+                localStorage.setItem("footballPracticeData", JSON.stringify(practiceData));
+            }
+            if (data.cascadingDrills) {
+                cascadingDrills = data.cascadingDrills;
+                localStorage.setItem("footballCascadingDrills", JSON.stringify(cascadingDrills));
+            }
+            
+            if (data.pdfGuidesTree && typeof data.pdfGuidesTree === 'object') {
+                pdfGuidesTree = data.pdfGuidesTree;
+                localStorage.setItem("footballPdfGuidesTree", JSON.stringify(pdfGuidesTree));
+            }
+            if (data.pdfGuidesOrder && typeof data.pdfGuidesOrder === 'object') {
+                pdfGuidesOrder = data.pdfGuidesOrder;
+                localStorage.setItem("footballPdfGuidesOrder", JSON.stringify(pdfGuidesOrder));
+            }
+
+            if (!pdfGuidesTree[activeGuideMain]) {
+                activeGuideMain = (pdfGuidesOrder.main && pdfGuidesOrder.main[0]) || Object.keys(pdfGuidesTree)[0] || "Offense";
+            }
+            let subList = (pdfGuidesOrder.sub && pdfGuidesOrder.sub[activeGuideMain]) || Object.keys(pdfGuidesTree[activeGuideMain] || {});
+            if (!subList.includes(activeGuideSub)) {
+                activeGuideSub = subList[0] || "";
+            }
+
+            if (data.savedCoachesList) savedCoachesList = data.savedCoachesList;
+            if (data.practiceTemplates && typeof data.practiceTemplates === 'object') {
+                practiceTemplates = data.practiceTemplates;
+                populateTemplateDropdown();
+            }
+            if (data.teamCoachesList && Array.isArray(data.teamCoachesList)) {
+                teamCoachesList = data.teamCoachesList;
+                localStorage.setItem("footballTeamCoaches", JSON.stringify(teamCoachesList));
+            }
+
+            // Real-time approval & permission check
+            if (currentUser && currentUser.email) {
+                let isApproved = checkUserApprovalStatus(currentUser.email);
+                if (!isApproved) {
+                    document.getElementById("auth-overlay").style.display = "none";
+                    document.getElementById("approval-pending-overlay").classList.remove("hidden");
+                    document.getElementById("pending-user-email-display").textContent = currentUser.email;
+                    setSyncStatus("Approval Pending", "#d97706");
+                    return;
+                } else {
+                    document.getElementById("auth-overlay").style.display = "none";
+                    document.getElementById("approval-pending-overlay").classList.add("hidden");
+                    setSyncStatus("Live Cloud Sync Active", "#16a34a");
+                    
+                    let coachEntry = teamCoachesList.find(c => c.email && c.email.toLowerCase() === currentUser.email.toLowerCase());
+                    let isHeadAdmin = (currentUser.email.toLowerCase() === "dannym1010@gmail.com" || (coachEntry && coachEntry.role && coachEntry.role.includes("Admin")));
+                    applyRole(isHeadAdmin ? 'admin' : 'assistant');
+                }
+            }
+
+            depthChart = getWeekDepthChart(currentWeek);
+            renderActiveBoards();
+            renderMasterRoster();
+            populatePracticeDropdown();
+            populateTemplateDropdown();
+
+            if (activeUnit === 'practice' && (!document.activeElement || !document.activeElement.closest('#main-practice-table'))) {
+                renderPracticePlan();
+            }
+            if (activeUnit === 'scrimmage') renderScrimmageTab();
+            if (activeUnit === 'guide') renderGuideTab();
+        }, (error) => {
+            console.warn("Live sync error, continuing in local mode:", error);
+            setSyncStatus("⚠️ Cloud Sync Error", "#ef4444");
+        });
+    }
+
     if (auth) {
       auth.onAuthStateChanged(async (user) => {
         if (user) {
           currentUser = user;
+          cloudEnabled = true;
           document.getElementById("user-display-email").textContent = user.email || "Coach";
-          setSyncStatus("Live Cloud Sync Active", "#16a34a");
+
+          // Initialize live listener first so real-time permissions and team depth charts load
+          listenToLiveUpdates();
 
           let isApproved = checkUserApprovalStatus(user.email);
           if (!isApproved) {
               document.getElementById("auth-overlay").style.display = "none";
-              document.getElementById("approval-pending-overlay").classList.add("hidden");
+              document.getElementById("approval-pending-overlay").classList.remove("hidden");
               document.getElementById("pending-user-email-display").textContent = user.email;
+              setSyncStatus("Approval Pending", "#d97706");
               return;
           } else {
               document.getElementById("auth-overlay").style.display = "none";
               document.getElementById("approval-pending-overlay").classList.add("hidden");
+              setSyncStatus("Live Cloud Sync Active", "#16a34a");
           }
 
-          let coachEntry = teamCoachesList.find(c => c.email.toLowerCase() === user.email.toLowerCase());
+          let coachEntry = teamCoachesList.find(c => c.email && c.email.toLowerCase() === user.email.toLowerCase());
           let isHeadAdmin = (user.email.toLowerCase() === "dannym1010@gmail.com" || (coachEntry && coachEntry.role && coachEntry.role.includes("Admin")));
           applyRole(isHeadAdmin ? 'admin' : 'assistant');
           initializeApp();
-          listenToLiveUpdates();
         }
       });
     }
