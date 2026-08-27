@@ -87,9 +87,9 @@
     .week-select { padding: 5px 8px; border-radius: 6px; border: 1px solid var(--card-border); font-size: 12px; font-weight: bold; color: var(--primary); }
     .opponent-input { padding: 5px 10px; border-radius: 6px; border: 1px solid var(--card-border); font-size: 12px; width: 200px; }
 
-    /* Tabs */
+    /* Main Tab Navigation */
     .tab-navigation { max-width: 1400px; margin: 0 auto 15px auto; display: flex; gap: 8px; border-bottom: 2px solid var(--card-border); padding-bottom: 8px; flex-wrap: wrap; }
-    .nav-tab { padding: 8px 16px; border: 1px solid var(--card-border); background: var(--card-bg); color: var(--text-muted); font-weight: bold; border-radius: 20px; cursor: pointer; font-size: 12px; transition: all 0.2s; }
+    .nav-tab { padding: 8px 16px; border: 1px solid var(--card-border); background: var(--card-bg); color: var(--text-muted); font-weight: bold; border-radius: 20px; cursor: pointer; font-size: 12px; transition: all 0.2s; touch-action: manipulation; }
     .nav-tab.active { background: var(--primary); color: #ffffff; border-color: var(--primary); }
 
     /* Layout */
@@ -176,15 +176,39 @@
     .custom-modal {
       position: fixed; inset: 0; background: rgba(15,23,42,0.7); display: flex; align-items: center; justify-content: center; z-index: 20000;
     }
-    .custom-modal-card, .print-modal-card { background: #fff; padding: 20px; border-radius: 8px; width: 340px; max-width: 90%; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+    .custom-modal-card, .print-modal-card { background: #fff; padding: 20px; border-radius: 8px; width: 380px; max-width: 90%; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
     .custom-modal-card h3, .print-modal-card h3 { margin-top: 0; color: var(--primary); font-size: 16px; margin-bottom: 15px;}
 
-    /* Fullscreen PDF Modal Overlay */
+    /* FULLSCREEN PDF MODAL OVERLAY (Tablet & iPad Touch Friendly) */
     #pdf-fullscreen-modal {
-      position: fixed; inset: 0; background: rgba(15, 23, 42, 0.95); z-index: 999999; display: flex; flex-direction: column; padding: 15px; box-sizing: border-box;
+      position: fixed; inset: 0; width: 100vw; height: 100dvh; background: rgba(15, 23, 42, 0.96); z-index: 999999; display: flex; flex-direction: column; padding: 12px; box-sizing: border-box;
     }
-    #pdf-fullscreen-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; color: #fff; }
-    #pdf-fullscreen-content { flex-grow: 1; width: 100%; height: calc(100vh - 60px); background: #ffffff; border-radius: 8px; overflow: hidden; }
+    #pdf-fullscreen-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; color: #fff; flex-shrink: 0; }
+    #pdf-fullscreen-content {
+      flex: 1; width: 100%; height: 100%; background: #ffffff; border-radius: 8px; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; position: relative;
+    }
+    #pdf-fullscreen-content iframe, #guide-content-area iframe {
+      width: 100%; height: 100%; min-height: 80vh; border: none; display: block;
+    }
+
+    /* PLAYBOOK HORIZONTAL SCROLLING PILL BARS */
+    .pill-scroll-bar {
+      display: flex; gap: 8px; overflow-x: auto; white-space: nowrap; padding-bottom: 6px; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+    }
+    .pill-scroll-bar::-webkit-scrollbar { display: none; }
+    
+    .guide-main-pill {
+      padding: 7px 16px; border-radius: 20px; font-weight: bold; font-size: 12px; cursor: pointer; border: 1px solid var(--card-border); background: #ffffff; color: var(--text-muted); transition: all 0.15s ease; flex-shrink: 0; touch-action: manipulation;
+    }
+    .guide-main-pill.active {
+      background: var(--primary); color: #ffffff; border-color: var(--primary); box-shadow: 0 2px 4px rgba(30,58,138,0.2);
+    }
+    .guide-sub-pill {
+      padding: 6px 14px; border-radius: 16px; font-weight: bold; font-size: 11.5px; cursor: pointer; border: 1px solid var(--card-border); background: #ffffff; color: var(--text); transition: all 0.15s ease; flex-shrink: 0; touch-action: manipulation;
+    }
+    .guide-sub-pill.active {
+      background: var(--accent); color: #ffffff; border-color: var(--accent); box-shadow: 0 2px 4px rgba(37,99,235,0.2);
+    }
 
     /* Wristband Builder */
     .wb-exact-table { width: 100%; border-collapse: collapse; border: 2px solid #000000; background: #ffffff; }
@@ -261,7 +285,7 @@
     @media print {
       @page { size: letter portrait; margin: 0.3in; }
       body { background-color: #ffffff !important; color: #000000 !important; padding: 0; margin: 0; font-size: var(--print-font-size, 10px) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; width: 100% !important; overflow: visible !important; }
-      .toolbar, #sidebar-container, .remove-btn, .action-group, p.subtitle, .search-box, .tab-navigation, .toggle-board-btn, .week-bar, .board-controls, .add-row-btn, .add-form-btn, .row-actions, .practice-dashboard-info, #print-modal, #new-prac-modal, #scrimmage-print-modal, #scrimmage-filter-modal, #templates-modal, #approval-pending-overlay, .col-resizer, .coach-popup-box, .coach-popup-container > div:last-child, th.no-print, td.no-print, th.admin-only, td.admin-only { display: none !important; }
+      .toolbar, #sidebar-container, .remove-btn, .action-group, p.subtitle, .search-box, .tab-navigation, .toggle-board-btn, .week-bar, .board-controls, .add-row-btn, .add-form-btn, .row-actions, .practice-dashboard-info, #print-modal, #new-prac-modal, #scrimmage-print-modal, #scrimmage-filter-modal, #templates-modal, #guide-manager-modal, #approval-pending-overlay, .col-resizer, .coach-popup-box, .coach-popup-container > div:last-child, th.no-print, td.no-print, th.admin-only, td.admin-only { display: none !important; }
       
       .no-print-text { display: none !important; }
       .app-layout, .boards-container, .unit-panel { display: block !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
@@ -527,19 +551,22 @@
 
       <!-- PLAYBOOKS & POSITIONAL GUIDES PANEL -->
       <div class="unit-panel hidden" id="panel-guide">
-        <div class="formation-container">
-          <div class="board-title no-print">
+        <div class="formation-container" style="background:#ffffff; border-radius:10px; border:1px solid var(--card-border);">
+          <div class="board-title no-print" style="border-bottom:none; margin-bottom:4px;">
             <span>📋 Playbooks & Positional Guides</span>
             <div style="display:flex; gap:6px; align-items:center;">
+               <button class="toggle-board-btn admin-only" onclick="openGuideManagerModal()" title="Organize, rename, reorder and delete playbook tabs">⚙️ Organize Tabs</button>
                <button class="add-row-btn admin-only" style="margin:0;" onclick="addSubGuideTabPrompt()">+ Add Sub-Tab</button>
             </div>
           </div>
-          <!-- Level 1 Main Folders -->
-          <div id="guide-main-folders" style="display:flex; gap:8px; margin-bottom:10px; border-bottom: 2px solid var(--card-border); padding-bottom: 8px; flex-wrap:wrap;"></div>
-          <!-- Level 2 Sub Tabs -->
-          <div id="guide-sub-tabs" style="display:flex; gap:6px; margin-bottom:15px; flex-wrap:wrap; background:#f8fafc; padding:8px; border-radius:6px; border:1px solid var(--card-border);"></div>
+
+          <!-- Level 1 Main Folders (Horizontal Scrollable Ribbon) -->
+          <div class="pill-scroll-bar" id="guide-main-folders" style="margin-bottom:8px; border-bottom:1px solid #e2e8f0; padding-bottom:8px;"></div>
           
-          <div id="guide-content-area" style="min-height: 500px; display:flex; flex-direction:column; gap: 10px;"></div>
+          <!-- Level 2 Sub Tabs (Horizontal Scrollable Ribbon) -->
+          <div class="pill-scroll-bar" id="guide-sub-tabs" style="margin-bottom:12px; background:#f1f5f9; padding:6px 10px; border-radius:8px; border:1px solid var(--card-border);"></div>
+          
+          <div id="guide-content-area" style="min-height: 550px; display:flex; flex-direction:column; gap: 10px;"></div>
         </div>
       </div>
 
@@ -714,6 +741,25 @@
     </div>
   </div>
 
+  <!-- GUIDE TAB ORGANIZER MODAL (Clean, Dedicated Management) -->
+  <div id="guide-manager-modal" class="custom-modal hidden">
+    <div class="custom-modal-card" style="width: 460px;">
+       <h3>⚙️ Organize Playbook Folders & Tabs</h3>
+       <p style="font-size:11px; color:var(--text-muted); margin-bottom:10px;">Reorder, rename, or delete your playbook sections below:</p>
+       
+       <div style="font-size:11px; font-weight:bold; color:var(--primary); margin-bottom:4px;">1. Main Folders:</div>
+       <div id="guide-manager-mains" style="max-height: 140px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; border:1px solid #e2e8f0; padding:6px; border-radius:6px;"></div>
+
+       <div style="font-size:11px; font-weight:bold; color:var(--primary); margin-bottom:4px;">2. Sub-Tabs for [<span id="guide-manager-cur-main" style="color:var(--accent);"></span>]:</div>
+       <div id="guide-manager-subs" style="max-height: 160px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; margin-bottom: 15px; border:1px solid #e2e8f0; padding:6px; border-radius:6px;"></div>
+
+       <div style="display: flex; gap: 8px; justify-content: space-between; align-items:center;">
+          <button class="toggle-board-btn" style="background:#e0f2fe; color:#0369a1;" onclick="addMainFolderPrompt()">+ Add Main Folder</button>
+          <button class="add-row-btn" style="margin:0;" onclick="document.getElementById('guide-manager-modal').classList.add('hidden')">Done</button>
+       </div>
+    </div>
+  </div>
+
   <div id="print-modal" class="custom-modal hidden">
     <div class="print-modal-card">
        <h3>Select Boards to Print</h3>
@@ -852,7 +898,7 @@
       if (pdfGuidesTree[activeGuideMain] && pdfGuidesTree[activeGuideMain][activeGuideSub]) {
           guideVal = pdfGuidesTree[activeGuideMain][activeGuideSub];
       }
-      if (!guideVal) { alert("No document selected."); return; }
+      if (!guideVal) { alert("No document uploaded for this playbook section."); return; }
 
       container.innerHTML = `<iframe src="${guideVal}" style="width:100%; height:100%; border:none;" title="Playbook Guide Full Screen"></iframe>`;
       modal.classList.remove("hidden");
@@ -3125,8 +3171,11 @@
         const containerId = "boards-" + activeUnit;
         document.querySelectorAll(`#${containerId} .formation-container`).forEach(el => {
             let fId = el.dataset.formId;
-            if (selectedIds.includes(fId)) el.classList.remove("hidden-print");
-            else el.classList.add("hidden-print");
+            if (selectedIds.includes(fId)) {
+                el.classList.remove("hidden-print");
+            } else {
+                el.classList.add("hidden-print");
+            }
         });
 
         document.getElementById("print-modal").classList.add("hidden");
@@ -3278,7 +3327,149 @@
       triggerDebouncedSave();
     }
 
-    /* PLAYBOOKS & POSITIONAL GUIDES - DETERMINISTIC TAB MANAGEMENT */
+    /* PLAYBOOKS & POSITIONAL GUIDES - TOUCH-FRIENDLY DETERMINISTIC NAVIGATION */
+    function renderGuideTab() {
+      const mainContainer = document.getElementById('guide-main-folders');
+      const subContainer = document.getElementById('guide-sub-tabs');
+      const contentArea = document.getElementById('guide-content-area');
+      if (!mainContainer || !subContainer || !contentArea) return;
+      
+      if (!pdfGuidesOrder.main || pdfGuidesOrder.main.length === 0) {
+          pdfGuidesOrder.main = Object.keys(pdfGuidesTree);
+      }
+      Object.keys(pdfGuidesTree).forEach(k => {
+          if (!pdfGuidesOrder.main.includes(k)) pdfGuidesOrder.main.push(k);
+      });
+      pdfGuidesOrder.main = pdfGuidesOrder.main.filter(k => pdfGuidesTree[k] !== undefined);
+
+      if (!pdfGuidesTree[activeGuideMain]) {
+          activeGuideMain = pdfGuidesOrder.main[0] || "Offense";
+      }
+
+      if (!pdfGuidesOrder.sub) pdfGuidesOrder.sub = {};
+      if (!pdfGuidesOrder.sub[activeGuideMain]) {
+          pdfGuidesOrder.sub[activeGuideMain] = Object.keys(pdfGuidesTree[activeGuideMain] || {});
+      }
+      Object.keys(pdfGuidesTree[activeGuideMain] || {}).forEach(sk => {
+          if (!pdfGuidesOrder.sub[activeGuideMain].includes(sk)) pdfGuidesOrder.sub[activeGuideMain].push(sk);
+      });
+      pdfGuidesOrder.sub[activeGuideMain] = pdfGuidesOrder.sub[activeGuideMain].filter(sk => pdfGuidesTree[activeGuideMain][sk] !== undefined);
+
+      let subKeys = pdfGuidesOrder.sub[activeGuideMain] || [];
+      if (!subKeys.includes(activeGuideSub)) {
+          activeGuideSub = subKeys[0] || "";
+      }
+
+      // 1. Level 1 Main Category Ribbon (Pills)
+      mainContainer.innerHTML = pdfGuidesOrder.main.map(mainCat => {
+        let encMain = encodeURIComponent(mainCat);
+        return `
+          <button type="button" class="guide-main-pill ${mainCat === activeGuideMain ? 'active' : ''}" onclick="switchGuideMain(decodeURIComponent('${encMain}'), this)">
+             ${mainCat}
+          </button>
+        `;
+      }).join('');
+
+      // 2. Level 2 Sub-Tabs Ribbon (Pills)
+      let subTabsHtml = subKeys.map(subKey => {
+        let encSub = encodeURIComponent(subKey);
+        return `
+          <button type="button" class="guide-sub-pill ${subKey === activeGuideSub ? 'active' : ''}" onclick="switchGuideSub(decodeURIComponent('${encSub}'), this)">
+             ${subKey}
+          </button>
+        `;
+      }).join('');
+
+      subContainer.innerHTML = subTabsHtml || '<span style="font-size:11px; color:var(--text-muted); padding:4px;">No sub-tabs found. Click "Organize Tabs" to add.</span>';
+
+      // 3. Document Content Area
+      let guideVal = (pdfGuidesTree[activeGuideMain] && pdfGuidesTree[activeGuideMain][activeGuideSub]) || "";
+      let displayHtml = guideVal.startsWith("http") 
+        ? `<iframe src="${guideVal}" style="width:100%; height:600px; border:none; display:block;" title="Playbook Guide"></iframe>` 
+        : `<div style="padding:40px 20px; text-align:center; color:var(--text-muted); font-size:12px;">No document uploaded for [${activeGuideMain} > ${activeGuideSub}] yet. Upload below.</div>`;
+
+      contentArea.innerHTML = `
+        <div class="admin-only" style="padding: 10px; background: #f8fafc; border: 1px solid var(--card-border); border-radius: 6px; margin-bottom: 8px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:space-between;">
+           <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+             <label style="font-size:11.5px; font-weight:bold; color:var(--primary);">Upload Document for [${activeGuideMain} / ${activeGuideSub}]:</label>
+             <input type="file" id="guide-file-input" accept=".pdf,.doc,.docx" onchange="uploadGuideFile(event)" style="font-size:11px;" />
+           </div>
+           <div>
+             <button class="toggle-board-btn" style="background:var(--primary); color:#fff; padding:5px 12px;" onclick="openGuideFullScreen()">⛶ Full Screen Document</button>
+           </div>
+        </div>
+        <div style="flex-grow:1; background:#fff; border:1px solid var(--card-border); border-radius:6px; overflow-y:auto; overflow-x:hidden; min-height:550px; display:flex; flex-direction:column; -webkit-overflow-scrolling:touch;">
+           ${displayHtml}
+        </div>
+      `;
+    }
+
+    function switchGuideMain(mainCat, el) {
+        activeGuideMain = mainCat;
+        let subKeys = (pdfGuidesOrder.sub && pdfGuidesOrder.sub[activeGuideMain]) || Object.keys(pdfGuidesTree[activeGuideMain] || {});
+        activeGuideSub = subKeys[0] || "";
+        renderGuideTab();
+        if (el) el.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    }
+
+    function switchGuideSub(subKey, el) {
+        activeGuideSub = subKey;
+        renderGuideTab();
+        if (el) el.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    }
+
+    /* GUIDE MANAGER MODAL LOGIC */
+    function openGuideManagerModal() {
+        const curMainSpan = document.getElementById("guide-manager-cur-main");
+        if (curMainSpan) curMainSpan.textContent = activeGuideMain;
+
+        renderGuideManagerContent();
+        document.getElementById("guide-manager-modal").classList.remove("hidden");
+    }
+
+    function renderGuideManagerContent() {
+        const mainsContainer = document.getElementById("guide-manager-mains");
+        const subsContainer = document.getElementById("guide-manager-subs");
+        const curMainSpan = document.getElementById("guide-manager-cur-main");
+        if (!mainsContainer || !subsContainer) return;
+
+        if (curMainSpan) curMainSpan.textContent = activeGuideMain;
+
+        // Render main folders list
+        mainsContainer.innerHTML = pdfGuidesOrder.main.map((mainCat, idx) => {
+            let encMain = encodeURIComponent(mainCat);
+            let isCurrent = (mainCat === activeGuideMain);
+            return `
+              <div style="display:flex; justify-content:space-between; align-items:center; background:${isCurrent ? '#eff6ff' : '#ffffff'}; padding:4px 8px; border:1px solid ${isCurrent ? 'var(--accent)' : '#e2e8f0'}; border-radius:4px;">
+                 <span style="font-weight:bold; font-size:11.5px; color:${isCurrent ? 'var(--accent)' : 'var(--text)'}; cursor:pointer;" onclick="activeGuideMain='${mainCat}'; renderGuideManagerContent();">${mainCat} ${isCurrent ? '👈' : ''}</span>
+                 <div style="display:flex; gap:3px;">
+                    <button class="toggle-board-btn" style="padding:1px 5px; font-size:9px;" onclick="moveGuideMain(decodeURIComponent('${encMain}'), -1, event); renderGuideManagerContent();">▲</button>
+                    <button class="toggle-board-btn" style="padding:1px 5px; font-size:9px;" onclick="moveGuideMain(decodeURIComponent('${encMain}'), 1, event); renderGuideManagerContent();">▼</button>
+                    <button class="toggle-board-btn" style="padding:1px 5px; font-size:9px;" onclick="renameMainFolder(decodeURIComponent('${encMain}'), event); renderGuideManagerContent();">✏️</button>
+                    <button class="remove-btn" style="font-size:13px; padding:0 3px;" onclick="deleteMainFolder(decodeURIComponent('${encMain}'), event); renderGuideManagerContent();">&times;</button>
+                 </div>
+              </div>
+            `;
+        }).join('');
+
+        // Render sub-tabs for active main folder
+        let subKeys = pdfGuidesOrder.sub[activeGuideMain] || [];
+        subsContainer.innerHTML = subKeys.map((subKey, idx) => {
+            let encSub = encodeURIComponent(subKey);
+            return `
+              <div style="display:flex; justify-content:space-between; align-items:center; background:#ffffff; padding:4px 8px; border:1px solid #e2e8f0; border-radius:4px;">
+                 <span style="font-size:11px; font-weight:bold; color:var(--text);">${subKey}</span>
+                 <div style="display:flex; gap:3px;">
+                    <button class="toggle-board-btn" style="padding:1px 5px; font-size:9px;" onclick="moveGuideSub(decodeURIComponent('${encSub}'), -1, event); renderGuideManagerContent();">▲</button>
+                    <button class="toggle-board-btn" style="padding:1px 5px; font-size:9px;" onclick="moveGuideSub(decodeURIComponent('${encSub}'), 1, event); renderGuideManagerContent();">▼</button>
+                    <button class="toggle-board-btn" style="padding:1px 5px; font-size:9px;" onclick="renameSubGuideTab(decodeURIComponent('${encSub}'), event); renderGuideManagerContent();">✏️</button>
+                    <button class="remove-btn" style="font-size:13px; padding:0 3px;" onclick="deleteSubGuideTab(decodeURIComponent('${encSub}'), event); renderGuideManagerContent();">&times;</button>
+                 </div>
+              </div>
+            `;
+        }).join('') || '<div style="font-size:10px; color:var(--text-muted); padding:4px;">No sub-tabs found.</div>';
+    }
+
     function moveGuideMain(mainCat, direction, e) {
         if (e) e.stopPropagation();
         if (userRole !== 'admin') return;
@@ -3354,91 +3545,6 @@
         renderGuideTab();
     }
 
-    function renderGuideTab() {
-      const mainContainer = document.getElementById('guide-main-folders');
-      const subContainer = document.getElementById('guide-sub-tabs');
-      const contentArea = document.getElementById('guide-content-area');
-      if (!mainContainer || !subContainer || !contentArea) return;
-      
-      if (!pdfGuidesOrder.main || pdfGuidesOrder.main.length === 0) {
-          pdfGuidesOrder.main = Object.keys(pdfGuidesTree);
-      }
-      Object.keys(pdfGuidesTree).forEach(k => {
-          if (!pdfGuidesOrder.main.includes(k)) pdfGuidesOrder.main.push(k);
-      });
-      pdfGuidesOrder.main = pdfGuidesOrder.main.filter(k => pdfGuidesTree[k] !== undefined);
-
-      if (!pdfGuidesTree[activeGuideMain]) {
-          activeGuideMain = pdfGuidesOrder.main[0] || "Offense";
-      }
-
-      if (!pdfGuidesOrder.sub) pdfGuidesOrder.sub = {};
-      if (!pdfGuidesOrder.sub[activeGuideMain]) {
-          pdfGuidesOrder.sub[activeGuideMain] = Object.keys(pdfGuidesTree[activeGuideMain] || {});
-      }
-      Object.keys(pdfGuidesTree[activeGuideMain] || {}).forEach(sk => {
-          if (!pdfGuidesOrder.sub[activeGuideMain].includes(sk)) pdfGuidesOrder.sub[activeGuideMain].push(sk);
-      });
-      pdfGuidesOrder.sub[activeGuideMain] = pdfGuidesOrder.sub[activeGuideMain].filter(sk => pdfGuidesTree[activeGuideMain][sk] !== undefined);
-
-      let subKeys = pdfGuidesOrder.sub[activeGuideMain] || [];
-      if (!subKeys.includes(activeGuideSub)) {
-          activeGuideSub = subKeys[0] || "";
-      }
-
-      // Level 1 Main Folders
-      mainContainer.innerHTML = pdfGuidesOrder.main.map(mainCat => {
-        let encMain = encodeURIComponent(mainCat);
-        return `
-        <div style="display:inline-flex; align-items:center; background:${mainCat === activeGuideMain ? 'var(--primary)' : 'var(--card-bg)'}; border:1px solid var(--card-border); border-radius:20px; padding:2px 8px; gap:4px;">
-           <span style="font-size:12px; font-weight:bold; cursor:pointer; color:${mainCat === activeGuideMain ? '#fff' : 'var(--text-muted)'}; padding:4px 6px;" onclick="switchGuideMain(decodeURIComponent('${encMain}'))">${mainCat}</span>
-           <div class="admin-only" style="display:inline-flex; gap:2px; align-items:center;">
-              <button type="button" class="toggle-board-btn" style="padding:1px 4px; font-size:9px;" onclick="moveGuideMain(decodeURIComponent('${encMain}'), -1, event)" title="Move Left">◀</button>
-              <button type="button" class="toggle-board-btn" style="padding:1px 4px; font-size:9px;" onclick="moveGuideMain(decodeURIComponent('${encMain}'), 1, event)" title="Move Right">▶</button>
-              <button type="button" class="toggle-board-btn" style="padding:1px 4px; font-size:9px;" onclick="renameMainFolder(decodeURIComponent('${encMain}'), event)" title="Rename">✏️</button>
-              <button type="button" class="remove-btn" style="font-size:14px; padding:2px 6px; cursor:pointer; color:${mainCat === activeGuideMain ? '#fca5a5' : '#ef4444'};" onclick="deleteMainFolder(decodeURIComponent('${encMain}'), event)" title="Delete">&times;</button>
-           </div>
-        </div>
-        `;
-      }).join('') + `<button class="toggle-board-btn admin-only" onclick="addMainFolderPrompt()" style="margin-left:auto;">+ Add Main Folder</button>`;
-
-      // Level 2 Sub Tabs
-      let subTabsHtml = subKeys.map(subKey => {
-        let encSub = encodeURIComponent(subKey);
-        return `
-        <div style="display:inline-flex; align-items:center; background:#fff; border:1px solid ${subKey === activeGuideSub ? 'var(--accent)' : 'var(--card-border)'}; border-radius:15px; padding:2px 8px; gap:4px;">
-           <span style="font-size:11px; font-weight:bold; cursor:pointer; color:${subKey === activeGuideSub ? 'var(--accent)' : 'var(--text)'};" onclick="switchGuideSub(decodeURIComponent('${encSub}'))">${subKey}</span>
-           <div class="admin-only" style="display:inline-flex; gap:2px; align-items:center;">
-              <button type="button" class="toggle-board-btn" style="padding:1px 3px; font-size:8.5px;" onclick="moveGuideSub(decodeURIComponent('${encSub}'), -1, event)" title="Move Left">◀</button>
-              <button type="button" class="toggle-board-btn" style="padding:1px 3px; font-size:8.5px;" onclick="moveGuideSub(decodeURIComponent('${encSub}'), 1, event)" title="Move Right">▶</button>
-              <button type="button" class="toggle-board-btn" style="padding:1px 3px; font-size:8.5px;" onclick="renameSubGuideTab(decodeURIComponent('${encSub}'), event)" title="Rename">✏️</button>
-              <button type="button" class="remove-btn admin-only" onclick="deleteSubGuideTab(decodeURIComponent('${encSub}'), event)" title="Delete" style="font-size:14px; padding:2px 6px; cursor:pointer; color:#ef4444;">&times;</button>
-           </div>
-        </div>
-        `;
-      }).join('');
-
-      subContainer.innerHTML = subTabsHtml || '<span style="font-size:11px; color:var(--text-muted);">No sub-tabs found. Add one above.</span>';
-
-      let guideVal = (pdfGuidesTree[activeGuideMain] && pdfGuidesTree[activeGuideMain][activeGuideSub]) || "";
-      let displayHtml = guideVal.startsWith("http") ? `<iframe src="${guideVal}" style="width:100%; height:600px; border:none;" title="Playbook Guide"></iframe>` : `<div style="padding:20px; text-align:center; color:var(--text-muted);">No document uploaded for [${activeGuideMain} > ${activeGuideSub}] yet.</div>`;
-
-      contentArea.innerHTML = `
-        <div class="admin-only" style="padding: 10px; background: #f8fafc; border: 1px solid var(--card-border); border-radius: 6px; margin-bottom: 10px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:space-between;">
-           <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-             <label style="font-size:12px; font-weight:bold; color:var(--primary);">Upload Document for [${activeGuideMain} / ${activeGuideSub}]:</label>
-             <input type="file" id="guide-file-input" accept=".pdf,.doc,.docx" onchange="uploadGuideFile(event)" />
-           </div>
-           <div>
-             <button class="toggle-board-btn" style="background:var(--primary); color:#fff;" onclick="openGuideFullScreen()">⛶ Full Screen PDF</button>
-           </div>
-        </div>
-        <div style="flex-grow:1; background:#fff; border:1px solid var(--card-border); border-radius:6px; overflow:hidden; min-height:600px; display:flex; flex-direction:column;">
-           ${displayHtml}
-        </div>
-      `;
-    }
-
     async function uploadGuideFile(e) {
         const file = e.target.files[0];
         if (!file || !activeGuideMain || !activeGuideSub) return;
@@ -3454,18 +3560,6 @@
             renderGuideTab();
             alert("Guide uploaded successfully!");
         } catch (err) { alert("Upload failed: " + err.message); }
-    }
-
-    function switchGuideMain(mainCat) {
-        activeGuideMain = mainCat;
-        let subKeys = (pdfGuidesOrder.sub && pdfGuidesOrder.sub[activeGuideMain]) || Object.keys(pdfGuidesTree[activeGuideMain] || {});
-        activeGuideSub = subKeys[0] || "";
-        renderGuideTab();
-    }
-
-    function switchGuideSub(subKey) {
-        activeGuideSub = subKey;
-        renderGuideTab();
     }
 
     function addMainFolderPrompt() {
