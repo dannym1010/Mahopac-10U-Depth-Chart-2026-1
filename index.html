@@ -179,7 +179,7 @@
     .custom-modal-card, .print-modal-card { background: #fff; padding: 20px; border-radius: 8px; width: 380px; max-width: 90%; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
     .custom-modal-card h3, .print-modal-card h3 { margin-top: 0; color: var(--primary); font-size: 16px; margin-bottom: 15px;}
 
-    /* FULLSCREEN PDF MODAL OVERLAY (Tablet & iPad Touch Friendly) */
+    /* FULLSCREEN PDF MODAL OVERLAY */
     #pdf-fullscreen-modal {
       position: fixed; inset: 0; width: 100vw; height: 100dvh; background: rgba(15, 23, 42, 0.96); z-index: 999999; display: flex; flex-direction: column; padding: 12px; box-sizing: border-box;
     }
@@ -285,7 +285,7 @@
     @media print {
       @page { size: letter portrait; margin: 0.3in; }
       body { background-color: #ffffff !important; color: #000000 !important; padding: 0; margin: 0; font-size: var(--print-font-size, 10px) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; width: 100% !important; overflow: visible !important; }
-      .toolbar, #sidebar-container, .remove-btn, .action-group, p.subtitle, .search-box, .tab-navigation, .toggle-board-btn, .week-bar, .board-controls, .add-row-btn, .add-form-btn, .row-actions, .practice-dashboard-info, #print-modal, #new-prac-modal, #scrimmage-print-modal, #scrimmage-filter-modal, #templates-modal, #guide-manager-modal, #approval-pending-overlay, .col-resizer, .coach-popup-box, .coach-popup-container > div:last-child, th.no-print, td.no-print, th.admin-only, td.admin-only { display: none !important; }
+      .toolbar, #sidebar-container, .remove-btn, .action-group, p.subtitle, .search-box, .tab-navigation, .toggle-board-btn, .week-bar, .board-controls, .add-row-btn, .add-form-btn, .row-actions, .practice-dashboard-info, #print-modal, #new-prac-modal, #scrimmage-print-modal, #scrimmage-filter-modal, #templates-modal, #guide-manager-modal, #copy-week-modal, #approval-pending-overlay, .col-resizer, .coach-popup-box, .coach-popup-container > div:last-child, th.no-print, td.no-print, th.admin-only, td.admin-only { display: none !important; }
       
       .no-print-text { display: none !important; }
       .app-layout, .boards-container, .unit-panel { display: block !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
@@ -410,6 +410,9 @@
     <div class="week-controls">
       <span class="week-label">Opponent / Label:</span>
       <input type="text" id="opponent-input" class="opponent-input" placeholder="e.g., vs. Patriots / Preseason" oninput="updateOpponentLabel(this.value)" />
+    </div>
+    <div class="week-controls admin-only">
+      <button class="toggle-board-btn" style="background:var(--primary); color:#fff; padding:5px 10px;" onclick="openCopyWeekModal()" title="Copy formations and depth chart from one week to another">📋 Copy Week Data</button>
     </div>
   </div>
 
@@ -741,6 +744,47 @@
     </div>
   </div>
 
+  <!-- COPY WEEK DATA MODAL -->
+  <div id="copy-week-modal" class="custom-modal hidden">
+    <div class="custom-modal-card" style="width: 380px;">
+       <h3>📋 Copy Week Formations & Depth Chart</h3>
+       <label style="font-size:11px; font-weight:bold; color:var(--primary); display:block; margin-bottom:4px;">Copy From (Source Week):</label>
+       <select id="copy-src-week-select" class="prac-select" style="margin-bottom:12px;">
+         <option value="0">Week 0</option>
+         <option value="1">Week 1</option>
+         <option value="2">Week 2</option>
+         <option value="3">Week 3</option>
+         <option value="4">Week 4</option>
+         <option value="5">Week 5</option>
+         <option value="6">Week 6</option>
+         <option value="7">Week 7</option>
+         <option value="8">Week 8</option>
+       </select>
+
+       <label style="font-size:11px; font-weight:bold; color:var(--primary); display:block; margin-bottom:4px;">Copy To (Target Week):</label>
+       <select id="copy-target-week-select" class="prac-select" style="margin-bottom:15px;">
+         <option value="0">Week 0</option>
+         <option value="1">Week 1</option>
+         <option value="2">Week 2</option>
+         <option value="3">Week 3</option>
+         <option value="4">Week 4</option>
+         <option value="5">Week 5</option>
+         <option value="6">Week 6</option>
+         <option value="7">Week 7</option>
+         <option value="8">Week 8</option>
+       </select>
+
+       <div style="font-size:11px; color:#92400e; margin-bottom:15px; background:#fef3c7; padding:10px; border-radius:6px; border:1px solid #fde68a; line-height:1.4;">
+         ⚠️ <strong>Note:</strong> This will overwrite all formations, position card layouts, starter/sub depth charts, and scrimmage rotations in the target week with the source week's data.
+       </div>
+
+       <div style="display: flex; gap: 8px; justify-content: flex-end;">
+          <button class="toggle-board-btn" onclick="closeCopyWeekModal()">Cancel</button>
+          <button class="add-row-btn" style="margin:0; background:var(--primary);" onclick="executeCopyWeek()">Copy Week Data</button>
+       </div>
+    </div>
+  </div>
+
   <!-- GUIDE TAB ORGANIZER MODAL (Clean, Dedicated Management) -->
   <div id="guide-manager-modal" class="custom-modal hidden">
     <div class="custom-modal-card" style="width: 460px;">
@@ -858,24 +902,6 @@
         printFontSize = size;
         document.documentElement.style.setProperty('--print-font-size', size + 'px');
         localStorage.setItem("footballPrintFontSize", JSON.stringify(size));
-    }
-
-    function forceSyncCloud() {
-        if (!cloudEnabled || !db) {
-            alert("Cloud sync is not active (running offline mode).");
-            return;
-        }
-        setSyncStatus("☁️ Syncing...", "#d97706");
-        db.collection("teamData").doc("depthChartData").set({
-            weeklyData, defaultFormations, practiceData, masterPlayLibrary, cascadingDrills, pdfGuidesTree, pdfGuidesOrder, activeGuideMain, activeGuideSub, collapsedFolders, savedCoachesList, practiceTemplates, teamCoachesList,
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true }).then(() => {
-            setSyncStatus("✅ Live Cloud Synced", "#16a34a");
-            alert("Successfully forced all local formations, drill folders, and data to live cloud database!");
-        }).catch(err => {
-            setSyncStatus("⚠️ Cloud Error", "#ef4444");
-            alert("Cloud sync error: " + err.message);
-        });
     }
 
     function toggleFullScreen() {
@@ -1107,41 +1133,70 @@
     let cascadingDrills = safeJSONParse("footballCascadingDrills", defaultCascadingDrills);
     let depthChart = null, currentPracticeId = null;
 
-    function saveState() {
+    /* GRANULAR SCOPED SYNC (Prevents cross-tab state overwrites) */
+    function saveState(scope = 'all') {
         if (isImporting) return;
         const prac = practiceData.find(p => p.id === currentPracticeId);
         if (prac) prac.lastEdited = Date.now();
 
-        localStorage.setItem("footballWeeklyData", JSON.stringify(weeklyData));
-        localStorage.setItem("footballDefaultFormations", JSON.stringify(defaultFormations));
-        localStorage.setItem("footballPracticeData", JSON.stringify(practiceData));
-        localStorage.setItem("footballMasterPlays", JSON.stringify(masterPlayLibrary));
-        localStorage.setItem("footballCascadingDrills", JSON.stringify(cascadingDrills));
-        localStorage.setItem("footballPdfGuidesTree", JSON.stringify(pdfGuidesTree));
-        localStorage.setItem("footballPdfGuidesOrder", JSON.stringify(pdfGuidesOrder));
-        localStorage.setItem("footballCollapsedFolders", JSON.stringify(collapsedFolders));
-        localStorage.setItem("footballSavedCoaches", JSON.stringify(savedCoachesList));
-        localStorage.setItem("footballPracticeTemplates", JSON.stringify(practiceTemplates));
-        if (userRole === 'admin') {
-            localStorage.setItem("footballTeamCoaches", JSON.stringify(teamCoachesList));
+        if (scope === 'all' || scope === 'depthChart') {
+            localStorage.setItem("footballWeeklyData", JSON.stringify(weeklyData));
+            localStorage.setItem("footballDefaultFormations", JSON.stringify(defaultFormations));
         }
+        if (scope === 'all' || scope === 'practice') {
+            localStorage.setItem("footballPracticeData", JSON.stringify(practiceData));
+            localStorage.setItem("footballPracticeTemplates", JSON.stringify(practiceTemplates));
+        }
+        if (scope === 'all' || scope === 'drills') {
+            localStorage.setItem("footballCascadingDrills", JSON.stringify(cascadingDrills));
+            localStorage.setItem("footballMasterPlays", JSON.stringify(masterPlayLibrary));
+        }
+        if (scope === 'all' || scope === 'guides') {
+            localStorage.setItem("footballPdfGuidesTree", JSON.stringify(pdfGuidesTree));
+            localStorage.setItem("footballPdfGuidesOrder", JSON.stringify(pdfGuidesOrder));
+        }
+        if (scope === 'all' || scope === 'users') {
+            localStorage.setItem("footballSavedCoaches", JSON.stringify(savedCoachesList));
+            if (userRole === 'admin') {
+                localStorage.setItem("footballTeamCoaches", JSON.stringify(teamCoachesList));
+            }
+        }
+        localStorage.setItem("footballCollapsedFolders", JSON.stringify(collapsedFolders));
 
         if (cloudEnabled && db) {
             setSyncStatus("☁️ Saving...", "#d97706");
             
-            let payload = {
-                weeklyData, defaultFormations, practiceData, masterPlayLibrary, 
-                cascadingDrills, pdfGuidesTree, pdfGuidesOrder, activeGuideMain, 
-                activeGuideSub, collapsedFolders, savedCoachesList, practiceTemplates,
+            let updatePayload = {
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             };
 
-            // Only Head Coach (Admin) is permitted to sync staff permissions to Firestore
-            if (userRole === 'admin' || (currentUser && currentUser.email && currentUser.email.toLowerCase() === "dannym1010@gmail.com")) {
-                payload.teamCoachesList = teamCoachesList;
+            if (scope === 'all' || scope === 'depthChart') {
+                updatePayload.weeklyData = weeklyData;
+                updatePayload.defaultFormations = defaultFormations;
             }
+            if (scope === 'all' || scope === 'practice') {
+                updatePayload.practiceData = practiceData;
+                updatePayload.practiceTemplates = practiceTemplates;
+            }
+            if (scope === 'all' || scope === 'drills') {
+                updatePayload.cascadingDrills = cascadingDrills;
+                updatePayload.masterPlayLibrary = masterPlayLibrary;
+            }
+            if (scope === 'all' || scope === 'guides') {
+                updatePayload.pdfGuidesTree = pdfGuidesTree;
+                updatePayload.pdfGuidesOrder = pdfGuidesOrder;
+                updatePayload.activeGuideMain = activeGuideMain;
+                updatePayload.activeGuideSub = activeGuideSub;
+            }
+            if (scope === 'all' || scope === 'users') {
+                updatePayload.savedCoachesList = savedCoachesList;
+                if (userRole === 'admin' || (currentUser && currentUser.email && currentUser.email.toLowerCase() === "dannym1010@gmail.com")) {
+                    updatePayload.teamCoachesList = teamCoachesList;
+                }
+            }
+            updatePayload.collapsedFolders = collapsedFolders;
 
-            db.collection("teamData").doc("depthChartData").set(payload, { merge: true }).then(() => {
+            db.collection("teamData").doc("depthChartData").set(updatePayload, { merge: true }).then(() => {
                 setSyncStatus("✅ Live Cloud Synced", "#16a34a");
             }).catch(err => {
                 console.error("Firestore sync error:", err);
@@ -1151,18 +1206,23 @@
     }
 
     let saveTimeout = null;
-    function triggerDebouncedSave() {
+    function triggerDebouncedSave(scope = 'all') {
         if (isImporting) return;
         if (saveTimeout) clearTimeout(saveTimeout);
-        saveTimeout = setTimeout(() => { saveState(); }, 300);
+        saveTimeout = setTimeout(() => { saveState(scope); }, 300);
     }
 
     window.addEventListener("beforeunload", () => {
         if (saveTimeout) {
             clearTimeout(saveTimeout);
-            saveState();
+            saveState('all');
         }
     });
+
+    function forceSyncCloud() {
+        saveState('all');
+        alert("Successfully forced all local formations, drill folders, and data to live cloud database!");
+    }
 
     /* Column Resizing */
     let resizingColIndex = null;
@@ -1264,6 +1324,65 @@
       return weeklyData[week].scrimmageChart;
     }
 
+    /* WEEK TO WEEK COPY FUNCTIONS */
+    function openCopyWeekModal() {
+        if (userRole !== 'admin') return alert("Only Head Coach (Admin) can copy week data.");
+        const srcSelect = document.getElementById("copy-src-week-select");
+        const targetSelect = document.getElementById("copy-target-week-select");
+        if (srcSelect && targetSelect) {
+            targetSelect.value = currentWeek;
+            let curWkNum = parseInt(currentWeek);
+            let defaultSrc = curWkNum > 0 ? String(curWkNum - 1) : "0";
+            srcSelect.value = defaultSrc;
+        }
+        document.getElementById("copy-week-modal").classList.remove("hidden");
+    }
+
+    function closeCopyWeekModal() {
+        document.getElementById("copy-week-modal").classList.add("hidden");
+    }
+
+    function executeCopyWeek() {
+        if (userRole !== 'admin') return alert("Only Head Coach (Admin) can copy week data.");
+        const srcWeek = document.getElementById("copy-src-week-select").value;
+        const targetWeek = document.getElementById("copy-target-week-select").value;
+
+        if (srcWeek === targetWeek) {
+            return alert("Source week and Target week cannot be the same.");
+        }
+
+        ensureWeekDataExists(srcWeek);
+        ensureWeekDataExists(targetWeek);
+
+        if (!confirm(`Are you sure you want to copy all formations, position layouts, and player positions from Week ${srcWeek} to Week ${targetWeek}? This will overwrite existing setups in Week ${targetWeek}.`)) {
+            return;
+        }
+
+        const srcData = weeklyData[srcWeek];
+
+        // Deep copy formations, depth chart, and scrimmage chart
+        weeklyData[targetWeek].formations = JSON.parse(JSON.stringify(srcData.formations || []));
+        weeklyData[targetWeek].depthChart = JSON.parse(JSON.stringify(srcData.depthChart || {}));
+        weeklyData[targetWeek].scrimmageChart = JSON.parse(JSON.stringify(srcData.scrimmageChart || {}));
+
+        if (saveTimeout) clearTimeout(saveTimeout);
+        saveState('depthChart');
+
+        if (currentWeek === targetWeek) {
+            depthChart = getWeekDepthChart(currentWeek);
+            renderActiveBoards();
+            renderMasterRoster();
+            if (activeUnit === 'scrimmage') renderScrimmageTab();
+        } else {
+            changeWeek(targetWeek);
+            const weekSelect = document.getElementById("week-select");
+            if (weekSelect) weekSelect.value = targetWeek;
+        }
+
+        closeCopyWeekModal();
+        alert(`Successfully copied Week ${srcWeek} formations and player positions to Week ${targetWeek}!`);
+    }
+
     function populateTemplateDropdown() {
         const select = document.getElementById("practice-template-select");
         if (!select) return;
@@ -1283,7 +1402,7 @@
         if (confirm(`Apply template "${templateName}"? This will replace current periods.`)) {
             prac.plan = JSON.parse(JSON.stringify(practiceTemplates[templateName]));
             if (saveTimeout) clearTimeout(saveTimeout);
-            saveState();
+            saveState('practice');
             renderPracticePlan();
             document.getElementById("practice-template-select").value = "";
         }
@@ -1297,7 +1416,7 @@
             let cleanName = tName.trim();
             practiceTemplates[cleanName] = JSON.parse(JSON.stringify(prac.plan));
             if (saveTimeout) clearTimeout(saveTimeout);
-            saveState();
+            saveState('practice');
             populateTemplateDropdown();
             alert(`Template "${cleanName}" saved!`);
         }
@@ -1336,7 +1455,7 @@
             practiceTemplates[cleanName] = practiceTemplates[oldName];
             delete practiceTemplates[oldName];
             if (saveTimeout) clearTimeout(saveTimeout);
-            saveState();
+            saveState('practice');
             populateTemplateDropdown();
             openTemplatesManager();
         }
@@ -1347,7 +1466,7 @@
         if (confirm(`Delete template "${name}"?`)) {
             delete practiceTemplates[name];
             if (saveTimeout) clearTimeout(saveTimeout);
-            saveState();
+            saveState('practice');
             populateTemplateDropdown();
             openTemplatesManager();
         }
@@ -1368,7 +1487,7 @@
                 if (Array.isArray(parsed)) {
                     cascadingDrills = parsed;
                     if (saveTimeout) clearTimeout(saveTimeout);
-                    saveState();
+                    saveState('drills');
                     renderDrillsTab();
                     alert("Drills imported successfully!");
                 }
@@ -1473,7 +1592,7 @@
                 if (newDrillsTree.length > 0) {
                     cascadingDrills = newDrillsTree;
                     if (saveTimeout) clearTimeout(saveTimeout);
-                    saveState();
+                    saveState('drills');
                     renderDrillsTab();
                     alert("Drills imported successfully!");
                 }
@@ -1486,7 +1605,7 @@
     function toggleDrillFolder(folderId, e) {
         if (e) e.stopPropagation();
         collapsedFolders[folderId] = !collapsedFolders[folderId];
-        saveState();
+        saveState('all');
         renderDrillsTab();
     }
 
@@ -1495,7 +1614,7 @@
         if (confirm("Reset drill library to default structure?")) {
             cascadingDrills = JSON.parse(JSON.stringify(defaultCascadingDrills));
             if (saveTimeout) clearTimeout(saveTimeout);
-            saveState();
+            saveState('drills');
             renderDrillsTab();
         }
     }
@@ -1505,7 +1624,7 @@
         if (name && name.trim() !== "") {
             cascadingDrills.push({ name: name.trim(), subfolders: [], drills: [] });
             if (saveTimeout) clearTimeout(saveTimeout);
-            saveState(); renderDrillsTab();
+            saveState('drills'); renderDrillsTab();
         }
     }
 
@@ -1519,7 +1638,7 @@
                 folder.subfolders.push({ name: name.trim(), subfolders: [], drills: [] });
                 collapsedFolders[pathKey] = false;
                 if (saveTimeout) clearTimeout(saveTimeout);
-                saveState(); renderDrillsTab();
+                saveState('drills'); renderDrillsTab();
             }
         }
     }
@@ -1532,7 +1651,7 @@
             folder.drills.push({ name: "New Drill", desc: "", key: "" });
             collapsedFolders[pathKey] = false;
             if (saveTimeout) clearTimeout(saveTimeout);
-            saveState(); renderDrillsTab();
+            saveState('drills'); renderDrillsTab();
         }
     }
 
@@ -1544,7 +1663,7 @@
             if (newName && newName.trim() !== "") {
                 folder.name = newName.trim();
                 if (saveTimeout) clearTimeout(saveTimeout);
-                saveState(); renderDrillsTab();
+                saveState('drills'); renderDrillsTab();
             }
         }
     }
@@ -1555,7 +1674,7 @@
         if (confirm("Delete this folder and all its contents?")) {
             removeFolderByPath(cascadingDrills, pathKey);
             if (saveTimeout) clearTimeout(saveTimeout);
-            saveState(); renderDrillsTab();
+            saveState('drills'); renderDrillsTab();
         }
     }
 
@@ -1576,7 +1695,7 @@
         let [moved] = list.splice(idx, 1);
         list.splice(newIdx, 0, moved);
         if (saveTimeout) clearTimeout(saveTimeout);
-        saveState();
+        saveState('drills');
         renderDrillsTab();
     }
 
@@ -1584,7 +1703,7 @@
         let folder = findFolderByPath(cascadingDrills, pathKey);
         if (folder && folder.drills && folder.drills[index]) {
             folder.drills[index][field] = val;
-            triggerDebouncedSave();
+            triggerDebouncedSave('drills');
         }
     }
 
@@ -1598,7 +1717,7 @@
             targetFolder.drills.push(movedDrill);
             collapsedFolders[targetPath] = false;
             if (saveTimeout) clearTimeout(saveTimeout);
-            saveState();
+            saveState('drills');
             renderDrillsTab();
         }
     }
@@ -1611,7 +1730,7 @@
             if (folder && folder.drills) {
                 folder.drills.splice(index, 1);
                 if (saveTimeout) clearTimeout(saveTimeout);
-                saveState(); renderDrillsTab();
+                saveState('drills'); renderDrillsTab();
             }
         }
     }
@@ -1793,7 +1912,7 @@
     function toggleFolderCollapse(folderKey, e) {
         if (e) e.stopPropagation();
         collapsedFolders[folderKey] = !collapsedFolders[folderKey];
-        saveState();
+        saveState('all');
         populatePracticeDropdown();
     }
 
@@ -1809,7 +1928,7 @@
                 prac.plan[rIdx].stations[sIdx].desc = foundDrill.desc;
                 prac.plan[rIdx].stations[sIdx].focus = foundDrill.key;
                 if (saveTimeout) clearTimeout(saveTimeout);
-                saveState();
+                saveState('practice');
                 renderPracticePlan();
             }
         }
@@ -1837,7 +1956,7 @@
         } else {
             folder.drills.push({ name: drillName, desc: st.desc || "", key: st.focus || "" });
         }
-        saveState();
+        saveState('drills');
     }
 
     function toggleCoachPopup(rIdx, sIdx, e) {
@@ -1863,7 +1982,7 @@
         }
 
         prac.plan[rIdx].stations[sIdx].coach = tokens.join(', ');
-        saveState();
+        saveState('practice');
         const stationEl = document.getElementById(`station_box_${rIdx}_${sIdx}`);
         if (stationEl) {
             const ta = stationEl.querySelector('.coach-textarea');
@@ -1889,7 +2008,7 @@
                 prac.plan[rIdx].stations[sIdx].coach = tokens.join(', ');
             }
             if (saveTimeout) clearTimeout(saveTimeout);
-            saveState();
+            saveState('practice');
             renderPracticePlan();
             const popup = document.getElementById(`coach_popup_${rIdx}_${sIdx}`);
             if (popup) popup.classList.remove('hidden');
@@ -1916,7 +2035,7 @@
                 }
             });
             if (saveTimeout) clearTimeout(saveTimeout);
-            saveState();
+            saveState('users');
             renderPracticePlan();
             if (activeUnit === 'users') renderUsers();
         }
@@ -2131,7 +2250,7 @@
         if (newIndex < 0 || newIndex >= prac.plan.length) return;
         const item = prac.plan.splice(rIdx, 1)[0];
         prac.plan.splice(newIndex, 0, item);
-        saveState();
+        saveState('practice');
         renderPracticePlan();
     }
 
@@ -2139,7 +2258,7 @@
         const prac = practiceData.find(p => p.id === currentPracticeId);
         if (prac) {
             prac[field] = val;
-            saveState();
+            saveState('practice');
             populatePracticeDropdown();
             renderPracticePlan();
         }
@@ -2149,7 +2268,7 @@
         const prac = practiceData.find(p => p.id === currentPracticeId);
         if (prac && Array.isArray(prac.plan) && prac.plan[rIdx]) {
             prac.plan[rIdx][field] = val;
-            saveState();
+            saveState('practice');
             renderPracticePlan();
         }
     }
@@ -2158,7 +2277,7 @@
         const prac = practiceData.find(p => p.id === currentPracticeId);
         if (prac && Array.isArray(prac.plan) && prac.plan[rIdx]) {
             prac.plan[rIdx].category = val;
-            saveState();
+            saveState('practice');
             renderPracticePlan();
         }
     }
@@ -2167,7 +2286,7 @@
         const prac = practiceData.find(p => p.id === currentPracticeId);
         if (prac && Array.isArray(prac.plan) && prac.plan[rIdx]) {
             prac.plan[rIdx].format = val;
-            saveState();
+            saveState('practice');
             renderPracticePlan();
         }
     }
@@ -2176,7 +2295,7 @@
         const prac = practiceData.find(p => p.id === currentPracticeId);
         if (prac && Array.isArray(prac.plan) && prac.plan[rIdx] && prac.plan[rIdx].stations[sIdx]) {
             prac.plan[rIdx].stations[sIdx][field] = val;
-            triggerDebouncedSave();
+            triggerDebouncedSave('practice');
         }
     }
 
@@ -2185,7 +2304,7 @@
         if (prac && Array.isArray(prac.plan) && prac.plan[rIdx]) {
             if (!prac.plan[rIdx].stations) prac.plan[rIdx].stations = [];
             prac.plan[rIdx].stations.push({ name: "New Station / Group", desc: "", coach: "", focus: "" });
-            saveState();
+            saveState('practice');
             renderPracticePlan();
         }
     }
@@ -2196,7 +2315,7 @@
             if (prac.plan[rIdx].stations.length <= 1) return alert("Period must have at least one station.");
             prac.plan[rIdx].stations.splice(sIdx, 1);
             if (saveTimeout) clearTimeout(saveTimeout);
-            saveState();
+            saveState('practice');
             renderPracticePlan();
         }
     }
@@ -2207,7 +2326,7 @@
             if (!Array.isArray(prac.plan)) prac.plan = [];
             let defaultCat = cascadingDrills.length > 0 ? cascadingDrills[0].name : "General";
             prac.plan.push({ time: 10, category: defaultCat, format: "static", stations: [{ name: "New Group", desc: "", coach: "", focus: "" }] });
-            saveState(); renderPracticePlan();
+            saveState('practice'); renderPracticePlan();
         }
     }
 
@@ -2216,7 +2335,7 @@
         if (prac && Array.isArray(prac.plan) && confirm("Remove period?")) {
             prac.plan.splice(rIdx, 1);
             if (saveTimeout) clearTimeout(saveTimeout);
-            saveState(); renderPracticePlan();
+            saveState('practice'); renderPracticePlan();
         }
     }
 
@@ -2267,7 +2386,7 @@
     function selectPractice(id) {
         currentPracticeId = id;
         document.getElementById("practice-tree-dropdown").classList.add("hidden");
-        saveState(); populatePracticeDropdown(); renderPracticePlan();
+        saveState('practice'); populatePracticeDropdown(); renderPracticePlan();
     }
 
     function openNewPracticeModal() { 
@@ -2291,7 +2410,7 @@
         currentPracticeId = newPrac.id;
         document.getElementById('new-prac-modal').classList.add('hidden');
         if (saveTimeout) clearTimeout(saveTimeout);
-        saveState(); populatePracticeDropdown(); renderPracticePlan();
+        saveState('practice'); populatePracticeDropdown(); renderPracticePlan();
     }
 
     function editPracticeDetails() {
@@ -2311,14 +2430,14 @@
         prac.title = title.trim();
         prac.date = dt.trim();
         if (saveTimeout) clearTimeout(saveTimeout);
-        saveState(); populatePracticeDropdown(); renderPracticePlan();
+        saveState('practice'); populatePracticeDropdown(); renderPracticePlan();
     }
 
     function autoNumberPractices() {
         if (confirm("Auto-number practice plans sequentially?")) {
             practiceData.forEach((p, index) => { p.title = `Practice #${index + 1}`; });
             if (saveTimeout) clearTimeout(saveTimeout);
-            saveState(); populatePracticeDropdown(); renderPracticePlan();
+            saveState('practice'); populatePracticeDropdown(); renderPracticePlan();
         }
     }
 
@@ -2328,7 +2447,7 @@
             practiceData = practiceData.filter(p => p.id !== currentPracticeId);
             currentPracticeId = practiceData[0].id;
             if (saveTimeout) clearTimeout(saveTimeout);
-            saveState(); populatePracticeDropdown(); renderPracticePlan();
+            saveState('practice'); populatePracticeDropdown(); renderPracticePlan();
         }
     }
 
@@ -2455,7 +2574,7 @@
         let positions = Array(slotCount).fill(null);
         form.rows.push({ id: "row_" + Date.now(), label: label.trim(), slotCount, positions });
         if (saveTimeout) clearTimeout(saveTimeout);
-        saveState(); renderActiveBoards();
+        saveState('depthChart'); renderActiveBoards();
       }
     }
 
@@ -2468,7 +2587,7 @@
         if (newLabel !== null && newLabel.trim() !== "") {
           form.rows[rIdx].label = newLabel.trim();
           if (saveTimeout) clearTimeout(saveTimeout);
-          saveState(); renderActiveBoards();
+          saveState('depthChart'); renderActiveBoards();
         }
       }
     }
@@ -2487,7 +2606,7 @@
         if (newCount < row.positions.length) row.positions = row.positions.slice(0, newCount);
         row.slotCount = newCount;
         if (saveTimeout) clearTimeout(saveTimeout);
-        saveState(); renderActiveBoards();
+        saveState('depthChart'); renderActiveBoards();
       }
     }
 
@@ -2502,7 +2621,7 @@
         if (newName !== null && newName.trim() !== "") {
           pos.name = newName.trim();
           if (saveTimeout) clearTimeout(saveTimeout);
-          saveState(); renderActiveBoards();
+          saveState('depthChart'); renderActiveBoards();
         }
       }
     }
@@ -2528,7 +2647,7 @@
       else targetRow.positions.push(pos);
       targetRow.slotCount = targetRow.positions.length;
       if (saveTimeout) clearTimeout(saveTimeout);
-      saveState(); renderActiveBoards();
+      saveState('depthChart'); renderActiveBoards();
     }
 
     function copyPositionToFormation(formId, rIdx, pIdx) {
@@ -2556,7 +2675,7 @@
       let dc = getWeekDepthChart(currentWeek);
       if (dc[pos.id]) dc[newPosId] = JSON.parse(JSON.stringify(dc[pos.id]));
       if (saveTimeout) clearTimeout(saveTimeout);
-      saveState(); renderActiveBoards();
+      saveState('depthChart'); renderActiveBoards();
     }
 
     function deleteFormationRow(formId, rIdx) {
@@ -2567,7 +2686,7 @@
       if (form && form.rows) {
         form.rows.splice(rIdx, 1);
         if (saveTimeout) clearTimeout(saveTimeout);
-        saveState(); renderActiveBoards();
+        saveState('depthChart'); renderActiveBoards();
       }
     }
 
@@ -2584,7 +2703,7 @@
         row.positions.push({ id: `${formId}-${cleanName}-${Date.now()}`, name: cleanName });
         row.slotCount = row.positions.length;
         if (saveTimeout) clearTimeout(saveTimeout);
-        saveState(); renderActiveBoards();
+        saveState('depthChart'); renderActiveBoards();
       }
     }
 
@@ -2601,7 +2720,7 @@
         form.rows[rIdx].positions.splice(pIdx, 1);
         form.rows[rIdx].slotCount = form.rows[rIdx].positions.length;
         if (saveTimeout) clearTimeout(saveTimeout);
-        saveState(); renderActiveBoards();
+        saveState('depthChart'); renderActiveBoards();
       }
     }
 
@@ -2633,7 +2752,7 @@
               }
           });
           if (saveTimeout) clearTimeout(saveTimeout);
-          saveState();
+          saveState('depthChart');
           renderActiveBoards();
       }
     }
@@ -2663,7 +2782,7 @@
           }
 
           if (saveTimeout) clearTimeout(saveTimeout);
-          saveState();
+          saveState('depthChart');
           renderActiveBoards();
       }
     }
@@ -2700,7 +2819,7 @@
         }
         
         if (saveTimeout) clearTimeout(saveTimeout);
-        saveState(); 
+        saveState('depthChart'); 
         renderActiveBoards();
         let targetId = currentWeek === "0" ? newBaseId : `${newBaseId}_${currentWeek}`;
         selectFormationForRoster(targetId);
@@ -2766,7 +2885,7 @@
       }
 
       if (saveTimeout) clearTimeout(saveTimeout);
-      saveState();
+      saveState('depthChart');
       renderActiveBoards();
       selectFormationForRoster(newFormId);
       alert(`Formation "${cleanName}" duplicated with all players successfully!`);
@@ -2793,7 +2912,7 @@
         forms[globalIdx2] = temp;
 
         if (saveTimeout) clearTimeout(saveTimeout);
-        saveState();
+        saveState('depthChart');
         renderActiveBoards();
       }
     }
@@ -2883,7 +3002,7 @@
           targetRow.positions[targetPIdx] = srcPos || null;
 
           if (saveTimeout) clearTimeout(saveTimeout);
-          saveState();
+          saveState('depthChart');
           renderActiveBoards();
         }
       }
@@ -3297,7 +3416,7 @@
       if (movedPlayer) chart[targetPosId].push(movedPlayer);
       draggedData = null; 
       if (saveTimeout) clearTimeout(saveTimeout);
-      saveState();
+      saveState('depthChart');
       if (isScrimmage) renderScrimmageTab(); else renderActiveBoards();
       renderMasterRoster();
     }
@@ -3309,7 +3428,7 @@
       if (chart[posId]) {
         chart[posId].splice(idx, 1);
         if (saveTimeout) clearTimeout(saveTimeout);
-        saveState();
+        saveState('depthChart');
         if (isScrimmage) renderScrimmageTab(); else renderActiveBoards();
         renderMasterRoster();
       }
@@ -3365,7 +3484,7 @@
     function updateOpponentLabel(val) {
       ensureWeekDataExists(currentWeek);
       weeklyData[currentWeek].opponent = val;
-      saveState();
+      saveState('depthChart');
     }
 
     function renderWristband() {
@@ -3389,11 +3508,11 @@
         weeklyData[currentWeek].wristbandData.columns[cIdx].plays[rIdx] = {};
       }
       weeklyData[currentWeek].wristbandData.columns[cIdx].plays[rIdx].text = val;
-      triggerDebouncedSave();
+      triggerDebouncedSave('depthChart');
     }
 
-    function addWbRow() { ensureWeekDataExists(currentWeek); weeklyData[currentWeek].wristbandData.rows += 1; if (saveTimeout) clearTimeout(saveTimeout); saveState(); renderWristband(); }
-    function removeWbRow() { ensureWeekDataExists(currentWeek); if(weeklyData[currentWeek].wristbandData.rows > 1) weeklyData[currentWeek].wristbandData.rows -= 1; if (saveTimeout) clearTimeout(saveTimeout); saveState(); renderWristband(); }
+    function addWbRow() { ensureWeekDataExists(currentWeek); weeklyData[currentWeek].wristbandData.rows += 1; if (saveTimeout) clearTimeout(saveTimeout); saveState('depthChart'); renderWristband(); }
+    function removeWbRow() { ensureWeekDataExists(currentWeek); if(weeklyData[currentWeek].wristbandData.rows > 1) weeklyData[currentWeek].wristbandData.rows -= 1; if (saveTimeout) clearTimeout(saveTimeout); saveState('depthChart'); renderWristband(); }
 
     function renderScouting() {
       ensureWeekDataExists(currentWeek);
@@ -3408,7 +3527,7 @@
       ensureWeekDataExists(currentWeek);
       if (!weeklyData[currentWeek].scouting) weeklyData[currentWeek].scouting = {};
       weeklyData[currentWeek].scouting[field] = val;
-      triggerDebouncedSave();
+      triggerDebouncedSave('depthChart');
     }
 
     /* PLAYBOOKS & POSITIONAL GUIDES - TOUCH-FRIENDLY DETERMINISTIC NAVIGATION */
@@ -3565,7 +3684,7 @@
         const [moved] = pdfGuidesOrder.main.splice(idx, 1);
         pdfGuidesOrder.main.splice(newIdx, 0, moved);
         if (saveTimeout) clearTimeout(saveTimeout);
-        saveState();
+        saveState('guides');
         renderGuideTab();
     }
 
@@ -3590,7 +3709,7 @@
 
             if (activeGuideMain === mainCat) activeGuideMain = clean;
             if (saveTimeout) clearTimeout(saveTimeout);
-            saveState();
+            saveState('guides');
             renderGuideTab();
         }
     }
@@ -3608,7 +3727,7 @@
             activeGuideMain = pdfGuidesOrder.main[0] || "Offense";
             activeGuideSub = (pdfGuidesOrder.sub[activeGuideMain] && pdfGuidesOrder.sub[activeGuideMain][0]) || "";
             if (saveTimeout) clearTimeout(saveTimeout);
-            saveState();
+            saveState('guides');
             renderGuideTab();
         }
     }
@@ -3625,7 +3744,7 @@
         const [moved] = subList.splice(idx, 1);
         subList.splice(newIdx, 0, moved);
         if (saveTimeout) clearTimeout(saveTimeout);
-        saveState();
+        saveState('guides');
         renderGuideTab();
     }
 
@@ -3640,7 +3759,7 @@
             if (!pdfGuidesTree[activeGuideMain]) pdfGuidesTree[activeGuideMain] = {};
             pdfGuidesTree[activeGuideMain][activeGuideSub] = downloadUrl;
             if (saveTimeout) clearTimeout(saveTimeout);
-            saveState();
+            saveState('guides');
             renderGuideTab();
             alert("Guide uploaded successfully!");
         } catch (err) { alert("Upload failed: " + err.message); }
@@ -3657,7 +3776,7 @@
                 activeGuideMain = clean;
                 activeGuideSub = "Full Playbook";
                 if (saveTimeout) clearTimeout(saveTimeout);
-                saveState();
+                saveState('guides');
                 renderGuideTab();
             } else {
                 alert("Main folder already exists.");
@@ -3676,7 +3795,7 @@
                 pdfGuidesOrder.sub[activeGuideMain].push(clean);
                 activeGuideSub = clean;
                 if (saveTimeout) clearTimeout(saveTimeout);
-                saveState();
+                saveState('guides');
                 renderGuideTab();
             } else {
                 alert("Sub-tab already exists.");
@@ -3700,7 +3819,7 @@
 
             activeGuideSub = clean;
             if (saveTimeout) clearTimeout(saveTimeout);
-            saveState();
+            saveState('guides');
             renderGuideTab();
         }
     }
@@ -3724,7 +3843,7 @@
                 activeGuideSub = remaining[0];
             }
             if (saveTimeout) clearTimeout(saveTimeout);
-            saveState();
+            saveState('guides');
             renderGuideTab();
         }
     }
@@ -3784,281 +3903,4 @@
                    <th style="padding:8px; border:1px solid var(--card-border);">Coach / User Email</th>
                    <th style="padding:8px; border:1px solid var(--card-border);">Role</th>
                    <th style="padding:8px; border:1px solid var(--card-border); text-align:center;">Status</th>
-                   <th style="padding:8px; border:1px solid var(--card-border); text-align:center;" class="admin-only">Action</th>
-                 </tr>
-               </thead>
-               <tbody>${rowsHtml}</tbody>
-             </table>
-           </div>
-           <div>
-             <div style="margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
-               <strong>Saved Practice Coaches</strong>
-               <button class="toggle-board-btn admin-only" style="background:#10b981; color:#fff; padding:4px 8px; font-size:10px;" onclick="addNewSavedCoachPrompt()">+ Add Name</button>
-             </div>
-             <div style="max-height: 250px; overflow-y:auto; border:1px solid var(--card-border); padding:8px; border-radius:6px; background:#fff;">
-               ${savedCoachesHtml || '<div style="color:var(--text-muted); font-size:11px; text-align:center;">No saved coaches.</div>'}
-             </div>
-           </div>
-         </div>
-       `;
-       container.innerHTML = html;
-    }
-
-    function addNewSavedCoachPrompt() {
-        let name = prompt("Enter coach name (e.g. Coach Smith):");
-        if (name && name.trim() !== "") {
-            let clean = name.trim();
-            if (!savedCoachesList.includes(clean)) {
-                savedCoachesList.push(clean);
-                savedCoachesList.sort();
-                if (saveTimeout) clearTimeout(saveTimeout);
-                saveState();
-                renderUsers();
-            }
-        }
-    }
-
-    function deleteSavedCoach(name) {
-        if (confirm(`Remove "${name}" from saved practice coaches?`)) {
-            savedCoachesList = savedCoachesList.filter(c => c !== name);
-            practiceData.forEach(p => {
-                if (Array.isArray(p.plan)) {
-                    p.plan.forEach(row => {
-                        if (row.stations) {
-                            row.stations.forEach(st => {
-                                if (st.coach) {
-                                    let tokens = st.coach.split(',').map(t => t.trim()).filter(Boolean);
-                                    tokens = tokens.filter(t => t !== name && t !== "Coach " + name);
-                                    st.coach = tokens.join(', ');
-                                }
-                            });
-                        }
-                    });
-                }
-            });
-            if (saveTimeout) clearTimeout(saveTimeout);
-            saveState();
-            renderUsers();
-            if (activeUnit === 'practice') renderPracticePlan();
-        }
-    }
-
-    function updateCoachRole(idx, newRole) {
-        if (teamCoachesList[idx]) {
-            if (teamCoachesList[idx].email.trim().toLowerCase() === "dannym1010@gmail.com") return;
-            teamCoachesList[idx].role = newRole;
-            if (saveTimeout) clearTimeout(saveTimeout);
-            saveState();
-            renderUsers();
-        }
-    }
-
-    function toggleCoachApproval(idx) {
-        if (teamCoachesList[idx]) {
-            if (teamCoachesList[idx].email.trim().toLowerCase() === "dannym1010@gmail.com") return;
-            teamCoachesList[idx].status = (teamCoachesList[idx].status === 'Active') ? 'Pending' : 'Active';
-            if (saveTimeout) clearTimeout(saveTimeout);
-            saveState();
-            renderUsers();
-        }
-    }
-
-    function addNewCoachPrompt() {
-       let email = prompt("Enter assistant coach email address:");
-       if (email && email.trim() !== "") {
-           let cleanEmail = email.trim().toLowerCase();
-           if (teamCoachesList.some(c => c.email && c.email.trim().toLowerCase() === cleanEmail)) {
-               return alert("Coach already exists.");
-           }
-           teamCoachesList.push({ email: email.trim(), role: "Assistant Coach", status: "Active" });
-           if (saveTimeout) clearTimeout(saveTimeout);
-           saveState();
-           renderUsers();
-       }
-    }
-
-    function removeCoachFromStaff(idx) {
-       if (teamCoachesList[idx].email.trim().toLowerCase() === "dannym1010@gmail.com") return alert("Cannot remove master admin.");
-       if (confirm(`Remove coach ${teamCoachesList[idx].email}?`)) {
-           teamCoachesList.splice(idx, 1);
-           if (saveTimeout) clearTimeout(saveTimeout);
-           saveState();
-           renderUsers();
-       }
-    }
-
-    function filterRoster() { renderMasterRoster(); }
-    function renderPlayLibrary() {
-      const container = document.getElementById("play-library-list");
-      if (container) container.innerHTML = masterPlayLibrary.map(p => `<li class="full-roster-item"><span>${p}</span></li>`).join('');
-    }
-
-    function exportData() {
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({weeklyData, defaultFormations, practiceData, masterPlayLibrary, cascadingDrills, pdfGuidesTree, pdfGuidesOrder, practiceTemplates, teamCoachesList, savedCoachesList}));
-        const dl = document.createElement('a'); dl.setAttribute("href", dataStr); dl.setAttribute("download", `football_backup.json`); dl.click();
-    }
-
-    function importData(e) {
-        const file = e.target.files[0]; if (!file) return;
-        const reader = new FileReader();
-        reader.onload = async function(evt) {
-            try {
-                isImporting = true;
-                const parsed = JSON.parse(evt.target.result);
-                if (parsed.defaultFormations && Array.isArray(parsed.defaultFormations)) defaultFormations = parsed.defaultFormations;
-                if (parsed.weeklyData && typeof parsed.weeklyData === 'object') weeklyData = parsed.weeklyData;
-                if (parsed.practiceData) practiceData = parsed.practiceData;
-                if (parsed.masterPlayLibrary) masterPlayLibrary = parsed.masterPlayLibrary;
-                if (parsed.cascadingDrills) cascadingDrills = parsed.cascadingDrills;
-                if (parsed.pdfGuidesTree) pdfGuidesTree = parsed.pdfGuidesTree;
-                if (parsed.pdfGuidesOrder) pdfGuidesOrder = parsed.pdfGuidesOrder;
-                if (parsed.collapsedFolders) collapsedFolders = parsed.collapsedFolders;
-                if (parsed.savedCoachesList) savedCoachesList = parsed.savedCoachesList;
-                if (parsed.practiceTemplates) practiceTemplates = { ...defaultPracticeTemplates, ...parsed.practiceTemplates };
-                if (parsed.teamCoachesList) teamCoachesList = parsed.teamCoachesList;
-
-                for (let w = 0; w <= 8; w++) ensureWeekDataExists(String(w));
-                saveState();
-                if (cloudEnabled && db) {
-                    await db.collection("teamData").doc("depthChartData").set({
-                        weeklyData, defaultFormations, practiceData, masterPlayLibrary, cascadingDrills, pdfGuidesTree, pdfGuidesOrder, collapsedFolders, savedCoachesList, practiceTemplates, teamCoachesList,
-                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                    }, { merge: true });
-                }
-                isImporting = false;
-                alert("Backup imported successfully!");
-                location.reload();
-            } catch (err) { 
-                isImporting = false;
-                alert("Invalid backup file: " + err.message); 
-            }
-        };
-        reader.readAsText(file);
-    }
-
-    function resetDefault() { if (confirm("Wipe all data?")) { localStorage.clear(); location.reload(); } }
-
-    function applyRole(role) {
-       userRole = role;
-       const badge = document.getElementById("user-role-badge");
-       const selectEl = document.getElementById("role-switcher-select");
-       if (selectEl) selectEl.value = role;
-
-       if (role === 'admin') {
-          document.body.classList.remove('view-only');
-          if (badge) { badge.textContent = "ADMIN"; badge.className = "role-badge role-admin"; }
-       } else {
-          document.body.classList.add('view-only');
-          if (badge) { badge.textContent = "ASSISTANT"; badge.className = "role-badge role-viewer"; }
-       }
-
-       if (activeUnit === 'drills') renderDrillsTab();
-       else if (activeUnit === 'scrimmage') renderScrimmageTab();
-       else if (['offense', 'defense', 'st', 'groups'].includes(activeUnit)) renderActiveBoards();
-       renderMasterRoster();
-    }
-
-    function bypassLogin() {
-      cloudEnabled = false;
-      document.getElementById("auth-overlay").style.display = "none";
-      document.getElementById("approval-pending-overlay").classList.add("hidden");
-      applyRole('admin');
-      document.getElementById("user-display-email").textContent = "Local Admin (Offline)";
-      setSyncStatus("Local Storage Mode (Offline)", "#16a34a");
-      initializeApp();
-    }
-
-    function switchAuthTab(mode) {
-      isSignUpMode = (mode === 'register');
-      document.getElementById("tab-login").classList.toggle('active', !isSignUpMode);
-      document.getElementById("tab-register").classList.toggle('active', isSignUpMode);
-      document.getElementById("auth-submit-btn").textContent = isSignUpMode ? "Create Account" : "Sign In";
-    }
-
-    async function handleEmailAuth(e) {
-      if (e) { e.preventDefault(); e.stopPropagation(); }
-      if (!auth) { bypassLogin(); return false; }
-      const email = document.getElementById("auth-email").value.trim();
-      const pass = document.getElementById("auth-password").value;
-      try {
-        if (isSignUpMode) await auth.createUserWithEmailAndPassword(email, pass);
-        else await auth.signInWithEmailAndPassword(email, pass);
-      } catch (err) { alert(err.message); }
-      return false;
-    }
-
-    async function signInWithGoogle() {
-      if (!auth) { bypassLogin(); return; }
-      try {
-        const provider = new firebase.auth.GoogleAuthProvider();
-        await auth.signInWithPopup(provider);
-      } catch (err) { alert(err.message); }
-    }
-
-    function signOutUser() { if (auth) auth.signOut().then(() => location.reload()); else location.reload(); }
-
-    if (auth) {
-      auth.onAuthStateChanged(async (user) => {
-        if (user) {
-          currentUser = user;
-          cloudEnabled = true;
-          document.getElementById("user-display-email").textContent = user.email || "Coach";
-
-          // Initialize live listener first so real-time permissions and team depth charts load
-          listenToLiveUpdates();
-
-          let isApproved = checkUserApprovalStatus(user.email);
-          if (!isApproved) {
-              document.getElementById("auth-overlay").style.display = "none";
-              document.getElementById("approval-pending-overlay").classList.remove("hidden");
-              document.getElementById("pending-user-email-display").textContent = user.email;
-              setSyncStatus("Approval Pending", "#d97706");
-              return;
-          } else {
-              document.getElementById("auth-overlay").style.display = "none";
-              document.getElementById("approval-pending-overlay").classList.add("hidden");
-              setSyncStatus("Live Cloud Sync Active", "#16a34a");
-          }
-
-          let coachEntry = teamCoachesList.find(c => c.email && c.email.trim().toLowerCase() === user.email.trim().toLowerCase());
-          let isHeadAdmin = (user.email.trim().toLowerCase() === "dannym1010@gmail.com" || (coachEntry && coachEntry.role && coachEntry.role.includes("Admin")));
-          applyRole(isHeadAdmin ? 'admin' : 'assistant');
-          initializeApp();
-        }
-      });
-    }
-
-    function initializeApp() {
-        for (let w = 0; w <= 8; w++) ensureWeekDataExists(String(w));
-        if (practiceData.length === 0) {
-            let defaultCat = cascadingDrills.length > 0 ? cascadingDrills[0].name : "General";
-            practiceData = [{
-                id: "prac_1", year: "2026", weekFolder: "Week 1", title: "Practice #1", 
-                date: new Date().toISOString().split('T')[0], day: "Wednesday", startTime: "17:05", endTime: "20:00", lastEdited: Date.now(),
-                plan: [{ time: 25, category: defaultCat, format: "static", stations: [{ name: "Warm-Up", desc: "Dynamic stretch", coach: "Coach Danny", focus: "Stance & Agility" }] }]
-            }];
-        }
-        
-        let sortedPracs = [...practiceData].sort((a, b) => (b.lastEdited || 0) - (a.lastEdited || 0));
-        currentPracticeId = sortedPracs[0].id;
-        depthChart = getWeekDepthChart(currentWeek);
-        
-        const weekSelect = document.getElementById("week-select");
-        if (weekSelect) weekSelect.value = currentWeek;
-
-        const oppInput = document.getElementById("opponent-input");
-        if (oppInput) oppInput.value = weeklyData[currentWeek]?.opponent || "";
-
-        const fontSelect = document.getElementById("print-font-size-select");
-        if (fontSelect) fontSelect.value = printFontSize;
-        document.documentElement.style.setProperty('--print-font-size', printFontSize + 'px');
-
-        switchUnitTab(activeUnit);
-    }
-
-    if (!auth) {
-        bypassLogin();
-    }
-  </script>
-</body>
-</html>
+                   <th style="padding:8px; border:1px solid var(--card-border); text-align:center;" class="admin-only">ActionI seem to be encountering an error. Can I try something else for you?
