@@ -356,6 +356,14 @@
       .practice-table td { font-size: var(--print-font-size, 10px) !important; border: 1px solid #000 !important; padding: 5px !important; color: #000 !important; vertical-align: top !important; word-wrap: break-word !important; overflow-wrap: break-word !important; height: auto !important; }
       .practice-table tr { page-break-inside: avoid !important; break-inside: avoid !important; }
       
+      /* Enforce fixed column layout on print to prevent trailing border glitch */
+      #col-0 { width: 12% !important; }
+      #col-1 { width: 16.2% !important; }
+      #col-2 { width: 41.8% !important; }
+      #col-3 { width: 14% !important; }
+      #col-4 { width: 16% !important; }
+      #col-5 { display: none !important; }
+
       .prac-input, .prac-select, .prac-textarea { display: none !important; }
       .print-val {
         display: block !important;
@@ -708,10 +716,10 @@
             <colgroup>
               <col id="col-0" style="width: 12%;">
               <col id="col-1" style="width: 16.2%;">
-              <col id="col-2" style="width: 37.8%;">
+              <col id="col-2" style="width: 41.8%;">
               <col id="col-3" style="width: 14%;">
               <col id="col-4" style="width: 16%;">
-              <col id="col-5" class="admin-only" style="width: 4%;">
+              <col id="col-5" class="admin-only" style="width: 0%;">
             </colgroup>
             <thead>
               <tr>
@@ -4163,7 +4171,7 @@
           let isApproved = checkUserApprovalStatus(user.email);
           if (!isApproved) {
               document.getElementById("auth-overlay").style.display = "none";
-              document.getElementById("approval-pending-overlay").classList.remove("hidden");
+              document.getElementById("approval-pending-overlay").classList.add("hidden");
               document.getElementById("pending-user-email-display").textContent = user.email;
               setSyncStatus("Approval Pending", "#d97706");
               return;
