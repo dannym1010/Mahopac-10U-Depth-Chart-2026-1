@@ -786,7 +786,6 @@
         localStorage.setItem("footballPrintFontSize", JSON.stringify(size));
     }
 
-    // Force sync without merge so deletions and new formations persist to Firestore
     function forceSyncCloud() {
         if (!cloudEnabled || !db) {
             alert("Cloud sync is not active (running offline mode).");
@@ -879,7 +878,7 @@
     };
 
     let savedTemplates = safeJSONParse("footballPracticeTemplates", {});
-    let practiceTemplates = { ...defaultPracticeTemplates, ...(typeof savedTemplates === 'object' && savedTemplates !== null ? savedTemplates : {}) };
+    let practiceTemplates = (savedTemplates && Object.keys(savedTemplates).length > 0) ? savedTemplates : defaultPracticeTemplates;
 
     let defaultPdfGuidesTree = {
       "Offense": { "Full Playbook": "", "Quarterbacks": "", "Running Backs": "", "Wide Receivers": "", "Offensive Line": "" },
@@ -899,8 +898,8 @@
     };
     let pdfGuidesOrder = safeJSONParse("footballPdfGuidesOrder", defaultPdfGuidesOrder);
 
-    let activeGuideMain = pdfGuidesOrder.main[0] || "Offense";
-    let activeGuideSub = (pdfGuidesOrder.sub[activeGuideMain] && pdfGuidesOrder.sub[activeGuideMain][0]) || "Full Playbook";
+    let activeGuideMain = (pdfGuidesOrder.main && pdfGuidesOrder.main[0]) || "Offense";
+    let activeGuideSub = (pdfGuidesOrder.sub && pdfGuidesOrder.sub[activeGuideMain] && pdfGuidesOrder.sub[activeGuideMain][0]) || "Full Playbook";
 
     const masterRoster = [
       { num: "2", firstName: "Mohammed", lastName: "Ibrahim" },
@@ -1031,48 +1030,6 @@
     let cascadingDrills = safeJSONParse("footballCascadingDrills", defaultCascadingDrills);
     let depthChart = null, currentPracticeId = null;
 
-    // Intelligent formation merger that prevents new formations from being erased by incoming cloud updates
-    function mergeWeeklyData(cloudWeekly) {
-        if (!cloudWeekly || typeof cloudWeekly !== 'object') return weeklyData;
-        Object.keys(cloudWeekly).forEach(wk => {
-            if (!weeklyData[wk]) {
-                weeklyData[wk] = cloudWeekly[wk];
-            } else {
-                let cloudForms = cloudWeekly[wk].formations || [];
-                let localForms = weeklyData[wk].formations || [];
-                let formMap = {};
-                // Preserve all unique formations from both cloud and local state
-                cloudForms.forEach(f => { if(f && f.id) formMap[f.id] = f; });
-                localForms.forEach(f => { if(f && f.id) formMap[f.id] = f; });
-                weeklyData[wk].formations = Object.values(formMap);
-
-                if (cloudWeekly[wk].depthChart) {
-                    weeklyData[wk].depthChart = { ...(cloudWeekly[wk].depthChart || {}), ...(weeklyData[wk].depthChart || {}) };
-                }
-                if (cloudWeekly[wk].scrimmageChart) {
-                    weeklyData[wk].scrimmageChart = { ...(cloudWeekly[wk].scrimmageChart || {}), ...(weeklyData[wk].scrimmageChart || {}) };
-                }
-                if (cloudWeekly[wk].opponent && !weeklyData[wk].opponent) {
-                    weeklyData[wk].opponent = cloudWeekly[wk].opponent;
-                }
-            }
-        });
-        return weeklyData;
-    }
-
-    function mergePractices(cloudPractices) {
-        if (!Array.isArray(cloudPractices)) return practiceData;
-        let mergedMap = {};
-        cloudPractices.forEach(cp => { if (cp && cp.id) mergedMap[cp.id] = cp; });
-        practiceData.forEach(lp => {
-            if (lp && lp.id) {
-                if (!mergedMap[lp.id]) mergedMap[lp.id] = lp;
-                else if ((lp.lastEdited || 0) >= (mergedMap[lp.id].lastEdited || 0)) mergedMap[lp.id] = lp;
-            }
-        });
-        return Object.values(mergedMap);
-    }
-
     function saveState() {
         if (isImporting) return;
         const prac = practiceData.find(p => p.id === currentPracticeId);
@@ -1107,7 +1064,7 @@
     function triggerDebouncedSave() {
         if (isImporting) return;
         if (saveTimeout) clearTimeout(saveTimeout);
-        saveTimeout = setTimeout(() => { saveState(); }, 400);
+        saveTimeout = setTimeout(() => { saveState(); }, 300);
     }
 
     window.addEventListener("beforeunload", () => {
@@ -1179,37 +1136,17 @@
         el.style.height = (el.scrollHeight + 8) + 'px';
     }
 
-    // Collect all unique formations across all weeks to prevent custom formations from being lost
-    function getMasterFormationsList() {
-        let masterMap = {};
-        defaultFormations.forEach(f => { masterMap[f.name.toLowerCase()] = JSON.parse(JSON.stringify(f)); });
-        Object.keys(weeklyData).forEach(w => {
-            if (weeklyData[w] && Array.isArray(weeklyData[w].formations)) {
-                weeklyData[w].formations.forEach(f => {
-                    if (f && f.name) masterMap[f.name.toLowerCase()] = JSON.parse(JSON.stringify(f));
-                });
-            }
-        });
-        return Object.values(masterMap);
-    }
-
     function ensureWeekDataExists(week) {
       if (!weeklyData[week] || typeof weeklyData[week] !== 'object') {
         weeklyData[week] = {};
       }
       
-      let masterFormations = getMasterFormationsList();
       if (!weeklyData[week].formations || !Array.isArray(weeklyData[week].formations) || weeklyData[week].formations.length === 0) {
-        weeklyData[week].formations = JSON.parse(JSON.stringify(masterFormations));
-      } else {
-        // Ensure any custom formations added to other weeks exist in this week too
-        masterFormations.forEach(mf => {
-          if (!weeklyData[week].formations.some(f => f.name.toLowerCase() === mf.name.toLowerCase())) {
-            let cloned = JSON.parse(JSON.stringify(mf));
-            cloned.id = cloned.id + "_" + week;
-            weeklyData[week].formations.push(cloned);
-          }
-        });
+        // Inherit formations from Week 0 or defaults cleanly
+        let templateForms = (weeklyData["0"] && Array.isArray(weeklyData["0"].formations) && weeklyData["0"].formations.length > 0)
+          ? weeklyData["0"].formations
+          : defaultFormations;
+        weeklyData[week].formations = JSON.parse(JSON.stringify(templateForms));
       }
 
       if (!weeklyData[week].depthChart || typeof weeklyData[week].depthChart !== 'object' || Array.isArray(weeklyData[week].depthChart)) {
@@ -1256,6 +1193,7 @@
         if (!prac) return;
         if (confirm(`Apply template "${templateName}"? This will replace current periods.`)) {
             prac.plan = JSON.parse(JSON.stringify(practiceTemplates[templateName]));
+            if (saveTimeout) clearTimeout(saveTimeout);
             saveState();
             renderPracticePlan();
             document.getElementById("practice-template-select").value = "";
@@ -1269,6 +1207,7 @@
         if (tName && tName.trim() !== "") {
             let cleanName = tName.trim();
             practiceTemplates[cleanName] = JSON.parse(JSON.stringify(prac.plan));
+            if (saveTimeout) clearTimeout(saveTimeout);
             saveState();
             populateTemplateDropdown();
             alert(`Template "${cleanName}" saved!`);
@@ -1307,6 +1246,7 @@
             let cleanName = newName.trim();
             practiceTemplates[cleanName] = practiceTemplates[oldName];
             delete practiceTemplates[oldName];
+            if (saveTimeout) clearTimeout(saveTimeout);
             saveState();
             populateTemplateDropdown();
             openTemplatesManager();
@@ -1317,6 +1257,7 @@
         let name = decodeURIComponent(encodedName);
         if (confirm(`Delete template "${name}"?`)) {
             delete practiceTemplates[name];
+            if (saveTimeout) clearTimeout(saveTimeout);
             saveState();
             populateTemplateDropdown();
             openTemplatesManager();
@@ -1337,6 +1278,7 @@
                 let parsed = JSON.parse(evt.target.result);
                 if (Array.isArray(parsed)) {
                     cascadingDrills = parsed;
+                    if (saveTimeout) clearTimeout(saveTimeout);
                     saveState();
                     renderDrillsTab();
                     alert("Drills imported successfully!");
@@ -1441,6 +1383,7 @@
                 }
                 if (newDrillsTree.length > 0) {
                     cascadingDrills = newDrillsTree;
+                    if (saveTimeout) clearTimeout(saveTimeout);
                     saveState();
                     renderDrillsTab();
                     alert("Drills imported successfully!");
@@ -1462,6 +1405,7 @@
         if (userRole !== 'admin') return alert("Only Head Coach (Admin) can reset drills.");
         if (confirm("Reset drill library to default structure?")) {
             cascadingDrills = JSON.parse(JSON.stringify(defaultCascadingDrills));
+            if (saveTimeout) clearTimeout(saveTimeout);
             saveState();
             renderDrillsTab();
         }
@@ -1471,6 +1415,7 @@
         let name = prompt("Enter new Top-Level Folder Name:");
         if (name && name.trim() !== "") {
             cascadingDrills.push({ name: name.trim(), subfolders: [], drills: [] });
+            if (saveTimeout) clearTimeout(saveTimeout);
             saveState(); renderDrillsTab();
         }
     }
@@ -1484,6 +1429,7 @@
                 if (!folder.subfolders) folder.subfolders = [];
                 folder.subfolders.push({ name: name.trim(), subfolders: [], drills: [] });
                 collapsedFolders[pathKey] = false;
+                if (saveTimeout) clearTimeout(saveTimeout);
                 saveState(); renderDrillsTab();
             }
         }
@@ -1496,6 +1442,7 @@
             if (!folder.drills) folder.drills = [];
             folder.drills.push({ name: "New Drill", desc: "", key: "" });
             collapsedFolders[pathKey] = false;
+            if (saveTimeout) clearTimeout(saveTimeout);
             saveState(); renderDrillsTab();
         }
     }
@@ -1507,6 +1454,7 @@
             let newName = prompt("Rename Folder:", folder.name);
             if (newName && newName.trim() !== "") {
                 folder.name = newName.trim();
+                if (saveTimeout) clearTimeout(saveTimeout);
                 saveState(); renderDrillsTab();
             }
         }
@@ -1517,6 +1465,7 @@
         if (userRole !== 'admin') return alert("Only Head Coach (Admin) can delete folders.");
         if (confirm("Delete this folder and all its contents?")) {
             removeFolderByPath(cascadingDrills, pathKey);
+            if (saveTimeout) clearTimeout(saveTimeout);
             saveState(); renderDrillsTab();
         }
     }
@@ -1537,6 +1486,7 @@
         if (newIdx < 0 || newIdx >= list.length) return;
         let [moved] = list.splice(idx, 1);
         list.splice(newIdx, 0, moved);
+        if (saveTimeout) clearTimeout(saveTimeout);
         saveState();
         renderDrillsTab();
     }
@@ -1558,6 +1508,7 @@
             if (!targetFolder.drills) targetFolder.drills = [];
             targetFolder.drills.push(movedDrill);
             collapsedFolders[targetPath] = false;
+            if (saveTimeout) clearTimeout(saveTimeout);
             saveState();
             renderDrillsTab();
         }
@@ -1570,6 +1521,7 @@
             let folder = findFolderByPath(cascadingDrills, pathKey);
             if (folder && folder.drills) {
                 folder.drills.splice(index, 1);
+                if (saveTimeout) clearTimeout(saveTimeout);
                 saveState(); renderDrillsTab();
             }
         }
@@ -1767,6 +1719,7 @@
                 prac.plan[rIdx].stations[sIdx].name = foundDrill.name;
                 prac.plan[rIdx].stations[sIdx].desc = foundDrill.desc;
                 prac.plan[rIdx].stations[sIdx].focus = foundDrill.key;
+                if (saveTimeout) clearTimeout(saveTimeout);
                 saveState();
                 renderPracticePlan();
             }
@@ -1846,6 +1799,7 @@
                 if (!tokens.includes(clean)) tokens.push(clean);
                 prac.plan[rIdx].stations[sIdx].coach = tokens.join(', ');
             }
+            if (saveTimeout) clearTimeout(saveTimeout);
             saveState();
             renderPracticePlan();
             const popup = document.getElementById(`coach_popup_${rIdx}_${sIdx}`);
@@ -1872,6 +1826,7 @@
                     });
                 }
             });
+            if (saveTimeout) clearTimeout(saveTimeout);
             saveState();
             renderPracticePlan();
             if (activeUnit === 'users') renderUsers();
@@ -2151,6 +2106,7 @@
         if (prac && Array.isArray(prac.plan) && prac.plan[rIdx] && prac.plan[rIdx].stations) {
             if (prac.plan[rIdx].stations.length <= 1) return alert("Period must have at least one station.");
             prac.plan[rIdx].stations.splice(sIdx, 1);
+            if (saveTimeout) clearTimeout(saveTimeout);
             saveState();
             renderPracticePlan();
         }
@@ -2170,6 +2126,7 @@
         const prac = practiceData.find(p => p.id === currentPracticeId);
         if (prac && Array.isArray(prac.plan) && confirm("Remove period?")) {
             prac.plan.splice(rIdx, 1);
+            if (saveTimeout) clearTimeout(saveTimeout);
             saveState(); renderPracticePlan();
         }
     }
@@ -2244,6 +2201,7 @@
         practiceData.push(newPrac);
         currentPracticeId = newPrac.id;
         document.getElementById('new-prac-modal').classList.add('hidden');
+        if (saveTimeout) clearTimeout(saveTimeout);
         saveState(); populatePracticeDropdown(); renderPracticePlan();
     }
 
@@ -2263,12 +2221,14 @@
         prac.weekFolder = wk.trim();
         prac.title = title.trim();
         prac.date = dt.trim();
+        if (saveTimeout) clearTimeout(saveTimeout);
         saveState(); populatePracticeDropdown(); renderPracticePlan();
     }
 
     function autoNumberPractices() {
         if (confirm("Auto-number practice plans sequentially?")) {
             practiceData.forEach((p, index) => { p.title = `Practice #${index + 1}`; });
+            if (saveTimeout) clearTimeout(saveTimeout);
             saveState(); populatePracticeDropdown(); renderPracticePlan();
         }
     }
@@ -2278,6 +2238,7 @@
         if (confirm("Delete this practice plan?")) {
             practiceData = practiceData.filter(p => p.id !== currentPracticeId);
             currentPracticeId = practiceData[0].id;
+            if (saveTimeout) clearTimeout(saveTimeout);
             saveState(); populatePracticeDropdown(); renderPracticePlan();
         }
     }
@@ -2301,8 +2262,14 @@
             if (doc.metadata && doc.metadata.hasPendingWrites) return;
 
             const data = doc.data();
-            if (data.weeklyData) weeklyData = mergeWeeklyData(data.weeklyData);
-            if (data.practiceData) practiceData = mergePractices(data.practiceData);
+            
+            // Accept cloud weeklyData without additive resurrection
+            if (data.weeklyData && typeof data.weeklyData === 'object') {
+                weeklyData = data.weeklyData;
+            }
+            if (data.practiceData && Array.isArray(data.practiceData)) {
+                practiceData = data.practiceData;
+            }
             if (data.cascadingDrills) cascadingDrills = data.cascadingDrills;
             
             if (data.pdfGuidesTree && typeof data.pdfGuidesTree === 'object') {
@@ -2322,7 +2289,7 @@
 
             if (data.savedCoachesList) savedCoachesList = data.savedCoachesList;
             if (data.practiceTemplates && typeof data.practiceTemplates === 'object') {
-                practiceTemplates = { ...defaultPracticeTemplates, ...data.practiceTemplates };
+                practiceTemplates = data.practiceTemplates;
                 populateTemplateDropdown();
             }
             if (data.teamCoachesList) teamCoachesList = data.teamCoachesList;
@@ -2359,6 +2326,7 @@
         if (!form.rows) form.rows = [];
         let positions = Array(slotCount).fill(null);
         form.rows.push({ id: "row_" + Date.now(), label: label.trim(), slotCount, positions });
+        if (saveTimeout) clearTimeout(saveTimeout);
         saveState(); renderActiveBoards();
       }
     }
@@ -2371,6 +2339,7 @@
         let newLabel = prompt("Edit Row Name:", form.rows[rIdx].label || "");
         if (newLabel !== null && newLabel.trim() !== "") {
           form.rows[rIdx].label = newLabel.trim();
+          if (saveTimeout) clearTimeout(saveTimeout);
           saveState(); renderActiveBoards();
         }
       }
@@ -2389,6 +2358,7 @@
         while(row.positions.length < newCount) row.positions.push(null);
         if (newCount < row.positions.length) row.positions = row.positions.slice(0, newCount);
         row.slotCount = newCount;
+        if (saveTimeout) clearTimeout(saveTimeout);
         saveState(); renderActiveBoards();
       }
     }
@@ -2403,6 +2373,7 @@
         let newName = prompt("Edit Position Name:", pos.name);
         if (newName !== null && newName.trim() !== "") {
           pos.name = newName.trim();
+          if (saveTimeout) clearTimeout(saveTimeout);
           saveState(); renderActiveBoards();
         }
       }
@@ -2428,6 +2399,7 @@
       if (emptyIdx !== -1) targetRow.positions[emptyIdx] = pos;
       else targetRow.positions.push(pos);
       targetRow.slotCount = targetRow.positions.length;
+      if (saveTimeout) clearTimeout(saveTimeout);
       saveState(); renderActiveBoards();
     }
 
@@ -2455,6 +2427,7 @@
 
       let dc = getWeekDepthChart(currentWeek);
       if (dc[pos.id]) dc[newPosId] = JSON.parse(JSON.stringify(dc[pos.id]));
+      if (saveTimeout) clearTimeout(saveTimeout);
       saveState(); renderActiveBoards();
     }
 
@@ -2465,6 +2438,7 @@
       const form = forms.find(f => f.id === formId);
       if (form && form.rows) {
         form.rows.splice(rIdx, 1);
+        if (saveTimeout) clearTimeout(saveTimeout);
         saveState(); renderActiveBoards();
       }
     }
@@ -2481,6 +2455,7 @@
         if (!row.positions) row.positions = [];
         row.positions.push({ id: `${formId}-${cleanName}-${Date.now()}`, name: cleanName });
         row.slotCount = row.positions.length;
+        if (saveTimeout) clearTimeout(saveTimeout);
         saveState(); renderActiveBoards();
       }
     }
@@ -2497,6 +2472,7 @@
         }
         form.rows[rIdx].positions.splice(pIdx, 1);
         form.rows[rIdx].slotCount = form.rows[rIdx].positions.length;
+        if (saveTimeout) clearTimeout(saveTimeout);
         saveState(); renderActiveBoards();
       }
     }
@@ -2508,35 +2484,59 @@
       if (!form) return;
       let newName = prompt("Rename Formation / Board:", form.name);
       if (newName && newName.trim() !== "") {
-          form.name = newName.trim();
+          let clean = newName.trim();
+          let oldName = form.name.toLowerCase();
+          // Rename across all weeks
+          Object.keys(weeklyData).forEach(w => {
+              if (weeklyData[w] && Array.isArray(weeklyData[w].formations)) {
+                  weeklyData[w].formations.forEach(f => {
+                      if (f && (f.id === formId || f.name.toLowerCase() === oldName)) {
+                          f.name = clean;
+                      }
+                  });
+              }
+          });
+          if (saveTimeout) clearTimeout(saveTimeout);
           saveState();
           renderActiveBoards();
       }
     }
 
+    // Complete purge of formation across all game weeks to prevent resurrection
     function deleteFormation(formId) {
       if (userRole !== 'admin') return;
       const forms = getWeekFormations(currentWeek);
       const form = forms.find(f => f.id === formId);
       if (!form) return;
-      if (confirm(`Delete formation "${form.name}"?`)) {
-          const idx = forms.findIndex(f => f.id === formId);
-          if (idx !== -1) {
-              forms.splice(idx, 1);
-              saveState();
-              renderActiveBoards();
+      
+      if (confirm(`Delete formation "${form.name}" across all game weeks?`)) {
+          const targetName = form.name.toLowerCase();
+          
+          // Remove from all weeks cleanly
+          for (let w = 0; w <= 8; w++) {
+              let wkKey = String(w);
+              if (weeklyData[wkKey] && Array.isArray(weeklyData[wkKey].formations)) {
+                  weeklyData[wkKey].formations = weeklyData[wkKey].formations.filter(f => f.id !== formId && f.name.toLowerCase() !== targetName);
+              }
           }
+
+          if (selectedFormationFilterId === formId) {
+              selectedFormationFilterId = null;
+          }
+
+          if (saveTimeout) clearTimeout(saveTimeout);
+          saveState();
+          renderActiveBoards();
       }
     }
 
-    // Automatically propagates newly added formations to all game weeks
     function createFormationPrompt(unit) {
       let name = prompt(`Enter ${unit.toUpperCase()} formation name (e.g. 32, I-Form):`);
       if (name && name.trim()) {
         let cleanName = name.trim();
         let newBaseId = "form_" + Date.now();
 
-        // Create the formation in all 9 game weeks (0 - 8) so it never gets lost
+        // Create in all game weeks so it stays permanently
         for (let w = 0; w <= 8; w++) {
             let wkKey = String(w);
             ensureWeekDataExists(wkKey);
@@ -2551,6 +2551,7 @@
             }
         }
         
+        if (saveTimeout) clearTimeout(saveTimeout);
         saveState(); 
         renderActiveBoards();
         selectFormationForRoster(newBaseId);
@@ -2614,6 +2615,7 @@
           srcRow.positions[srcPIdx] = targetPos || null;
           targetRow.positions[targetPIdx] = srcPos || null;
 
+          if (saveTimeout) clearTimeout(saveTimeout);
           saveState();
           renderActiveBoards();
         }
@@ -3006,7 +3008,9 @@
       }
 
       if (movedPlayer) chart[targetPosId].push(movedPlayer);
-      draggedData = null; saveState();
+      draggedData = null; 
+      if (saveTimeout) clearTimeout(saveTimeout);
+      saveState();
       if (isScrimmage) renderScrimmageTab(); else renderActiveBoards();
       renderMasterRoster();
     }
@@ -3017,6 +3021,7 @@
       const chart = isScrimmage ? getWeekScrimmageChart(currentWeek) : depthChart;
       if (chart[posId]) {
         chart[posId].splice(idx, 1);
+        if (saveTimeout) clearTimeout(saveTimeout);
         saveState();
         if (isScrimmage) renderScrimmageTab(); else renderActiveBoards();
         renderMasterRoster();
@@ -3098,8 +3103,8 @@
       triggerDebouncedSave();
     }
 
-    function addWbRow() { ensureWeekDataExists(currentWeek); weeklyData[currentWeek].wristbandData.rows += 1; saveState(); renderWristband(); }
-    function removeWbRow() { ensureWeekDataExists(currentWeek); if(weeklyData[currentWeek].wristbandData.rows > 1) weeklyData[currentWeek].wristbandData.rows -= 1; saveState(); renderWristband(); }
+    function addWbRow() { ensureWeekDataExists(currentWeek); weeklyData[currentWeek].wristbandData.rows += 1; if (saveTimeout) clearTimeout(saveTimeout); saveState(); renderWristband(); }
+    function removeWbRow() { ensureWeekDataExists(currentWeek); if(weeklyData[currentWeek].wristbandData.rows > 1) weeklyData[currentWeek].wristbandData.rows -= 1; if (saveTimeout) clearTimeout(saveTimeout); saveState(); renderWristband(); }
 
     function renderScouting() {
       ensureWeekDataExists(currentWeek);
@@ -3117,7 +3122,7 @@
       triggerDebouncedSave();
     }
 
-    /* PLAYBOOKS & POSITIONAL GUIDES - COMPLETE DETERMINISTIC TAB MANAGEMENT */
+    /* PLAYBOOKS & POSITIONAL GUIDES - DETERMINISTIC TAB MANAGEMENT */
     function moveGuideMain(mainCat, direction, e) {
         if (e) e.stopPropagation();
         if (userRole !== 'admin') return;
@@ -3128,6 +3133,7 @@
 
         const [moved] = pdfGuidesOrder.main.splice(idx, 1);
         pdfGuidesOrder.main.splice(newIdx, 0, moved);
+        if (saveTimeout) clearTimeout(saveTimeout);
         saveState();
         renderGuideTab();
     }
@@ -3152,6 +3158,7 @@
             }
 
             if (activeGuideMain === mainCat) activeGuideMain = clean;
+            if (saveTimeout) clearTimeout(saveTimeout);
             saveState();
             renderGuideTab();
         }
@@ -3169,6 +3176,7 @@
 
             activeGuideMain = pdfGuidesOrder.main[0] || "Offense";
             activeGuideSub = (pdfGuidesOrder.sub[activeGuideMain] && pdfGuidesOrder.sub[activeGuideMain][0]) || "";
+            if (saveTimeout) clearTimeout(saveTimeout);
             saveState();
             renderGuideTab();
         }
@@ -3185,6 +3193,7 @@
 
         const [moved] = subList.splice(idx, 1);
         subList.splice(newIdx, 0, moved);
+        if (saveTimeout) clearTimeout(saveTimeout);
         saveState();
         renderGuideTab();
     }
@@ -3284,6 +3293,7 @@
             const downloadUrl = await snapshot.ref.getDownloadURL();
             if (!pdfGuidesTree[activeGuideMain]) pdfGuidesTree[activeGuideMain] = {};
             pdfGuidesTree[activeGuideMain][activeGuideSub] = downloadUrl;
+            if (saveTimeout) clearTimeout(saveTimeout);
             saveState();
             renderGuideTab();
             alert("Guide uploaded successfully!");
@@ -3312,6 +3322,7 @@
                 pdfGuidesOrder.sub[clean] = ["Full Playbook"];
                 activeGuideMain = clean;
                 activeGuideSub = "Full Playbook";
+                if (saveTimeout) clearTimeout(saveTimeout);
                 saveState();
                 renderGuideTab();
             } else {
@@ -3330,6 +3341,7 @@
                 if (!pdfGuidesOrder.sub[activeGuideMain]) pdfGuidesOrder.sub[activeGuideMain] = [];
                 pdfGuidesOrder.sub[activeGuideMain].push(clean);
                 activeGuideSub = clean;
+                if (saveTimeout) clearTimeout(saveTimeout);
                 saveState();
                 renderGuideTab();
             } else {
@@ -3353,6 +3365,7 @@
             if (idx !== -1) pdfGuidesOrder.sub[activeGuideMain][idx] = clean;
 
             activeGuideSub = clean;
+            if (saveTimeout) clearTimeout(saveTimeout);
             saveState();
             renderGuideTab();
         }
@@ -3376,6 +3389,7 @@
             } else {
                 activeGuideSub = remaining[0];
             }
+            if (saveTimeout) clearTimeout(saveTimeout);
             saveState();
             renderGuideTab();
         }
@@ -3463,6 +3477,7 @@
             if (!savedCoachesList.includes(clean)) {
                 savedCoachesList.push(clean);
                 savedCoachesList.sort();
+                if (saveTimeout) clearTimeout(saveTimeout);
                 saveState();
                 renderUsers();
             }
@@ -3487,6 +3502,7 @@
                     });
                 }
             });
+            if (saveTimeout) clearTimeout(saveTimeout);
             saveState();
             renderUsers();
             if (activeUnit === 'practice') renderPracticePlan();
@@ -3497,6 +3513,7 @@
         if (teamCoachesList[idx]) {
             if (teamCoachesList[idx].email.toLowerCase() === "dannym1010@gmail.com") return;
             teamCoachesList[idx].role = newRole;
+            if (saveTimeout) clearTimeout(saveTimeout);
             saveState();
             renderUsers();
         }
@@ -3506,6 +3523,7 @@
         if (teamCoachesList[idx]) {
             if (teamCoachesList[idx].email.toLowerCase() === "dannym1010@gmail.com") return;
             teamCoachesList[idx].status = (teamCoachesList[idx].status === 'Active') ? 'Pending' : 'Active';
+            if (saveTimeout) clearTimeout(saveTimeout);
             saveState();
             renderUsers();
         }
@@ -3516,6 +3534,7 @@
        if (email && email.trim() !== "") {
            if (teamCoachesList.some(c => c.email.toLowerCase() === email.trim().toLowerCase())) return alert("Coach already exists.");
            teamCoachesList.push({ email: email.trim(), role: "Assistant Coach", status: "Active" });
+           if (saveTimeout) clearTimeout(saveTimeout);
            saveState();
            renderUsers();
        }
@@ -3525,6 +3544,7 @@
        if (teamCoachesList[idx].email.toLowerCase() === "dannym1010@gmail.com") return alert("Cannot remove master admin.");
        if (confirm(`Remove coach ${teamCoachesList[idx].email}?`)) {
            teamCoachesList.splice(idx, 1);
+           if (saveTimeout) clearTimeout(saveTimeout);
            saveState();
            renderUsers();
        }
