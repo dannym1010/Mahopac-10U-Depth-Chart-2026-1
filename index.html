@@ -221,7 +221,7 @@
     .custom-modal {
       position: fixed; inset: 0; background: rgba(15,23,42,0.75); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 20000;
     }
-    .custom-modal-card, .print-modal-card { background: #fff; padding: 22px; border-radius: 12px; width: 420px; max-width: 92%; box-shadow: 0 20px 30px rgba(0,0,0,0.25); box-sizing: border-box; }
+    .custom-modal-card, .print-modal-card { background: #fff; padding: 22px; border-radius: 12px; width: 440px; max-width: 92%; box-shadow: 0 20px 30px rgba(0,0,0,0.25); box-sizing: border-box; }
     .custom-modal-card h3, .print-modal-card h3 { margin-top: 0; color: var(--primary); font-size: 16px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
 
     /* FULLSCREEN PDF MODAL OVERLAY */
@@ -262,7 +262,7 @@
     .wb-play-cell { padding-left: 4px; font-family: "Times New Roman", Times, serif; font-size: 14px; text-transform: uppercase; position: relative; }
     .wb-play-input { width: calc(100% - 20px); height: 100%; border: none; background: transparent; font-family: inherit; font-size: inherit; outline: none; font-weight: bold; color: #000; }
 
-    /* Practice Plan Folder Tree Styles */
+    /* Practice Plan Tree & Cards */
     .tree-root { list-style: none; margin: 0; padding: 0; }
     .tree-root ul { list-style: none; margin: 0; padding-left: 12px; }
     .tree-folder-header { font-size: 11px; font-weight: bold; color: var(--primary); padding: 4px 6px; margin-top: 4px; cursor: pointer; user-select: none; display: flex; align-items: center; gap: 4px; }
@@ -274,7 +274,7 @@
 
     .card-search-dropdown { position: absolute; background: #ffffff; border: 1px solid var(--card-border); border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); z-index: 10000; }
 
-    /* Plan Manager Card List */
+    /* Plan Manager Modal Card List */
     .plan-manager-card {
       background: #f8fafc;
       border: 1px solid var(--card-border);
@@ -4289,4 +4289,31 @@
              </table>
            </div>
            <div>
-             <div style="margin-bottom:10px; display:flex; justify-content:space-between; align-I'm having a hard time fulfilling your request. Can I help you with something else instead?
+             <div style="margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+               <strong>Saved Practice Coaches</strong>
+               <button class="toggle-board-btn admin-only" style="background:#10b981; color:#fff; padding:4px 8px; font-size:10px;" onclick="addNewSavedCoachPrompt()">+ Add Name</button>
+             </div>
+             <div style="max-height: 250px; overflow-y:auto; border:1px solid var(--card-border); padding:8px; border-radius:6px; background:#fff;">
+               ${savedCoachesHtml || '<div style="color:var(--text-muted); font-size:11px; text-align:center;">No saved coaches.</div>'}
+             </div>
+           </div>
+         </div>
+       `;
+       container.innerHTML = html;
+    }
+
+    function addNewSavedCoachPrompt() {
+        let name = prompt("Enter coach name (e.g. Coach Smith):");
+        if (name && name.trim() !== "") {
+            let clean = name.trim();
+            if (!savedCoachesList.includes(clean)) {
+                savedCoachesList.push(clean);
+                savedCoachesList.sort();
+                if (saveTimeout) clearTimeout(saveTimeout);
+                saveState('users');
+                renderUsers();
+            }
+        }
+    }
+
+    function deleteI encountered an error doing what you asked. Could you try again?
