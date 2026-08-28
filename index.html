@@ -220,7 +220,7 @@
     .custom-modal {
       position: fixed; inset: 0; background: rgba(15,23,42,0.7); display: flex; align-items: center; justify-content: center; z-index: 20000;
     }
-    .custom-modal-card, .print-modal-card { background: #fff; padding: 20px; border-radius: 8px; width: 380px; max-width: 90%; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+    .custom-modal-card, .print-modal-card { background: #fff; padding: 20px; border-radius: 12px; width: 420px; max-width: 92%; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
     .custom-modal-card h3, .print-modal-card h3 { margin-top: 0; color: var(--primary); font-size: 16px; margin-bottom: 15px;}
 
     /* FULLSCREEN PDF MODAL OVERLAY */
@@ -235,23 +235,36 @@
       width: 100%; height: 100%; min-height: 80vh; border: none; display: block;
     }
 
-    /* PLAYBOOK HORIZONTAL SCROLLING PILL BARS */
+    /* PLAYBOOK MODERN FOLDER & TAB ARCHITECTURE */
+    .guide-modern-hero {
+      background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+      border-radius: 10px;
+      padding: 14px 18px;
+      color: #ffffff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+    }
     .pill-scroll-bar {
       display: flex; gap: 8px; overflow-x: auto; white-space: nowrap; padding-bottom: 6px; -webkit-overflow-scrolling: touch; scrollbar-width: none;
     }
     .pill-scroll-bar::-webkit-scrollbar { display: none; }
     
     .guide-main-pill {
-      padding: 7px 16px; border-radius: 20px; font-weight: bold; font-size: 12px; cursor: pointer; border: 1px solid var(--card-border); background: #ffffff; color: var(--text-muted); transition: all 0.15s ease; flex-shrink: 0; touch-action: manipulation;
+      padding: 8px 18px; border-radius: 24px; font-weight: 700; font-size: 12px; cursor: pointer; border: 1px solid var(--card-border); background: #ffffff; color: var(--text-muted); transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); flex-shrink: 0; touch-action: manipulation; display: flex; align-items: center; gap: 6px;
     }
+    .guide-main-pill:hover { border-color: var(--accent); color: var(--primary); background: #f8fafc; }
     .guide-main-pill.active {
-      background: var(--primary); color: #ffffff; border-color: var(--primary); box-shadow: 0 2px 4px rgba(30,58,138,0.2);
+      background: var(--primary); color: #ffffff; border-color: var(--primary); box-shadow: 0 3px 8px rgba(30,58,138,0.25);
     }
     .guide-sub-pill {
-      padding: 6px 14px; border-radius: 16px; font-weight: bold; font-size: 11.5px; cursor: pointer; border: 1px solid var(--card-border); background: #ffffff; color: var(--text); transition: all 0.15s ease; flex-shrink: 0; touch-action: manipulation;
+      padding: 6px 14px; border-radius: 18px; font-weight: 700; font-size: 11.5px; cursor: pointer; border: 1px solid #cbd5e1; background: #ffffff; color: var(--text); transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); flex-shrink: 0; touch-action: manipulation; display: flex; align-items: center; gap: 5px;
     }
+    .guide-sub-pill:hover { border-color: var(--accent); }
     .guide-sub-pill.active {
-      background: var(--accent); color: #ffffff; border-color: var(--accent); box-shadow: 0 2px 4px rgba(37,99,235,0.2);
+      background: var(--accent); color: #ffffff; border-color: var(--accent); box-shadow: 0 3px 6px rgba(37,99,235,0.25);
     }
 
     /* Wristband Builder */
@@ -261,15 +274,89 @@
     .wb-play-cell { padding-left: 4px; font-family: "Times New Roman", Times, serif; font-size: 14px; text-transform: uppercase; position: relative; }
     .wb-play-input { width: calc(100% - 20px); height: 100%; border: none; background: transparent; font-family: inherit; font-size: inherit; outline: none; font-weight: bold; color: #000; }
 
-    /* Practice Plan Folder Tree Styles */
-    .tree-root { list-style: none; margin: 0; padding: 0; }
-    .tree-root ul { list-style: none; margin: 0; padding-left: 12px; }
-    .tree-folder-header { font-size: 11px; font-weight: bold; color: var(--primary); padding: 4px 6px; margin-top: 4px; cursor: pointer; user-select: none; display: flex; align-items: center; gap: 4px; }
-    .tree-folder-header:hover { background-color: #f1f5f9; border-radius: 3px; }
-    .tree-leaf { cursor: pointer; font-size: 11px; padding: 5px 8px; color: var(--text); border-radius: 3px; margin-bottom: 2px; }
-    .tree-leaf:hover { background-color: #eff6ff; color: var(--accent); font-weight: bold; }
-    .tree-leaf.selected { background-color: #dbeafe; font-weight: bold; border-left: 2px solid var(--accent); }
-    .practice-tree-btn { padding: 4px 8px; border: 1px solid var(--card-border); border-radius: 4px; font-weight: bold; cursor: pointer; background: #fff; height: 28px; line-height: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; justify-content: space-between; }
+    /* MODERN PRACTICE PLAN FOLDER SYSTEM */
+    .practice-tree-btn {
+      padding: 6px 12px;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      background: #ffffff;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+      transition: all 0.15s ease;
+    }
+    .practice-tree-btn:hover { border-color: var(--accent); }
+    .modern-tree-popover {
+      width: 360px;
+      max-height: 420px;
+      overflow-y: auto;
+      padding: 12px;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2), 0 8px 10px -6px rgba(0,0,0,0.1);
+      border: 1px solid #e2e8f0;
+      background: #ffffff;
+    }
+    .folder-year-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      overflow: hidden;
+    }
+    .folder-year-head {
+      padding: 8px 10px;
+      font-weight: 800;
+      font-size: 11.5px;
+      color: var(--primary);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      background: #f1f5f9;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .folder-week-card {
+      margin: 6px 8px;
+      border-left: 2px solid var(--accent);
+      padding-left: 8px;
+    }
+    .folder-week-head {
+      font-size: 11px;
+      font-weight: 700;
+      color: #334155;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 0;
+      cursor: pointer;
+    }
+    .modern-practice-leaf {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 8px;
+      border-radius: 6px;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      margin-bottom: 4px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .modern-practice-leaf:hover {
+      background: #eff6ff;
+      border-color: #93c5fd;
+      transform: translateX(2px);
+    }
+    .modern-practice-leaf.active {
+      background: #dbeafe;
+      border-color: var(--accent);
+      font-weight: bold;
+    }
 
     .card-search-dropdown { position: absolute; background: #ffffff; border: 1px solid var(--card-border); border-radius: 6px; box-shadow: 0 4px 6px rgba(0,0,0,0.15); z-index: 10000; }
 
@@ -329,7 +416,7 @@
     @media print {
       @page { size: letter portrait; margin: 0.3in; }
       body { background-color: #ffffff !important; color: #000000 !important; padding: 0; margin: 0; font-size: var(--print-font-size, 10px) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; width: 100% !important; overflow: visible !important; }
-      .toolbar, #sidebar-container, .remove-btn, .action-group, p.subtitle, .search-box, .tab-navigation, .toggle-board-btn, .week-bar, .board-controls, .add-row-btn, .add-form-btn, .row-actions, .practice-dashboard-info, #print-modal, #new-prac-modal, #scrimmage-print-modal, #scrimmage-filter-modal, #templates-modal, #guide-manager-modal, #copy-week-modal, #approval-pending-overlay, .col-resizer, .coach-popup-box, .coach-popup-container > div:last-child, th.no-print, td.no-print, th.admin-only, td.admin-only { display: none !important; }
+      .toolbar, #sidebar-container, .remove-btn, .action-group, p.subtitle, .search-box, .tab-navigation, .toggle-board-btn, .week-bar, .board-controls, .add-row-btn, .add-form-btn, .row-actions, .practice-dashboard-info, #print-modal, #new-prac-modal, #scrimmage-print-modal, #scrimmage-filter-modal, #templates-modal, #guide-manager-modal, #copy-week-modal, #import-prac-modal, #approval-pending-overlay, .col-resizer, .coach-popup-box, .coach-popup-container > div:last-child, th.no-print, td.no-print, th.admin-only, td.admin-only { display: none !important; }
       
       .no-print-text { display: none !important; }
       .app-layout, .boards-container, .unit-panel { display: block !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
@@ -356,7 +443,6 @@
       .practice-table td { font-size: var(--print-font-size, 10px) !important; border: 1px solid #000 !important; padding: 5px !important; color: #000 !important; vertical-align: top !important; word-wrap: break-word !important; overflow-wrap: break-word !important; height: auto !important; }
       .practice-table tr { page-break-inside: avoid !important; break-inside: avoid !important; }
       
-      /* Enforce fixed column layout on print to prevent trailing border glitch */
       #col-0 { width: 12% !important; }
       #col-1 { width: 16.2% !important; }
       #col-2 { width: 41.8% !important; }
@@ -604,22 +690,32 @@
         </div>
       </div>
 
-      <!-- PLAYBOOKS & POSITIONAL GUIDES PANEL -->
+      <!-- PLAYBOOKS & POSITIONAL GUIDES PANEL (REVAMPED) -->
       <div class="unit-panel hidden" id="panel-guide">
-        <div class="formation-container" style="background:#ffffff; border-radius:10px; border:1px solid var(--card-border);">
-          <div class="board-title no-print" style="border-bottom:none; margin-bottom:4px;">
-            <span>📋 Playbooks & Positional Guides</span>
-            <div style="display:flex; gap:6px; align-items:center;">
-               <button class="toggle-board-btn admin-only" onclick="openGuideManagerModal()" title="Organize, rename, reorder and delete playbook tabs">⚙️ Organize Tabs</button>
-               <button class="add-row-btn admin-only" style="margin:0;" onclick="addSubGuideTabPrompt()">+ Add Sub-Tab</button>
+        <div class="formation-container" style="background:#ffffff; border-radius:12px; border:1px solid var(--card-border); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); padding:16px;">
+          
+          <div class="guide-modern-hero no-print">
+            <div>
+              <h2 style="margin:0; font-size:18px; font-weight:800; letter-spacing:-0.02em;">📋 Playbooks & Positional Guides</h2>
+              <p style="margin:3px 0 0 0; font-size:11.5px; opacity:0.9;">Manage interactive schematics, position manuals, and tactical documents.</p>
+            </div>
+            <div style="display:flex; gap:8px; align-items:center;">
+               <button class="toggle-board-btn admin-only" style="background:#ffffff; color:var(--primary); font-weight:bold; border:none; padding:6px 12px;" onclick="openGuideManagerModal()" title="Organize, rename, reorder and delete playbook tabs">⚙️ Manage Folders</button>
+               <button class="toggle-board-btn admin-only" style="background:#38bdf8; color:#0f172a; font-weight:bold; border:none; padding:6px 12px;" onclick="addSubGuideTabPrompt()">+ Add Sub-Tab</button>
             </div>
           </div>
 
-          <!-- Level 1 Main Folders (Horizontal Scrollable Ribbon) -->
-          <div class="pill-scroll-bar" id="guide-main-folders" style="margin-bottom:8px; border-bottom:1px solid #e2e8f0; padding-bottom:8px;"></div>
+          <!-- Level 1 Main Folders Ribbon -->
+          <div style="margin-bottom:8px;">
+            <span style="font-size:10px; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em; display:block; margin-bottom:4px;">Main Section:</span>
+            <div class="pill-scroll-bar" id="guide-main-folders"></div>
+          </div>
           
-          <!-- Level 2 Sub Tabs (Horizontal Scrollable Ribbon) -->
-          <div class="pill-scroll-bar" id="guide-sub-tabs" style="margin-bottom:12px; background:#f1f5f9; padding:6px 10px; border-radius:8px; border:1px solid var(--card-border);"></div>
+          <!-- Level 2 Sub Tabs Ribbon -->
+          <div style="margin-bottom:14px; background:#f8fafc; padding:8px 12px; border-radius:10px; border:1px solid #e2e8f0;">
+            <span style="font-size:10px; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em; display:block; margin-bottom:6px;">Topic / Position Sub-Tab:</span>
+            <div class="pill-scroll-bar" id="guide-sub-tabs"></div>
+          </div>
           
           <div id="guide-content-area" style="min-height: 550px; display:flex; flex-direction:column; gap: 10px;"></div>
         </div>
@@ -646,17 +742,21 @@
          </div>
       </div>
 
-      <!-- PRACTICE PLAN GENERATOR PANEL -->
+      <!-- PRACTICE PLAN GENERATOR PANEL (REVAMPED) -->
       <div class="unit-panel hidden" id="panel-practice">
         <div class="formation-container" style="overflow: visible;">
           <div class="board-title no-print">
             <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
               <span>Practice:</span>
-              <div style="position:relative; width: 220px;">
-                <div id="selected-practice-display" class="practice-tree-btn" onclick="togglePracticeDropdown(event)">Select Practice... ▾</div>
-                <div id="practice-tree-dropdown" class="card-search-dropdown hidden" onclick="event.stopPropagation()" style="width: 320px; max-height: 320px; overflow-y: auto; text-align:left; padding:8px; top: 100%; left: 0;"></div>
+              <div style="position:relative; width: 260px;">
+                <div id="selected-practice-display" class="practice-tree-btn" onclick="togglePracticeDropdown(event)">
+                  <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">Select Practice...</span>
+                  <span style="color:var(--accent);">📂 ▾</span>
+                </div>
+                <div id="practice-tree-dropdown" class="card-search-dropdown modern-tree-popover hidden" onclick="event.stopPropagation()" style="top: 100%; left: 0;"></div>
               </div>
               <button class="toggle-board-btn admin-only" onclick="openNewPracticeModal()">+ New</button>
+              <button class="toggle-board-btn admin-only" style="background:#10b981; color:#fff;" onclick="openImportPracticeModal()" title="Import from Word (.docx), PDF, CSV or Text">📥 Import Plan</button>
               <button class="toggle-board-btn admin-only" onclick="editPracticeDetails()">✏️ Details</button>
               <button class="toggle-board-btn admin-only" onclick="autoNumberPractices()" style="background:#e0f2fe; color:#0369a1;" title="Auto-number practice day numbers">🔢 Auto Day #</button>
               <button class="toggle-board-btn admin-only" onclick="deletePractice()" style="color:#ef4444;">🗑️</button>
@@ -767,6 +867,44 @@
   </div>
 
   <!-- MODALS -->
+
+  <!-- UNIVERSAL MULTI-FORMAT PRACTICE IMPORTER MODAL -->
+  <div id="import-prac-modal" class="custom-modal hidden">
+    <div class="custom-modal-card" style="width: 480px;">
+       <h3>📥 Import Practice Plan File</h3>
+       <p style="font-size:11.5px; color:var(--text-muted); margin-bottom:12px;">Upload a Practice Plan from Word (<code>.docx</code>), PDF (<code>.pdf</code>), CSV, JSON, or Text (<code>.txt</code>). The system will automatically parse periods, stations, coaches, and assign it to the target folder.</p>
+       
+       <div style="background:#f8fafc; border:1px solid var(--card-border); padding:10px; border-radius:8px; margin-bottom:12px;">
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:8px;">
+             <label style="font-size:11px; font-weight:bold; color:var(--primary);">
+                Target Year:
+                <input type="text" id="import-target-year" class="prac-input" value="2026">
+             </label>
+             <label style="font-size:11px; font-weight:bold; color:var(--primary);">
+                Target Week:
+                <input type="text" id="import-target-week" class="prac-input" value="Week 1">
+             </label>
+          </div>
+          <label style="font-size:11px; font-weight:bold; color:var(--primary); display:block; margin-bottom:4px;">
+             Practice Title / Day Label (Optional override):
+             <input type="text" id="import-target-title" class="prac-input" placeholder="e.g., Wednesday Practice #2">
+          </label>
+       </div>
+
+       <div style="border: 2px dashed var(--accent); border-radius:8px; padding:16px; text-align:center; background:#eff6ff; margin-bottom:15px;">
+          <input type="file" id="import-prac-file-input" accept=".docx,.pdf,.csv,.json,.txt" style="display:none;" onchange="handlePracticePlanFileUpload(event)">
+          <button type="button" class="btn-primary" style="margin-bottom:6px;" onclick="document.getElementById('import-prac-file-input').click()">📄 Select Practice Plan File</button>
+          <div id="import-file-name-display" style="font-size:11px; color:var(--text-muted);">Supported: .docx, .pdf, .csv, .json, .txt</div>
+       </div>
+
+       <div id="import-status-msg" style="font-size:11.5px; margin-bottom:10px; display:none; font-weight:bold;"></div>
+
+       <div style="display: flex; gap: 8px; justify-content: flex-end;">
+          <button class="toggle-board-btn" onclick="closeImportPracticeModal()">Cancel</button>
+       </div>
+    </div>
+  </div>
+
   <div id="new-prac-modal" class="custom-modal hidden">
     <div class="custom-modal-card">
        <h3>Create New Practice Plan</h3>
@@ -831,15 +969,15 @@
 
   <!-- GUIDE TAB ORGANIZER MODAL -->
   <div id="guide-manager-modal" class="custom-modal hidden">
-    <div class="custom-modal-card" style="width: 460px;">
+    <div class="custom-modal-card" style="width: 480px;">
        <h3>⚙️ Organize Playbook Folders & Tabs</h3>
-       <p style="font-size:11px; color:var(--text-muted); margin-bottom:10px;">Reorder, rename, or delete your playbook sections below:</p>
+       <p style="font-size:11.5px; color:var(--text-muted); margin-bottom:12px;">Reorder, rename, or delete your playbook sections below:</p>
        
-       <div style="font-size:11px; font-weight:bold; color:var(--primary); margin-bottom:4px;">1. Main Folders:</div>
-       <div id="guide-manager-mains" style="max-height: 140px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; border:1px solid #e2e8f0; padding:6px; border-radius:6px;"></div>
+       <div style="font-size:11px; font-weight:bold; color:var(--primary); margin-bottom:4px;">1. Main Sections:</div>
+       <div id="guide-manager-mains" style="max-height: 140px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; margin-bottom: 14px; border:1px solid #e2e8f0; padding:6px; border-radius:6px; background:#f8fafc;"></div>
 
        <div style="font-size:11px; font-weight:bold; color:var(--primary); margin-bottom:4px;">2. Sub-Tabs for [<span id="guide-manager-cur-main" style="color:var(--accent);"></span>]:</div>
-       <div id="guide-manager-subs" style="max-height: 160px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; margin-bottom: 15px; border:1px solid #e2e8f0; padding:6px; border-radius:6px;"></div>
+       <div id="guide-manager-subs" style="max-height: 160px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; margin-bottom: 15px; border:1px solid #e2e8f0; padding:6px; border-radius:6px; background:#f8fafc;"></div>
 
        <div style="display: flex; gap: 8px; justify-content: space-between; align-items:center;">
           <button class="toggle-board-btn" style="background:#e0f2fe; color:#0369a1;" onclick="addMainFolderPrompt()">+ Add Main Folder</button>
@@ -948,7 +1086,7 @@
         localStorage.setItem("footballPrintFontSize", JSON.stringify(size));
     }
 
-    /* GRANULAR SCOPED SYNC (Prevents cross-tab state overwrites) */
+    /* GRANULAR SCOPED SYNC */
     function saveState(scope = 'all') {
         if (isImporting) return;
         const prac = practiceData.find(p => p.id === currentPracticeId);
@@ -1070,7 +1208,7 @@
 
     function closeAllDropdowns(event) {
       const dropdown = document.getElementById("practice-tree-dropdown");
-      if (dropdown && event.target.id !== "selected-practice-display" && !dropdown.contains(event.target)) {
+      if (dropdown && event.target.id !== "selected-practice-display" && !dropdown.contains(event.target) && !event.target.closest('#selected-practice-display')) {
         dropdown.classList.add("hidden");
       }
       if (!event.target.closest('.coach-popup-container') && !event.target.closest('.coach-popup-box')) {
@@ -2378,6 +2516,8 @@
         }
     }
 
+    /* MODERN PRACTICE FOLDER ARCHITECTURE & SEARCH */
+    let practiceSearchQuery = "";
     function populatePracticeDropdown() {
         const dropdown = document.getElementById("practice-tree-dropdown");
         const display = document.getElementById("selected-practice-display");
@@ -2394,32 +2534,114 @@
             tree[yr][wk].push(p);
 
             if (p.id === currentPracticeId) {
-                display.innerHTML = `<span>📄 ${p.title}</span> <span style="font-size:9px; color:var(--text-muted);">(${yr} / ${wk})</span>`;
+                display.innerHTML = `
+                  <div style="display:flex; align-items:center; gap:6px; overflow:hidden;">
+                    <span style="font-weight:800; color:var(--primary); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">📄 ${p.title}</span> 
+                    <span style="font-size:9.5px; background:#e0f2fe; color:#0369a1; padding:1px 5px; border-radius:4px; font-weight:700; white-space:nowrap;">${yr} • ${wk}</span>
+                  </div>
+                  <span style="color:var(--accent); font-size:11px;">📂 ▾</span>
+                `;
             }
         });
 
-        let html = '<ul class="tree-root">';
-        Object.keys(tree).sort().forEach(yr => {
+        let html = `
+          <div style="margin-bottom:8px;">
+            <input type="text" class="search-box" style="margin-bottom:4px; padding:6px 8px; font-size:11px;" placeholder="Search practices by name, date or week..." value="${practiceSearchQuery}" oninput="practiceSearchQuery=this.value; populatePracticeDropdown();" onclick="event.stopPropagation()">
+          </div>
+          <div style="max-height: 330px; overflow-y: auto;">
+        `;
+
+        const query = practiceSearchQuery.toLowerCase().trim();
+
+        Object.keys(tree).sort().reverse().forEach(yr => {
             let yrKey = `yr_${yr}`;
             let yrCollapsed = collapsedFolders[yrKey];
-            html += `<li class="tree-folder-header" onclick="toggleFolderCollapse('${yrKey}', event)"><span>${yrCollapsed ? '📁' : '📂'}</span> <strong>${yr}</strong></li>`;
-            html += `<ul style="display:${yrCollapsed ? 'none' : 'block'};">`;
+            let yrMatches = 0;
 
+            let weeksHtml = '';
             Object.keys(tree[yr]).sort().forEach(wk => {
                 let wkKey = `wk_${yr}_${wk}`;
                 let wkCollapsed = collapsedFolders[wkKey];
-                html += `<li class="tree-folder-header" onclick="toggleFolderCollapse('${wkKey}', event)"><span>${wkCollapsed ? '📁' : '📂'}</span> ${wk}</li>`;
-                html += `<ul style="display:${wkCollapsed ? 'none' : 'block'};">`;
-
-                tree[yr][wk].forEach(p => {
-                    let isSelected = p.id === currentPracticeId;
-                    html += `<li class="tree-leaf ${isSelected ? 'selected' : ''}" onclick="selectPractice('${p.id}')">📄 ${p.title} <span style="font-size:9px; color:var(--text-muted);">(${p.date || p.day || ''})</span></li>`;
+                
+                let filteredList = tree[yr][wk].filter(p => {
+                  if (!query) return true;
+                  return (p.title || '').toLowerCase().includes(query) || (p.date || '').includes(query) || (p.day || '').toLowerCase().includes(query) || wk.toLowerCase().includes(query);
                 });
-                html += `</ul>`;
+
+                if (filteredList.length === 0 && query) return;
+                yrMatches += filteredList.length;
+
+                let plansHtml = filteredList.map(p => {
+                    let isSelected = p.id === currentPracticeId;
+                    return `
+                      <div class="modern-practice-leaf ${isSelected ? 'active' : ''}" onclick="selectPractice('${p.id}')">
+                         <div>
+                            <div style="font-size:11.5px; font-weight:700; color:var(--primary);">${p.title}</div>
+                            <div style="font-size:9.5px; color:var(--text-muted); display:flex; gap:4px; align-items:center;">
+                               <span>📅 ${p.date || 'No Date'}</span>
+                               <span>•</span>
+                               <span>${p.day || ''}</span>
+                               <span>•</span>
+                               <span>${p.plan ? p.plan.length : 0} Periods</span>
+                            </div>
+                         </div>
+                         <div style="display:flex; gap:2px;" class="admin-only" onclick="event.stopPropagation()">
+                            <button class="toggle-board-btn" style="font-size:9px; padding:1px 4px;" onclick="quickDuplicatePractice('${p.id}')" title="Duplicate">📋</button>
+                         </div>
+                      </div>
+                    `;
+                }).join('');
+
+                weeksHtml += `
+                  <div class="folder-week-card">
+                     <div class="folder-week-head" onclick="toggleFolderCollapse('${wkKey}', event)">
+                        <span style="display:flex; align-items:center; gap:5px;">
+                          <span>${wkCollapsed ? '▶' : '▼'}</span>
+                          <span>🗓️ ${wk}</span>
+                        </span>
+                        <span style="font-size:9px; background:#e2e8f0; color:#475569; padding:1px 6px; border-radius:10px;">${tree[yr][wk].length}</span>
+                     </div>
+                     <div style="display:${wkCollapsed ? 'none' : 'block'}; padding:4px 0 2px 4px;">
+                        ${plansHtml || '<div style="font-size:10px; color:#94a3b8; padding:4px;">No matching plans.</div>'}
+                     </div>
+                  </div>
+                `;
             });
-            html += `</ul>`;
+
+            if (yrMatches > 0 || !query) {
+              html += `
+                <div class="folder-year-card">
+                   <div class="folder-year-head" onclick="toggleFolderCollapse('${yrKey}', event)">
+                      <span style="display:flex; align-items:center; gap:6px;">
+                        <span>${yrCollapsed ? '📁' : '📂'}</span>
+                        <span>Season ${yr}</span>
+                      </span>
+                      <span style="font-size:9px; background:#dbeafe; color:var(--primary); padding:2px 8px; border-radius:10px; font-weight:800;">Year ${yr}</span>
+                   </div>
+                   <div style="display:${yrCollapsed ? 'none' : 'block'}; padding:4px 2px;">
+                      ${weeksHtml}
+                   </div>
+                </div>
+              `;
+            }
         });
-        dropdown.innerHTML = html + '</ul>';
+
+        html += `</div>`;
+        dropdown.innerHTML = html;
+    }
+
+    function quickDuplicatePractice(id) {
+        const src = practiceData.find(p => p.id === id);
+        if (!src) return;
+        const newPrac = JSON.parse(JSON.stringify(src));
+        newPrac.id = "prac_" + Date.now();
+        newPrac.title = src.title + " (Copy)";
+        newPrac.lastEdited = Date.now();
+        practiceData.push(newPrac);
+        currentPracticeId = newPrac.id;
+        saveState('practice');
+        populatePracticeDropdown();
+        renderPracticePlan();
     }
 
     function selectPractice(id) {
@@ -2450,6 +2672,189 @@
         document.getElementById('new-prac-modal').classList.add('hidden');
         if (saveTimeout) clearTimeout(saveTimeout);
         saveState('practice'); populatePracticeDropdown(); renderPracticePlan();
+    }
+
+    /* UNIVERSAL MULTI-FORMAT PRACTICE PLAN IMPORTER (.docx, .pdf, .csv, .json, .txt) */
+    function openImportPracticeModal() {
+        const prac = practiceData.find(p => p.id === currentPracticeId);
+        if (prac) {
+            document.getElementById("import-target-year").value = prac.year || "2026";
+            document.getElementById("import-target-week").value = prac.weekFolder || "Week 1";
+        }
+        document.getElementById("import-status-msg").style.display = "none";
+        document.getElementById("import-file-name-display").textContent = "Supported: .docx, .pdf, .csv, .json, .txt";
+        document.getElementById("import-prac-modal").classList.remove("hidden");
+    }
+
+    function closeImportPracticeModal() {
+        document.getElementById("import-prac-modal").classList.add("hidden");
+    }
+
+    async function handlePracticePlanFileUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const targetYear = document.getElementById("import-target-year").value.trim() || "2026";
+        const targetWeek = document.getElementById("import-target-week").value.trim() || "Week 1";
+        const targetTitleOverride = document.getElementById("import-target-title").value.trim();
+
+        const statusMsg = document.getElementById("import-status-msg");
+        statusMsg.style.display = "block";
+        statusMsg.style.color = "var(--primary)";
+        statusMsg.textContent = `⏳ Reading & parsing ${file.name}...`;
+
+        try {
+            let extractedText = "";
+            let parsedPlan = null;
+            const ext = file.name.split('.').pop().toLowerCase();
+
+            if (ext === 'docx') {
+                if (!window.mammoth) throw new Error("Mammoth .docx parser library not loaded.");
+                const arrayBuffer = await file.arrayBuffer();
+                const result = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
+                extractedText = result.value;
+            } else if (ext === 'pdf') {
+                if (!window.pdfjsLib) throw new Error("PDF.js library not loaded.");
+                const arrayBuffer = await file.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                let fullText = "";
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const textContent = await page.getTextContent();
+                    const pageText = textContent.items.map(item => item.str).join(' ');
+                    fullText += pageText + "\n";
+                }
+                extractedText = fullText;
+            } else if (ext === 'json') {
+                const text = await file.text();
+                const json = JSON.parse(text);
+                if (Array.isArray(json.plan)) {
+                    parsedPlan = json.plan;
+                } else if (Array.isArray(json)) {
+                    parsedPlan = json;
+                }
+            } else if (ext === 'csv' || ext === 'txt') {
+                extractedText = await file.text();
+            } else {
+                throw new Error("Unsupported file extension: ." + ext);
+            }
+
+            if (!parsedPlan && extractedText) {
+                parsedPlan = parseRawTextToPracticePlan(extractedText);
+            }
+
+            if (!parsedPlan || parsedPlan.length === 0) {
+                let defaultCat = cascadingDrills.length > 0 ? cascadingDrills[0].name : "General";
+                parsedPlan = [
+                    { time: 15, category: defaultCat, format: "static", stations: [{ name: "Imported Period 1", desc: extractedText.slice(0, 300), coach: "", focus: "" }] }
+                ];
+            }
+
+            // Extract metadata from file/text if available
+            let detectedTitle = targetTitleOverride || file.name.replace(/\.[^/.]+$/, "");
+            let detectedDate = new Date().toISOString().split('T')[0];
+            let detectedDay = "Wednesday";
+
+            const dateMatch = extractedText.match(/\b(20\d{2}[-\/.]\d{1,2}[-\/.]\d{1,2}|\d{1,2}[-\/.]\d{1,2}[-\/.]20\d{2})\b/);
+            if (dateMatch) {
+               let d = new Date(dateMatch[0]);
+               if (!isNaN(d.getTime())) {
+                  detectedDate = d.toISOString().split('T')[0];
+                  const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+                  detectedDay = days[d.getDay()];
+               }
+            }
+
+            const newPractice = {
+                id: "prac_" + Date.now(),
+                year: targetYear,
+                weekFolder: targetWeek,
+                title: detectedTitle,
+                date: detectedDate,
+                day: detectedDay,
+                startTime: "17:05",
+                endTime: "20:00",
+                lastEdited: Date.now(),
+                plan: parsedPlan
+            };
+
+            practiceData.push(newPractice);
+            currentPracticeId = newPractice.id;
+            saveState('practice');
+            populatePracticeDropdown();
+            renderPracticePlan();
+
+            statusMsg.style.color = "#16a34a";
+            statusMsg.textContent = `✅ Imported "${detectedTitle}" into [${targetYear} / ${targetWeek}] successfully!`;
+            setTimeout(() => { closeImportPracticeModal(); }, 1200);
+
+        } catch (err) {
+            console.error("Practice import error:", err);
+            statusMsg.style.color = "#ef4444";
+            statusMsg.textContent = `⚠️ Import failed: ${err.message}`;
+        }
+        event.target.value = '';
+    }
+
+    function parseRawTextToPracticePlan(text) {
+        const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+        let plan = [];
+        let curRow = null;
+
+        lines.forEach(line => {
+            // Check for duration (e.g., 10 mins, 15m, Period 1 (20 min))
+            const timeMatch = line.match(/\b(\d{1,3})\s*(?:min|mins|minutes|m)\b/i);
+            const periodMatch = line.match(/^(?:period\s*\d+|session\s*\d+|part\s*\d+)/i);
+
+            if (timeMatch || periodMatch) {
+                let duration = timeMatch ? parseInt(timeMatch[1]) : 15;
+                let cleanLine = line.replace(/\b\d{1,3}\s*(?:min|mins|minutes|m)\b/gi, '').replace(/^(?:period\s*\d+|session\s*\d+|part\s*\d+)[:\-]?\s*/i, '').trim();
+                
+                let detectedCategory = "📋 General";
+                cascadingDrills.forEach(f => {
+                   if (cleanLine.toLowerCase().includes(f.name.toLowerCase().replace(/[^a-z0-9]/gi, ''))) {
+                      detectedCategory = f.name;
+                   }
+                });
+
+                curRow = {
+                    time: duration,
+                    category: detectedCategory,
+                    format: "static",
+                    stations: [{
+                        name: cleanLine || "Drill / Focus",
+                        desc: "",
+                        coach: "",
+                        focus: ""
+                    }]
+                };
+                plan.push(curRow);
+            } else if (curRow && curRow.stations && curRow.stations[0]) {
+                // Check if line specifies coach
+                const coachMatch = line.match(/(?:coach|coaches|assigned):\s*([^\n\r]+)/i);
+                const focusMatch = line.match(/(?:focus|key|keys|goal):\s*([^\n\r]+)/i);
+
+                if (coachMatch) {
+                    curRow.stations[0].coach = coachMatch[1].trim();
+                } else if (focusMatch) {
+                    curRow.stations[0].focus = focusMatch[1].trim();
+                } else {
+                    curRow.stations[0].desc += (curRow.stations[0].desc ? "\n" : "") + line;
+                }
+            }
+        });
+
+        if (plan.length === 0 && lines.length > 0) {
+            let defaultCat = cascadingDrills.length > 0 ? cascadingDrills[0].name : "General";
+            plan.push({
+                time: 20,
+                category: defaultCat,
+                format: "static",
+                stations: [{ name: "Imported Session", desc: lines.join("\n"), coach: "", focus: "" }]
+            });
+        }
+
+        return plan;
     }
 
     function editPracticeDetails() {
@@ -2558,7 +2963,6 @@
                 localStorage.setItem("footballTeamCoaches", JSON.stringify(teamCoachesList));
             }
 
-            // Real-time approval & permission check
             if (currentUser && currentUser.email) {
                 let isApproved = checkUserApprovalStatus(currentUser.email);
                 if (!isApproved) {
@@ -2776,14 +3180,12 @@
           let clean = newName.trim();
           let oldName = form.name.toLowerCase();
 
-          // Rename in default template storage
           defaultFormations.forEach(f => {
               if (f && (f.id === formId || f.name.toLowerCase() === oldName)) {
                   f.name = clean;
               }
           });
 
-          // Rename across all game weeks
           Object.keys(weeklyData).forEach(w => {
               if (weeklyData[w] && Array.isArray(weeklyData[w].formations)) {
                   weeklyData[w].formations.forEach(f => {
@@ -2808,10 +3210,8 @@
       if (confirm(`Delete formation "${form.name}" across all game weeks and default templates?`)) {
           const targetName = form.name.toLowerCase();
 
-          // Remove from default template storage
           defaultFormations = defaultFormations.filter(f => f.id !== formId && f.name.toLowerCase() !== targetName);
 
-          // Remove across all game weeks
           for (let w = 0; w <= 8; w++) {
               let wkKey = String(w);
               if (weeklyData[wkKey] && Array.isArray(weeklyData[wkKey].formations)) {
@@ -2835,7 +3235,6 @@
         let cleanName = name.trim();
         let newBaseId = "form_" + Date.now();
 
-        // 1. Add to permanent default template storage
         if (!defaultFormations.some(f => f.name.toLowerCase() === cleanName.toLowerCase())) {
             defaultFormations.push({
                 id: newBaseId,
@@ -2845,7 +3244,6 @@
             });
         }
 
-        // 2. Add to all active weeks (0 to 8)
         for (let w = 0; w <= 8; w++) {
             let wkKey = String(w);
             ensureWeekDataExists(wkKey);
@@ -2868,7 +3266,6 @@
       }
     }
 
-    /* DUPLICATE FORMATION WITH ALL PLAYERS */
     function copyFullFormation(formId) {
       if (userRole !== 'admin') return;
       const forms = getWeekFormations(currentWeek);
@@ -2933,7 +3330,6 @@
       alert(`Formation "${cleanName}" duplicated with all players successfully!`);
     }
 
-    /* REORDER FORMATIONS (MOVE UP / DOWN) */
     function moveFormation(formId, direction) {
       if (userRole !== 'admin') return;
       const forms = getWeekFormations(currentWeek);
@@ -2959,7 +3355,6 @@
       }
     }
 
-    /* ON-SCREEN FILTERING OF FORMATION BOARDS */
     function filterBoardView(unit, selectedId) {
       const container = document.getElementById("boards-" + unit);
       if (!container) return;
@@ -2986,7 +3381,6 @@
       select.innerHTML = html;
     }
 
-    /* DRAG AND DROP HANDLERS FOR POSITION CARDS ACROSS LEVELS */
     function handlePositionDragStart(e, formId, rIdx, pIdx) {
       if (userRole !== 'admin') return;
       draggedPositionData = { formId, rIdx, pIdx };
@@ -3572,7 +3966,7 @@
       triggerDebouncedSave('depthChart');
     }
 
-    /* PLAYBOOKS & POSITIONAL GUIDES - TOUCH-FRIENDLY DETERMINISTIC NAVIGATION */
+    /* PLAYBOOKS & POSITIONAL GUIDES - REVAMPED MODERN FOLDER SYSTEM */
     function renderGuideTab() {
       const mainContainer = document.getElementById('guide-main-folders');
       const subContainer = document.getElementById('guide-sub-tabs');
@@ -3605,45 +3999,53 @@
           activeGuideSub = subKeys[0] || "";
       }
 
-      // 1. Level 1 Main Category Ribbon (Pills)
+      // 1. Level 1 Main Category Ribbon (Pills with badge counts)
       mainContainer.innerHTML = pdfGuidesOrder.main.map(mainCat => {
         let encMain = encodeURIComponent(mainCat);
+        let subCount = Object.keys(pdfGuidesTree[mainCat] || {}).length;
+        let isActive = (mainCat === activeGuideMain);
         return `
-          <button type="button" class="guide-main-pill ${mainCat === activeGuideMain ? 'active' : ''}" onclick="switchGuideMain(decodeURIComponent('${encMain}'), this)">
-             ${mainCat}
+          <button type="button" class="guide-main-pill ${isActive ? 'active' : ''}" onclick="switchGuideMain(decodeURIComponent('${encMain}'), this)">
+             <span>📁 ${mainCat}</span>
+             <span style="font-size:9.5px; opacity:${isActive ? '0.9' : '0.6'}; background:${isActive ? 'rgba(255,255,255,0.25)' : '#e2e8f0'}; padding:1px 6px; border-radius:10px;">${subCount}</span>
           </button>
         `;
       }).join('');
 
-      // 2. Level 2 Sub-Tabs Ribbon (Pills)
+      // 2. Level 2 Sub-Tabs Ribbon
       let subTabsHtml = subKeys.map(subKey => {
         let encSub = encodeURIComponent(subKey);
+        let hasDoc = !!(pdfGuidesTree[activeGuideMain] && pdfGuidesTree[activeGuideMain][subKey]);
         return `
           <button type="button" class="guide-sub-pill ${subKey === activeGuideSub ? 'active' : ''}" onclick="switchGuideSub(decodeURIComponent('${encSub}'), this)">
-             ${subKey}
+             <span>${hasDoc ? '📄' : '📝'} ${subKey}</span>
           </button>
         `;
       }).join('');
 
-      subContainer.innerHTML = subTabsHtml || '<span style="font-size:11px; color:var(--text-muted); padding:4px;">No sub-tabs found. Click "Organize Tabs" to add.</span>';
+      subContainer.innerHTML = subTabsHtml || '<span style="font-size:11px; color:var(--text-muted); padding:4px;">No sub-tabs found. Click "Manage Folders" to add.</span>';
 
       // 3. Document Content Area
       let guideVal = (pdfGuidesTree[activeGuideMain] && pdfGuidesTree[activeGuideMain][activeGuideSub]) || "";
       let displayHtml = guideVal.startsWith("http") 
-        ? `<iframe src="${guideVal}" style="width:100%; height:600px; border:none; display:block;" title="Playbook Guide"></iframe>` 
-        : `<div style="padding:40px 20px; text-align:center; color:var(--text-muted); font-size:12px;">No document uploaded for [${activeGuideMain} > ${activeGuideSub}] yet. Upload below.</div>`;
+        ? `<iframe src="${guideVal}" style="width:100%; height:600px; border:none; display:block; border-radius:8px;" title="Playbook Guide"></iframe>` 
+        : `<div style="padding:60px 20px; text-align:center; color:var(--text-muted); font-size:12.5px;">
+             <div style="font-size:32px; margin-bottom:8px;">📄</div>
+             <strong>No document uploaded for [${activeGuideMain} > ${activeGuideSub}]</strong>
+             <div style="font-size:11px; margin-top:4px;">Upload a PDF, Word document, or image playbook below to embed.</div>
+           </div>`;
 
       contentArea.innerHTML = `
-        <div class="admin-only" style="padding: 10px; background: #f8fafc; border: 1px solid var(--card-border); border-radius: 6px; margin-bottom: 8px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:space-between;">
+        <div class="admin-only" style="padding: 12px 14px; background: #f8fafc; border: 1px solid var(--card-border); border-radius: 8px; margin-bottom: 8px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:space-between;">
            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
              <label style="font-size:11.5px; font-weight:bold; color:var(--primary);">Upload Document for [${activeGuideMain} / ${activeGuideSub}]:</label>
              <input type="file" id="guide-file-input" accept=".pdf,.doc,.docx" onchange="uploadGuideFile(event)" style="font-size:11px;" />
            </div>
            <div>
-             <button class="toggle-board-btn" style="background:var(--primary); color:#fff; padding:5px 12px;" onclick="openGuideFullScreen()">⛶ Full Screen Document</button>
+             <button class="toggle-board-btn" style="background:var(--primary); color:#fff; padding:6px 14px; border-radius:6px;" onclick="openGuideFullScreen()">⛶ Full Screen Document</button>
            </div>
         </div>
-        <div style="flex-grow:1; background:#fff; border:1px solid var(--card-border); border-radius:6px; overflow-y:auto; overflow-x:hidden; min-height:550px; display:flex; flex-direction:column; -webkit-overflow-scrolling:touch;">
+        <div style="flex-grow:1; background:#fff; border:1px solid var(--card-border); border-radius:8px; overflow-y:auto; overflow-x:hidden; min-height:550px; display:flex; flex-direction:column; -webkit-overflow-scrolling:touch; box-shadow:inset 0 1px 2px rgba(0,0,0,0.03);">
            ${displayHtml}
         </div>
       `;
@@ -3685,8 +4087,8 @@
             let encMain = encodeURIComponent(mainCat);
             let isCurrent = (mainCat === activeGuideMain);
             return `
-              <div style="display:flex; justify-content:space-between; align-items:center; background:${isCurrent ? '#eff6ff' : '#ffffff'}; padding:4px 8px; border:1px solid ${isCurrent ? 'var(--accent)' : '#e2e8f0'}; border-radius:4px;">
-                 <span style="font-weight:bold; font-size:11.5px; color:${isCurrent ? 'var(--accent)' : 'var(--text)'}; cursor:pointer;" onclick="activeGuideMain='${mainCat}'; renderGuideManagerContent();">${mainCat} ${isCurrent ? '👈' : ''}</span>
+              <div style="display:flex; justify-content:space-between; align-items:center; background:${isCurrent ? '#eff6ff' : '#ffffff'}; padding:6px 10px; border:1px solid ${isCurrent ? 'var(--accent)' : '#e2e8f0'}; border-radius:6px;">
+                 <span style="font-weight:bold; font-size:11.5px; color:${isCurrent ? 'var(--accent)' : 'var(--text)'}; cursor:pointer;" onclick="activeGuideMain='${mainCat}'; renderGuideManagerContent();">📁 ${mainCat} ${isCurrent ? '👈' : ''}</span>
                  <div style="display:flex; gap:3px;">
                     <button class="toggle-board-btn" style="padding:1px 5px; font-size:9px;" onclick="moveGuideMain(decodeURIComponent('${encMain}'), -1, event); renderGuideManagerContent();">▲</button>
                     <button class="toggle-board-btn" style="padding:1px 5px; font-size:9px;" onclick="moveGuideMain(decodeURIComponent('${encMain}'), 1, event); renderGuideManagerContent();">▼</button>
@@ -3702,8 +4104,8 @@
         subsContainer.innerHTML = subKeys.map((subKey, idx) => {
             let encSub = encodeURIComponent(subKey);
             return `
-              <div style="display:flex; justify-content:space-between; align-items:center; background:#ffffff; padding:4px 8px; border:1px solid #e2e8f0; border-radius:4px;">
-                 <span style="font-size:11px; font-weight:bold; color:var(--text);">${subKey}</span>
+              <div style="display:flex; justify-content:space-between; align-items:center; background:#ffffff; padding:6px 10px; border:1px solid #e2e8f0; border-radius:6px;">
+                 <span style="font-size:11px; font-weight:bold; color:var(--text);">📄 ${subKey}</span>
                  <div style="display:flex; gap:3px;">
                     <button class="toggle-board-btn" style="padding:1px 5px; font-size:9px;" onclick="moveGuideSub(decodeURIComponent('${encSub}'), -1, event); renderGuideManagerContent();">▲</button>
                     <button class="toggle-board-btn" style="padding:1px 5px; font-size:9px;" onclick="moveGuideSub(decodeURIComponent('${encSub}'), 1, event); renderGuideManagerContent();">▼</button>
@@ -3927,299 +4329,4 @@
        }).join('');
 
        let savedCoachesHtml = savedCoachesList.map((sc) => `
-          <div style="display:flex; justify-content:space-between; align-items:center; background:#f8fafc; padding:6px 10px; border:1px solid var(--card-border); border-radius:6px; margin-bottom:4px;">
-             <span style="font-weight:bold; font-size:11px; color:var(--primary);">${sc}</span>
-             <button class="remove-btn" onclick="deleteSavedCoach('${sc}')" style="font-size:13px;" title="Delete">&times;</button>
-          </div>
-       `).join('');
-
-       let html = `
-         <div style="display:grid; grid-template-columns: 2fr 1fr; gap:20px;">
-           <div>
-             <div style="margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
-               <strong>Practice Staff & Permissions</strong>
-               <button class="toggle-board-btn admin-only" style="background:var(--primary); color:#fff; padding:6px 12px;" onclick="addNewCoachPrompt()">+ Add Coach to Staff</button>
-             </div>
-             <table style="width:100%; border-collapse:collapse; background:#fff; font-size:11px;">
-               <thead>
-                 <tr style="background:#f1f5f9; color:var(--primary); text-align:left;">
-                   <th style="padding:8px; border:1px solid var(--card-border);">Coach / User Email</th>
-                   <th style="padding:8px; border:1px solid var(--card-border);">Role</th>
-                   <th style="padding:8px; border:1px solid var(--card-border); text-align:center;">Status</th>
-                   <th style="padding:8px; border:1px solid var(--card-border); text-align:center;" class="admin-only">Action</th>
-                 </tr>
-               </thead>
-               <tbody>${rowsHtml}</tbody>
-             </table>
-           </div>
-           <div>
-             <div style="margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
-               <strong>Saved Practice Coaches</strong>
-               <button class="toggle-board-btn admin-only" style="background:#10b981; color:#fff; padding:4px 8px; font-size:10px;" onclick="addNewSavedCoachPrompt()">+ Add Name</button>
-             </div>
-             <div style="max-height: 250px; overflow-y:auto; border:1px solid var(--card-border); padding:8px; border-radius:6px; background:#fff;">
-               ${savedCoachesHtml || '<div style="color:var(--text-muted); font-size:11px; text-align:center;">No saved coaches.</div>'}
-             </div>
-           </div>
-         </div>
-       `;
-       container.innerHTML = html;
-    }
-
-    function addNewSavedCoachPrompt() {
-        let name = prompt("Enter coach name (e.g. Coach Smith):");
-        if (name && name.trim() !== "") {
-            let clean = name.trim();
-            if (!savedCoachesList.includes(clean)) {
-                savedCoachesList.push(clean);
-                savedCoachesList.sort();
-                if (saveTimeout) clearTimeout(saveTimeout);
-                saveState('users');
-                renderUsers();
-            }
-        }
-    }
-
-    function deleteSavedCoach(name) {
-        if (confirm(`Remove "${name}" from saved practice coaches?`)) {
-            savedCoachesList = savedCoachesList.filter(c => c !== name);
-            practiceData.forEach(p => {
-                if (Array.isArray(p.plan)) {
-                    p.plan.forEach(row => {
-                        if (row.stations) {
-                            row.stations.forEach(st => {
-                                if (st.coach) {
-                                    let tokens = st.coach.split(',').map(t => t.trim()).filter(Boolean);
-                                    tokens = tokens.filter(t => t !== name && t !== "Coach " + name);
-                                    st.coach = tokens.join(', ');
-                                }
-                            });
-                        }
-                    });
-                }
-            });
-            if (saveTimeout) clearTimeout(saveTimeout);
-            saveState('users');
-            renderPracticePlan();
-            if (activeUnit === 'users') renderUsers();
-        }
-    }
-
-    function updateCoachRole(idx, newRole) {
-        if (teamCoachesList[idx]) {
-            if (teamCoachesList[idx].email.trim().toLowerCase() === "dannym1010@gmail.com") return;
-            teamCoachesList[idx].role = newRole;
-            if (saveTimeout) clearTimeout(saveTimeout);
-            saveState('users');
-            renderUsers();
-        }
-    }
-
-    function toggleCoachApproval(idx) {
-        if (teamCoachesList[idx]) {
-            if (teamCoachesList[idx].email.trim().toLowerCase() === "dannym1010@gmail.com") return;
-            teamCoachesList[idx].status = (teamCoachesList[idx].status === 'Active') ? 'Pending' : 'Active';
-            if (saveTimeout) clearTimeout(saveTimeout);
-            saveState('users');
-            renderUsers();
-        }
-    }
-
-    function addNewCoachPrompt() {
-       let email = prompt("Enter assistant coach email address:");
-       if (email && email.trim() !== "") {
-           let cleanEmail = email.trim().toLowerCase();
-           if (teamCoachesList.some(c => c.email && c.email.trim().toLowerCase() === cleanEmail)) {
-               return alert("Coach already exists.");
-           }
-           teamCoachesList.push({ email: email.trim(), role: "Assistant Coach", status: "Active" });
-           if (saveTimeout) clearTimeout(saveTimeout);
-           saveState('users');
-           renderUsers();
-       }
-    }
-
-    function removeCoachFromStaff(idx) {
-       if (teamCoachesList[idx].email.trim().toLowerCase() === "dannym1010@gmail.com") return alert("Cannot remove master admin.");
-       if (confirm(`Remove coach ${teamCoachesList[idx].email}?`)) {
-           teamCoachesList.splice(idx, 1);
-           if (saveTimeout) clearTimeout(saveTimeout);
-           saveState('users');
-           renderUsers();
-       }
-    }
-
-    function filterRoster() { renderMasterRoster(); }
-    function renderPlayLibrary() {
-      const container = document.getElementById("play-library-list");
-      if (container) container.innerHTML = masterPlayLibrary.map(p => `<li class="full-roster-item"><span>${p}</span></li>`).join('');
-    }
-
-    function exportData() {
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({weeklyData, defaultFormations, practiceData, masterPlayLibrary, cascadingDrills, pdfGuidesTree, pdfGuidesOrder, practiceTemplates, teamCoachesList, savedCoachesList}));
-        const dl = document.createElement('a'); dl.setAttribute("href", dataStr); dl.setAttribute("download", `football_backup.json`); dl.click();
-    }
-
-    function importData(e) {
-        const file = e.target.files[0]; if (!file) return;
-        const reader = new FileReader();
-        reader.onload = async function(evt) {
-            try {
-                isImporting = true;
-                const parsed = JSON.parse(evt.target.result);
-                if (parsed.defaultFormations && Array.isArray(parsed.defaultFormations)) defaultFormations = parsed.defaultFormations;
-                if (parsed.weeklyData && typeof parsed.weeklyData === 'object') weeklyData = parsed.weeklyData;
-                if (parsed.practiceData) practiceData = parsed.practiceData;
-                if (parsed.masterPlayLibrary) masterPlayLibrary = parsed.masterPlayLibrary;
-                if (parsed.cascadingDrills) cascadingDrills = parsed.cascadingDrills;
-                if (parsed.pdfGuidesTree) pdfGuidesTree = parsed.pdfGuidesTree;
-                if (parsed.pdfGuidesOrder) pdfGuidesOrder = parsed.pdfGuidesOrder;
-                if (parsed.collapsedFolders) collapsedFolders = parsed.collapsedFolders;
-                if (parsed.savedCoachesList) savedCoachesList = parsed.savedCoachesList;
-                if (parsed.practiceTemplates) practiceTemplates = { ...defaultPracticeTemplates, ...parsed.practiceTemplates };
-                if (parsed.teamCoachesList) teamCoachesList = parsed.teamCoachesList;
-
-                for (let w = 0; w <= 8; w++) ensureWeekDataExists(String(w));
-                saveState('all');
-                if (cloudEnabled && db) {
-                    await db.collection("teamData").doc("depthChartData").set({
-                        weeklyData, defaultFormations, practiceData, masterPlayLibrary, cascadingDrills, pdfGuidesTree, pdfGuidesOrder, collapsedFolders, savedCoachesList, practiceTemplates, teamCoachesList,
-                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                    }, { merge: true });
-                }
-                isImporting = false;
-                alert("Backup imported successfully!");
-                location.reload();
-            } catch (err) { 
-                isImporting = false;
-                alert("Invalid backup file: " + err.message); 
-            }
-        };
-        reader.readAsText(file);
-    }
-
-    function resetDefault() { if (confirm("Wipe all data?")) { localStorage.clear(); location.reload(); } }
-
-    function applyRole(role) {
-       userRole = role;
-       const badge = document.getElementById("user-role-badge");
-       const selectEl = document.getElementById("role-switcher-select");
-       if (selectEl) selectEl.value = role;
-
-       if (role === 'admin') {
-          document.body.classList.remove('view-only');
-          if (badge) { badge.textContent = "ADMIN"; badge.className = "role-badge role-admin"; }
-       } else {
-          document.body.classList.add('view-only');
-          if (badge) { badge.textContent = "ASSISTANT"; badge.className = "role-badge role-viewer"; }
-       }
-
-       if (activeUnit === 'drills') renderDrillsTab();
-       else if (activeUnit === 'scrimmage') renderScrimmageTab();
-       else if (['offense', 'defense', 'st', 'groups'].includes(activeUnit)) renderActiveBoards();
-       renderMasterRoster();
-    }
-
-    function bypassLogin() {
-      cloudEnabled = false;
-      document.getElementById("auth-overlay").style.display = "none";
-      document.getElementById("approval-pending-overlay").classList.add("hidden");
-      applyRole('admin');
-      document.getElementById("user-display-email").textContent = "Local Admin (Offline)";
-      setSyncStatus("Local Storage Mode (Offline)", "#16a34a");
-      initializeApp();
-    }
-
-    function switchAuthTab(mode) {
-      isSignUpMode = (mode === 'register');
-      document.getElementById("tab-login").classList.toggle('active', !isSignUpMode);
-      document.getElementById("tab-register").classList.toggle('active', isSignUpMode);
-      document.getElementById("auth-submit-btn").textContent = isSignUpMode ? "Create Account" : "Sign In";
-    }
-
-    async function handleEmailAuth(e) {
-      if (e) { e.preventDefault(); e.stopPropagation(); }
-      if (!auth) { bypassLogin(); return false; }
-      const email = document.getElementById("auth-email").value.trim();
-      const pass = document.getElementById("auth-password").value;
-      try {
-        if (isSignUpMode) await auth.createUserWithEmailAndPassword(email, pass);
-        else await auth.signInWithEmailAndPassword(email, pass);
-      } catch (err) { alert(err.message); }
-      return false;
-    }
-
-    async function signInWithGoogle() {
-      if (!auth) { bypassLogin(); return; }
-      try {
-        const provider = new firebase.auth.GoogleAuthProvider();
-        await auth.signInWithPopup(provider);
-      } catch (err) { alert(err.message); }
-    }
-
-    function signOutUser() { if (auth) auth.signOut().then(() => location.reload()); else location.reload(); }
-
-    if (auth) {
-      auth.onAuthStateChanged(async (user) => {
-        if (user) {
-          currentUser = user;
-          cloudEnabled = true;
-          document.getElementById("user-display-email").textContent = user.email || "Coach";
-
-          listenToLiveUpdates();
-
-          let isApproved = checkUserApprovalStatus(user.email);
-          if (!isApproved) {
-              document.getElementById("auth-overlay").style.display = "none";
-              document.getElementById("approval-pending-overlay").classList.add("hidden");
-              document.getElementById("pending-user-email-display").textContent = user.email;
-              setSyncStatus("Approval Pending", "#d97706");
-              return;
-          } else {
-              document.getElementById("auth-overlay").style.display = "none";
-              document.getElementById("approval-pending-overlay").classList.add("hidden");
-              setSyncStatus("Live Cloud Sync Active", "#16a34a");
-          }
-
-          let coachEntry = teamCoachesList.find(c => c.email && c.email.trim().toLowerCase() === user.email.trim().toLowerCase());
-          let isHeadAdmin = (user.email.trim().toLowerCase() === "dannym1010@gmail.com" || (coachEntry && coachEntry.role && coachEntry.role.includes("Admin")));
-          applyRole(isHeadAdmin ? 'admin' : 'assistant');
-          initializeApp();
-        }
-      });
-    }
-
-    function initializeApp() {
-        for (let w = 0; w <= 8; w++) ensureWeekDataExists(String(w));
-        if (practiceData.length === 0) {
-            let defaultCat = cascadingDrills.length > 0 ? cascadingDrills[0].name : "General";
-            practiceData = [{
-                id: "prac_1", year: "2026", weekFolder: "Week 1", title: "Practice #1", 
-                date: new Date().toISOString().split('T')[0], day: "Wednesday", startTime: "17:05", endTime: "20:00", lastEdited: Date.now(),
-                plan: [{ time: 25, category: defaultCat, format: "static", stations: [{ name: "Warm-Up", desc: "Dynamic stretch", coach: "Coach Danny", focus: "Stance & Agility" }] }]
-            }];
-        }
-        
-        let sortedPracs = [...practiceData].sort((a, b) => (b.lastEdited || 0) - (a.lastEdited || 0));
-        currentPracticeId = sortedPracs[0].id;
-        depthChart = getWeekDepthChart(currentWeek);
-        
-        const weekSelect = document.getElementById("week-select");
-        if (weekSelect) weekSelect.value = currentWeek;
-
-        const oppInput = document.getElementById("opponent-input");
-        if (oppInput) oppInput.value = weeklyData[currentWeek]?.opponent || "";
-
-        const fontSelect = document.getElementById("print-font-size-select");
-        if (fontSelect) fontSelect.value = printFontSize;
-        document.documentElement.style.setProperty('--print-font-size', printFontSize + 'px');
-
-        switchUnitTab(activeUnit);
-    }
-
-    if (!auth) {
-        bypassLogin();
-    }
-  </script>
-</body>
-</html>
+          <div style="display:flex; justify-content:space-between; align-items:center; background:#f8fafc; padding:6px 10px; borderI encountered an error doing what you asked. Could you try again?
