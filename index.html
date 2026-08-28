@@ -441,7 +441,7 @@
     <div style="display:flex; gap:6px; flex-wrap:wrap;">
       <button onclick="toggleFullScreen()">⛶ Full Screen</button>
       <button class="admin-only" onclick="exportData()">Backup</button>
-      <button class="admin-only" onclick="document.getElementById('import-file').click()">Import</button>
+      <button class="admin-only" onclick="document.getElementById('import-file').click()">Import System Data</button>
       <button class="admin-only" onclick="resetDefault()" style="color:#ef4444;">Reset</button>
       <input type="file" id="import-file" style="display:none;" onchange="importData(event);" accept=".json" />
     </div>
@@ -635,7 +635,7 @@
                   <button class="toggle-board-btn" style="background:#059669; color:#fff;" onclick="document.getElementById('import-drills-csv-file').click()" title="Import Drills from CSV">📥 Import CSV</button>
                   <input type="file" id="import-drills-csv-file" style="display:none;" onchange="importDrillsCSV(event)" accept=".csv" />
                   <button class="toggle-board-btn" style="background:#8b5cf6; color:#fff;" onclick="exportDrillsJSON()" title="Export Drill Folders JSON">📁 Export JSON</button>
-                  <button class="toggle-board-btn" style="background:#0284c7; color:#fff;" onclick="document.getElementById('import-drills-json-file').click()" title="Export Drill Folders JSON">📂 Import JSON</button>
+                  <button class="toggle-board-btn" style="background:#0284c7; color:#fff;" onclick="document.getElementById('import-drills-json-file').click()" title="Import Drill Folders JSON">📂 Import JSON</button>
                   <input type="file" id="import-drills-json-file" style="display:none;" onchange="importDrillsJSON(event)" accept=".json" />
                   <button class="toggle-board-btn" style="background:#2563eb; color:#fff;" onclick="forceSyncCloud()" title="Force Push to Live Cloud">☁️ Sync to Live</button>
                   <button class="toggle-board-btn admin-only" style="background:#475569; color:#fff;" onclick="forceResetDefaultDrills()">🔄 Reset Defaults</button>
@@ -662,6 +662,11 @@
               <button class="toggle-board-btn admin-only" onclick="deletePractice()" style="color:#ef4444;">🗑️</button>
             </div>
             <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+              
+              <!-- PRACTICE PLAN CSV/JSON IMPORT BUTTON -->
+              <button class="toggle-board-btn admin-only" style="background:#0284c7; color:#fff;" onclick="document.getElementById('import-practice-plan-file').click()" title="Import Practice Plan structure from CSV or JSON">📥 Import Plan</button>
+              <input type="file" id="import-practice-plan-file" style="display:none;" onchange="importPracticePlanFile(event)" accept=".csv,.json" />
+
               <div style="display:flex; gap:4px; align-items:center; background:#f1f5f9; padding:2px 6px; border-radius:6px; border:1px solid var(--card-border);" class="admin-only">
                 <span class="no-print-text" style="font-size:10px; font-weight:bold; color:var(--primary);">Template:</span>
                 <select id="practice-template-select" class="prac-select" style="width:130px; font-size:11px;" onchange="applyPracticeTemplate(this.value)"></select>
@@ -1053,7 +1058,8 @@
       
       let guideVal = "";
       if (pdfGuidesTree[activeGuideMain] && pdfGuidesTree[activeGuideMain][activeGuideSub]) {
-          guideVal = pdfGuidesTree[activeGuideMain][activeGuideSub];
+          let tabObj = pdfGuidesTree[activeGuideMain][activeGuideSub];
+          guideVal = typeof tabObj === 'object' ? tabObj.url : tabObj;
       }
       if (!guideVal) { alert("No document uploaded for this playbook section."); return; }
 
@@ -1113,25 +1119,61 @@
     let practiceTemplates = (savedTemplates && Object.keys(savedTemplates).length > 0) ? savedTemplates : defaultPracticeTemplates;
 
     let defaultPdfGuidesTree = {
-      "Offense": { "Full Playbook": "", "Quarterbacks": "", "Running Backs": "", "Wide Receivers": "", "Offensive Line": "" },
-      "Defense": { "Full Playbook": "", "Defensive Line": "", "Linebackers": "", "Secondary": "" },
-      "Specials": { "Special Teams": "", "Kicking & Punting": "" }
+      "Offense": { 
+        "sub_full_pb": { id: "sub_full_pb", title: "Full Playbook", url: "" },
+        "sub_qb": { id: "sub_qb", title: "Quarterbacks", url: "" },
+        "sub_rb": { id: "sub_rb", title: "Running Backs", url: "" },
+        "sub_wr": { id: "sub_wr", title: "Wide Receivers", url: "" },
+        "sub_ol": { id: "sub_ol", title: "Offensive Line", url: "" }
+      },
+      "Defense": { 
+        "sub_def_pb": { id: "sub_def_pb", title: "Full Playbook", url: "" },
+        "sub_dl": { id: "sub_dl", title: "Defensive Line", url: "" },
+        "sub_lb": { id: "sub_lb", title: "Linebackers", url: "" },
+        "sub_sec": { id: "sub_sec", title: "Secondary", url: "" }
+      },
+      "Specials": { 
+        "sub_st": { id: "sub_st", title: "Special Teams", url: "" },
+        "sub_kick": { id: "sub_kick", title: "Kicking & Punting", url: "" }
+      }
     };
+
+    function normalizeGuidesTree(rawTree) {
+        if (!rawTree || typeof rawTree !== 'object') return JSON.parse(JSON.stringify(defaultPdfGuidesTree));
+        let cleanTree = {};
+        Object.keys(rawTree).forEach(mainKey => {
+            cleanTree[mainKey] = {};
+            let subObj = rawTree[mainKey];
+            if (subObj && typeof subObj === 'object') {
+                Object.keys(subObj).forEach(subKey => {
+                    let item = subObj[subKey];
+                    if (typeof item === 'string') {
+                        let idKey = `sub_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`;
+                        cleanTree[mainKey][idKey] = { id: idKey, title: subKey, url: item };
+                    } else if (item && typeof item === 'object') {
+                        cleanTree[mainKey][subKey] = item;
+                    }
+                });
+            }
+        });
+        return cleanTree;
+    }
+
     let savedGuidesTree = safeJSONParse("footballPdfGuidesTree", null);
-    let pdfGuidesTree = (savedGuidesTree && typeof savedGuidesTree === 'object') ? savedGuidesTree : defaultPdfGuidesTree;
+    let pdfGuidesTree = normalizeGuidesTree(savedGuidesTree);
 
     let defaultPdfGuidesOrder = {
       main: ["Offense", "Defense", "Specials"],
       sub: {
-        "Offense": ["Full Playbook", "Quarterbacks", "Running Backs", "Wide Receivers", "Offensive Line"],
-        "Defense": ["Full Playbook", "Defensive Line", "Linebackers", "Secondary"],
-        "Specials": ["Special Teams", "Kicking & Punting"]
+        "Offense": ["sub_full_pb", "sub_qb", "sub_rb", "sub_wr", "sub_ol"],
+        "Defense": ["sub_def_pb", "sub_dl", "sub_lb", "sub_sec"],
+        "Specials": ["sub_st", "sub_kick"]
       }
     };
     let pdfGuidesOrder = safeJSONParse("footballPdfGuidesOrder", defaultPdfGuidesOrder);
 
     let activeGuideMain = (pdfGuidesOrder.main && pdfGuidesOrder.main[0]) || "Offense";
-    let activeGuideSub = (pdfGuidesOrder.sub && pdfGuidesOrder.sub[activeGuideMain] && pdfGuidesOrder.sub[activeGuideMain][0]) || "Full Playbook";
+    let activeGuideSub = (pdfGuidesOrder.sub && pdfGuidesOrder.sub[activeGuideMain] && pdfGuidesOrder.sub[activeGuideMain][0]) || "sub_full_pb";
 
     const masterRoster = [
       { num: "2", firstName: "Mohammed", lastName: "Ibrahim" },
@@ -1362,6 +1404,70 @@
     function getWeekScrimmageChart(week) {
       ensureWeekDataExists(week);
       return weeklyData[week].scrimmageChart;
+    }
+
+    /* PRACTICE PLAN CSV/JSON IMPORT LOGIC */
+    function importPracticePlanFile(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      
+      reader.onload = function(evt) {
+        try {
+          const content = evt.target.result;
+          let parsedPlan = [];
+
+          if (file.name.endsWith('.json')) {
+            const raw = JSON.parse(content);
+            parsedPlan = Array.isArray(raw) ? raw : (raw.plan || raw.periods || []);
+          } else {
+            const lines = parseCSV(content);
+            if (lines.length < 2) return alert("CSV file empty or invalid.");
+            
+            let startIdx = 0;
+            if (lines[0][0] && (lines[0][0].toLowerCase().includes("time") || lines[0][0].toLowerCase().includes("period") || lines[0][0].toLowerCase().includes("category"))) {
+              startIdx = 1;
+            }
+
+            for (let i = startIdx; i < lines.length; i++) {
+              let r = lines[i];
+              if (!r || r.length < 2) continue;
+              
+              let timeVal = parseInt(r[0]) || 10;
+              let categoryVal = r[1] ? r[1].trim() : "General";
+              let drillName = r[2] ? r[2].trim() : "Practice Station";
+              let drillDesc = r[3] ? r[3].trim() : "";
+              let coachVal = r[4] ? r[4].trim() : "";
+              let focusVal = r[5] ? r[5].trim() : "";
+
+              parsedPlan.push({
+                time: timeVal,
+                category: categoryVal,
+                format: "static",
+                stations: [{ name: drillName, desc: drillDesc, coach: coachVal, focus: focusVal }]
+              });
+            }
+          }
+
+          if (parsedPlan.length === 0) return alert("No valid practice plan rows found.");
+
+          const currentPrac = practiceData.find(p => p.id === currentPracticeId);
+          if (currentPrac) {
+            if (confirm("Importing this plan will overwrite current practice period rows. Proceed?")) {
+              currentPrac.plan = parsedPlan;
+              if (saveTimeout) clearTimeout(saveTimeout);
+              saveState('practice');
+              renderPracticePlan();
+              alert("Practice plan successfully imported!");
+            }
+          }
+        } catch (err) {
+          alert("Failed to parse file: " + err.message);
+        }
+        e.target.value = '';
+      };
+
+      reader.readAsText(file);
     }
 
     /* WEEK TO WEEK COPY FUNCTIONS */
@@ -2532,7 +2638,7 @@
             }
             
             if (data.pdfGuidesTree && typeof data.pdfGuidesTree === 'object') {
-                pdfGuidesTree = data.pdfGuidesTree;
+                pdfGuidesTree = normalizeGuidesTree(data.pdfGuidesTree);
                 localStorage.setItem("footballPdfGuidesTree", JSON.stringify(pdfGuidesTree));
             }
             if (data.pdfGuidesOrder && typeof data.pdfGuidesOrder === 'object') {
@@ -3572,7 +3678,7 @@
       triggerDebouncedSave('depthChart');
     }
 
-    /* PLAYBOOKS & POSITIONAL GUIDES - TOUCH-FRIENDLY DETERMINISTIC NAVIGATION */
+    /* PLAYBOOKS & POSITIONAL GUIDES - TOUCH-FRIENDLY DETERMINISTIC NAVIGATION & ID-KEYING */
     function renderGuideTab() {
       const mainContainer = document.getElementById('guide-main-folders');
       const subContainer = document.getElementById('guide-sub-tabs');
@@ -3591,14 +3697,16 @@
           activeGuideMain = pdfGuidesOrder.main[0] || "Offense";
       }
 
+      let subMap = pdfGuidesTree[activeGuideMain] || {};
       if (!pdfGuidesOrder.sub) pdfGuidesOrder.sub = {};
       if (!pdfGuidesOrder.sub[activeGuideMain]) {
-          pdfGuidesOrder.sub[activeGuideMain] = Object.keys(pdfGuidesTree[activeGuideMain] || {});
+          pdfGuidesOrder.sub[activeGuideMain] = Object.keys(subMap);
       }
-      Object.keys(pdfGuidesTree[activeGuideMain] || {}).forEach(sk => {
+      
+      Object.keys(subMap).forEach(sk => {
           if (!pdfGuidesOrder.sub[activeGuideMain].includes(sk)) pdfGuidesOrder.sub[activeGuideMain].push(sk);
       });
-      pdfGuidesOrder.sub[activeGuideMain] = pdfGuidesOrder.sub[activeGuideMain].filter(sk => pdfGuidesTree[activeGuideMain][sk] !== undefined);
+      pdfGuidesOrder.sub[activeGuideMain] = pdfGuidesOrder.sub[activeGuideMain].filter(sk => subMap[sk] !== undefined);
 
       let subKeys = pdfGuidesOrder.sub[activeGuideMain] || [];
       if (!subKeys.includes(activeGuideSub)) {
@@ -3616,11 +3724,13 @@
       }).join('');
 
       // 2. Level 2 Sub-Tabs Ribbon (Pills)
-      let subTabsHtml = subKeys.map(subKey => {
-        let encSub = encodeURIComponent(subKey);
+      let subTabsHtml = subKeys.map(subId => {
+        let tabObj = subMap[subId];
+        let displayTitle = (tabObj && typeof tabObj === 'object') ? tabObj.title : subId;
+        let encSubId = encodeURIComponent(subId);
         return `
-          <button type="button" class="guide-sub-pill ${subKey === activeGuideSub ? 'active' : ''}" onclick="switchGuideSub(decodeURIComponent('${encSub}'), this)">
-             ${subKey}
+          <button type="button" class="guide-sub-pill ${subId === activeGuideSub ? 'active' : ''}" onclick="switchGuideSub(decodeURIComponent('${encSubId}'), this)">
+             ${displayTitle}
           </button>
         `;
       }).join('');
@@ -3628,15 +3738,20 @@
       subContainer.innerHTML = subTabsHtml || '<span style="font-size:11px; color:var(--text-muted); padding:4px;">No sub-tabs found. Click "Organize Tabs" to add.</span>';
 
       // 3. Document Content Area
-      let guideVal = (pdfGuidesTree[activeGuideMain] && pdfGuidesTree[activeGuideMain][activeGuideSub]) || "";
+      let tabObj = subMap[activeGuideSub];
+      let guideVal = "";
+      let activeTitle = activeGuideSub;
+      if (typeof tabObj === 'string') { guideVal = tabObj; }
+      else if (tabObj && typeof tabObj === 'object') { guideVal = tabObj.url || ""; activeTitle = tabObj.title; }
+
       let displayHtml = guideVal.startsWith("http") 
         ? `<iframe src="${guideVal}" style="width:100%; height:600px; border:none; display:block;" title="Playbook Guide"></iframe>` 
-        : `<div style="padding:40px 20px; text-align:center; color:var(--text-muted); font-size:12px;">No document uploaded for [${activeGuideMain} > ${activeGuideSub}] yet. Upload below.</div>`;
+        : `<div style="padding:40px 20px; text-align:center; color:var(--text-muted); font-size:12px;">No document uploaded for [${activeGuideMain} > ${activeTitle}] yet. Upload below.</div>`;
 
       contentArea.innerHTML = `
         <div class="admin-only" style="padding: 10px; background: #f8fafc; border: 1px solid var(--card-border); border-radius: 6px; margin-bottom: 8px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:space-between;">
            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-             <label style="font-size:11.5px; font-weight:bold; color:var(--primary);">Upload Document for [${activeGuideMain} / ${activeGuideSub}]:</label>
+             <label style="font-size:11.5px; font-weight:bold; color:var(--primary);">Upload Document for [${activeGuideMain} / ${activeTitle}]:</label>
              <input type="file" id="guide-file-input" accept=".pdf,.doc,.docx" onchange="uploadGuideFile(event)" style="font-size:11px;" />
            </div>
            <div>
@@ -3681,7 +3796,7 @@
         if (curMainSpan) curMainSpan.textContent = activeGuideMain;
 
         // Render main folders list
-        mainsContainer.innerHTML = pdfGuidesOrder.main.map((mainCat, idx) => {
+        mainsContainer.innerHTML = pdfGuidesOrder.main.map((mainCat) => {
             let encMain = encodeURIComponent(mainCat);
             let isCurrent = (mainCat === activeGuideMain);
             return `
@@ -3699,16 +3814,19 @@
 
         // Render sub-tabs for active main folder
         let subKeys = pdfGuidesOrder.sub[activeGuideMain] || [];
-        subsContainer.innerHTML = subKeys.map((subKey, idx) => {
-            let encSub = encodeURIComponent(subKey);
+        let subMap = pdfGuidesTree[activeGuideMain] || {};
+        subsContainer.innerHTML = subKeys.map((subId) => {
+            let tabObj = subMap[subId];
+            let displayTitle = (tabObj && typeof tabObj === 'object') ? tabObj.title : subId;
+            let encSubId = encodeURIComponent(subId);
             return `
               <div style="display:flex; justify-content:space-between; align-items:center; background:#ffffff; padding:4px 8px; border:1px solid #e2e8f0; border-radius:4px;">
-                 <span style="font-size:11px; font-weight:bold; color:var(--text);">${subKey}</span>
+                 <span style="font-size:11px; font-weight:bold; color:var(--text);">${displayTitle}</span>
                  <div style="display:flex; gap:3px;">
-                    <button class="toggle-board-btn" style="padding:1px 5px; font-size:9px;" onclick="moveGuideSub(decodeURIComponent('${encSub}'), -1, event); renderGuideManagerContent();">▲</button>
-                    <button class="toggle-board-btn" style="padding:1px 5px; font-size:9px;" onclick="moveGuideSub(decodeURIComponent('${encSub}'), 1, event); renderGuideManagerContent();">▼</button>
-                    <button class="toggle-board-btn" style="padding:1px 5px; font-size:9px;" onclick="renameSubGuideTab(decodeURIComponent('${encSub}'), event); renderGuideManagerContent();">✏️</button>
-                    <button class="remove-btn" style="font-size:13px; padding:0 3px;" onclick="deleteSubGuideTab(decodeURIComponent('${encSub}'), event); renderGuideManagerContent();">&times;</button>
+                    <button class="toggle-board-btn" style="padding:1px 5px; font-size:9px;" onclick="moveGuideSub(decodeURIComponent('${encSubId}'), -1, event); renderGuideManagerContent();">▲</button>
+                    <button class="toggle-board-btn" style="padding:1px 5px; font-size:9px;" onclick="moveGuideSub(decodeURIComponent('${encSubId}'), 1, event); renderGuideManagerContent();">▼</button>
+                    <button class="toggle-board-btn" style="padding:1px 5px; font-size:9px;" onclick="renameSubGuideTab(decodeURIComponent('${encSubId}'), event); renderGuideManagerContent();">✏️</button>
+                    <button class="remove-btn" style="font-size:13px; padding:0 3px;" onclick="deleteSubGuideTab(decodeURIComponent('${encSubId}'), event); renderGuideManagerContent();">&times;</button>
                  </div>
               </div>
             `;
@@ -3774,11 +3892,11 @@
         }
     }
 
-    function moveGuideSub(subKey, direction, e) {
+    function moveGuideSub(subId, direction, e) {
         if (e) e.stopPropagation();
         if (userRole !== 'admin' || !pdfGuidesOrder.sub[activeGuideMain]) return;
         const subList = pdfGuidesOrder.sub[activeGuideMain];
-        const idx = subList.indexOf(subKey);
+        const idx = subList.indexOf(subId);
         if (idx === -1) return;
         const newIdx = idx + direction;
         if (newIdx < 0 || newIdx >= subList.length) return;
@@ -3799,7 +3917,14 @@
             const snapshot = await storageRef.put(file);
             const downloadUrl = await snapshot.ref.getDownloadURL();
             if (!pdfGuidesTree[activeGuideMain]) pdfGuidesTree[activeGuideMain] = {};
-            pdfGuidesTree[activeGuideMain][activeGuideSub] = downloadUrl;
+            
+            let currentTabObj = pdfGuidesTree[activeGuideMain][activeGuideSub];
+            if (typeof currentTabObj === 'object' && currentTabObj !== null) {
+                currentTabObj.url = downloadUrl;
+            } else {
+                pdfGuidesTree[activeGuideMain][activeGuideSub] = { id: activeGuideSub, title: activeGuideSub, url: downloadUrl };
+            }
+
             if (saveTimeout) clearTimeout(saveTimeout);
             saveState('guides');
             renderGuideTab();
@@ -3812,11 +3937,13 @@
         if (name && name.trim() !== "") {
             let clean = name.trim();
             if (!pdfGuidesTree[clean]) {
-                pdfGuidesTree[clean] = { "Full Playbook": "" };
+                let initialSubId = `sub_${Date.now()}`;
+                pdfGuidesTree[clean] = {};
+                pdfGuidesTree[clean][initialSubId] = { id: initialSubId, title: "Full Playbook", url: "" };
                 pdfGuidesOrder.main.push(clean);
-                pdfGuidesOrder.sub[clean] = ["Full Playbook"];
+                pdfGuidesOrder.sub[clean] = [initialSubId];
                 activeGuideMain = clean;
-                activeGuideSub = "Full Playbook";
+                activeGuideSub = initialSubId;
                 if (saveTimeout) clearTimeout(saveTimeout);
                 saveState('guides');
                 renderGuideTab();
@@ -3831,56 +3958,58 @@
         if (name && name.trim() !== "") {
             let clean = name.trim();
             if (!pdfGuidesTree[activeGuideMain]) pdfGuidesTree[activeGuideMain] = {};
-            if (!pdfGuidesTree[activeGuideMain][clean]) {
-                pdfGuidesTree[activeGuideMain][clean] = "";
-                if (!pdfGuidesOrder.sub[activeGuideMain]) pdfGuidesOrder.sub[activeGuideMain] = [];
-                pdfGuidesOrder.sub[activeGuideMain].push(clean);
-                activeGuideSub = clean;
-                if (saveTimeout) clearTimeout(saveTimeout);
-                saveState('guides');
-                renderGuideTab();
-            } else {
-                alert("Sub-tab already exists.");
-            }
-        }
-    }
-
-    function renameSubGuideTab(oldName, e) {
-        if (e) e.stopPropagation();
-        let newName = prompt("Rename Sub-Tab:", oldName);
-        if (newName && newName.trim() !== "" && newName !== oldName) {
-            let clean = newName.trim();
-            if (pdfGuidesTree[activeGuideMain][clean]) return alert("A sub-tab with that name already exists.");
             
-            let val = pdfGuidesTree[activeGuideMain][oldName];
-            delete pdfGuidesTree[activeGuideMain][oldName];
-            pdfGuidesTree[activeGuideMain][clean] = val;
-
-            const idx = pdfGuidesOrder.sub[activeGuideMain].indexOf(oldName);
-            if (idx !== -1) pdfGuidesOrder.sub[activeGuideMain][idx] = clean;
-
-            activeGuideSub = clean;
+            let newSubId = `sub_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`;
+            pdfGuidesTree[activeGuideMain][newSubId] = { id: newSubId, title: clean, url: "" };
+            
+            if (!pdfGuidesOrder.sub[activeGuideMain]) pdfGuidesOrder.sub[activeGuideMain] = [];
+            pdfGuidesOrder.sub[activeGuideMain].push(newSubId);
+            activeGuideSub = newSubId;
             if (saveTimeout) clearTimeout(saveTimeout);
             saveState('guides');
             renderGuideTab();
         }
     }
 
-    function deleteSubGuideTab(subKey, e) {
+    function renameSubGuideTab(subId, e) {
+        if (e) e.stopPropagation();
+        let currentTabObj = pdfGuidesTree[activeGuideMain][subId];
+        let oldTitle = typeof currentTabObj === 'object' ? currentTabObj.title : subId;
+        
+        let newName = prompt("Rename Sub-Tab:", oldTitle);
+        if (newName && newName.trim() !== "" && newName.trim() !== oldTitle) {
+            let clean = newName.trim();
+            if (typeof currentTabObj === 'object' && currentTabObj !== null) {
+                currentTabObj.title = clean;
+            } else {
+                pdfGuidesTree[activeGuideMain][subId] = { id: subId, title: clean, url: currentTabObj || "" };
+            }
+
+            if (saveTimeout) clearTimeout(saveTimeout);
+            saveState('guides');
+            renderGuideTab();
+        }
+    }
+
+    function deleteSubGuideTab(subId, e) {
         if (e) e.stopPropagation();
         if (userRole !== 'admin') return alert("Only Head Coach (Admin) can delete sub-tabs.");
         if (!pdfGuidesTree[activeGuideMain]) return;
 
-        if (confirm(`Delete sub-tab "${subKey}"?`)) {
-            delete pdfGuidesTree[activeGuideMain][subKey];
+        let currentTabObj = pdfGuidesTree[activeGuideMain][subId];
+        let displayTitle = typeof currentTabObj === 'object' ? currentTabObj.title : subId;
+
+        if (confirm(`Delete sub-tab "${displayTitle}"?`)) {
+            delete pdfGuidesTree[activeGuideMain][subId];
             if (pdfGuidesOrder.sub[activeGuideMain]) {
-                pdfGuidesOrder.sub[activeGuideMain] = pdfGuidesOrder.sub[activeGuideMain].filter(s => s !== subKey);
+                pdfGuidesOrder.sub[activeGuideMain] = pdfGuidesOrder.sub[activeGuideMain].filter(s => s !== subId);
             }
             let remaining = pdfGuidesOrder.sub[activeGuideMain] || [];
             if (remaining.length === 0) {
-                pdfGuidesTree[activeGuideMain]["General"] = "";
-                pdfGuidesOrder.sub[activeGuideMain] = ["General"];
-                activeGuideSub = "General";
+                let genId = `sub_${Date.now()}`;
+                pdfGuidesTree[activeGuideMain][genId] = { id: genId, title: "General", url: "" };
+                pdfGuidesOrder.sub[activeGuideMain] = [genId];
+                activeGuideSub = genId;
             } else {
                 activeGuideSub = remaining[0];
             }
@@ -4072,7 +4201,7 @@
                 if (parsed.practiceData) practiceData = parsed.practiceData;
                 if (parsed.masterPlayLibrary) masterPlayLibrary = parsed.masterPlayLibrary;
                 if (parsed.cascadingDrills) cascadingDrills = parsed.cascadingDrills;
-                if (parsed.pdfGuidesTree) pdfGuidesTree = parsed.pdfGuidesTree;
+                if (parsed.pdfGuidesTree) pdfGuidesTree = normalizeGuidesTree(parsed.pdfGuidesTree);
                 if (parsed.pdfGuidesOrder) pdfGuidesOrder = parsed.pdfGuidesOrder;
                 if (parsed.collapsedFolders) collapsedFolders = parsed.collapsedFolders;
                 if (parsed.savedCoachesList) savedCoachesList = parsed.savedCoachesList;
@@ -4217,9 +4346,4 @@
         switchUnitTab(activeUnit);
     }
 
-    if (!auth) {
-        bypassLogin();
-    }
-  </script>
-</body>
-</html>
+    if (!authI seem to be encountering an error. Can I try something else for you?
