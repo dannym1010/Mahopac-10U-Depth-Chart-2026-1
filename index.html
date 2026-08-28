@@ -356,7 +356,6 @@
       .practice-table td { font-size: var(--print-font-size, 10px) !important; border: 1px solid #000 !important; padding: 5px !important; color: #000 !important; vertical-align: top !important; word-wrap: break-word !important; overflow-wrap: break-word !important; height: auto !important; }
       .practice-table tr { page-break-inside: avoid !important; break-inside: avoid !important; }
       
-      /* Enforce fixed column layout on print to prevent trailing border glitch */
       #col-0 { width: 12% !important; }
       #col-1 { width: 16.2% !important; }
       #col-2 { width: 41.8% !important; }
@@ -615,10 +614,7 @@
             </div>
           </div>
 
-          <!-- Level 1 Main Folders (Horizontal Scrollable Ribbon) -->
           <div class="pill-scroll-bar" id="guide-main-folders" style="margin-bottom:8px; border-bottom:1px solid #e2e8f0; padding-bottom:8px;"></div>
-          
-          <!-- Level 2 Sub Tabs (Horizontal Scrollable Ribbon) -->
           <div class="pill-scroll-bar" id="guide-sub-tabs" style="margin-bottom:12px; background:#f1f5f9; padding:6px 10px; border-radius:8px; border:1px solid var(--card-border);"></div>
           
           <div id="guide-content-area" style="min-height: 550px; display:flex; flex-direction:column; gap: 10px;"></div>
@@ -663,7 +659,6 @@
             </div>
             <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
               
-              <!-- PRACTICE PLAN CSV/JSON IMPORT BUTTON -->
               <button class="toggle-board-btn admin-only" style="background:#0284c7; color:#fff;" onclick="document.getElementById('import-practice-plan-file').click()" title="Import Practice Plan structure from CSV or JSON">📥 Import Plan</button>
               <input type="file" id="import-practice-plan-file" style="display:none;" onchange="importPracticePlanFile(event)" accept=".csv,.json" />
 
@@ -674,7 +669,6 @@
                 <button class="toggle-board-btn" style="padding:2px 6px; font-size:10px;" onclick="openTemplatesManager()" title="Edit or delete templates">⚙️ Manage</button>
               </div>
               
-              <!-- PRINT FONT SIZE SELECTOR -->
               <div style="display:flex; align-items:center; gap:4px; background:#f8fafc; padding:2px 6px; border-radius:6px; border:1px solid var(--card-border);">
                 <span class="no-print-text" style="font-size:10px; font-weight:bold; color:var(--primary);">🔤 Print Font:</span>
                 <select id="print-font-size-select" class="prac-select" style="width:75px; font-size:11px; padding:2px 4px;" onchange="updatePrintFontSize(this.value)">
@@ -801,7 +795,6 @@
     </div>
   </div>
 
-  <!-- COPY WEEK DATA MODAL -->
   <div id="copy-week-modal" class="custom-modal hidden">
     <div class="custom-modal-card" style="width: 380px;">
        <h3>📋 Copy Week Formations & Depth Chart</h3>
@@ -834,7 +827,6 @@
     </div>
   </div>
 
-  <!-- GUIDE TAB ORGANIZER MODAL -->
   <div id="guide-manager-modal" class="custom-modal hidden">
     <div class="custom-modal-card" style="width: 460px;">
        <h3>⚙️ Organize Playbook Folders & Tabs</h3>
@@ -953,7 +945,6 @@
         localStorage.setItem("footballPrintFontSize", JSON.stringify(size));
     }
 
-    /* GRANULAR SCOPED SYNC (Prevents cross-tab state overwrites) */
     function saveState(scope = 'all') {
         if (isImporting) return;
         const prac = practiceData.find(p => p.id === currentPracticeId);
@@ -1406,7 +1397,6 @@
       return weeklyData[week].scrimmageChart;
     }
 
-    /* PRACTICE PLAN CSV/JSON IMPORT LOGIC */
     function importPracticePlanFile(e) {
       const file = e.target.files[0];
       if (!file) return;
@@ -1470,7 +1460,6 @@
       reader.readAsText(file);
     }
 
-    /* WEEK TO WEEK COPY FUNCTIONS */
     function openCopyWeekModal() {
         if (userRole !== 'admin') return alert("Only Head Coach (Admin) can copy week data.");
         const srcSelect = document.getElementById("copy-src-week-select");
@@ -2283,7 +2272,6 @@
                         <input type="text" class="prac-input" value="${st.name || ''}" onkeydown="if(event.key==='Enter') this.blur();" onchange="updatePracStation(${idx}, ${sIdx}, 'name', this.value); syncDrillLibraryFromStation(${idx}, ${sIdx});" placeholder="Group / Drill Name">
                         <textarea class="prac-textarea" oninput="autoResizeTextarea(this);" onchange="autoResizeTextarea(this); updatePracStation(${idx}, ${sIdx}, 'desc', this.value); syncDrillLibraryFromStation(${idx}, ${sIdx});" placeholder="Details...">${st.desc || ''}</textarea>
                         
-                        <!-- Print Friendly Expanded Views -->
                         ${printStationTiming}
                         <div class="print-val font-bold">${st.name || ''}</div>
                         <div class="print-val">${st.desc || ''}</div>
@@ -2299,7 +2287,6 @@
                         <textarea class="prac-textarea coach-textarea" oninput="autoResizeTextarea(this); updatePracStation(${idx}, ${sIdx}, 'coach', this.value);" placeholder="Type or click dropdown...">${st.coach || ''}</textarea>
                         <div class="no-print-text" style="font-size:9.5px; color:var(--accent); cursor:pointer; margin-top:2px;" onclick="toggleCoachPopup(${idx}, ${sIdx}, event)">▼ Select Coaches</div>
                         
-                        <!-- Print Friendly Coach View -->
                         <div class="print-val font-bold">${st.coach || ''}</div>
 
                         <div id="${coachPopupId}" class="coach-popup-box card-search-dropdown hidden" style="width: 220px; max-height: 220px; overflow-y: auto; top: 100%; left: 0; padding:8px; background:#fff; z-index:50000; box-shadow:0 4px 12px rgba(0,0,0,0.15);" onclick="event.stopPropagation()">
@@ -2318,7 +2305,6 @@
                 let focusCellContent = `
                     <div class="station-block">
                         <textarea class="prac-textarea" oninput="autoResizeTextarea(this);" onchange="autoResizeTextarea(this); updatePracStation(${idx}, ${sIdx}, 'focus', this.value); syncDrillLibraryFromStation(${idx}, ${sIdx});" placeholder="Key focus...">${st.focus || ''}</textarea>
-                        <!-- Print Friendly Focus View -->
                         <div class="print-val">${st.focus || ''}</div>
                     </div>
                 `;
@@ -2596,7 +2582,6 @@
         }
     }
 
-    /* REALTIME PERSISTENT ACCOUNT APPROVAL AND SYNC */
     function checkUserApprovalStatus(email) {
         if (!email) return false;
         const cleanEmail = email.trim().toLowerCase();
@@ -2664,7 +2649,6 @@
                 localStorage.setItem("footballTeamCoaches", JSON.stringify(teamCoachesList));
             }
 
-            // Real-time approval & permission check
             if (currentUser && currentUser.email) {
                 let isApproved = checkUserApprovalStatus(currentUser.email);
                 if (!isApproved) {
@@ -2882,14 +2866,12 @@
           let clean = newName.trim();
           let oldName = form.name.toLowerCase();
 
-          // Rename in default template storage
           defaultFormations.forEach(f => {
               if (f && (f.id === formId || f.name.toLowerCase() === oldName)) {
                   f.name = clean;
               }
           });
 
-          // Rename across all game weeks
           Object.keys(weeklyData).forEach(w => {
               if (weeklyData[w] && Array.isArray(weeklyData[w].formations)) {
                   weeklyData[w].formations.forEach(f => {
@@ -2914,10 +2896,8 @@
       if (confirm(`Delete formation "${form.name}" across all game weeks and default templates?`)) {
           const targetName = form.name.toLowerCase();
 
-          // Remove from default template storage
           defaultFormations = defaultFormations.filter(f => f.id !== formId && f.name.toLowerCase() !== targetName);
 
-          // Remove across all game weeks
           for (let w = 0; w <= 8; w++) {
               let wkKey = String(w);
               if (weeklyData[wkKey] && Array.isArray(weeklyData[wkKey].formations)) {
@@ -2941,7 +2921,6 @@
         let cleanName = name.trim();
         let newBaseId = "form_" + Date.now();
 
-        // 1. Add to permanent default template storage
         if (!defaultFormations.some(f => f.name.toLowerCase() === cleanName.toLowerCase())) {
             defaultFormations.push({
                 id: newBaseId,
@@ -2951,7 +2930,6 @@
             });
         }
 
-        // 2. Add to all active weeks (0 to 8)
         for (let w = 0; w <= 8; w++) {
             let wkKey = String(w);
             ensureWeekDataExists(wkKey);
@@ -2974,7 +2952,6 @@
       }
     }
 
-    /* DUPLICATE FORMATION WITH ALL PLAYERS */
     function copyFullFormation(formId) {
       if (userRole !== 'admin') return;
       const forms = getWeekFormations(currentWeek);
@@ -3039,7 +3016,6 @@
       alert(`Formation "${cleanName}" duplicated with all players successfully!`);
     }
 
-    /* REORDER FORMATIONS (MOVE UP / DOWN) */
     function moveFormation(formId, direction) {
       if (userRole !== 'admin') return;
       const forms = getWeekFormations(currentWeek);
@@ -3065,7 +3041,6 @@
       }
     }
 
-    /* ON-SCREEN FILTERING OF FORMATION BOARDS */
     function filterBoardView(unit, selectedId) {
       const container = document.getElementById("boards-" + unit);
       if (!container) return;
@@ -3092,7 +3067,6 @@
       select.innerHTML = html;
     }
 
-    /* DRAG AND DROP HANDLERS FOR POSITION CARDS ACROSS LEVELS */
     function handlePositionDragStart(e, formId, rIdx, pIdx) {
       if (userRole !== 'admin') return;
       draggedPositionData = { formId, rIdx, pIdx };
@@ -3678,7 +3652,6 @@
       triggerDebouncedSave('depthChart');
     }
 
-    /* PLAYBOOKS & POSITIONAL GUIDES - TOUCH-FRIENDLY DETERMINISTIC NAVIGATION & ID-KEYING */
     function renderGuideTab() {
       const mainContainer = document.getElementById('guide-main-folders');
       const subContainer = document.getElementById('guide-sub-tabs');
@@ -3713,7 +3686,6 @@
           activeGuideSub = subKeys[0] || "";
       }
 
-      // 1. Level 1 Main Category Ribbon (Pills)
       mainContainer.innerHTML = pdfGuidesOrder.main.map(mainCat => {
         let encMain = encodeURIComponent(mainCat);
         return `
@@ -3723,7 +3695,6 @@
         `;
       }).join('');
 
-      // 2. Level 2 Sub-Tabs Ribbon (Pills)
       let subTabsHtml = subKeys.map(subId => {
         let tabObj = subMap[subId];
         let displayTitle = (tabObj && typeof tabObj === 'object') ? tabObj.title : subId;
@@ -3737,7 +3708,6 @@
 
       subContainer.innerHTML = subTabsHtml || '<span style="font-size:11px; color:var(--text-muted); padding:4px;">No sub-tabs found. Click "Organize Tabs" to add.</span>';
 
-      // 3. Document Content Area
       let tabObj = subMap[activeGuideSub];
       let guideVal = "";
       let activeTitle = activeGuideSub;
@@ -3778,7 +3748,6 @@
         if (el) el.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
     }
 
-    /* GUIDE MANAGER MODAL LOGIC */
     function openGuideManagerModal() {
         const curMainSpan = document.getElementById("guide-manager-cur-main");
         if (curMainSpan) curMainSpan.textContent = activeGuideMain;
@@ -3795,7 +3764,6 @@
 
         if (curMainSpan) curMainSpan.textContent = activeGuideMain;
 
-        // Render main folders list
         mainsContainer.innerHTML = pdfGuidesOrder.main.map((mainCat) => {
             let encMain = encodeURIComponent(mainCat);
             let isCurrent = (mainCat === activeGuideMain);
@@ -3812,7 +3780,6 @@
             `;
         }).join('');
 
-        // Render sub-tabs for active main folder
         let subKeys = pdfGuidesOrder.sub[activeGuideMain] || [];
         let subMap = pdfGuidesTree[activeGuideMain] || {};
         subsContainer.innerHTML = subKeys.map((subId) => {
@@ -4346,4 +4313,9 @@
         switchUnitTab(activeUnit);
     }
 
-    if (!authI seem to be encountering an error. Can I try something else for you?
+    if (!auth) {
+      initializeApp();
+    }
+  </script>
+</body>
+</html>
