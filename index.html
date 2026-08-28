@@ -471,7 +471,7 @@
     <div style="display:flex; gap:6px; flex-wrap:wrap;">
       <button onclick="toggleFullScreen()">⛶ Full Screen</button>
       <button class="admin-only" onclick="exportData()">Backup</button>
-      <button class="admin-only" onclick="document.getElementById('import-file').click()">Import System Data</button>
+      <button class="admin-only" onclick="document.getElementById('import-file').click()">Import</button>
       <button class="admin-only" onclick="resetDefault()" style="color:#ef4444;">Reset</button>
       <input type="file" id="import-file" style="display:none;" onchange="importData(event);" accept=".json" />
     </div>
@@ -1422,7 +1422,7 @@
       return weeklyData[week].scrimmageChart;
     }
 
-    /* MULTI-FORMAT PRACTICE PLAN IMPORTER (PDF, Word, CSV, JSON) */
+    /* MULTI-FORMAT PRACTICE PLAN IMPORTER (PDF, Word, CSV, JSON, TXT) */
     async function importPracticePlanFile(e) {
       const file = e.target.files[0];
       if (!file) return;
@@ -3079,14 +3079,12 @@
           let clean = newName.trim();
           let oldName = form.name.toLowerCase();
 
-          // Rename in default template storage
           defaultFormations.forEach(f => {
               if (f && (f.id === formId || f.name.toLowerCase() === oldName)) {
                   f.name = clean;
               }
           });
 
-          // Rename across all game weeks
           Object.keys(weeklyData).forEach(w => {
               if (weeklyData[w] && Array.isArray(weeklyData[w].formations)) {
                   weeklyData[w].formations.forEach(f => {
@@ -3111,10 +3109,8 @@
       if (confirm(`Delete formation "${form.name}" across all game weeks and default templates?`)) {
           const targetName = form.name.toLowerCase();
 
-          // Remove from default template storage
           defaultFormations = defaultFormations.filter(f => f.id !== formId && f.name.toLowerCase() !== targetName);
 
-          // Remove across all game weeks
           for (let w = 0; w <= 8; w++) {
               let wkKey = String(w);
               if (weeklyData[wkKey] && Array.isArray(weeklyData[wkKey].formations)) {
@@ -3138,7 +3134,6 @@
         let cleanName = name.trim();
         let newBaseId = "form_" + Date.now();
 
-        // 1. Add to permanent default template storage
         if (!defaultFormations.some(f => f.name.toLowerCase() === cleanName.toLowerCase())) {
             defaultFormations.push({
                 id: newBaseId,
@@ -3148,7 +3143,6 @@
             });
         }
 
-        // 2. Add to all active weeks (0 to 8)
         for (let w = 0; w <= 8; w++) {
             let wkKey = String(w);
             ensureWeekDataExists(wkKey);
@@ -3171,7 +3165,6 @@
       }
     }
 
-    /* DUPLICATE FORMATION WITH ALL PLAYERS */
     function copyFullFormation(formId) {
       if (userRole !== 'admin') return;
       const forms = getWeekFormations(currentWeek);
@@ -3236,7 +3229,6 @@
       alert(`Formation "${cleanName}" duplicated with all players successfully!`);
     }
 
-    /* REORDER FORMATIONS (MOVE UP / DOWN) */
     function moveFormation(formId, direction) {
       if (userRole !== 'admin') return;
       const forms = getWeekFormations(currentWeek);
@@ -3262,7 +3254,6 @@
       }
     }
 
-    /* ON-SCREEN FILTERING OF FORMATION BOARDS */
     function filterBoardView(unit, selectedId) {
       const container = document.getElementById("boards-" + unit);
       if (!container) return;
@@ -3289,7 +3280,6 @@
       select.innerHTML = html;
     }
 
-    /* DRAG AND DROP HANDLERS FOR POSITION CARDS ACROSS LEVELS */
     function handlePositionDragStart(e, formId, rIdx, pIdx) {
       if (userRole !== 'admin') return;
       draggedPositionData = { formId, rIdx, pIdx };
@@ -4202,4 +4192,161 @@
            saveState('users');
        }
 
-       letI encountered an error doing what you asked. Could you try again?
+       let rowsHtml = teamCoachesList.map((coach, idx) => {
+         let statusColor = coach.status === 'Active' ? '#16a34a' : '#d97706';
+         let toggleBtnText = coach.status === 'Active' ? '⏸️ Deactivate' : '✅ Approve';
+         let isDanny = coach.email && coach.email.trim().toLowerCase() === "dannym1010@gmail.com";
+         
+         let roleCellHtml = isDanny ? `<span class="role-badge role-admin">${coach.role}</span>` : `
+           <select class="prac-select" style="font-size:11px; font-weight:bold; width:150px;" onchange="updateCoachRole(${idx}, this.value)">
+              <option value="Head Coach (Admin)" ${coach.role && coach.role.includes('Admin') ? 'selected' : ''}>Head Coach (Admin)</option>
+              <option value="Assistant Coach" ${!coach.role || !coach.role.includes('Admin') ? 'selected' : ''}>Assistant Coach</option>
+           </select>
+         `;
+
+         return `
+           <tr>
+             <td style="padding:8px; border:1px solid var(--card-border); font-weight:bold;">${coach.email}</td>
+             <td style="padding:8px; border:1px solid var(--card-border);">${roleCellHtml}</td>
+             <td style="padding:8px; border:1px solid var(--card-border); text-align:center; color:${statusColor}; font-weight:bold;">${coach.status || 'Pending'}</td>
+             <td style="padding:8px; border:1px solid var(--card-border); text-align:center;" class="admin-only">
+                ${isDanny ? '<span style="font-size:10px; color:var(--text-muted); font-style:italic;">Master Admin</span>' : `
+                  <button class="toggle-board-btn" style="padding:2px 6px; font-size:10px; margin-right:4px;" onclick="toggleCoachApproval(${idx})">${toggleBtnText}</button>
+                  <button class="remove-btn" onclick="removeCoachFromStaff(${idx})" title="Remove Coach">&times;</button>
+                `}
+             </td>
+           </tr>
+         `;
+       }).join('');
+
+       let savedCoachesHtml = savedCoachesList.map((sc) => `
+          <div style="display:flex; justify-content:space-between; align-items:center; background:#f8fafc; padding:6px 10px; border:1px solid var(--card-border); border-radius:6px; margin-bottom:4px;">
+             <span style="font-weight:bold; font-size:11px; color:var(--primary);">${sc}</span>
+             <button class="remove-btn" onclick="deleteSavedCoach('${sc}')" style="font-size:13px;" title="Delete">&times;</button>
+          </div>
+       `).join('');
+
+       let html = `
+         <div style="display:grid; grid-template-columns: 2fr 1fr; gap:20px;">
+           <div>
+             <div style="margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+               <strong>Practice Staff & Permissions</strong>
+               <button class="toggle-board-btn admin-only" style="background:var(--primary); color:#fff; padding:6px 12px;" onclick="addNewCoachPrompt()">+ Add Coach to Staff</button>
+             </div>
+             <table style="width:100%; border-collapse:collapse; background:#fff; font-size:11px;">
+               <thead>
+                 <tr style="background:#f1f5f9; color:var(--primary); text-align:left;">
+                   <th style="padding:8px; border:1px solid var(--card-border);">Coach / User Email</th>
+                   <th style="padding:8px; border:1px solid var(--card-border);">Role</th>
+                   <th style="padding:8px; border:1px solid var(--card-border); text-align:center;">Status</th>
+                   <th style="padding:8px; border:1px solid var(--card-border); text-align:center;" class="admin-only">Action</th>
+                 </tr>
+               </thead>
+               <tbody>${rowsHtml}</tbody>
+             </table>
+           </div>
+           <div>
+             <div style="margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+               <strong>Saved Practice Coaches</strong>
+               <button class="toggle-board-btn admin-only" style="background:#10b981; color:#fff; padding:4px 8px; font-size:10px;" onclick="addNewSavedCoachPrompt()">+ Add Name</button>
+             </div>
+             <div style="max-height: 250px; overflow-y:auto; border:1px solid var(--card-border); padding:8px; border-radius:6px; background:#fff;">
+               ${savedCoachesHtml || '<div style="color:var(--text-muted); font-size:11px; text-align:center;">No saved coaches.</div>'}
+             </div>
+           </div>
+         </div>
+       `;
+       container.innerHTML = html;
+    }
+
+    function addNewSavedCoachPrompt() {
+        let name = prompt("Enter coach name (e.g. Coach Smith):");
+        if (name && name.trim() !== "") {
+            let clean = name.trim();
+            if (!savedCoachesList.includes(clean)) {
+                savedCoachesList.push(clean);
+                savedCoachesList.sort();
+                if (saveTimeout) clearTimeout(saveTimeout);
+                saveState('users');
+                renderUsers();
+            }
+        }
+    }
+
+    function deleteSavedCoach(name) {
+        if (confirm(`Remove "${name}" from saved practice coaches?`)) {
+            savedCoachesList = savedCoachesList.filter(c => c !== name);
+            practiceData.forEach(p => {
+                if (Array.isArray(p.plan)) {
+                    p.plan.forEach(row => {
+                        if (row.stations) {
+                            row.stations.forEach(st => {
+                                if (st.coach) {
+                                    let tokens = st.coach.split(',').map(t => t.trim()).filter(Boolean);
+                                    tokens = tokens.filter(t => t !== name && t !== "Coach " + name);
+                                    st.coach = tokens.join(', ');
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+            if (saveTimeout) clearTimeout(saveTimeout);
+            saveState('users');
+            renderPracticePlan();
+            if (activeUnit === 'users') renderUsers();
+        }
+    }
+
+    function updateCoachRole(idx, newRole) {
+        if (teamCoachesList[idx]) {
+            if (teamCoachesList[idx].email.trim().toLowerCase() === "dannym1010@gmail.com") return;
+            teamCoachesList[idx].role = newRole;
+            if (saveTimeout) clearTimeout(saveTimeout);
+            saveState('users');
+            renderUsers();
+        }
+    }
+
+    function toggleCoachApproval(idx) {
+        if (teamCoachesList[idx]) {
+            if (teamCoachesList[idx].email.trim().toLowerCase() === "dannym1010@gmail.com") return;
+            teamCoachesList[idx].status = (teamCoachesList[idx].status === 'Active') ? 'Pending' : 'Active';
+            if (saveTimeout) clearTimeout(saveTimeout);
+            saveState('users');
+            renderUsers();
+        }
+    }
+
+    function addNewCoachPrompt() {
+       let email = prompt("Enter assistant coach email address:");
+       if (email && email.trim() !== "") {
+           let cleanEmail = email.trim().toLowerCase();
+           if (teamCoachesList.some(c => c.email && c.email.trim().toLowerCase() === cleanEmail)) {
+               return alert("Coach already exists.");
+           }
+           teamCoachesList.push({ email: email.trim(), role: "Assistant Coach", status: "Active" });
+           if (saveTimeout) clearTimeout(saveTimeout);
+           saveState('users');
+           renderUsers();
+       }
+    }
+
+    function removeCoachFromStaff(idx) {
+       if (teamCoachesList[idx].email.trim().toLowerCase() === "dannym1010@gmail.com") return alert("Cannot remove master admin.");
+       if (confirm(`Remove coach ${teamCoachesList[idx].email}?`)) {
+           teamCoachesList.splice(idx, 1);
+           if (saveTimeout) clearTimeout(saveTimeout);
+           saveState('users');
+           renderUsers();
+       }
+    }
+
+    function filterRoster() { renderMasterRoster(); }
+    function renderPlayLibrary() {
+      const container = document.getElementById("play-library-list");
+      if (container) container.innerHTML = masterPlayLibrary.map(p => `<li class="full-roster-item"><span>${p}</span></li>`).join('');
+    }
+
+    function exportData() {
+        constI encountered an error doing what you asked. Could you try again?
